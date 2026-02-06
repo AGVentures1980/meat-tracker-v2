@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>EmailJS Test</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("15yzEVB4O5kIXWLU");
+        })();
+    </script>
+</head>
+
+<body>
+    <h1>EmailJS Connectivity Test</h1>
+    <button onclick="testSend()">SEND TEST EMAIL</button>
+    <div id="status">Ready</div>
+
+    <script>
+        function testSend() {
+            document.getElementById('status').innerText = "Sending...";
+
+            var params = {
+                to_email: "alexandre@alexgarciaventures.co", // Hardcoded master email for test
+                subject: "Test from Debugger",
+                message: "If you get this, keys are working."
+            };
+
+            emailjs.send("service_v5fsxwr", "template_ma7yhgg", params)
+                .then(function (response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    document.getElementById('status').innerText = "SUCCESS: " + response.status;
+                }, function (error) {
+                    console.log('FAILED...', error);
+                    document.getElementById('status').innerText = "FAILED: " + JSON.stringify(error);
+                });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Arquitetura Multi-Tenant
+model Company {
+  id         String   @id @default(uuid())
+  name       String
+  plan       String   @default("enterprise") // 'enterprise', 'pro', 'starter'
+  created_at DateTime @default(now())
+  stores     Store[]
+}
+
+// Hierarquia: Company > Store
+model Store {
+  id          Int      @id @default(autoincrement()) // Changed to Int as requested
+  company_id  String
+  store_name  String
+  location    String
+  created_at  DateTime @default(now())
+  
+  // Relations
+  company     Company  @relation(fields: [company_id], references: [id])
+  users       User[]
+  orders      Order[]
+  meat_usage  MeatUsage[]
+  uploads     Upload[]
+  reports     Report[]
+}
+
+enum Role {
+  admin
+  manager
+  viewer
+}
+
+model User {
+  id            String   @id @default(uuid())
+  store_id      Int?     // Nullable for Master Admin who belongs to Company but no specific store
+  email         String   @unique
+  password_hash String
+  role          Role     @default(viewer)
+  created_at    DateTime @default(now())
+
+  // Relations
+  store         Store?   @relation(fields: [store_id], references: [id])
+}
+
+// Order & Meat Flow
+enum OrderSource {
+  OLO
+  UberEats
+  DoorDash
+  Manual
+}
+
+model Order {
+  id                String       @id @default(uuid())
+  store_id          Int
+  order_external_id String?
+  source            OrderSource
+  order_date        DateTime
+  raw_payload       Json?        // Stores original JSON from webhook
+  
+  // Relations
+  store             Store        @relation(fields: [store_id], references: [id])
+  items             OrderItem[]
+  
+  @@index([store_id, order_date])
+}
+
+model OrderItem {
+  id           String @id @default(uuid())
+  order_id     String
+  item_name    String
+  protein_type String
+  lbs          Float
+
+  // Relations
+  order        Order  @relation(fields: [order_id], references: [id])
+}
+
+// Consolidated Usage Table
+model MeatUsage {
+  id          String   @id @default(uuid())
+  store_id    Int
+  protein     String
+  lbs_total   Float
+  date        DateTime @db.Date // Only Date part matters here
+
+  // Relations
+  store       Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, protein, date]) // Prevent duplicates for same day/protein
+}
+
+enum FileType {
+  CSV
+  Image
+}
+
+model Upload {
+  id          String   @id @default(uuid())
+  store_id    Int
+  file_type   FileType
+  file_url    String
+  processed   Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  // Relations
+  store       Store    @relation(fields: [store_id], references: [id])
+}
+
+model Report {
+  id              String   @id @default(uuid())
+  store_id        Int
+  month           String   // Format: "YYYY-MM"
+  total_lbs       Float
+  extra_customers Int      @default(0)
+  generated_at    DateTime @default(now())
+
+  // Relations
+  store           Store    @relation(fields: [store_id], references: [id])
+  
+  @@unique([store_id, month])
+}

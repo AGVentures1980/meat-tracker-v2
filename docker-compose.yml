@@ -1,0 +1,29 @@
+
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://brasa_user:brasa_pass@db:5432/brasa_db
+      - NODE_ENV=production
+      - PORT=3000
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=brasa_user
+      - POSTGRES_PASSWORD=brasa_pass
+      - POSTGRES_DB=brasa_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
