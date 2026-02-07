@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { StatCard } from '../components/StatCard';
 import { ManualEntryForm } from '../components/ManualEntryForm';
 import { Modal } from '../components/Modal';
+import { StorePerformanceTable } from '../components/StorePerformanceTable';
 import { LucideIcon, Scale, Users, Trophy, Activity, LogOut, LayoutGrid, PlusCircle, Upload, Camera } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
@@ -287,6 +288,10 @@ export const Dashboard = () => {
                     </div>
                 )}
 
+                {/* BI Machine Table */}
+                <div className="mt-8">
+                    <StorePerformanceTable />
+                </div>
             </main>
 
             <Modal title="Add Manual Entry" isOpen={showManualModal} onClose={() => setShowManualModal(false)}>
