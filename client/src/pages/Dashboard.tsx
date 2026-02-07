@@ -36,7 +36,7 @@ export const Dashboard = () => {
         try {
             // Fetch from our new API
             const storeId = isNaN(parseInt(user.id)) ? 180 : user.id;
-            const response = await fetch(`http://localhost:3001/api/v1/dashboard/${storeId}`, {
+            const response = await fetch(`/api/v1/dashboard/${storeId}`, {
                 headers: { 'Authorization': 'Bearer mock-token' }
             });
             if (response.ok) {
@@ -56,7 +56,7 @@ export const Dashboard = () => {
 
     const handleManualSubmit = async (data: { type: string; lbs: number; date: string }) => {
         try {
-            const response = await fetch('http://localhost:3001/api/v1/orders', {
+            const response = await fetch('/api/v1/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export const Dashboard = () => {
         formData.append('type', type);
 
         try {
-            const response = await fetch('http://localhost:3001/api/v1/upload', {
+            const response = await fetch('/api/v1/upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': 'Bearer mock-token'
