@@ -24,19 +24,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = async (email: string, pass: string) => {
-        // Simulate API delay
-        await new Promise(r => setTimeout(r, 500));
+        try {
+            const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
+            const res = await fetch(`${baseUrl}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+            });
 
-        const cleanEmail = email.toLowerCase().trim();
-        const account = ACCOUNTS[cleanEmail];
+            const data = await res.json();
 
-        if (account && account.pass === pass) {
-            const userData = { ...account, email: cleanEmail };
-            setUser(userData);
-            localStorage.setItem('brasameat_user', JSON.stringify(userData));
-            return true;
+            if (res.ok && data.success) {
+                const userData = { ...data.user, token: data.token, forceChange: data.forcePasswordChange };
+                setUser(userData);
+                localStorage.setItem('brasameat_user', JSON.stringify(userData));
+                return true;
+            } else {
+                return false;
+            }
+        } catch (err) {
+            console.error('Login Failed', err);
+            return false;
         }
-        return false;
     };
 
     const logout = () => {

@@ -49,6 +49,10 @@ model User {
   password_hash String
   role          Role     @default(viewer)
   created_at    DateTime @default(now())
+  
+  // Security Fields
+  last_password_change DateTime @default(now())
+  force_change         Boolean  @default(false) // Changed default to FALSE as we use existing passwords initially
 
   // Relations
   store         Store?   @relation(fields: [store_id], references: [id])

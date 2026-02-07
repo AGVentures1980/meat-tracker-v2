@@ -14,27 +14,38 @@ const ProtectedRoute = () => {
 
 
 
+import { ChangePasswordModal } from './components/ChangePasswordModal';
+
+function AppContent() {
+    return (
+        <BrowserRouter>
+            <ChangePasswordModal />
+            <Routes>
+                <Route path="/login" element={<Login />} />
+
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/dashboard/:storeId" element={<Dashboard />} />
+                    <Route path="/inventory" element={<PlaceholderPage title="Inventory Management" />} />
+                    <Route path="/reports" element={<PlaceholderPage title="Reporting Suite" />} />
+                    <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
+                    <Route path="/settings" element={<PlaceholderPage title="System Settings" />} />
+                    <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
+                    {/* Redirect root to dashboard */}
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                </Route>
+
+                {/* Catch all redirect to login */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+        </BrowserRouter>
+    );
+}
+
 function App() {
     return (
         <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
-
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/dashboard/:storeId" element={<Dashboard />} />
-                        <Route path="/inventory" element={<PlaceholderPage title="Inventory Management" />} />
-                        <Route path="/reports" element={<PlaceholderPage title="Reporting Suite" />} />
-                        <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
-                        <Route path="/settings" element={<PlaceholderPage title="System Settings" />} />
-                        <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
-                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    </Route>
-
-                    <Route path="*" element={<Navigate to="/login" replace />} />
-                </Routes>
-            </BrowserRouter>
+            <AppContent />
         </AuthProvider>
     );
 }

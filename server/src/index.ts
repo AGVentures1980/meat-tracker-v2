@@ -20,34 +20,9 @@ app.get('/health', (req, res) => {
     res.json({ status: 'UP', timestamp: new Date() });
 });
 
-// Mock Authentication Middleware (for Prototype V2)
-// In production this would verify JWTs
-const requireAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const token = req.headers.authorization;
-    if (!token) return res.status(401).json({ error: 'Missing Authorization header' });
-
-    // Mock Token Logic for V2 Prototype
-    // Format: "Bearer store-123-role-manager" or just "Bearer mock-token" (Admin)
-    const tokenValue = token.split(' ')[1];
-
-    if (tokenValue === 'mock-token') {
-        // Master Admin (God Mode)
-        (req as any).user = { role: 'admin', storeId: null };
-        return next();
-    }
-
-    if (tokenValue.startsWith('store-')) {
-        // e.g. store-180-manager
-        const parts = tokenValue.split('-');
-        const storeId = parseInt(parts[1]);
-        const role = parts[2] || 'viewer';
-
-        (req as any).user = { role, storeId };
-        return next();
-    }
-
-    return res.status(403).json({ error: 'Invalid Token' });
-};
+// Import Real Auth Middleware
+import { requireAuth } from './middleware/auth.middleware';
+import authRoutes from './routes/auth.routes';
 
 // API Routes
 import dashboardRoutes from './routes/dashboard.routes';
@@ -58,6 +33,10 @@ import automationRoutes from './routes/automation.routes';
 
 import path from 'path';
 
+// Auth Routes (Public)
+app.use('/api/v1/auth', authRoutes);
+
+// Protected Routes
 app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/v1/orders', requireAuth, orderRoutes);
 app.use('/api/v1/upload', requireAuth, uploadRoutes);
