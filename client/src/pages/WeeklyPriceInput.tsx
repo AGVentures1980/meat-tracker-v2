@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Save, DollarSign, TrendingDown, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
+import { Save, DollarSign, TrendingDown, TrendingUp, AlertCircle, Loader2, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 
 export const WeeklyPriceInput = () => {
     const [loading, setLoading] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
 
-    // Mock Data State - In real app, fetch from DB
+    // Mock Data State - In real app, fetch from DB based on selectedDate
     const [prices, setPrices] = useState([
         { id: 1, item: 'Picanha (Top Sirloin)', current: 5.80, last: 5.50, unit: 'lb' },
         { id: 2, item: 'Filet Mignon', current: 14.20, last: 13.90, unit: 'lb' },
@@ -27,23 +28,37 @@ export const WeeklyPriceInput = () => {
         alert('Weekly Prices Updated! Financial reports will now reflect these costs.');
     };
 
-    // Helper to get current week (Mon-Sun)
-    const getWeekRange = () => {
-        const now = new Date();
-        const currentDay = now.getDay(); // 0=Sun, 1=Mon, etc.
+    // Helper to get week range relative to any date
+    const getWeekRange = (baseDate: Date) => {
+        const currentDay = baseDate.getDay(); // 0=Sun, 1=Mon, etc.
         const diffToMon = currentDay === 0 ? -6 : 1 - currentDay; // If Sun(0), go back 6 days. Else go back to Mon(1).
 
-        const monday = new Date(now);
-        monday.setDate(now.getDate() + diffToMon);
+        const monday = new Date(baseDate);
+        monday.setDate(baseDate.getDate() + diffToMon);
+        monday.setHours(0, 0, 0, 0);
 
         const sunday = new Date(monday);
         sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
 
         const format = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        return `${format(monday)} - ${format(sunday)}`;
+        return {
+            text: `${format(monday)} - ${format(sunday)}`,
+            start: monday,
+            end: sunday
+        };
     };
 
-    const weekRange = getWeekRange();
+    const weekRange = getWeekRange(selectedDate);
+
+    // Logic: Locked if the END of the selected week is in the past relative to TODAY
+    const isLocked = weekRange.end < new Date();
+
+    const navigateWeek = (direction: 'prev' | 'next') => {
+        const newDate = new Date(selectedDate);
+        newDate.setDate(selectedDate.getDate() + (direction === 'next' ? 7 : -7));
+        setSelectedDate(newDate);
+    };
 
     return (
         <DashboardLayout>
@@ -53,9 +68,25 @@ export const WeeklyPriceInput = () => {
                         <h1 className="text-3xl font-serif font-bold text-[#C5A059] mb-2">Weekly Protein Pricing</h1>
                         <p className="text-gray-400">Input current market prices to calc savings & waste costs.</p>
                     </div>
-                    <div className="bg-[#1a1a1a] px-4 py-2 rounded border border-white/10 text-right">
-                        <div className="text-xs text-gray-500 uppercase">Effective Date (Mon-Sun)</div>
-                        <div className="text-white font-mono">{weekRange}</div>
+                    <div className="flex flex-col items-end gap-2">
+                        <div className="bg-[#1a1a1a] px-4 py-2 rounded border border-white/10 text-right flex items-center gap-4">
+                            <button onClick={() => navigateWeek('prev')} className="p-1 hover:bg-white/10 rounded transition-colors text-gray-400 hover:text-white">
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+
+                            <div>
+                                <div className="text-xs text-gray-500 uppercase">Effective Date (Mon-Sun)</div>
+                                <div className="text-white font-mono flex items-center gap-2 justify-center">
+                                    {weekRange.text}
+                                    {isLocked && <Lock className="w-3 h-3 text-red-400" />}
+                                </div>
+                            </div>
+
+                            <button onClick={() => navigateWeek('next')} className="p-1 hover:bg-white/10 rounded transition-colors text-gray-400 hover:text-white">
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                        {isLocked && <div className="text-xs text-red-400 font-mono uppercase tracking-widest">Read Only Mode</div>}
                     </div>
                 </div>
 
@@ -117,7 +148,8 @@ export const WeeklyPriceInput = () => {
                                                 step="0.01"
                                                 value={item.current}
                                                 onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                                                className="w-24 bg-black/50 border border-white/10 rounded py-1 pl-6 pr-2 text-right text-white font-mono focus:border-[#C5A059] outline-none transition-colors"
+                                                disabled={isLocked}
+                                                className={`w-24 bg-black/50 border border-white/10 rounded py-1 pl-6 pr-2 text-right text-white font-mono outline-none transition-colors ${isLocked ? 'opacity-50 cursor-not-allowed' : 'focus:border-[#C5A059]'}`}
                                             />
                                         </div>
                                     </div>
@@ -131,14 +163,24 @@ export const WeeklyPriceInput = () => {
                     </div>
 
                     <div className="p-4 border-t border-white/5 bg-black/40 flex justify-end">
-                        <button
-                            onClick={handleSave}
-                            disabled={loading}
-                            className="bg-[#C5A059] hover:bg-[#D4AF37] text-black font-bold py-2 px-6 rounded shadow-lg shadow-[#C5A059]/20 flex items-center gap-2 transition-all transform hover:scale-105"
-                        >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            Update Prices
-                        </button>
+                        {isLocked ? (
+                            <button
+                                disabled
+                                className="bg-[#333] text-gray-500 font-bold py-2 px-6 rounded shadow-none cursor-not-allowed flex items-center gap-2"
+                            >
+                                <Lock className="w-4 h-4" />
+                                Locked (Effective Date Passed)
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleSave}
+                                disabled={loading}
+                                className="bg-[#C5A059] hover:bg-[#D4AF37] text-black font-bold py-2 px-6 rounded shadow-lg shadow-[#C5A059]/20 flex items-center gap-2 transition-all transform hover:scale-105"
+                            >
+                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Update Prices
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
