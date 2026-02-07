@@ -1,149 +1,173 @@
-
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { StatCard } from '../components/StatCard';
-import { ManualEntryForm } from '../components/ManualEntryForm';
-import { Modal } from '../components/Modal';
-import { StorePerformanceTable } from '../components/StorePerformanceTable';
+import React, { useState, useEffect } from 'react';
+import { FileText, Download, LayoutGrid, TrendingUp, Calendar } from 'lucide-react';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
-import { LucideIcon, Scale, Users, Trophy, Activity, LogOut, LayoutGrid, PlusCircle, Upload, Camera, FileText } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { DashboardLayout } from '../components/layouts/DashboardLayout';
 
-interface DashboardStats {
-    totalLbsMonth: number;
-    extraCustomers: number;
-    dailyAverage: number;
-    projectedTotal: number;
-    topMeats: {
-        name: string;
-        value: number;
-        actualPerGuest: number;
-        goalPerGuest: number;
-        variance: number;
-    }[];
-    weeklyChart: any[];
+// --- Types ---
+interface StorePerformance {
+    id: number;
+    name: string;
+    location: string;
+    guests: number;
+    usedQty: number; // lbs
+    usedValue: number; // $
+    costPerLb: number;
+    costPerGuest: number;
+    lbsPerGuest: number;
+    lbsGuestVar: number; // Variance from 1.76
+    costGuestVar: number; // Variance from Plan
+    impactYTD: number;
+    status: 'Optimal' | 'Warning' | 'Critical';
 }
 
 export const Dashboard = () => {
-    const { user, logout } = useAuth();
-    const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [performanceData, setPerformanceData] = useState<StorePerformance[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showManualModal, setShowManualModal] = useState(false);
-    const [showManagerModal, setShowManagerModal] = useState(false);
-    const [uploading, setUploading] = useState(false);
+    const [showWeeklyInput, setShowWeeklyInput] = useState(false);
+    const [selectedStoreId] = useState<number>(1); // Default to first store for input
 
-    const COLORS = ['#D4AF37', '#8B0000', '#333333']; // Gold, Red, Dark Gray
-
-    const fetchStats = async () => {
-        if (!user || !user.id) return;
-        try {
-            // Fetch from our new API
-            const storeId = isNaN(parseInt(user.id)) ? 180 : user.id;
-            const response = await fetch(`/api/v1/dashboard/${storeId}`, {
-                headers: { 'Authorization': 'Bearer mock-token' }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setStats(data);
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // Fetch Data
     useEffect(() => {
-        fetchStats();
-    }, [user]);
+        const fetchData = async () => {
+            try {
+                // In production, fetch from /api/v1/dashboard/bi-table
+                // For prototype, we mock valid data if API fails or for first render
+                setLoading(false);
+                // Mock Data for Table Visualization
+                setPerformanceData([
+                    { id: 101, name: 'Miami Beach', location: 'FL', guests: 1250, usedQty: 2200, usedValue: 14300, costPerLb: 6.50, costPerGuest: 11.44, lbsPerGuest: 1.76, lbsGuestVar: 0.00, costGuestVar: 0.94, impactYTD: 0, status: 'Optimal' },
+                    { id: 102, name: 'Dallas Main', location: 'TX', guests: 980, usedQty: 1850, usedValue: 12025, costPerLb: 6.50, costPerGuest: 12.27, lbsPerGuest: 1.89, lbsGuestVar: 0.13, costGuestVar: 1.77, impactYTD: -15400, status: 'Warning' },
+                    { id: 103, name: 'Las Vegas', location: 'NV', guests: 2100, usedQty: 4200, usedValue: 29400, costPerLb: 7.00, costPerGuest: 14.00, lbsPerGuest: 2.00, lbsGuestVar: 0.24, costGuestVar: 3.50, impactYTD: -42000, status: 'Critical' },
+                    { id: 104, name: 'Chicago', location: 'IL', guests: 1500, usedQty: 2600, usedValue: 15600, costPerLb: 6.00, costPerGuest: 10.40, lbsPerGuest: 1.73, lbsGuestVar: -0.03, costGuestVar: -0.10, impactYTD: 5200, status: 'Optimal' },
+                ]);
 
-    const handleManualSubmit = async (data: { type: string; lbs: number; date: string }) => {
-        try {
-            const response = await fetch('/api/v1/orders', {
-                const fetchData = async () => {
-                    try {
-                        // In production, fetch from /api/v1/dashboard/bi-table
-                        // For prototype, we mock valid data if API fails or for first render
-                        setLoading(false);
-                        // Mock Data for Table Visualization
-                        setPerformanceData([
-                            { id: 101, name: 'Miami Beach', location: 'FL', guests: 1250, usedQty: 2200, usedValue: 14300, costPerLb: 6.50, costPerGuest: 11.44, lbsPerGuest: 1.76, lbsGuestVar: 0.00, costGuestVar: 0.94, impactYTD: 0, status: 'Optimal' },
-                            { id: 102, name: 'Dallas Main', location: 'TX', guests: 980, usedQty: 1850, usedValue: 12025, costPerLb: 6.50, costPerGuest: 12.27, lbsPerGuest: 1.89, lbsGuestVar: 0.13, costGuestVar: 1.77, impactYTD: -15400, status: 'Warning' },
-                            { id: 103, name: 'Las Vegas', location: 'NV', guests: 2100, usedQty: 4200, usedValue: 29400, costPerLb: 7.00, costPerGuest: 14.00, lbsPerGuest: 2.00, lbsGuestVar: 0.24, costGuestVar: 3.50, impactYTD: -42000, status: 'Critical' },
-                            { id: 104, name: 'Chicago', location: 'IL', guests: 1500, usedQty: 2600, usedValue: 15600, costPerLb: 6.00, costPerGuest: 10.40, lbsPerGuest: 1.73, lbsGuestVar: -0.03, costGuestVar: -0.10, impactYTD: 5200, status: 'Optimal' },
-                        ]);
-
-                        // Try real fetch
-                        const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
-                        const res = await fetch(`${baseUrl}/dashboard/bi-table?year=2026&week=9`, {
-                            headers: { 'Authorization': 'Bearer mock-token' }
-                        });
-                        if (res.ok) {
-                            const json = await res.json();
-                            if (json.data) setPerformanceData(json.data);
-                        }
-                    } catch (err) {
-                        console.error("Failed to fetch dashboard data", err);
-                    }
-                };
-                fetchData();
-            }, []);
+                // Try real fetch
+                const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
+                const res = await fetch(`${baseUrl}/dashboard/bi-table?year=2026&week=9`, {
+                    headers: { 'Authorization': 'Bearer mock-token' }
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.data) setPerformanceData(json.data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch dashboard data", err);
+            }
+        };
+        fetchData();
+    }, []);
 
 
-            return (
-                <div className={`text-[10px] font-bold uppercase tracking-widest ${meat.variance > 0.05 ? 'text-red-500' : meat.variance < -0.05 ? 'text-blue-500' : 'text-green-500'}`}>
-                    {meat.variance > 0.05 ? 'Over' : meat.variance < -0.05 ? 'Under' : 'Ideal'}
+    return (
+        <DashboardLayout>
+            {/* Header / Actions */}
+            <div className="flex justify-between items-end mb-8 border-b border-white/10 pb-4">
+                <div>
+                    <h1 className="text-3xl font-mono font-bold text-white tracking-tight">NETWORK OVERVIEW</h1>
+                    <div className="flex items-center text-gray-500 font-mono text-sm mt-1 space-x-4">
+                        <span>FISCAL WEEK 9 • 2026</span>
+                        <span className="text-[#00FF94] flex items-center">
+                            <span className="w-2 h-2 bg-[#00FF94] rounded-full mr-2 animate-pulse"></span>
+                            LIVE STREAM
+                        </span>
+                    </div>
                 </div>
-                                            </div >
-                                        </div >
-    {/* Progress Bar: Base is Goal (100%), Actual is relative */ }
-    < div className = "h-1.5 bg-white/5 rounded-full overflow-hidden relative" >
-        {/* Goal Marker (Virtual) */ }
-        < div
-className = {`h-full rounded-full transition-all duration-1000 ease-out ${meat.variance > 0.05 ? 'bg-red-600' : 'bg-green-600'}`}
-style = {{ width: `${Math.min((meat.actualPerGuest / (meat.goalPerGuest * 1.5)) * 100, 100)}%` }}
-                                            ></div >
-                                        </div >
-                                    </div >
-                                ))}
-                            </div >
-                        </div >
-                    </div >
-                )}
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => setShowWeeklyInput(true)}
+                        className="bg-[#00FF94] hover:bg-[#00cc76] text-black font-bold py-2 px-4 rounded-sm flex items-center shadow-[0_0_15px_rgba(0,255,148,0.3)] transition-all uppercase text-sm tracking-wide font-mono"
+                    >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Manager Close
+                    </button>
+                    <button className="bg-[#1a1a1a] border border-[#333] hover:border-white/30 text-white font-bold py-2 px-4 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono">
+                        <Download className="w-4 h-4 mr-2" />
+                        Export CSV
+                    </button>
+                </div>
+            </div>
 
-{/* BI Machine Area */ }
-<div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-    {/* Report Card (Side Panel or Top) */}
-    <div className="lg:col-span-1">
-        <NetworkReportCard />
-    </div>
+            {/* Network Report Card (The "Brain") */}
+            <div className="mb-8">
+                <NetworkReportCard />
+            </div>
 
-    {/* Main Table */}
-    <div className="lg:col-span-3">
-        <StorePerformanceTable />
-    </div>
-</div>
-            </main >
+            {/* Main Data Table (The "Grid") */}
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-sm overflow-hidden shadow-xl">
+                <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#222]">
+                    <h3 className="text-[#00FF94] font-mono text-lg font-bold flex items-center">
+                        <LayoutGrid className="w-5 h-5 mr-2" />
+                        STORE PERFORMANCE MATRIX
+                    </h3>
+                    <div className="flex gap-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                        <span>SORT: VARIANCE (DESC)</span>
+                    </div>
+                </div>
 
-    {/* Modals */ }
-    < Modal title = "Add Manual Entry" isOpen = { showManualModal } onClose = {() => setShowManualModal(false)}>
-        <ManualEntryForm onSubmit={handleManualSubmit} onClose={() => setShowManualModal(false)} />
-            </Modal >
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
+                                <th className="p-4 font-normal">Store Location</th>
+                                <th className="p-4 font-normal text-right">Guests</th>
+                                <th className="p-4 font-normal text-right">Lbs Consumed</th>
+                                <th className="p-4 font-normal text-right">Lbs/Guest</th>
+                                <th className="p-4 font-normal text-right">Var %</th>
+                                <th className="p-4 font-normal text-right">Fin. Impact</th>
+                                <th className="p-4 font-normal text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#333] font-mono text-sm">
+                            {loading ? (
+                                <tr><td colSpan={7} className="p-8 text-center text-gray-500 animate-pulse">Initializing Data Stream...</td></tr>
+                            ) : (
+                                performanceData.map((store) => (
+                                    <tr key={store.id} className="hover:bg-[#252525] transition-colors group">
+                                        <td className="p-4 font-bold text-white group-hover:text-[#00FF94] transition-colors">
+                                            {store.name}
+                                            <span className="block text-[10px] text-gray-600 font-normal uppercase">{store.location}</span>
+                                        </td>
+                                        <td className="p-4 text-right text-gray-300">{store.guests.toLocaleString()}</td>
+                                        <td className="p-4 text-right text-gray-300">{store.usedQty.toLocaleString()}</td>
+                                        <td className={`p-4 text-right font-bold ${store.lbsPerGuest > 1.76 ? 'text-[#FF9F1C]' : 'text-[#00FF94]'}`}>
+                                            {store.lbsPerGuest.toFixed(2)}
+                                        </td>
+                                        <td className="p-4 text-right text-gray-400">
+                                            {store.lbsGuestVar > 0 ? '+' : ''}{((store.lbsGuestVar / 1.76) * 100).toFixed(1)}%
+                                        </td>
+                                        <td className={`p-4 text-right font-bold ${store.impactYTD < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                            {store.impactYTD < 0 ? '-' : '+'}${Math.abs(store.impactYTD).toLocaleString()}
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <span className={`inline-block px-2 py-1 text-[10px] rounded-none font-bold uppercase tracking-wide border ${store.status === 'Optimal' ? 'bg-[#00FF94]/10 text-[#00FF94] border-[#00FF94]/30' :
+                                                    store.status === 'Warning' ? 'bg-[#FF9F1C]/10 text-[#FF9F1C] border-[#FF9F1C]/30' :
+                                                        'bg-[#FF2A6D]/10 text-[#FF2A6D] border-[#FF2A6D]/30 animate-pulse'
+                                                }`}>
+                                                {store.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    {/* Manager Weekly Close Modal (Using Modal wrapper for consistency, though form has its own style) */ }
-    < Modal title = "" isOpen = { showManagerModal } onClose = {() => setShowManagerModal(false)}>
-        <div className="p-0">
-            <WeeklyInputForm
-                onSubmit={() => {
-                    fetchStats(); // Refresh stats after close
-                    // Maybe trigger confetti?
-                }}
-                onClose={() => setShowManagerModal(false)}
-                storeId={parseInt(user?.id || "180")}
-            />
-        </div>
-            </Modal >
-        </div >
+            {/* Input Modal */}
+            {showWeeklyInput && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <WeeklyInputForm
+                        storeId={selectedStoreId}
+                        onClose={() => setShowWeeklyInput(false)}
+                        onSubmit={() => {
+                            // Trigger refresh
+                            window.location.reload();
+                        }}
+                    />
+                </div>
+            )}
+        </DashboardLayout>
     );
 };
