@@ -47,4 +47,5 @@ ENV PORT=3000
 WORKDIR /app/server
 EXPOSE 3000
 
-CMD ["node", "dist/src/index.js"]
+# We use npm start to ensure migrations and seed are run
+CMD ["npm", "run", "start"]
