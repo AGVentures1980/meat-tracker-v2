@@ -27,6 +27,24 @@ export const WeeklyPriceInput = () => {
         alert('Weekly Prices Updated! Financial reports will now reflect these costs.');
     };
 
+    // Helper to get current week (Mon-Sun)
+    const getWeekRange = () => {
+        const now = new Date();
+        const currentDay = now.getDay(); // 0=Sun, 1=Mon, etc.
+        const diffToMon = currentDay === 0 ? -6 : 1 - currentDay; // If Sun(0), go back 6 days. Else go back to Mon(1).
+
+        const monday = new Date(now);
+        monday.setDate(now.getDate() + diffToMon);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        const format = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return `${format(monday)} - ${format(sunday)}`;
+    };
+
+    const weekRange = getWeekRange();
+
     return (
         <DashboardLayout>
             <div className="max-w-4xl mx-auto">
@@ -36,8 +54,8 @@ export const WeeklyPriceInput = () => {
                         <p className="text-gray-400">Input current market prices to calc savings & waste costs.</p>
                     </div>
                     <div className="bg-[#1a1a1a] px-4 py-2 rounded border border-white/10 text-right">
-                        <div className="text-xs text-gray-500 uppercase">Effective Date</div>
-                        <div className="text-white font-mono">Feb 12 - Feb 18</div>
+                        <div className="text-xs text-gray-500 uppercase">Effective Date (Mon-Sun)</div>
+                        <div className="text-white font-mono">{weekRange}</div>
                     </div>
                 </div>
 
