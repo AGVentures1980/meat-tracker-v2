@@ -15,8 +15,8 @@ interface ReportCardData {
 }
 
 export const NetworkReportCard = () => {
-    const [year, setYear] = useState(2025);
-    const [week, setWeek] = useState(8);
+    const [year, setYear] = useState(2026);
+    const [week, setWeek] = useState(9);
     const [data, setData] = useState<ReportCardData | null>(null);
     const [loading, setLoading] = useState(true);
 
