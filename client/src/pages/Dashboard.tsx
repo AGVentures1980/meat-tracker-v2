@@ -29,6 +29,7 @@ import { useAuth } from '../context/AuthContext';
 export const Dashboard = () => {
     const { user } = useAuth();
     const [performanceData, setPerformanceData] = useState<StorePerformance[]>([]);
+    const [detailedStats, setDetailedStats] = useState<any>(null); // Phase 9
     const [loading, setLoading] = useState(true);
     const [showWeeklyInput, setShowWeeklyInput] = useState(false);
     const [selectedStoreId] = useState<number>(1);
@@ -46,37 +47,29 @@ export const Dashboard = () => {
                     ? 'Bearer mock-token'
                     : `Bearer store-${user.id}-${user.role || 'manager'}`;
 
-                // Fetch Logic
+                // 1. Fetch Network Bi Stats
                 let url = `${baseUrl}/dashboard/bi-network?year=2026&week=10`;
-                if (user.role !== 'admin') {
-                    // For managers, we use the same endpoint but the backend filters it 
-                    // OR we can use the specific endpoint if preferred.
-                    // In Step 3469 I updated `getNetworkStats` (at `/bi-network`) to filter by user.
-                    // So we can KEEP the same URL!
-                    // But wait, in Step 3467 I changed it to `${baseUrl}/dashboard/${user.id}`
-                    // Which endpoint did I update?
-                    // Step 3469 updated `getNetworkStats`. 
-                    // DashboardController.ts: `static async getNetworkStats`
-                    // This is mapped to `/bi-network`.
-                    // So I should USE `/bi-network` for everyone!
-                    // The backed handles the filtering.
-                }
-
-                const res = await fetch(url, {
-                    headers: { 'Authorization': token }
-                });
+                const res = await fetch(url, { headers: { 'Authorization': token } });
 
                 if (res.ok) {
                     const json = await res.json();
-
-                    if (Array.isArray(json)) {
-                        setPerformanceData(json);
-                    } else if (json.data && Array.isArray(json.data)) {
-                        setPerformanceData(json.data);
-                    }
-                } else {
-                    console.error("API Error:", res.status);
+                    if (Array.isArray(json)) setPerformanceData(json);
+                    else if (json.data && Array.isArray(json.data)) setPerformanceData(json.data);
                 }
+
+                // 2. Fetch Detailed Stats (for Financials)
+                // If Manager using specific store, or Admin viewing store 1
+                const targetStore = user.role === 'manager' ? user.storeId : selectedStoreId;
+                if (targetStore) {
+                    const detailRes = await fetch(`${baseUrl}/dashboard/${targetStore}`, {
+                        headers: { 'Authorization': token }
+                    });
+                    if (detailRes.ok) {
+                        const detailJson = await detailRes.json();
+                        setDetailedStats(detailJson);
+                    }
+                }
+
             } catch (err) {
                 console.error("Failed to fetch dashboard data", err);
             } finally {
@@ -84,7 +77,7 @@ export const Dashboard = () => {
             }
         };
         fetchData();
-    }, [user]);
+    }, [user, selectedStoreId]);
 
 
     const navigate = useNavigate();
@@ -136,8 +129,50 @@ export const Dashboard = () => {
             </div>
 
             {/* Network Report Card (The "Brain") */}
-            <div className="mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <NetworkReportCard />
+
+                {/* Phase 9: Economic Impact Card */}
+                <div className="bg-[#1a1a1a] border border-[#333] rounded-sm p-6 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <TrendingUp className="w-24 h-24 text-white" />
+                    </div>
+
+                    <h3 className="text-gray-400 font-mono text-xs uppercase tracking-widest mb-2">Weekly Economic Impact</h3>
+
+                    {detailedStats?.financials ? (
+                        <>
+                            <div className="flex items-baseline gap-2 mb-1">
+                                <span className={`text-4xl font-mono font-bold ${detailedStats.financials.total_savings >= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
+                                    {detailedStats.financials.total_savings >= 0 ? '+' : '-'}${Math.abs(detailedStats.financials.total_savings).toLocaleString()}
+                                </span>
+                                <span className="text-xs text-gray-500 font-mono">EST.</span>
+                            </div>
+
+                            <p className="text-sm text-gray-400 mb-4">
+                                {detailedStats.financials.total_savings >= 0
+                                    ? "Projected savings based on efficiency vs. standard."
+                                    : "Projected loss due to variance above standard."}
+                            </p>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-xs font-mono border-b border-white/5 pb-1">
+                                    <span className="text-gray-500">TOP SAVING</span>
+                                    <span className="text-[#00FF94]">Picanha (+$420)</span>
+                                </div>
+                                <div className="flex justify-between text-xs font-mono border-b border-white/5 pb-1">
+                                    <span className="text-gray-500">TOP WASTE</span>
+                                    <span className="text-[#FF2A6D]">Lamb Chops (-$180)</span>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="animate-pulse flex flex-col gap-2">
+                            <div className="h-8 w-32 bg-[#333] rounded"></div>
+                            <div className="h-4 w-48 bg-[#333] rounded"></div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Main Data Table (The "Grid") */}

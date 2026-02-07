@@ -50,14 +50,25 @@ export class MeatEngine {
         const topMeats = await this.getTopMeats(storeId, start, end);
         const weeklyChart = await this.getWeeklyHistory(storeId, topMeats.map(m => m.name));
 
-        // Calculate Ideal vs Actual for Top Meats (or all meats if we expand)
-        const idealComparison = topMeats.map(meat => {
-            // Fuzzy match or direct lookup
-            // Our DB names might differ slightly, simple normalization here if needed
-            // For now, assume direct or fallback
-            let standard = 0.10; // Default fallback if unknown
+        // 4. Financial Calculation (Phase 9)
+        // Hardcoded prices matching the WeeklyPriceInput for prototype
+        const WEEKLY_PRICES: Record<string, number> = {
+            'picanha': 5.80,
+            'filet mignon': 14.20,
+            'lamb chops': 12.50,
+            'chicken wrapped': 3.20,
+            'pork ribs': 4.50,
+            'salmon': 9.00,
+            'sausage': 4.20,
+            'flank steak': 7.50,
+            'alcatra': 8.90
+        };
 
-            // Try to find matching key
+        let totalProjectedSavings = 0;
+
+        const idealComparison = topMeats.map(meat => {
+            let standard = 0.10; // Default fallback
+
             for (const key of Object.keys(MEAT_STANDARDS)) {
                 if (meat.name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(meat.name.toLowerCase())) {
                     standard = MEAT_STANDARDS[key];
@@ -68,11 +79,30 @@ export class MeatEngine {
             const actualPerGuest = extraCustomers > 0 ? (meat.value / extraCustomers) : 0;
             const variance = actualPerGuest - standard;
 
+            // Financial Impact for this meat
+            // Formula: Variance (Lbs/Guest) * Total Guests * Price/Lb
+            // Negative Variance = SAVINGS (Used less than standard)
+            // Positive Variance = LOSS (Over portioning)
+
+            // Find price
+            let price = 6.00; // Default
+            for (const [key, val] of Object.entries(WEEKLY_PRICES)) {
+                if (meat.name.toLowerCase().includes(key)) {
+                    price = val;
+                    break;
+                }
+            }
+
+            const impactDollars = variance * extraCustomers * price;
+            totalProjectedSavings -= impactDollars; // Invert: Positive Variance (Waste) subtracts from savings. Negative Variance (Efficiency) adds to savings.
+
             return {
                 ...meat,
                 actualPerGuest,
                 goalPerGuest: standard,
                 variance,
+                pricePerLb: price,
+                impactDollars: -impactDollars, // Show "Savings" as positive, "Loss" as negative
                 status: variance > 0.05 ? 'High' : variance < -0.05 ? 'Low' : 'Ideal'
             };
         });
@@ -82,8 +112,12 @@ export class MeatEngine {
             extraCustomers,
             dailyAverage: Math.round(dailyAverage),
             projectedTotal: Math.round(projectedTotal),
-            topMeats: idealComparison, // Replace raw topMeats with enriched data
-            weeklyChart
+            topMeats: idealComparison,
+            weeklyChart,
+            financials: {
+                total_savings: totalProjectedSavings,
+                status: totalProjectedSavings >= 0 ? 'Savings' : 'Loss'
+            }
         };
     }
 
