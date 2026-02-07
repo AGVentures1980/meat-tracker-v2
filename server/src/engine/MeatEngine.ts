@@ -161,4 +161,87 @@ export class MeatEngine {
 
         return history;
     }
+
+    /**
+     * Calculates Network-wide BI stats using Real Inventory Logic.
+     * Formula: Consumption = (Start Inv + Purchases) - End Inv
+     */
+    static async getNetworkBiStats() {
+        const stores = await prisma.store.findMany();
+        const results = [];
+
+        for (const store of stores) {
+            // 1. Get Guest Count (from Report or Orders)
+            // For V2 prototype, we use the Report hack we seeded
+            const report = await prisma.report.findFirst({
+                where: {
+                    store_id: store.id,
+                    month: '2026-02-BI-WEEK'
+                }
+            });
+
+            const guests = report?.extra_customers || 0; // "extra_customers" reused as guest count in seed
+
+            // 2. Get Inventory & Purchases (Picanha only for simplicity of V2 prototype)
+            // Ideally this iterates over all items
+            const invRecords = await prisma.inventoryRecord.findMany({
+                where: { store_id: store.id },
+                orderBy: { date: 'asc' }
+            });
+
+            const purchases = await prisma.purchaseRecord.findMany({
+                where: { store_id: store.id }
+            });
+
+            // Calculate Consumption
+            let usedQty = 0;
+            let usedValue = 0;
+
+            if (invRecords.length >= 2) {
+                const startInv = invRecords[0].quantity;
+                const endInv = invRecords[invRecords.length - 1].quantity;
+                const purchaseQty = purchases.reduce((acc, p) => acc + p.quantity, 0);
+                const purchaseCost = purchases.reduce((acc, p) => acc + p.cost_total, 0);
+
+                // Consumption = (Start + Purchase) - End
+                usedQty = (startInv + purchaseQty) - endInv;
+                usedValue = purchaseCost; // Simplification: Use purchase cost as COGS proxy for this week
+            } else {
+                // Fallback if missing inventory data (e.g. new store)
+                usedQty = report?.total_lbs || 0;
+                usedValue = usedQty * 6.50; // Est $6.50/lb
+            }
+
+            // Metrics
+            const lbsPerGuest = guests > 0 ? (usedQty / guests) : 0;
+            const target = 1.76;
+            const variance = lbsPerGuest - target;
+
+            const costPerGuest = guests > 0 ? (usedValue / guests) : 0;
+            const costPerLb = usedQty > 0 ? (usedValue / usedQty) : 0;
+
+            // Financial Impact
+            // Impact = (Actual Lbs/Guest - Target) * Guests * AvgCost/Lb
+            const impactLbs = (lbsPerGuest - target) * guests;
+            const impactYTD = impactLbs * (costPerLb || 6.00);
+
+            results.push({
+                id: store.id,
+                name: store.store_name,
+                location: store.location,
+                guests,
+                usedQty,
+                usedValue,
+                costPerLb,
+                costPerGuest,
+                lbsPerGuest,
+                lbsGuestVar: variance,
+                costGuestVar: costPerGuest - 10.50, // Mock Plan Cost $10.50
+                impactYTD,
+                status: Math.abs(variance) < 0.1 ? 'Optimal' : variance > 0 ? 'Warning' : 'Critical'
+            });
+        }
+
+        return results;
+    }
 }

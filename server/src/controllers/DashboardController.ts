@@ -24,4 +24,14 @@ export class DashboardController {
             return res.status(500).json({ error: 'Failed to fetch dashboard stats' });
         }
     }
+
+    static async getNetworkStats(req: Request, res: Response) {
+        try {
+            const stats = await MeatEngine.getNetworkBiStats();
+            return res.json(stats);
+        } catch (error) {
+            console.error('Network BI Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch network stats' });
+        }
+    }
 }

@@ -32,6 +32,8 @@ model Store {
   meat_usage  MeatUsage[]
   uploads     Upload[]
   reports     Report[]
+  inventory_records InventoryRecord[]
+  purchase_records  PurchaseRecord[]
 }
 
 enum Role {
@@ -129,4 +131,28 @@ model Report {
   store           Store    @relation(fields: [store_id], references: [id])
   
   @@unique([store_id, month])
+}
+
+// NEW: Inventory & Purchasing Logic for "Real Data" BI
+model InventoryRecord {
+  id          String   @id @default(uuid())
+  store_id    Int
+  date        DateTime @db.Date // Weekly Count Date
+  item_name   String
+  quantity    Float    // Lbs counted
+  
+  store       Store    @relation(fields: [store_id], references: [id])
+  @@index([store_id, date])
+}
+
+model PurchaseRecord {
+  id          String   @id @default(uuid())
+  store_id    Int
+  date        DateTime @db.Date // Invoice Date
+  item_name   String
+  quantity    Float    // Lbs purchased
+  cost_total  Float    // Total cost in $
+  
+  store       Store    @relation(fields: [store_id], references: [id])
+  @@index([store_id, date])
 }
