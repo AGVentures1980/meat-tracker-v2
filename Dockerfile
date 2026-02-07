@@ -23,6 +23,9 @@ RUN npm run build
 FROM node:18-alpine
 WORKDIR /app
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 # Copy built server
 COPY --from=server-build /app/server/dist ./server/dist
 COPY --from=server-build /app/server/package*.json ./server/
