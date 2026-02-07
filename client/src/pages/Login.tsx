@@ -43,11 +43,13 @@ export const Login = () => {
             <div className="relative z-10 w-full max-w-md p-10 bg-black/50 backdrop-blur-sm border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500">
                 <div className="text-center mb-8">
                     <img
-                        src="/brasa-logo-v2.png"
+                        src="/brasa-logo-v3.png"
                         alt="Brasa Meat Intelligence"
-                        // Updated to v2 to force cache refresh
+                        // Updated to v3 transparent background
                         className="w-48 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow"
                     />
+                    <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-2"></div>
+                    <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">Meat Intelligence</p>
                 </div>
 
                 {error && (
