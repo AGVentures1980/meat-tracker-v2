@@ -45,6 +45,7 @@ export const Login = () => {
                     <img
                         src="/brasa-logo-gold.png"
                         alt="Brasa Meat Intelligence"
+                        // Updated logo version
                         className="w-48 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow"
                     />
                 </div>
