@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
+import { PlaceholderPage } from './pages/PlaceholderPage';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -22,6 +23,11 @@ function App() {
 
                     <Route element={<ProtectedRoute />}>
                         <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/dashboard/:storeId" element={<Dashboard />} />
+                        <Route path="/inventory" element={<PlaceholderPage title="Inventory Management" />} />
+                        <Route path="/reports" element={<PlaceholderPage title="Reporting Suite" />} />
+                        <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
+                        <Route path="/settings" element={<PlaceholderPage title="System Settings" />} />
                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     </Route>
 

@@ -26,7 +26,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <div className="p-4 border-b border-[#333] flex items-center justify-between">
                     {!collapsed && (
                         <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold tracking-tighter text-[#00FF94]">BRASA</span>
+                            <span className="text-xl font-bold tracking-tighter text-[#C5A059]">BRASA</span>
                             <span className="text-xs text-gray-500 uppercase tracking-widest">INTEL</span>
                         </div>
                     )}
@@ -43,8 +43,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 key={item.path}
                                 onClick={() => navigate(item.path)}
                                 className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
-                                        ? 'bg-[#00FF94]/10 text-[#00FF94] border-l-2 border-[#00FF94]'
-                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                    ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
+                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                     }`}
                             >
                                 <item.icon className="w-5 h-5 min-w-[20px]" />
@@ -101,11 +101,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 px-3 py-1 bg-[#252525] rounded border border-[#333]">
+                        <button
+                            onClick={() => alert("SYSTEM ALERTS:\n\n1. OLO Sync Lag > 300ms (Minor)\n2. Inventory Variance: Dallas (Action Required)\n3. Weekly Close Pending: 3 Stores")}
+                            className="flex items-center gap-2 px-3 py-1 bg-[#252525] rounded border border-[#333] hover:bg-[#333] transition-colors cursor-pointer"
+                        >
                             <AlertTriangle className="w-3 h-3 text-[#FF9F1C]" />
-                            <span className="text-xs font-mono text-[#FF9F1C]">3 ALERTS</span>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#00FF94] to-[#00f2ea] border-2 border-[#121212]"></div>
+                            <span className="text-xs font-mono text-[#FF9F1C] blinking">3 ALERTS</span>
+                        </button>
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C5A059] to-[#F0E68C] border-2 border-[#121212]"></div>
                     </div>
                 </header>
 
