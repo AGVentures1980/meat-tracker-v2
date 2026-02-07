@@ -63,58 +63,80 @@ async function main() {
         const lastWeek = new Date(now);
         lastWeek.setDate(now.getDate() - 7);
 
-        // 1. Initial Inventory (Last Week)
-        const startInv = 200 + Math.random() * 100; // Random start
-        await prisma.inventoryRecord.create({
-            data: {
+        // 1. Check if we already seeded "Last Week" for this store to prevent duplicates
+        const existingInv = await prisma.inventoryRecord.findFirst({
+            where: {
                 store_id: store.id,
-                date: lastWeek,
-                item_name: 'Picanha',
-                quantity: startInv
+                date: lastWeek
             }
         });
 
-        // 2. Purchases during the week
-        const purchased = 500 + Math.random() * 200;
-        await prisma.purchaseRecord.create({
-            data: {
-                store_id: store.id,
-                date: new Date(now.getDate() - 3), // Mid-week purchase
-                item_name: 'Picanha',
-                quantity: purchased,
-                cost_total: purchased * (5.50 + Math.random()) // Random cost ~$6/lb
-            }
-        });
+        if (!existingInv) {
+            // 1. Initial Inventory (Last Week)
+            const startInv = 200 + Math.random() * 100; // Random start
+            await prisma.inventoryRecord.create({
+                data: {
+                    store_id: store.id,
+                    date: lastWeek,
+                    item_name: 'Picanha',
+                    quantity: startInv
+                }
+            });
 
-        // 3. Final Inventory (Today)
-        // We want consumption to be roughly 1.8 lbs/guest
-        const guests = 1000 + Math.floor(Math.random() * 500);
-        const targetConsumption = guests * 1.8;
+            // 2. Purchases during the week
+            const purchased = 500 + Math.random() * 200;
+            await prisma.purchaseRecord.create({
+                data: {
+                    store_id: store.id,
+                    date: new Date(now.getDate() - 3), // Mid-week purchase
+                    item_name: 'Picanha',
+                    quantity: purchased,
+                    cost_total: purchased * (5.50 + Math.random()) // Random cost ~$6/lb
+                }
+            });
 
-        // Real Consumption (add some variance)
-        const realConsumption = targetConsumption * (0.9 + Math.random() * 0.2); // +/- 10%
+            // 3. Final Inventory (Today)
+            // We want consumption to be roughly 1.8 lbs/guest
+            const guests = 1000 + Math.floor(Math.random() * 500);
+            const targetConsumption = guests * 1.8;
 
-        const endInv = (startInv + purchased) - realConsumption;
+            // Real Consumption (add some variance)
+            const realConsumption = targetConsumption * (0.9 + Math.random() * 0.2); // +/- 10%
 
-        await prisma.inventoryRecord.create({
-            data: {
-                store_id: store.id,
-                date: now,
-                item_name: 'Picanha',
-                quantity: Math.max(0, endInv) // Ensure distinct non-negative
-            }
-        });
+            const endInv = (startInv + purchased) - realConsumption;
 
-        // 4. Create Mock Guests (via Order/Report hack for now, or just trust the BI engine will calculate)
-        // For V2, let's create a Report entry to store the Guest Count easily
-        await prisma.report.create({
-            data: {
-                store_id: store.id,
-                month: '2026-02-BI-WEEK', // Mock identifier
-                total_lbs: realConsumption,
-                extra_customers: guests // Hijacking this field for "Guest Count" for simplicity in this iteration
-            }
-        });
+            await prisma.inventoryRecord.create({
+                data: {
+                    store_id: store.id,
+                    date: now,
+                    item_name: 'Picanha',
+                    quantity: Math.max(0, endInv) // Ensure distinct non-negative
+                }
+            });
+
+            // 4. Create Mock Guests (Upsert Report)
+            // Use UPSERT to prevent Unique Constraint violations
+            await prisma.report.upsert({
+                where: {
+                    store_id_month: {
+                        store_id: store.id,
+                        month: '2026-02-BI-WEEK'
+                    }
+                },
+                update: {
+                    total_lbs: realConsumption,
+                    extra_customers: guests
+                },
+                create: {
+                    store_id: store.id,
+                    month: '2026-02-BI-WEEK', // Mock identifier
+                    total_lbs: realConsumption,
+                    extra_customers: guests // Hijacking this field for "Guest Count" for simplicity in this iteration
+                }
+            });
+        } else {
+            console.log(`Skipping data seed for ${s.name} (Already exists)`);
+        }
     }
 
     console.log('✅ Seed Completed with REAL BI Data for Network!');

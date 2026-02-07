@@ -61,270 +61,89 @@ export const Dashboard = () => {
     const handleManualSubmit = async (data: { type: string; lbs: number; date: string }) => {
         try {
             const response = await fetch('/api/v1/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer mock-token'
-                },
-                body: JSON.stringify({
-                    store_id: isNaN(parseInt(user?.id || "0")) ? 180 : parseInt(user?.id || "0"), // Fallback to Tampa (180) for Master testing
-                    source: 'Manual',
-                    order_date: data.date,
-                    items: [
-                        { item_name: data.type, lbs: data.lbs }
-                    ]
-                })
-            });
+                const fetchData = async () => {
+                    try {
+                        // In production, fetch from /api/v1/dashboard/bi-table
+                        // For prototype, we mock valid data if API fails or for first render
+                        setLoading(false);
+                        // Mock Data for Table Visualization
+                        setPerformanceData([
+                            { id: 101, name: 'Miami Beach', location: 'FL', guests: 1250, usedQty: 2200, usedValue: 14300, costPerLb: 6.50, costPerGuest: 11.44, lbsPerGuest: 1.76, lbsGuestVar: 0.00, costGuestVar: 0.94, impactYTD: 0, status: 'Optimal' },
+                            { id: 102, name: 'Dallas Main', location: 'TX', guests: 980, usedQty: 1850, usedValue: 12025, costPerLb: 6.50, costPerGuest: 12.27, lbsPerGuest: 1.89, lbsGuestVar: 0.13, costGuestVar: 1.77, impactYTD: -15400, status: 'Warning' },
+                            { id: 103, name: 'Las Vegas', location: 'NV', guests: 2100, usedQty: 4200, usedValue: 29400, costPerLb: 7.00, costPerGuest: 14.00, lbsPerGuest: 2.00, lbsGuestVar: 0.24, costGuestVar: 3.50, impactYTD: -42000, status: 'Critical' },
+                            { id: 104, name: 'Chicago', location: 'IL', guests: 1500, usedQty: 2600, usedValue: 15600, costPerLb: 6.00, costPerGuest: 10.40, lbsPerGuest: 1.73, lbsGuestVar: -0.03, costGuestVar: -0.10, impactYTD: 5200, status: 'Optimal' },
+                        ]);
 
-            if (response.ok) {
-                setShowManualModal(false);
-                fetchStats(); // Refresh data
-            } else {
-                alert("Failed to save entry");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Error saving entry");
-        }
-    };
+                        // Try real fetch
+                        const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
+                        const res = await fetch(`${baseUrl}/dashboard/bi-table?year=2026&week=9`, {
+                            headers: { 'Authorization': 'Bearer mock-token' }
+                        });
+                        if (res.ok) {
+                            const json = await res.json();
+                            if (json.data) setPerformanceData(json.data);
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch dashboard data", err);
+                    }
+                };
+                fetchData();
+            }, []);
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'OLO' | 'Ticket') => {
-        const file = e.target.files?.[0];
-        if (!file) return;
 
-        setUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('store_id', (isNaN(parseInt(user?.id || "0")) ? 180 : parseInt(user?.id || "0")).toString());
-        formData.append('type', type);
-
-        try {
-            const response = await fetch('/api/v1/upload', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer mock-token'
-                },
-                body: formData
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                alert(`${type} Upload Successful!\n${result.message}`);
-                fetchStats();
-            } else {
-                alert("Upload failed");
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Error uploading file");
-        } finally {
-            setUploading(false);
-            // Clear input
-            e.target.value = '';
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-brand-gold">
-                <div className="animate-pulse flex flex-col items-center">
-                    <Activity className="w-10 h-10 mb-4 animate-spin" />
-                    <p className="font-serif tracking-widest uppercase text-sm">Loading Intelligence...</p>
+            return (
+                <div className={`text-[10px] font-bold uppercase tracking-widest ${meat.variance > 0.05 ? 'text-red-500' : meat.variance < -0.05 ? 'text-blue-500' : 'text-green-500'}`}>
+                    {meat.variance > 0.05 ? 'Over' : meat.variance < -0.05 ? 'Under' : 'Ideal'}
                 </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white pb-20 font-sans">
-            {/* Header */}
-            <header className="bg-black border-b border-white/10 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-20">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-10 h-10 bg-gradient-to-br from-red-800 to-red-900 rounded-lg flex items-center justify-center shadow-lg shadow-red-900/20">
-                                <span className="font-serif font-bold text-white text-lg">TB</span>
-                            </div>
-                            <div>
-                                <h1 className="font-serif font-bold tracking-widest text-lg text-brand-gold">BRASA</h1>
-                                <p className="text-[10px] uppercase tracking-[0.3em] text-gray-500">Meat Intelligence</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-6">
-                            <div className="px-4 py-1.5 bg-white/5 rounded-full border border-white/10 text-xs tracking-wide">
-                                <span className="text-gray-400 uppercase mr-2">Unit</span>
-                                <span className="text-white font-bold">#{user?.id} {user?.name}</span>
-                            </div>
-                            <button onClick={logout} className="text-gray-500 hover:text-white transition-colors">
-                                <LogOut className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-
-                {/* Welcome */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-white/5 pb-8">
-                    <div>
-                        <h2 className="text-3xl font-serif text-white mb-2">Performance Overview</h2>
-                        <p className="text-gray-400 text-sm font-light tracking-wide">Real-time consumption analytics and projections.</p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowManagerModal(true)}
-                            className="flex items-center space-x-2 bg-blue-900/20 text-blue-400 px-4 py-2 rounded-lg font-bold hover:bg-blue-900/40 transition-colors border border-blue-900/30 uppercase text-xs tracking-wider"
-                        >
-                            <FileText className="w-4 h-4" />
-                            <span>Weekly Close</span>
-                        </button>
-
-                        <button
-                            onClick={() => setShowManualModal(true)}
-                            className="flex items-center space-x-2 bg-white/10 text-white px-4 py-2 rounded-lg font-bold hover:bg-white/20 transition-colors border border-white/10 uppercase text-xs tracking-wider"
-                        >
-                            <PlusCircle className="w-4 h-4" />
-                            <span>Add Entry</span>
-                        </button>
-
-                        <label className="flex items-center space-x-2 bg-brand-gold text-black px-4 py-2 rounded-lg font-bold hover:bg-yellow-500 transition-colors cursor-pointer uppercase text-xs tracking-wider">
-                            <Upload className="w-4 h-4" />
-                            <span>Import OLO</span>
-                            <input type="file" accept=".csv" className="hidden" onChange={(e) => handleFileUpload(e, 'OLO')} disabled={uploading} />
-                        </label>
-                    </div>
-                </div>
-
-                {/* KPI Grid */}
-                {stats && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <StatCard
-                            title="Month Volume"
-                            value={`${stats.totalLbsMonth.toLocaleString()} lbs`}
-                            subtext="Total consumption"
-                            icon="scale"
-                        />
-                        <StatCard
-                            title="Extra Customers"
-                            value={`+${stats.extraCustomers}`}
-                            subtext="Based on 0.5lb avg"
-                            icon="users"
-                            highlight={true}
-                        />
-                        <StatCard
-                            title="Daily Average"
-                            value={`${stats.dailyAverage} lbs`}
-                            subtext="Actual daily usage"
-                            icon="activity"
-                        />
-                        <StatCard
-                            title="Proj. Month End"
-                            value={`${stats.projectedTotal.toLocaleString()} lbs`}
-                            subtext="At current pace"
-                            icon="trophy"
-                        />
-                    </div>
-                )}
-
-                {/* Charts Area */}
-                {stats && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Main Chart (Weekly Trends) */}
-                        <div className="lg:col-span-2 bg-[#1E1E1E] rounded-xl p-6 border border-white/5">
-                            <h3 className="text-lg font-bold mb-6 font-serif tracking-wide text-white">Weekly Consumption Trends (Top 3)</h3>
-                            <div className="h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={stats.weeklyChart}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                                        <XAxis dataKey="day" stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '8px' }}
-                                            itemStyle={{ color: '#fff' }}
-                                        />
-                                        <Legend />
-                                        {stats.topMeats.map((meat, index) => (
-                                            <Bar
-                                                key={meat.name}
-                                                dataKey={meat.name}
-                                                stackId="a"
-                                                fill={COLORS[index % COLORS.length]}
-                                                radius={[4, 4, 0, 0]}
-                                            />
-                                        ))}
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        {/* Secondary Chart (Ideal Meat Consumption) */}
-                        <div className="bg-[#1E1E1E] rounded-xl p-6 border border-white/5">
-                            <h3 className="text-lg font-bold mb-6 font-serif tracking-wide text-white">Ideal Meat Consumption</h3>
-                            <div className="space-y-6">
-                                {stats.topMeats.map((meat, index) => (
-                                    <div key={meat.name} className="group">
-                                        <div className="flex justify-between items-end mb-2">
-                                            <div>
-                                                <span className="text-white font-bold tracking-wide block">{meat.name}</span>
-                                                <span className="text-xs text-gray-500">
-                                                    Goal: <span className="text-gray-300">{meat.goalPerGuest.toFixed(2)}</span> / Actual: <span className={meat.variance > 0.05 ? 'text-red-400' : 'text-green-400'}>{meat.actualPerGuest.toFixed(2)}</span>
-                                                </span>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="font-mono text-brand-gold text-lg">{meat.value.toFixed(0)} lbs</span>
-                                                <div className={`text-[10px] font-bold uppercase tracking-widest ${meat.variance > 0.05 ? 'text-red-500' : meat.variance < -0.05 ? 'text-blue-500' : 'text-green-500'}`}>
-                                                    {meat.variance > 0.05 ? 'Over' : meat.variance < -0.05 ? 'Under' : 'Ideal'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {/* Progress Bar: Base is Goal (100%), Actual is relative */}
-                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden relative">
-                                            {/* Goal Marker (Virtual) */}
-                                            <div
-                                                className={`h-full rounded-full transition-all duration-1000 ease-out ${meat.variance > 0.05 ? 'bg-red-600' : 'bg-green-600'}`}
-                                                style={{ width: `${Math.min((meat.actualPerGuest / (meat.goalPerGuest * 1.5)) * 100, 100)}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
+                                            </div >
+                                        </div >
+    {/* Progress Bar: Base is Goal (100%), Actual is relative */ }
+    < div className = "h-1.5 bg-white/5 rounded-full overflow-hidden relative" >
+        {/* Goal Marker (Virtual) */ }
+        < div
+className = {`h-full rounded-full transition-all duration-1000 ease-out ${meat.variance > 0.05 ? 'bg-red-600' : 'bg-green-600'}`}
+style = {{ width: `${Math.min((meat.actualPerGuest / (meat.goalPerGuest * 1.5)) * 100, 100)}%` }}
+                                            ></div >
+                                        </div >
+                                    </div >
                                 ))}
-                            </div>
-                        </div>
-                    </div>
+                            </div >
+                        </div >
+                    </div >
                 )}
 
-                {/* BI Machine Area */}
-                <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-                    {/* Report Card (Side Panel or Top) */}
-                    <div className="lg:col-span-1">
-                        <NetworkReportCard />
-                    </div>
+{/* BI Machine Area */ }
+<div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+    {/* Report Card (Side Panel or Top) */}
+    <div className="lg:col-span-1">
+        <NetworkReportCard />
+    </div>
 
-                    {/* Main Table */}
-                    <div className="lg:col-span-3">
-                        <StorePerformanceTable />
-                    </div>
-                </div>
-            </main>
+    {/* Main Table */}
+    <div className="lg:col-span-3">
+        <StorePerformanceTable />
+    </div>
+</div>
+            </main >
 
-            {/* Modals */}
-            <Modal title="Add Manual Entry" isOpen={showManualModal} onClose={() => setShowManualModal(false)}>
-                <ManualEntryForm onSubmit={handleManualSubmit} onClose={() => setShowManualModal(false)} />
-            </Modal>
+    {/* Modals */ }
+    < Modal title = "Add Manual Entry" isOpen = { showManualModal } onClose = {() => setShowManualModal(false)}>
+        <ManualEntryForm onSubmit={handleManualSubmit} onClose={() => setShowManualModal(false)} />
+            </Modal >
 
-            {/* Manager Weekly Close Modal (Using Modal wrapper for consistency, though form has its own style) */}
-            <Modal title="" isOpen={showManagerModal} onClose={() => setShowManagerModal(false)}>
-                <div className="p-0">
-                    <WeeklyInputForm
-                        onSubmit={() => {
-                            fetchStats(); // Refresh stats after close
-                            // Maybe trigger confetti?
-                        }}
-                        onClose={() => setShowManagerModal(false)}
-                        storeId={parseInt(user?.id || "180")}
-                    />
-                </div>
-            </Modal>
+    {/* Manager Weekly Close Modal (Using Modal wrapper for consistency, though form has its own style) */ }
+    < Modal title = "" isOpen = { showManagerModal } onClose = {() => setShowManagerModal(false)}>
+        <div className="p-0">
+            <WeeklyInputForm
+                onSubmit={() => {
+                    fetchStats(); // Refresh stats after close
+                    // Maybe trigger confetti?
+                }}
+                onClose={() => setShowManagerModal(false)}
+                storeId={parseInt(user?.id || "180")}
+            />
         </div>
+            </Modal >
+        </div >
     );
 };

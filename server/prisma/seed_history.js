@@ -35,6 +35,22 @@ async function main() {
         console.log(`Doing Week ${w}: ${start.toISOString().split('T')[0]}`);
 
         for (const store of stores) {
+            // Check if Report already exists (Upsert logic for Report, skip others if exists)
+            const reportKey = `2026-W${w}`;
+            const existingReport = await prisma.report.findUnique({
+                where: {
+                    store_id_month: {
+                        store_id: store.id,
+                        month: reportKey
+                    }
+                }
+            });
+
+            if (existingReport) {
+                console.log(`Skipping Week ${w} for ${store.store_name} (Already seeded)`);
+                continue;
+            }
+
             // 1. Initial Inventory (Monday)
             const startInv = 200 + Math.random() * 50;
             await prisma.inventoryRecord.create({
@@ -92,7 +108,7 @@ async function main() {
             await prisma.report.create({
                 data: {
                     store_id: store.id,
-                    month: `2026-W${w}`,
+                    month: reportKey,
                     total_lbs: realConsumption,
                     extra_customers: guests // Guest Count
                 }
