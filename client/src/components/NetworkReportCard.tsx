@@ -14,20 +14,37 @@ interface ReportCardData {
     impactYTD: number;
 }
 
+import { useAuth } from '../context/AuthContext';
+
 export const NetworkReportCard = () => {
+    const { user } = useAuth();
     const [year, setYear] = useState(2026);
     const [week, setWeek] = useState(9);
     const [data, setData] = useState<ReportCardData | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
+        if (!user) return; // Wait for auth
+
         setLoading(true);
         try {
             const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
-            const res = await fetch(`${baseUrl}/dashboard/bi-report-card?year=${year}&week=${week}`);
+
+            // Construct Token
+            const token = user.role === 'admin'
+                ? 'Bearer mock-token'
+                : `Bearer store-${user.id}-${user.role || 'manager'}`;
+
+            const res = await fetch(`${baseUrl}/dashboard/bi-report-card?year=${year}&week=${week}`, {
+                headers: { 'Authorization': token }
+            });
+
             if (res.ok) {
                 const json = await res.json();
                 setData(json);
+            } else {
+                console.warn("Report Card Access Denied or Failed");
+                setData(null);
             }
         } catch (err) {
             console.error(err);
@@ -38,7 +55,7 @@ export const NetworkReportCard = () => {
 
     useEffect(() => {
         fetchData();
-    }, [year, week]);
+    }, [year, week, user]);
 
     // Helpers for rendering rows
     const renderRow = (label: string, value: string | number, isCurrency = false, highlight = false, subtext = '', variance?: number) => (

@@ -22,27 +22,52 @@ interface StorePerformance {
     status: 'Optimal' | 'Warning' | 'Critical';
 }
 
+import { useAuth } from '../context/AuthContext';
+
+// ... (keep LayoutGrid etc imports)
+
 export const Dashboard = () => {
+    const { user } = useAuth();
     const [performanceData, setPerformanceData] = useState<StorePerformance[]>([]);
     const [loading, setLoading] = useState(true);
     const [showWeeklyInput, setShowWeeklyInput] = useState(false);
-    const [selectedStoreId] = useState<number>(1); // Default to first store for input
+    const [selectedStoreId] = useState<number>(1);
 
     // Fetch Data
     useEffect(() => {
         const fetchData = async () => {
+            if (!user) return;
+
             try {
                 const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
-                const res = await fetch(`${baseUrl}/dashboard/bi-network?year=2026&week=9`, {
-                    headers: { 'Authorization': 'Bearer mock-token' }
+
+                // Construct Token
+                const token = user.role === 'admin'
+                    ? 'Bearer mock-token'
+                    : `Bearer store-${user.id}-${user.role || 'manager'}`;
+
+                // Fetch Logic
+                let url = `${baseUrl}/dashboard/bi-network?year=2026&week=9`;
+                if (user.role !== 'admin') {
+                    // For managers, we use the same endpoint but the backend filters it 
+                    // OR we can use the specific endpoint if preferred.
+                    // In Step 3469 I updated `getNetworkStats` (at `/bi-network`) to filter by user.
+                    // So we can KEEP the same URL!
+                    // But wait, in Step 3467 I changed it to `${baseUrl}/dashboard/${user.id}`
+                    // Which endpoint did I update?
+                    // Step 3469 updated `getNetworkStats`. 
+                    // DashboardController.ts: `static async getNetworkStats`
+                    // This is mapped to `/bi-network`.
+                    // So I should USE `/bi-network` for everyone!
+                    // The backed handles the filtering.
+                }
+
+                const res = await fetch(url, {
+                    headers: { 'Authorization': token }
                 });
 
                 if (res.ok) {
                     const json = await res.json();
-                    // In V2, the API returns the array directly or inside a data property?
-                    // Checked MeatEngine: returns results array.
-                    // Checked DashboardController: return res.json(stats).
-                    // So json is the array.
 
                     if (Array.isArray(json)) {
                         setPerformanceData(json);
@@ -59,7 +84,7 @@ export const Dashboard = () => {
             }
         };
         fetchData();
-    }, []);
+    }, [user]);
 
 
     const navigate = useNavigate();

@@ -34,14 +34,19 @@ export class DashboardController {
     static async getNetworkStats(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-
-            // Security: Only Admins can see the full network
-            if (user.role !== 'admin') {
-                return res.status(403).json({ error: 'Access Denied: Network View is for Admins only.' });
-            }
-
             const stats = await MeatEngine.getNetworkBiStats();
-            return res.json(stats);
+
+            // Security: 
+            // If Admin: Return all.
+            // If Manager: Return ONLY their store.
+
+            if (user.role === 'admin') {
+                return res.json(stats);
+            } else {
+                // Filter for the user's store
+                const myStore = stats.filter(s => s.id === user.storeId);
+                return res.json(myStore);
+            }
         } catch (error) {
             console.error('Network BI Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network stats' });

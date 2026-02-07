@@ -1,4 +1,6 @@
 import { Save, Plus, Trash2, Calendar, DownloadCloud, Upload, Loader2, FileText } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import React, { useState } from 'react';
 
 interface WeeklyInputFormProps {
     onSubmit: () => void;
@@ -7,6 +9,7 @@ interface WeeklyInputFormProps {
 }
 
 export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormProps) => {
+    const { user } = useAuth();
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [dineInGuests, setDineInGuests] = useState<number | ''>('');
     const [oloGuests, setOloGuests] = useState<number | ''>('');
@@ -43,12 +46,25 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
 
     // --- AUTOMATION HANDLERS ---
 
+    // ... inside existing component
+    // ... inside existing component
+    // Removed duplicate user declaration
+
+    // ...
+
+    // ...
+
     const handleOloSync = async () => {
+        if (!user) return;
         setLoadingOlo(true);
         try {
             const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
+            const token = user.role === 'admin'
+                ? 'Bearer mock-token'
+                : `Bearer store-${user.id}-${user.role || 'manager'}`;
+
             const res = await fetch(`${baseUrl}/automation/olo-sales?week=10`, {
-                headers: { 'Authorization': 'Bearer mock-token' }
+                headers: { 'Authorization': token }
             });
             const data = await res.json();
 
@@ -130,11 +146,15 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
             };
 
             const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
+            const token = user.role === 'admin'
+                ? 'Bearer mock-token'
+                : `Bearer store-${user.id}-${user.role || 'manager'}`;
+
             const res = await fetch(`${baseUrl}/inventory/weekly-close`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer mock-token'
+                    'Authorization': token
                 },
                 body: JSON.stringify(payload)
             });
