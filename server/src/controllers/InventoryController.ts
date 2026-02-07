@@ -82,9 +82,22 @@ export class InventoryController {
                 }
 
                 // 5. Update Guest Count (Report)
-                // We use the "Period Key" (2026-Wxx) to store the weekly guest count.
-                // We use upsert to allow correction.
-                if (guests !== undefined) {
+                // We receive 'guests' (Total) for backward compatibility, OR 'dineInGuests' + 'oloGuests'
+                let totalGuests = 0;
+                let dineIn = 0;
+                let delivery = 0;
+
+                if (req.body.dineInGuests !== undefined || req.body.oloGuests !== undefined) {
+                    dineIn = Number(req.body.dineInGuests || 0);
+                    delivery = Number(req.body.oloGuests || 0);
+                    totalGuests = dineIn + delivery;
+                } else {
+                    // Fallback to legacy single field
+                    totalGuests = Number(guests || 0);
+                    dineIn = totalGuests; // Assumption if not split
+                }
+
+                if (totalGuests > 0) {
                     await tx.report.upsert({
                         where: {
                             store_id_month: {
@@ -93,15 +106,17 @@ export class InventoryController {
                             }
                         },
                         update: {
-                            extra_customers: Number(guests),
-                            // We might also update total_lbs if we wanted to snapshot it, but Engine calculates it live.
-                            // But for fallback compatibility:
-                            total_lbs: 0 // Engine will calculate real consumption
+                            extra_customers: totalGuests,
+                            dine_in_guests: dineIn,
+                            delivery_guests: delivery,
+                            total_lbs: 0
                         },
                         create: {
                             store_id: Number(store_id),
                             month: periodKey,
-                            extra_customers: Number(guests),
+                            extra_customers: totalGuests,
+                            dine_in_guests: dineIn,
+                            delivery_guests: delivery,
                             total_lbs: 0
                         }
                     });

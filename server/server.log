@@ -12,3 +12,9 @@
 [0mGET /api/v1/dashboard/bi-report-card?year=2026&week=10 [32m200[0m 39.742 ms - 237[0m
 [INFO] 00:54:11 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
 🚀 Server running on http://localhost:3001
+[0mGET /api/v1/automation/olo-sales?week=10 [33m401[0m 0.863 ms - 40[0m
+[0mPOST /api/v1/automation/ocr-invoice [33m401[0m 0.145 ms - 40[0m
+[0mGET /api/v1/automation/olo-sales?week=10 [32m200[0m 1502.772 ms - 184[0m
+[0mPOST /api/v1/automation/ocr-invoice [32m200[0m 2005.577 ms - 324[0m
+[INFO] 01:00:04 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/InventoryController.ts has been modified
+🚀 Server running on http://localhost:3001

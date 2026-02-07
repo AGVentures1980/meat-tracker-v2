@@ -124,7 +124,9 @@ model Report {
   store_id        Int
   month           String   // Format: "YYYY-MM"
   total_lbs       Float
-  extra_customers Int      @default(0)
+  extra_customers Int      @default(0) // Acts as TOTAL GUESTS
+  dine_in_guests  Int      @default(0)
+  delivery_guests Int      @default(0)
   generated_at    DateTime @default(now())
 
   // Relations

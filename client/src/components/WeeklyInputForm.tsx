@@ -8,7 +8,8 @@ interface WeeklyInputFormProps {
 
 export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormProps) => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [guests, setGuests] = useState<number | ''>('');
+    const [dineInGuests, setDineInGuests] = useState<number | ''>('');
+    const [oloGuests, setOloGuests] = useState<number | ''>('');
 
     // Automation Loading States
     const [loadingOlo, setLoadingOlo] = useState(false);
@@ -19,6 +20,8 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
 
     // Purchases State
     const [purchases, setPurchases] = useState<{ id: number; date: string; item: string; qty: number; cost: number }[]>([]);
+
+    const totalGuests = (Number(dineInGuests || 0) + Number(oloGuests || 0));
 
     const addPurchase = () => {
         setPurchases([...purchases, {
@@ -50,7 +53,7 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
             const data = await res.json();
 
             if (data.success) {
-                setGuests(data.data.guests);
+                setOloGuests(data.data.guests);
                 alert(`OLO Sync Complete: Found ${data.data.guests} guests.`);
             } else {
                 alert('OLO Sync Failed.');
@@ -113,7 +116,8 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
             const payload = {
                 store_id: storeId,
                 date,
-                guests: Number(guests),
+                dineInGuests: Number(dineInGuests),
+                oloGuests: Number(oloGuests),
                 inventory: [
                     { item: 'Picanha', qty: Number(inventoryQty) }
                 ],
@@ -175,27 +179,49 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
                         className="w-full bg-black/50 border border-white/10 rounded p-2 text-white focus:border-brand-gold outline-none"
                     />
                 </div>
-                <div>
-                    <div className="flex justify-between items-center mb-1">
-                        <label className="block text-xs uppercase text-gray-500">Week Guest Count</label>
-                        <button
-                            type="button"
-                            onClick={handleOloSync}
-                            disabled={loadingOlo}
-                            className="text-xs text-brand-gold hover:text-white flex items-center transition-colors disabled:opacity-50"
-                        >
-                            {loadingOlo ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <DownloadCloud className="w-3 h-3 mr-1" />}
-                            Sync OLO
-                        </button>
+                <div className="space-y-4">
+                    {/* Dine-In Input */}
+                    <div>
+                        <label className="block text-xs uppercase text-gray-500 mb-1">Dine-In Guests (Manual)</label>
+                        <input
+                            type="number"
+                            required
+                            placeholder="e.g. 800"
+                            value={dineInGuests}
+                            onChange={(e) => setDineInGuests(Number(e.target.value))}
+                            className="w-full bg-black/50 border border-white/10 rounded p-2 text-white focus:border-brand-gold outline-none"
+                        />
                     </div>
-                    <input
-                        type="number"
-                        required
-                        placeholder="e.g. 1200"
-                        value={guests}
-                        onChange={(e) => setGuests(Number(e.target.value))}
-                        className="w-full bg-black/50 border border-white/10 rounded p-2 text-white focus:border-brand-gold outline-none"
-                    />
+
+                    {/* OLO Input */}
+                    <div>
+                        <div className="flex justify-between items-center mb-1">
+                            <label className="block text-xs uppercase text-gray-500">OLO Guests (Sync)</label>
+                            <button
+                                type="button"
+                                onClick={handleOloSync}
+                                disabled={loadingOlo}
+                                className="text-xs text-brand-gold hover:text-white flex items-center transition-colors disabled:opacity-50"
+                            >
+                                {loadingOlo ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <DownloadCloud className="w-3 h-3 mr-1" />}
+                                Sync OLO
+                            </button>
+                        </div>
+                        <input
+                            type="number"
+                            required
+                            placeholder="e.g. 400"
+                            value={oloGuests}
+                            onChange={(e) => setOloGuests(Number(e.target.value))}
+                            className="w-full bg-black/50 border border-white/10 rounded p-2 text-white focus:border-brand-gold outline-none"
+                        />
+                    </div>
+
+                    {/* Total Display */}
+                    <div className="pt-2 border-t border-white/10 flex justify-between items-center">
+                        <span className="text-sm font-bold text-gray-400">Total BI Impact:</span>
+                        <span className="text-xl font-mono font-bold text-brand-gold">{totalGuests} Guests</span>
+                    </div>
                 </div>
             </div>
 
