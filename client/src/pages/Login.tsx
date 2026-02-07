@@ -41,17 +41,12 @@ export const Login = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
             <div className="relative z-10 w-full max-w-md p-10 bg-black/50 backdrop-blur-sm border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500">
-                <div className="text-center mb-10">
-                    <div className="inline-block p-4 rounded-full border-2 border-brand-gold/30 bg-black/50 mb-4 shadow-[0_0_15px_rgba(197,160,89,0.3)]">
-                        <i className="w-12 h-12 text-brand-gold" data-lucide="flame"></i>
-                        {/* Lucide flame icon placeholder, strictly we should import Flame */}
-                        <span className="text-4xl">🔥</span>
-                    </div>
-                    <h1 className="text-4xl font-bold text-white mb-2 tracking-tight text-shadow-sm font-serif">
-                        BRASA
-                    </h1>
-                    <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-2"></div>
-                    <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">Meat Intelligence</p>
+                <div className="text-center mb-8">
+                    <img
+                        src="/brasa-logo-gold.png"
+                        alt="Brasa Meat Intelligence"
+                        className="w-48 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow"
+                    />
                 </div>
 
                 {error && (
