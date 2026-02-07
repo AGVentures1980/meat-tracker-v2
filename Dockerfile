@@ -10,6 +10,8 @@ RUN npm run build
 # Stage 2: Build Server
 FROM node:18-alpine AS server-build
 WORKDIR /app/server
+# Increase memory limit for build
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 COPY server/package*.json ./
 RUN npm ci
 COPY server/ ./
