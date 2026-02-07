@@ -18,3 +18,11 @@
 [0mPOST /api/v1/automation/ocr-invoice [32m200[0m 2005.577 ms - 324[0m
 [INFO] 01:00:04 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/InventoryController.ts has been modified
 🚀 Server running on http://localhost:3001
+[INFO] 09:32:44 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+🚀 Server running on http://localhost:3001
+[INFO] 09:32:55 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+🚀 Server running on http://localhost:3001
+[INFO] 09:33:05 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+🚀 Server running on http://localhost:3001
+[INFO] 09:33:09 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+🚀 Server running on http://localhost:3001

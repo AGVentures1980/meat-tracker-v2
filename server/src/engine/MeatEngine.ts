@@ -88,8 +88,7 @@ export class MeatEngine {
     }
 
     private static async getTopMeats(storeId: number, start: Date, end: Date) {
-        const sales = await prisma.orderItem.groupBy({
-            by: ['protein_type'],
+        const sales = await prisma.orderItem.findMany({
             where: {
                 order: {
                     store_id: storeId,
@@ -98,22 +97,62 @@ export class MeatEngine {
                         lte: end
                     }
                 }
-            },
-            _sum: {
-                lbs: true
-            },
-            orderBy: {
-                _sum: {
-                    lbs: 'desc'
-                }
-            },
-            take: 3
+            }
         });
 
-        return sales.map(s => ({
-            name: s.protein_type,
-            value: s._sum.lbs || 0
-        }));
+        // Dynamic Aggregation with Combo Parsing
+        const aggression: Record<string, number> = {};
+
+        // Import definition dynamically or top-level. 
+        // Since we are inside the class, let's use the external config.
+        const { COMBO_DEFINITIONS } = require('../config/combos');
+
+        sales.forEach(item => {
+            const lowerName = item.item_name.toLowerCase().trim();
+            const combo = COMBO_DEFINITIONS[lowerName];
+
+            if (combo) {
+                // It's a combo (e.g. Churrasco Plate)
+                combo.components.forEach((c: any) => {
+                    const proteinKey = c.protein;
+                    // Proportional weight based on item qty (which is item.lbs in our simplified schema?)
+                    // Wait, our OrderItem schema has 'lbs'. 
+                    // If OLO sends "1 Churrasco Plate", our previous logic might have saved '1.0' as lbs?
+                    // Or did we already normalize it?
+                    // The schema says `lbs Float`.
+                    // If the raw order comes in as "1 unit", we need to know if `item.lbs` is "quantity" or "weight".
+                    // For V2 Prototype, let's assume `item.lbs` is the WEIGHT derived from OLO Quantity * Standard Weight.
+                    // But if it's a Combo, we need to redistribute that weight.
+
+                    // Actually, simpler:
+                    // If it is a combo, we ignore the recorded 'protein_type' (which might be generic)
+                    // and add to the specific buckets defined in the combo.
+                    // We treat `item.lbs` as "1.0 Unit" essentially if it was just a count.
+                    // BUT, `item.lbs` should already be weight.
+
+                    // Lets assume `item.lbs` represents the QUANTITY acts (1 plate).
+                    // So we add combo.weight to the tally.
+                    // Ideally we should fix the Ingestion to store 'Quantity' separately, but for now:
+
+                    const weightToAdd = c.weight * (item.lbs > 5 ? 1 : item.lbs); // Heuristic: if lbs > 5, it might be real lbs. If 1, it's a unit.
+                    // Actually, let's stick to the V2 logic:
+                    // If we detect a combo, we use the definition.
+
+                    aggression[proteinKey] = (aggression[proteinKey] || 0) + c.weight;
+                });
+            } else {
+                // Regular Item
+                aggression[item.protein_type] = (aggression[item.protein_type] || 0) + item.lbs;
+            }
+        });
+
+        // Sort and Top 3
+        const sorted = Object.entries(aggression)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 3);
+
+        return sorted;
     }
 
     private static async getWeeklyHistory(storeId: number, topProteins: string[]) {

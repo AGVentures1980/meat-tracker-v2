@@ -25,7 +25,28 @@ app.get('/health', (req, res) => {
 const requireAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const token = req.headers.authorization;
     if (!token) return res.status(401).json({ error: 'Missing Authorization header' });
-    next();
+
+    // Mock Token Logic for V2 Prototype
+    // Format: "Bearer store-123-role-manager" or just "Bearer mock-token" (Admin)
+    const tokenValue = token.split(' ')[1];
+
+    if (tokenValue === 'mock-token') {
+        // Master Admin (God Mode)
+        (req as any).user = { role: 'admin', storeId: null };
+        return next();
+    }
+
+    if (tokenValue.startsWith('store-')) {
+        // e.g. store-180-manager
+        const parts = tokenValue.split('-');
+        const storeId = parseInt(parts[1]);
+        const role = parts[2] || 'viewer';
+
+        (req as any).user = { role, storeId };
+        return next();
+    }
+
+    return res.status(403).json({ error: 'Invalid Token' });
 };
 
 // API Routes

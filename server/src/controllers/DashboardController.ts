@@ -6,6 +6,7 @@ export class DashboardController {
     static async getStats(req: Request, res: Response) {
         try {
             const { storeId } = req.params;
+            const user = (req as any).user; // Populated by requireAuth
 
             if (!storeId) {
                 return res.status(400).json({ error: 'Store ID is required' });
@@ -15,6 +16,11 @@ export class DashboardController {
             const id = parseInt(storeId);
             if (isNaN(id)) {
                 return res.status(400).json({ error: 'Invalid Store ID' });
+            }
+
+            // Security Check: Ensure user belongs to this store (or is admin)
+            if (user.role !== 'admin' && user.storeId !== id) {
+                return res.status(403).json({ error: 'Access Denied: You do not have permission to view this store.' });
             }
 
             const stats = await MeatEngine.getDashboardStats(id);
@@ -27,6 +33,13 @@ export class DashboardController {
 
     static async getNetworkStats(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
+
+            // Security: Only Admins can see the full network
+            if (user.role !== 'admin') {
+                return res.status(403).json({ error: 'Access Denied: Network View is for Admins only.' });
+            }
+
             const stats = await MeatEngine.getNetworkBiStats();
             return res.json(stats);
         } catch (error) {
