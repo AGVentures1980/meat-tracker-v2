@@ -39,7 +39,7 @@ COPY --from=server-build /app/server/prisma ./server/prisma
 # path.join(__dirname, '../../client/dist') resolves to:
 # /app/server/dist/../../client/dist -> /app/client/dist
 # So we need to put client dist at /app/client/dist
-COPY --from=client-build /app/client/dist ./client/dist
+COPY --from=client-build /app/client/dist ./server/client/dist
 
 ENV NODE_ENV=production
 ENV PORT=3000
