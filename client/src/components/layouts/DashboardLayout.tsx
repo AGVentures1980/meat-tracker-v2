@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Users, StickyNote, Settings, Menu, TrendingUp, AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, ShoppingCart, Users, StickyNote, Settings, Menu, AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-    const navigate = useNavigate();
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
     const [showAlerts, setShowAlerts] = useState(false);
@@ -38,11 +37,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
                 <nav className="flex-1 p-2 space-y-1">
                     {navItems.map((item) => {
-                        const active = location.pathname.includes(item.path);
+                        const active = location.pathname.includes(item.path.split('/')[1]);
                         return (
-                            <button
+                            <Link
                                 key={item.path}
-                                onClick={() => navigate(item.path)}
+                                to={item.path}
                                 className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
                                     ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
                                     : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
@@ -50,7 +49,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             >
                                 <item.icon className="w-5 h-5 min-w-[20px]" />
                                 {!collapsed && <span className="text-sm font-medium tracking-wide">{item.label}</span>}
-                            </button>
+                            </Link>
                         );
                     })}
                 </nav>
@@ -58,7 +57,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <div className="p-4 border-t border-[#333]">
                     {!collapsed && (
                         <div className="text-xs text-gray-600 font-mono">
-                            v2.1.0-RC1
+                            v2.1.2
                             <br />
                             CONN: <span className="text-[#00FF94]">SECURE</span>
                         </div>

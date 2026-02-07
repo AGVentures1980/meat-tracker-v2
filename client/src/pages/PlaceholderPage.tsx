@@ -1,6 +1,6 @@
 import React from 'react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
-import { Construction } from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 interface PlaceholderProps {
     title: string;
@@ -11,7 +11,7 @@ export const PlaceholderPage = ({ title }: PlaceholderProps) => {
         <DashboardLayout>
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
                 <div className="bg-[#1a1a1a] p-6 rounded-full border border-[#333] mb-6">
-                    <Construction className="w-12 h-12 text-[#FF9F1C]" />
+                    <Settings className="w-12 h-12 text-[#FF9F1C] animate-spin-slow" />
                 </div>
                 <h1 className="text-2xl font-mono font-bold text-white mb-2">{title}</h1>
                 <p className="text-gray-500 font-mono text-sm max-w-md">
