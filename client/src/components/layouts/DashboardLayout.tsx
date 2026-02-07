@@ -18,6 +18,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         { icon: ShoppingCart, label: 'Inventory', path: '/inventory' },
         { icon: StickyNote, label: 'Reports', path: '/reports' },
         { icon: Users, label: 'Users', path: '/users' },
+        { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' }, // New Financial Input
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 

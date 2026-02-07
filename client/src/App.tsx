@@ -16,6 +16,8 @@ const ProtectedRoute = () => {
 
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 
+import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
+
 function AppContent() {
     return (
         <BrowserRouter>
@@ -28,6 +30,7 @@ function AppContent() {
                     <Route path="/dashboard/:storeId" element={<Dashboard />} />
                     <Route path="/inventory" element={<PlaceholderPage title="Inventory Management" />} />
                     <Route path="/reports" element={<PlaceholderPage title="Reporting Suite" />} />
+                    <Route path="/prices" element={<WeeklyPriceInput />} />
                     <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
                     <Route path="/settings" element={<PlaceholderPage title="System Settings" />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />

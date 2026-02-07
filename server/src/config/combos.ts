@@ -11,23 +11,28 @@ export const COMBO_DEFINITIONS: Record<string, ComboDefinition> = {
     "churrasco plate": {
         name: "Churrasco Plate",
         components: [
-            { protein: "Picanha", weight: 0.4 },
-            { protein: "Chicken Wrapped", weight: 0.2 },
-            { protein: "Sausage", weight: 0.2 }
+            { protein: "Choice 1", weight: 0.5 },
+            { protein: "Choice 2", weight: 0.5 }
+        ]
+    },
+    "churrasco feast": {
+        name: "Churrasco Feast",
+        components: [
+            { protein: "Choice 1", weight: 1.0 },
+            { protein: "Choice 2", weight: 1.0 }
         ]
     },
     "picanha sandwich": {
         name: "Picanha Sandwich",
         components: [
-            { protein: "Picanha", weight: 0.3 }
+            { protein: "Picanha", weight: 0.5 } // Assuming 1/2 lb for sandwich unless specified
         ]
     },
-    "family platter": {
+    "family platter": { // Keeping legacy just in case, or mapping to Feast
         name: "Family Platter",
         components: [
-            { protein: "Picanha", weight: 1.0 },
-            { protein: "Chicken Wrapped", weight: 1.0 },
-            { protein: "Lamb Chops", weight: 0.5 }
+            { protein: "Choice 1", weight: 1.0 },
+            { protein: "Choice 2", weight: 1.0 }
         ]
     }
 };
