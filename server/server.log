@@ -66,3 +66,10 @@ src/controllers/AutomationController.ts(98,23): error TS1005: 'try' expected.
 src/controllers/AutomationController.ts(103,1): error TS1005: ',' expected.
 src/controllers/AutomationController.ts(104,1): error TS1005: ')' expected.
 
+[INFO] 11:22:26 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/AutomationController.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/AutomationController.ts
+[ERROR] 11:22:26 ⨯ Unable to compile TypeScript:
+src/controllers/AutomationController.ts(122,1): error TS1005: '}' expected.
+
+[INFO] 11:22:39 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/AutomationController.ts has been modified
+🚀 Server running on http://localhost:3001

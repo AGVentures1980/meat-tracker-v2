@@ -63,41 +63,60 @@ export class AutomationController {
                 { item: "Lamb Chops (1lb)", qty: 5 }
             ];
 
-            // 2. Import Definitions & Constants
-            // In a real app, these would be imported at top level
-            const { COMBO_DEFINITIONS } = require('../config/combos');
-            const TARGET_PER_GUEST = 1.76;
-
             let totalMeatWeight = 0;
             let calculatedGuests = 0;
 
-            // 3. Calculate Weight & Guests
+            // 2. Calculate Weight & Guests
             rawOrders.forEach(order => {
                 const lowerName = order.item.toLowerCase();
-                const combo = COMBO_DEFINITIONS[lowerName];
 
-                // 3. Calculate Weight & Guests
-                rawOrders.forEach(order => {
-                    const lowerName = order.item.toLowerCase();
+                // Specific Rules based on Prototype constraints
+                if (lowerName.includes('feast')) {
+                    // Feast: 2.0 lbs meat, 4 Guests
+                    totalMeatWeight += (2.0 * order.qty);
+                    calculatedGuests += (4 * order.qty);
+                } else if (lowerName.includes('plate')) {
+                    // Plate: 1.0 lb meat, 1 Guest
+                    totalMeatWeight += (1.0 * order.qty);
+                    calculatedGuests += (1 * order.qty);
+                } else {
+                    // Loose Items / Sides
+                    // Rule: "0.5 lb serves 2 people" => 1 lb serves 4 people => Guests = Weight * 4
+                    let weight = 0;
+                    if (lowerName.includes('0.5lb')) weight = 0.5;
+                    else if (lowerName.includes('1lb')) weight = 1.0;
+                    else weight = 0.5; // Default
 
-                    // Specific Rules based on Prototype constraints
-                    if (lowerName.includes('feast')) {
-                        // Feast: 2.0 lbs meat, 4 Guests
-                        totalMeatWeight += (2.0 * order.qty);
-                        calculatedGuests += (4 * order.qty);
-                    } else if (lowerName.includes('plate')) {
-                        // Plate: 1.0 lb meat, 1 Guest
-                        totalMeatWeight += (1.0 * order.qty);
-                        calculatedGuests += (1 * order.qty);
-                    } else {
-                        // Loose Items / Sides
-                        // Rule: "0.5 lb serves 2 people" => 1 lb serves 4 people => Guests = Weight * 4
-                        let weight = 0;
-                        if (lowerName.includes('0.5lb')) weight = 0.5;
-
-                    } catch (error) {
-                        console.error('OLO Error:', error);
-                        return res.status(500).json({ error: 'Failed to sync OLO data' });
-                    }
+                    totalMeatWeight += (weight * order.qty);
+                    calculatedGuests += (weight * 4 * order.qty);
                 }
+            });
+
+            const oloData = {
+                store_id: 180, // Tampa
+                week: week || 10,
+                guests: calculatedGuests,
+                calculation_debug: {
+                    total_lbs: totalMeatWeight,
+                    formula: "Item Specific Rules (Feast=4, Plate=1, Loose=Wt*4)",
+                    raw_orders: rawOrders
+                },
+                sales_summary: {
+                    total_sales: 75000.00,
+                    delivery_sales: 12000.00,
+                    dine_in_sales: 63000.00
+                }
+            };
+
+            return res.json({
+                success: true,
+                message: "OLO Data synchronized.",
+                data: oloData
+            });
+
+        } catch (error) {
+            console.error('OLO Error:', error);
+            return res.status(500).json({ error: 'Failed to sync OLO data' });
+        }
+    }
 }
