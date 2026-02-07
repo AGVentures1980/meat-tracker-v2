@@ -1,0 +1,12 @@
+
+> brasa-meat-intelligence-server@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/index.ts
+
+[INFO] 00:50:52 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.3)
+🚀 Server running on http://localhost:3001
+[0mPOST /api/v1/inventory/weekly-close [33m404[0m 0.578 ms - 169[0m
+[0mGET /api/v1/dashboard/bi-report-card?year=2026&week=10 [33m401[0m 0.530 ms - 40[0m
+[INFO] 00:51:36 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+🚀 Server running on http://localhost:3001
+[0mPOST /api/v1/inventory/weekly-close [32m200[0m 40.003 ms - 61[0m
+[0mGET /api/v1/dashboard/bi-report-card?year=2026&week=10 [32m200[0m 39.742 ms - 237[0m
