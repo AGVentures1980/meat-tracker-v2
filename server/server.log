@@ -75,3 +75,7 @@ src/controllers/AutomationController.ts(122,1): error TS1005: '}' expected.
 🚀 Server running on http://localhost:3001
 [INFO] 11:34:23 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
 🚀 Server running on http://localhost:3001
+[INFO] 11:43:31 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/config/standards.ts has been modified
+🚀 Server running on http://localhost:3001
+[INFO] 11:43:32 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+🚀 Server running on http://localhost:3001

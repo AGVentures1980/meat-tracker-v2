@@ -54,14 +54,18 @@ export class MeatEngine {
         // Hardcoded prices matching the WeeklyPriceInput for prototype
         const WEEKLY_PRICES: Record<string, number> = {
             'picanha': 5.80,
+            'fraldinha/flank steak': 6.50,
+            'tri-tip': 5.20,
             'filet mignon': 14.20,
-            'lamb chops': 12.50,
-            'chicken wrapped': 3.20,
+            'beef ribs': 7.50,
             'pork ribs': 4.50,
-            'salmon': 9.00,
-            'sausage': 4.20,
-            'flank steak': 7.50,
-            'alcatra': 8.90
+            'pork loin': 3.80,
+            'chicken drumstick': 1.80,
+            'chicken breast': 3.20,
+            'lamb chops': 12.50,
+            'leg of lamb': 8.50,
+            'lamb picanha': 9.20,
+            'sausage': 4.20
         };
 
         let totalProjectedSavings = 0;

@@ -8,12 +8,19 @@ export const WeeklyPriceInput = () => {
 
     // Mock Data State - In real app, fetch from DB based on selectedDate
     const [prices, setPrices] = useState([
-        { id: 1, item: 'Picanha (Top Sirloin)', current: 5.80, last: 5.50, unit: 'lb' },
-        { id: 2, item: 'Filet Mignon', current: 14.20, last: 13.90, unit: 'lb' },
-        { id: 3, item: 'Lamb Chops', current: 12.50, last: 12.50, unit: 'lb' },
-        { id: 4, item: 'Chicken Wrapped', current: 3.20, last: 3.10, unit: 'lb' },
-        { id: 5, item: 'Pork Ribs', current: 4.50, last: 4.80, unit: 'lb' },
-        { id: 6, item: 'Salmon', current: 9.00, last: 8.75, unit: 'lb' }
+        { id: 1, item: 'Picanha', current: 5.80, last: 5.50, unit: 'lb' },
+        { id: 2, item: 'Fraldinha/Flank Steak', current: 6.50, last: 6.20, unit: 'lb' },
+        { id: 3, item: 'Tri-Tip', current: 5.20, last: 5.00, unit: 'lb' },
+        { id: 4, item: 'Filet Mignon', current: 14.20, last: 13.90, unit: 'lb' },
+        { id: 5, item: 'Beef Ribs', current: 7.50, last: 7.80, unit: 'lb' },
+        { id: 6, item: 'Pork Ribs', current: 4.50, last: 4.80, unit: 'lb' },
+        { id: 7, item: 'Pork Loin', current: 3.80, last: 3.60, unit: 'lb' },
+        { id: 8, item: 'Chicken Drumstick', current: 1.80, last: 1.70, unit: 'lb' },
+        { id: 9, item: 'Chicken Breast', current: 3.20, last: 3.10, unit: 'lb' },
+        { id: 10, item: 'Lamb Chops', current: 12.50, last: 12.50, unit: 'lb' },
+        { id: 11, item: 'Leg of Lamb', current: 8.50, last: 8.75, unit: 'lb' },
+        { id: 12, item: 'Lamb Picanha', current: 9.20, last: 9.00, unit: 'lb' },
+        { id: 13, item: 'Sausage', current: 4.20, last: 4.00, unit: 'lb' }
     ]);
 
     const handlePriceChange = (id: number, newVal: string) => {
