@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 
 interface StoreData {
@@ -20,52 +20,42 @@ interface StoreData {
     status: 'Optimal' | 'Warning' | 'Critical';
 }
 
-const MOCK_DATA: StoreData[] = [
-    {
-        id: 180, name: 'Tampa', location: 'FL',
-        guests: 6557, usedQty: 12580, usedValue: 75228, costPerLb: 5.98, costPerGuest: 11.47, lbsPerGuest: 1.91,
-        lbsGuestVar: 0.15, costGuestVar: 0.89,
-        impactYTD: 14251, status: 'Warning'
-    },
-    {
-        id: 181, name: 'Orlando', location: 'FL',
-        guests: 6800, usedQty: 11500, usedValue: 68770, costPerLb: 5.98, costPerGuest: 10.11, lbsPerGuest: 1.69,
-        lbsGuestVar: -0.07, costGuestVar: -0.42,
-        impactYTD: -8400, status: 'Optimal'
-    },
-    {
-        id: 182, name: 'Miami Beach', location: 'FL',
-        guests: 5200, usedQty: 8996, usedValue: 54875, costPerLb: 6.10, costPerGuest: 10.55, lbsPerGuest: 1.73,
-        lbsGuestVar: -0.03, costGuestVar: -0.18,
-        impactYTD: -3200, status: 'Optimal'
-    },
-    {
-        id: 183, name: 'Las Vegas', location: 'NV',
-        guests: 8900, usedQty: 17800, usedValue: 108580, costPerLb: 6.10, costPerGuest: 12.20, lbsPerGuest: 2.00,
-        lbsGuestVar: 0.24, costGuestVar: 1.45,
-        impactYTD: 60336, status: 'Critical'
-    },
-    {
-        id: 184, name: 'Dallas', location: 'TX',
-        guests: 3400, usedQty: 6018, usedValue: 34302, costPerLb: 5.70, costPerGuest: 10.09, lbsPerGuest: 1.77,
-        lbsGuestVar: 0.01, costGuestVar: 0.05,
-        impactYTD: 272, status: 'Optimal'
-    },
-    {
-        id: 185, name: 'Chicago', location: 'IL',
-        guests: 5881, usedQty: 11648, usedValue: 65000, costPerLb: 5.58, costPerGuest: 11.04, lbsPerGuest: 1.98,
-        lbsGuestVar: 0.22, costGuestVar: 1.10,
-        impactYTD: 14001, status: 'Warning'
-    },
-    {
-        id: 168, name: 'Wayne', location: 'NJ',
-        guests: 3008, usedQty: 5013, usedValue: 27800, costPerLb: 5.52, costPerGuest: 9.23, lbsPerGuest: 1.67,
-        lbsGuestVar: -0.09, costGuestVar: -0.50,
-        impactYTD: 6714, status: 'Optimal'
-    }
-];
-
 export const StorePerformanceTable = () => {
+    const [data, setData] = useState<StoreData[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Check if running in Vite dev mode or Production
+                const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3000/api/v1';
+                const res = await fetch(`${baseUrl}/dashboard/bi-network`);
+
+                if (res.ok) {
+                    const realData = await res.json();
+                    setData(realData);
+                } else {
+                    console.error('Failed to fetch BI data');
+                }
+            } catch (err) {
+                console.error('Error loading BI data:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Helper for Summing Up Totals
+    const totalGuests = data.reduce((acc, s) => acc + s.guests, 0);
+    const totalMeat = data.reduce((acc, s) => acc + s.usedQty, 0);
+    const totalValue = data.reduce((acc, s) => acc + s.usedValue, 0);
+    const totalImpact = data.reduce((acc, s) => acc + s.impactYTD, 0);
+    const avgLbsGuest = totalGuests > 0 ? totalMeat / totalGuests : 0;
+
+    if (loading) return <div className="p-8 text-center text-gray-500">Loading Network Intelligence...</div>;
+
     return (
         <div className="bg-[#1E1E1E] rounded-xl border border-white/5 overflow-hidden">
             <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/40">
@@ -74,8 +64,8 @@ export const StorePerformanceTable = () => {
                     <p className="text-gray-400 text-sm">Weekly Actuals vs Plan • Cost Impact Analysis</p>
                 </div>
                 <div className="flex space-x-2">
-                    <div className="bg-brand-red/20 px-3 py-1 rounded text-xs text-brand-red border border-brand-red/30">
-                        Total Impact YTD: $1.001M
+                    <div className={`px-3 py-1 rounded text-xs border uppercase tracking-wider font-bold ${totalImpact > 0 ? 'bg-red-900/20 text-red-400 border-red-900/30' : 'bg-green-900/20 text-green-400 border-green-900/30'}`}>
+                        Total Impact YTD: {totalImpact > 0 ? '$' : '-$'}{Math.abs(totalImpact).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </div>
                 </div>
             </div>
@@ -108,13 +98,13 @@ export const StorePerformanceTable = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5 font-mono">
-                        {MOCK_DATA.map((store) => (
+                        {data.map((store) => (
                             <tr key={store.id} className="hover:bg-white/5 transition-colors">
                                 <td className="px-4 py-2 text-gray-500">{store.id}</td>
                                 <td className="px-4 py-2 text-white font-bold border-r border-white/10">{store.name}</td>
 
-                                <td className="px-2 py-2 text-right text-gray-300">{store.usedQty.toLocaleString()}</td>
-                                <td className="px-2 py-2 text-right text-gray-300">${store.usedValue.toLocaleString()}</td>
+                                <td className="px-2 py-2 text-right text-gray-300">{store.usedQty.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                                <td className="px-2 py-2 text-right text-gray-300">${store.usedValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
                                 <td className="px-2 py-2 text-right text-gray-400">${store.costPerLb.toFixed(2)}</td>
                                 <td className="px-2 py-2 text-right text-gray-300">${store.costPerGuest.toFixed(2)}</td>
                                 <td className={`px-2 py-2 text-right font-bold border-r border-white/10 ${store.lbsPerGuest > 1.8 ? 'bg-red-900/10 text-red-400' : 'text-green-400'
@@ -135,24 +125,26 @@ export const StorePerformanceTable = () => {
 
                                 <td className="px-4 py-2 text-right font-bold bg-white/5">
                                     {store.impactYTD > 0 ? (
-                                        <span className="text-red-400">${store.impactYTD.toLocaleString()}</span>
+                                        <span className="text-red-400">${store.impactYTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                                     ) : (
-                                        <span className="text-green-400">(${Math.abs(store.impactYTD).toLocaleString()})</span>
+                                        <span className="text-green-400">(${Math.abs(store.impactYTD).toLocaleString(undefined, { maximumFractionDigits: 0 })})</span>
                                     )}
                                 </td>
                             </tr>
                         ))}
-                        {/* Grand Total Row Mockup */}
-                        <tr className="bg-[#111] font-bold border-t-2 border-white/20">
+                        {/* Grand Total Row */}
+                        <tr className="bg-[#111] font-bold border-t-2 border-white/20 text-white">
                             <td colSpan={2} className="px-4 py-3 text-right uppercase border-r border-white/10">Grand Total</td>
-                            <td className="px-2 py-3 text-right text-white">321,280</td>
-                            <td className="px-2 py-3 text-right text-white">$1,856,666</td>
-                            <td className="px-2 py-3 text-right text-gray-400">$5.78</td>
-                            <td className="px-2 py-3 text-right text-white">$10.35</td>
-                            <td className="px-2 py-3 text-right text-white border-r border-white/10">1.79</td>
-                            <td className="px-2 py-3 text-right text-red-400">0.04</td>
-                            <td className="px-2 py-3 text-right text-red-400 border-r border-white/10">+$0.35</td>
-                            <td className="px-4 py-3 text-right text-red-500 bg-red-900/10">$1,001,547</td>
+                            <td className="px-2 py-3 text-right">{totalMeat.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                            <td className="px-2 py-3 text-right">${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                            <td className="px-2 py-3 text-right text-gray-400">-</td>
+                            <td className="px-2 py-3 text-right text-gray-400">-</td>
+                            <td className="px-2 py-3 text-right border-r border-white/10">{avgLbsGuest.toFixed(2)}</td>
+                            <td className="px-2 py-3 text-right text-gray-400">-</td>
+                            <td className="px-2 py-3 text-right text-gray-400 border-r border-white/10">-</td>
+                            <td className={`px-4 py-3 text-right ${totalImpact > 0 ? 'text-red-500 bg-red-900/10' : 'text-green-500 bg-green-900/10'}`}>
+                                {totalImpact > 0 ? '$' : '-$'}{Math.abs(totalImpact).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            </td>
                         </tr>
                     </tbody>
                 </table>
