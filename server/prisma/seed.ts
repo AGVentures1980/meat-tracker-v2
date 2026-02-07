@@ -5,12 +5,15 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Starting Seed...');
 
-    // 0. Clean up
-    await prisma.orderItem.deleteMany();
-    await prisma.order.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.store.deleteMany();
-    await prisma.company.deleteMany();
+    // Check if admin already exists to prevent overwriting production data
+    const existingAdmin = await prisma.user.findUnique({
+        where: { email: 'alexandre@alexgarciaventures.co' }
+    });
+
+    if (existingAdmin) {
+        console.log('🛑 Admin user already exists. Skipping seed to protect data.');
+        return;
+    }
 
     // 1. Create Main Company
     const tdb = await prisma.company.create({
@@ -88,7 +91,7 @@ async function main() {
         });
     }
 
-    console.log('✅ Seed Completed with Sales Data!');
+    console.log('✅ Seed Completed with Initial Data!');
 }
 
 main()

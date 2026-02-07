@@ -4,7 +4,7 @@
     "description": "Backend API for Brasa Meat Intelligence",
     "main": "src/index.js",
     "scripts": {
-        "start": "node dist/src/index.js",
+        "start": "npx prisma db push && npx prisma db seed && node dist/src/index.js",
         "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
         "build": "tsc --incremental"
     },
