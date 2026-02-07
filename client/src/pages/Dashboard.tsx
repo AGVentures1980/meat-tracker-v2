@@ -32,7 +32,7 @@ export const Dashboard = () => {
     const [detailedStats, setDetailedStats] = useState<any>(null); // Phase 9
     const [loading, setLoading] = useState(true);
     const [showWeeklyInput, setShowWeeklyInput] = useState(false);
-    const [selectedStoreId] = useState<number>(1);
+    const [selectedStoreId] = useState<number>(180); // Default to Tampa for Demo Data
 
     // Fetch Data
     useEffect(() => {
@@ -43,9 +43,7 @@ export const Dashboard = () => {
                 const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
 
                 // Construct Token
-                const token = user.role === 'admin'
-                    ? 'Bearer mock-token'
-                    : `Bearer store-${user.id}-${user.role || 'manager'}`;
+                const token = `Bearer ${user.token}`;
 
                 // 1. Fetch Network Bi Stats
                 let url = `${baseUrl}/dashboard/bi-network?year=2026&week=10`;
@@ -156,14 +154,26 @@ export const Dashboard = () => {
                             </p>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between text-xs font-mono border-b border-white/5 pb-1">
-                                    <span className="text-gray-500">TOP SAVING</span>
-                                    <span className="text-[#00FF94]">Picanha (+$420)</span>
-                                </div>
-                                <div className="flex justify-between text-xs font-mono border-b border-white/5 pb-1">
-                                    <span className="text-gray-500">TOP WASTE</span>
-                                    <span className="text-[#FF2A6D]">Lamb Chops (-$180)</span>
-                                </div>
+                                {detailedStats.topMeats && detailedStats.topMeats.length > 0 ? (
+                                    <>
+                                        {/* Find Most Savings (highest positive impactDollars) */}
+                                        {[...detailedStats.topMeats].sort((a, b) => b.impactDollars - a.impactDollars).slice(0, 1).map(m => (
+                                            <div key="saving" className="flex justify-between text-xs font-mono border-b border-white/5 pb-1">
+                                                <span className="text-gray-500 uppercase">TOP SAVING</span>
+                                                <span className="text-[#00FF94]">{m.name} (+${Math.round(m.impactDollars).toLocaleString()})</span>
+                                            </div>
+                                        ))}
+                                        {/* Find Most Waste (lowest negative impactDollars) */}
+                                        {[...detailedStats.topMeats].sort((a, b) => a.impactDollars - b.impactDollars).slice(0, 1).map(m => (
+                                            <div key="waste" className="flex justify-between text-xs font-mono border-b border-white/5 pb-1">
+                                                <span className="text-gray-500 uppercase">TOP WASTE</span>
+                                                <span className="text-[#FF2A6D]">{m.name} (${Math.round(m.impactDollars).toLocaleString()})</span>
+                                            </div>
+                                        ))}
+                                    </>
+                                ) : (
+                                    <div className="text-xs text-gray-500 italic">No itemized data available this week.</div>
+                                )}
                             </div>
                         </>
                     ) : (

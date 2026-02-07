@@ -79,3 +79,14 @@ src/controllers/AutomationController.ts(122,1): error TS1005: '}' expected.
 🚀 Server running on http://localhost:3001
 [INFO] 11:43:32 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
 🚀 Server running on http://localhost:3001
+[0mGET /api/dashboard/180 [32m200[0m 3.714 ms - 536[0m
+[0mGET /api/dashboard/180 [32m200[0m 0.494 ms - 536[0m
+[0mGET /api/dashboard/bi-network?year=2026&week=10 [32m200[0m 0.549 ms - 536[0m
+[0mGET /api/v1/dashboard/180 [32m200[0m 56.868 ms - 1517[0m
+[0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 85.781 ms - 15111[0m
+[0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 42.534 ms - 15111[0m
+[0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 46.636 ms - 19340[0m
+[0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 42.620 ms - 19340[0m
+[0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 43.726 ms - 19340[0m
+[0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 43.355 ms - 17895[0m
+[0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 36.782 ms - 17895[0m
