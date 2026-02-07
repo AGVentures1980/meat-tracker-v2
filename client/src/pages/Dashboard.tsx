@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, LayoutGrid, TrendingUp, Calendar } from 'lucide-react';
+import { FileText, Download, LayoutGrid, TrendingUp, Calendar, DownloadCloud, Camera } from 'lucide-react';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
@@ -76,6 +76,20 @@ export const Dashboard = () => {
                 <div className="flex gap-4">
                     <button
                         onClick={() => setShowWeeklyInput(true)}
+                        className="bg-[#1a1a1a] border border-[#333] hover:border-brand-gold/50 hover:text-brand-gold text-gray-400 font-bold py-2 px-4 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono"
+                    >
+                        <DownloadCloud className="w-4 h-4 mr-2" />
+                        Sync OLO
+                    </button>
+                    <button
+                        onClick={() => setShowWeeklyInput(true)}
+                        className="bg-[#1a1a1a] border border-[#333] hover:border-brand-gold/50 hover:text-brand-gold text-gray-400 font-bold py-2 px-4 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono"
+                    >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Scan Invoice
+                    </button>
+                    <button
+                        onClick={() => setShowWeeklyInput(true)}
                         className="bg-[#00FF94] hover:bg-[#00cc76] text-black font-bold py-2 px-4 rounded-sm flex items-center shadow-[0_0_15px_rgba(0,255,148,0.3)] transition-all uppercase text-sm tracking-wide font-mono"
                     >
                         <FileText className="w-4 h-4 mr-2" />
@@ -141,8 +155,8 @@ export const Dashboard = () => {
                                         </td>
                                         <td className="p-4 text-center">
                                             <span className={`inline-block px-2 py-1 text-[10px] rounded-none font-bold uppercase tracking-wide border ${store.status === 'Optimal' ? 'bg-[#00FF94]/10 text-[#00FF94] border-[#00FF94]/30' :
-                                                    store.status === 'Warning' ? 'bg-[#FF9F1C]/10 text-[#FF9F1C] border-[#FF9F1C]/30' :
-                                                        'bg-[#FF2A6D]/10 text-[#FF2A6D] border-[#FF2A6D]/30 animate-pulse'
+                                                store.status === 'Warning' ? 'bg-[#FF9F1C]/10 text-[#FF9F1C] border-[#FF9F1C]/30' :
+                                                    'bg-[#FF2A6D]/10 text-[#FF2A6D] border-[#FF2A6D]/30 animate-pulse'
                                                 }`}>
                                                 {store.status}
                                             </span>
