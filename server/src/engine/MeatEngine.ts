@@ -243,6 +243,8 @@ export class MeatEngine {
         }
 
         return results;
+    }
+
     /**
      * Calculates the "Report Card" for the entire network for a specific Year/Week.
      */
