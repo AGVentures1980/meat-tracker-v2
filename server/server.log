@@ -10,3 +10,5 @@
 🚀 Server running on http://localhost:3001
 [0mPOST /api/v1/inventory/weekly-close [32m200[0m 40.003 ms - 61[0m
 [0mGET /api/v1/dashboard/bi-report-card?year=2026&week=10 [32m200[0m 39.742 ms - 237[0m
+[INFO] 00:54:11 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+🚀 Server running on http://localhost:3001

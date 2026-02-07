@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Save, Plus, Trash2, Calendar } from 'lucide-react';
+import { Save, Plus, Trash2, Calendar, DownloadCloud, Upload, Loader2, FileText } from 'lucide-react';
 
 interface WeeklyInputFormProps {
     onSubmit: () => void;
@@ -10,6 +9,10 @@ interface WeeklyInputFormProps {
 export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormProps) => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [guests, setGuests] = useState<number | ''>('');
+
+    // Automation Loading States
+    const [loadingOlo, setLoadingOlo] = useState(false);
+    const [loadingOCR, setLoadingOCR] = useState(false);
 
     // Inventory State (Focused on Picanha for V2, extensible)
     const [inventoryQty, setInventoryQty] = useState<number | ''>('');
@@ -35,6 +38,74 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
         setPurchases(purchases.map(p => p.id === id ? { ...p, [field]: value } : p));
     };
 
+    // --- AUTOMATION HANDLERS ---
+
+    const handleOloSync = async () => {
+        setLoadingOlo(true);
+        try {
+            const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
+            const res = await fetch(`${baseUrl}/automation/olo-sales?week=10`, {
+                headers: { 'Authorization': 'Bearer mock-token' }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setGuests(data.data.guests);
+                alert(`OLO Sync Complete: Found ${data.data.guests} guests.`);
+            } else {
+                alert('OLO Sync Failed.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network Error during OLO Sync');
+        } finally {
+            setLoadingOlo(false);
+        }
+    };
+
+    const handleInvoiceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        setLoadingOCR(true);
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append('invoice', file);
+
+        try {
+            const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
+            const res = await fetch(`${baseUrl}/automation/ocr-invoice`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer mock-token' },
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Map OCR items to Purchases state
+                const newPurchases = data.data.items.map((item: any, idx: number) => ({
+                    id: Date.now() + idx,
+                    date: data.data.date,
+                    item: item.item,
+                    qty: item.qty,
+                    cost: item.cost
+                }));
+
+                setPurchases([...purchases, ...newPurchases]);
+                alert(`OCR Complete: Extracted ${newPurchases.length} items from ${data.data.vendor} invoice.`);
+            } else {
+                alert('OCR Failed to read invoice.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network Error during OCR');
+        } finally {
+            setLoadingOCR(false);
+            e.target.value = ''; // Reset input
+        }
+    };
+
+    // ---------------------------
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -54,10 +125,13 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
                 }))
             };
 
-            const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3000/api/v1';
+            const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
             const res = await fetch(`${baseUrl}/inventory/weekly-close`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer mock-token'
+                },
                 body: JSON.stringify(payload)
             });
 
@@ -77,8 +151,16 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
     return (
         <form onSubmit={handleSubmit} className="p-6 bg-[#1a1a1a] text-white rounded-xl shadow-2xl border border-white/5 max-h-[90vh] overflow-y-auto w-full max-w-2xl">
             <div className="border-b border-white/10 pb-4 mb-6">
-                <h2 className="text-2xl font-serif text-brand-gold">Manager Weekly Close</h2>
-                <p className="text-gray-400 text-sm">Input Sunday Counts & Weekly Invoices</p>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h2 className="text-2xl font-serif text-brand-gold">Manager Weekly Close</h2>
+                        <p className="text-gray-400 text-sm">Input Sunday Counts & Weekly Invoices</p>
+                    </div>
+                    <div className="bg-blue-900/20 text-blue-300 text-xs px-2 py-1 rounded border border-blue-800/50 flex items-center">
+                        <FileText className="w-3 h-3 mr-1" />
+                        Week 10 (Active)
+                    </div>
+                </div>
             </div>
 
             {/* Section 1: General Info */}
@@ -94,7 +176,18 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
                     />
                 </div>
                 <div>
-                    <label className="block text-xs uppercase text-gray-500 mb-1">Week Guest Count</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs uppercase text-gray-500">Week Guest Count</label>
+                        <button
+                            type="button"
+                            onClick={handleOloSync}
+                            disabled={loadingOlo}
+                            className="text-xs text-brand-gold hover:text-white flex items-center transition-colors disabled:opacity-50"
+                        >
+                            {loadingOlo ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <DownloadCloud className="w-3 h-3 mr-1" />}
+                            Sync OLO
+                        </button>
+                    </div>
                     <input
                         type="number"
                         required
@@ -135,9 +228,22 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold text-white">Weekly Invoices</h3>
-                    <button type="button" onClick={addPurchase} className="text-xs bg-brand-gold text-black px-2 py-1 rounded font-bold flex items-center hover:bg-yellow-500">
-                        <Plus className="w-3 h-3 mr-1" /> Add Invoice
-                    </button>
+                    <div className="flex gap-2">
+                        <label className="cursor-pointer text-xs bg-gray-800 text-gray-200 px-3 py-1 rounded font-bold flex items-center hover:bg-gray-700 transition-colors border border-white/10">
+                            {loadingOCR ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Upload className="w-3 h-3 mr-1" />}
+                            Upload Invoice (PDF)
+                            <input
+                                type="file"
+                                accept=".pdf,.png,.jpg,.jpeg"
+                                className="hidden"
+                                onChange={handleInvoiceUpload}
+                                disabled={loadingOCR}
+                            />
+                        </label>
+                        <button type="button" onClick={addPurchase} className="text-xs bg-brand-gold text-black px-3 py-1 rounded font-bold flex items-center hover:bg-yellow-500 transition-colors">
+                            <Plus className="w-3 h-3 mr-1" /> Manual Add
+                        </button>
+                    </div>
                 </div>
 
                 {purchases.length === 0 && (
@@ -157,11 +263,11 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
                                     className="w-full bg-transparent text-xs text-gray-300 border-none focus:ring-0"
                                 />
                             </div>
-                            <div className="col-span-3">
+                            <div className="col-span-4">
                                 <input
                                     type="text"
                                     value={p.item}
-                                    readOnly // Locked to Picanha for V2
+                                    onChange={(e) => updatePurchase(p.id, 'item', e.target.value)}
                                     className="w-full bg-transparent text-sm text-white font-bold border-none focus:ring-0"
                                 />
                             </div>
@@ -174,7 +280,7 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
                                     className="w-full bg-white/5 rounded px-2 py-1 text-sm text-white border border-white/10"
                                 />
                             </div>
-                            <div className="col-span-3">
+                            <div className="col-span-2">
                                 <input
                                     type="number"
                                     placeholder="Total $"

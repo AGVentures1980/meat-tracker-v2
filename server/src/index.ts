@@ -33,6 +33,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import orderRoutes from './routes/order.routes';
 import uploadRoutes from './routes/upload.routes';
 import inventoryRoutes from './routes/inventory.routes';
+import automationRoutes from './routes/automation.routes';
 
 import path from 'path';
 
@@ -40,6 +41,7 @@ app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/v1/orders', requireAuth, orderRoutes);
 app.use('/api/v1/upload', requireAuth, uploadRoutes);
 app.use('/api/v1/inventory', requireAuth, inventoryRoutes);
+app.use('/api/v1/automation', requireAuth, automationRoutes);
 
 // Serve Static Frontend (Production)
 // In Docker, we'll copy client/dist to server/public or similar
