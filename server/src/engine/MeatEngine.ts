@@ -243,5 +243,81 @@ export class MeatEngine {
         }
 
         return results;
+    /**
+     * Calculates the "Report Card" for the entire network for a specific Year/Week.
+     */
+    static async getNetworkReportCard(year: number, week: number) {
+        // 1. Determine Date Range for the selected Fiscal Week
+        // For prototype V2, we assume "Current Week" is the one seeded.
+        // We will just fetch ALL current inventory/purchase data as if it belongs to this week.
+        const stores = await prisma.store.findMany();
+
+        // Aggregators
+        let totalGuests = 0;
+        let totalUsedQty = 0;
+        let totalUsedValue = 0;
+
+        for (const store of stores) {
+            const report = await prisma.report.findFirst({
+                where: { store_id: store.id, month: '2026-02-BI-WEEK' }
+            });
+            const guests = report?.extra_customers || 0;
+
+            const invRecords = await prisma.inventoryRecord.findMany({
+                where: { store_id: store.id },
+                orderBy: { date: 'asc' }
+            });
+            const purchases = await prisma.purchaseRecord.findMany({
+                where: { store_id: store.id }
+            });
+
+            if (invRecords.length >= 2) {
+                const startInv = invRecords[0].quantity;
+                const endInv = invRecords[invRecords.length - 1].quantity;
+                const purchaseQty = purchases.reduce((acc, p) => acc + p.quantity, 0);
+                const purchaseCost = purchases.reduce((acc, p) => acc + p.cost_total, 0);
+
+                totalUsedQty += (startInv + purchaseQty) - endInv;
+                totalUsedValue += purchaseCost;
+                totalGuests += guests;
+            } else {
+                // Fallback
+                const q = report?.total_lbs || 0;
+                totalUsedQty += q;
+                totalUsedValue += q * 6.00;
+                totalGuests += guests;
+            }
+        }
+
+        // Metrics - Weekly
+        const lbsPerGuest = totalGuests > 0 ? (totalUsedQty / totalGuests) : 0;
+        const costPerGuest = totalGuests > 0 ? (totalUsedValue / totalGuests) : 0;
+        const planLbsPerGuest = 1.76;
+
+        // Metrics - Historical (Mocked for V2 Demo as we don't have 12 weeks of data)
+        // In V3, this would query aggregated data from previous weeks.
+        const lbsPerGuest12UkAvg = 1.77;
+        const lbsPerGuestPTD = 1.80; // Slightly higher
+        const lbsPerGuestYTD = 1.79; // Slightly higher
+        const planLbsPerGuestYTD = 1.76;
+
+        // Variance Impact YTD calculation
+        // Impact = (Actual YTD - Plan YTD) * Total Guests YTD (approx Week * 8 for 2 months) * Cost/Lb
+        const estimatedGuestsYTD = totalGuests * 8; // Mock multiplier for 8 weeks
+        const avgCostPerLb = totalUsedQty > 0 ? (totalUsedValue / totalUsedQty) : 6.00;
+        const impactYTD = (lbsPerGuestYTD - planLbsPerGuestYTD) * estimatedGuestsYTD * avgCostPerLb;
+
+        return {
+            year,
+            week,
+            costPerGuest,
+            lbsPerGuest,
+            planLbsPerGuest,
+            lbsPerGuest12UkAvg,
+            lbsPerGuestPTD,
+            lbsPerGuestYTD,
+            planLbsPerGuestYTD,
+            impactYTD
+        };
     }
 }

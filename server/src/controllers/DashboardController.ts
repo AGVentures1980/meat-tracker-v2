@@ -33,5 +33,27 @@ export class DashboardController {
             console.error('Network BI Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network stats' });
         }
+    static async getNetworkStats(req: Request, res: Response) {
+        try {
+            const stats = await MeatEngine.getNetworkBiStats();
+            return res.json(stats);
+        } catch (error) {
+            console.error('Network BI Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch network stats' });
+        }
+    }
+
+    static async getNetworkReportCard(req: Request, res: Response) {
+        try {
+            const { year, week } = req.query;
+            const y = year ? parseInt(year as string) : new Date().getFullYear();
+            const w = week ? parseInt(week as string) : 8; // Default to week 8 for demo
+
+            const stats = await MeatEngine.getNetworkReportCard(y, w);
+            return res.json(stats);
+        } catch (error) {
+            console.error('Report Card Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch report card' });
+        }
     }
 }

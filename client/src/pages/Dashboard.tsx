@@ -5,6 +5,7 @@ import { StatCard } from '../components/StatCard';
 import { ManualEntryForm } from '../components/ManualEntryForm';
 import { Modal } from '../components/Modal';
 import { StorePerformanceTable } from '../components/StorePerformanceTable';
+import { NetworkReportCard } from '../components/NetworkReportCard';
 import { LucideIcon, Scale, Users, Trophy, Activity, LogOut, LayoutGrid, PlusCircle, Upload, Camera } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
@@ -288,9 +289,17 @@ export const Dashboard = () => {
                     </div>
                 )}
 
-                {/* BI Machine Table */}
-                <div className="mt-8">
-                    <StorePerformanceTable />
+                {/* BI Machine Area */}
+                <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+                    {/* Report Card (Side Panel or Top) */}
+                    <div className="lg:col-span-1">
+                        <NetworkReportCard />
+                    </div>
+
+                    {/* Main Table */}
+                    <div className="lg:col-span-3">
+                        <StorePerformanceTable />
+                    </div>
                 </div>
             </main>
 
