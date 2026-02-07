@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Download, LayoutGrid, TrendingUp, Calendar, DownloadCloud, Camera } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
@@ -61,6 +62,8 @@ export const Dashboard = () => {
     }, []);
 
 
+    const navigate = useNavigate();
+
     return (
         <DashboardLayout>
             {/* Header / Actions */}
@@ -97,7 +100,10 @@ export const Dashboard = () => {
                         <FileText className="w-4 h-4 mr-2" />
                         Manager Close
                     </button>
-                    <button className="bg-[#1a1a1a] border border-[#333] hover:border-white/30 text-white font-bold py-2 px-4 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono">
+                    <button
+                        onClick={() => navigate('/export')}
+                        className="bg-[#1a1a1a] border border-[#333] hover:border-white/30 text-white font-bold py-2 px-4 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono"
+                    >
                         <Download className="w-4 h-4 mr-2" />
                         Export CSV
                     </button>
@@ -173,7 +179,7 @@ export const Dashboard = () => {
 
             {/* Input Modal */}
             {showWeeklyInput && (
-                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <WeeklyInputForm
                         storeId={selectedStoreId}
                         onClose={() => setShowWeeklyInput(false)}

@@ -28,6 +28,7 @@ function App() {
                         <Route path="/reports" element={<PlaceholderPage title="Reporting Suite" />} />
                         <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
                         <Route path="/settings" element={<PlaceholderPage title="System Settings" />} />
+                        <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     </Route>
 
