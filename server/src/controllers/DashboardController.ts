@@ -34,7 +34,11 @@ export class DashboardController {
     static async getNetworkStats(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const stats = await MeatEngine.getNetworkBiStats();
+            const { year, week } = req.query;
+            const y = year ? parseInt(year as string) : undefined;
+            const w = week ? parseInt(week as string) : undefined;
+
+            const stats = await MeatEngine.getNetworkBiStats(y, w);
 
             // Security: 
             // If Admin: Return all.

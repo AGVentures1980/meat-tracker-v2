@@ -47,7 +47,7 @@ export const Dashboard = () => {
                     : `Bearer store-${user.id}-${user.role || 'manager'}`;
 
                 // Fetch Logic
-                let url = `${baseUrl}/dashboard/bi-network?year=2026&week=9`;
+                let url = `${baseUrl}/dashboard/bi-network?year=2026&week=10`;
                 if (user.role !== 'admin') {
                     // For managers, we use the same endpoint but the backend filters it 
                     // OR we can use the specific endpoint if preferred.
@@ -96,7 +96,7 @@ export const Dashboard = () => {
                 <div>
                     <h1 className="text-3xl font-mono font-bold text-white tracking-tight">NETWORK OVERVIEW</h1>
                     <div className="flex items-center text-gray-500 font-mono text-sm mt-1 space-x-4">
-                        <span>FISCAL WEEK 9 • 2026</span>
+                        <span>FISCAL WEEK 10 • 2026</span>
                         <span className="text-[#00FF94] flex items-center">
                             <span className="w-2 h-2 bg-[#00FF94] rounded-full mr-2 animate-pulse"></span>
                             LIVE STREAM

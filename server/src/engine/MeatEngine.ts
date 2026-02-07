@@ -205,9 +205,14 @@ export class MeatEngine {
      * Calculates Network-wide BI stats using Real Inventory Logic.
      * Formula: Consumption = (Start Inv + Purchases) - End Inv
      */
-    static async getNetworkBiStats() {
+    static async getNetworkBiStats(year?: number, week?: number) {
         const stores = await prisma.store.findMany();
         const results = [];
+
+        // Effective Period
+        const y = year || 2026;
+        const w = week || 9; // Default to current active week in V2
+        const periodKey = `${y}-W${w}`;
 
         for (const store of stores) {
             // 1. Get Guest Count (from Report or Orders)
@@ -215,7 +220,7 @@ export class MeatEngine {
             const report = await prisma.report.findFirst({
                 where: {
                     store_id: store.id,
-                    month: '2026-02-BI-WEEK'
+                    month: periodKey
                 }
             });
 
