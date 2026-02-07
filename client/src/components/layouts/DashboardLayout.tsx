@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Users, StickyNote, Settings, Menu, AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, StickyNote, Settings, Menu, AlertTriangle, ArrowUpRight, ArrowDownRight, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+    const { logout } = useAuth();
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
     const [showAlerts, setShowAlerts] = useState(false);
@@ -52,6 +54,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             </Link>
                         );
                     })}
+
+
+                    {/* Logout Button */}
+                    <button
+                        onClick={logout}
+                        className="w-full flex items-center gap-3 p-3 rounded transition-colors text-gray-400 hover:bg-red-900/20 hover:text-red-500 mt-2"
+                    >
+                        <LogOut className="w-5 h-5 min-w-[20px]" />
+                        {!collapsed && <span className="text-sm font-medium tracking-wide">Log Out</span>}
+                    </button>
                 </nav>
 
                 <div className="p-4 border-t border-[#333]">
