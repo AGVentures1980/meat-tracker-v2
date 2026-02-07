@@ -31,28 +31,30 @@ export const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // In production, fetch from /api/v1/dashboard/bi-table
-                // For prototype, we mock valid data if API fails or for first render
-                setLoading(false);
-                // Mock Data for Table Visualization
-                setPerformanceData([
-                    { id: 101, name: 'Miami Beach', location: 'FL', guests: 1250, usedQty: 2200, usedValue: 14300, costPerLb: 6.50, costPerGuest: 11.44, lbsPerGuest: 1.76, lbsGuestVar: 0.00, costGuestVar: 0.94, impactYTD: 0, status: 'Optimal' },
-                    { id: 102, name: 'Dallas Main', location: 'TX', guests: 980, usedQty: 1850, usedValue: 12025, costPerLb: 6.50, costPerGuest: 12.27, lbsPerGuest: 1.89, lbsGuestVar: 0.13, costGuestVar: 1.77, impactYTD: -15400, status: 'Warning' },
-                    { id: 103, name: 'Las Vegas', location: 'NV', guests: 2100, usedQty: 4200, usedValue: 29400, costPerLb: 7.00, costPerGuest: 14.00, lbsPerGuest: 2.00, lbsGuestVar: 0.24, costGuestVar: 3.50, impactYTD: -42000, status: 'Critical' },
-                    { id: 104, name: 'Chicago', location: 'IL', guests: 1500, usedQty: 2600, usedValue: 15600, costPerLb: 6.00, costPerGuest: 10.40, lbsPerGuest: 1.73, lbsGuestVar: -0.03, costGuestVar: -0.10, impactYTD: 5200, status: 'Optimal' },
-                ]);
-
-                // Try real fetch
                 const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
-                const res = await fetch(`${baseUrl}/dashboard/bi-table?year=2026&week=9`, {
+                const res = await fetch(`${baseUrl}/dashboard/bi-network?year=2026&week=9`, {
                     headers: { 'Authorization': 'Bearer mock-token' }
                 });
+
                 if (res.ok) {
                     const json = await res.json();
-                    if (json.data) setPerformanceData(json.data);
+                    // In V2, the API returns the array directly or inside a data property?
+                    // Checked MeatEngine: returns results array.
+                    // Checked DashboardController: return res.json(stats).
+                    // So json is the array.
+
+                    if (Array.isArray(json)) {
+                        setPerformanceData(json);
+                    } else if (json.data && Array.isArray(json.data)) {
+                        setPerformanceData(json.data);
+                    }
+                } else {
+                    console.error("API Error:", res.status);
                 }
             } catch (err) {
                 console.error("Failed to fetch dashboard data", err);
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();

@@ -23,7 +23,7 @@ export const NetworkReportCard = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3000/api/v1';
+            const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
             const res = await fetch(`${baseUrl}/dashboard/bi-report-card?year=${year}&week=${week}`);
             if (res.ok) {
                 const json = await res.json();
