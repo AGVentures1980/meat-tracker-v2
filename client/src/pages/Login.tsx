@@ -45,8 +45,8 @@ export const Login = () => {
                     <img
                         src="/brasa-logo-v3.png"
                         alt="Brasa Meat Intelligence"
-                        // Updated to v3 transparent background
-                        className="w-48 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow"
+                        // Larger and closer to text
+                        className="w-64 mx-auto mb-2 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow"
                     />
                     <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-2"></div>
                     <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">Meat Intelligence</p>
