@@ -6,7 +6,8 @@ import { ManualEntryForm } from '../components/ManualEntryForm';
 import { Modal } from '../components/Modal';
 import { StorePerformanceTable } from '../components/StorePerformanceTable';
 import { NetworkReportCard } from '../components/NetworkReportCard';
-import { LucideIcon, Scale, Users, Trophy, Activity, LogOut, LayoutGrid, PlusCircle, Upload, Camera } from 'lucide-react';
+import { WeeklyInputForm } from '../components/WeeklyInputForm';
+import { LucideIcon, Scale, Users, Trophy, Activity, LogOut, LayoutGrid, PlusCircle, Upload, Camera, FileText } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
 interface DashboardStats {
@@ -29,6 +30,7 @@ export const Dashboard = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [showManualModal, setShowManualModal] = useState(false);
+    const [showManagerModal, setShowManagerModal] = useState(false);
     const [uploading, setUploading] = useState(false);
 
     const COLORS = ['#D4AF37', '#8B0000', '#333333']; // Gold, Red, Dark Gray
@@ -171,23 +173,25 @@ export const Dashboard = () => {
                     </div>
                     <div className="flex gap-3">
                         <button
+                            onClick={() => setShowManagerModal(true)}
+                            className="flex items-center space-x-2 bg-blue-900/20 text-blue-400 px-4 py-2 rounded-lg font-bold hover:bg-blue-900/40 transition-colors border border-blue-900/30 uppercase text-xs tracking-wider"
+                        >
+                            <FileText className="w-4 h-4" />
+                            <span>Weekly Close</span>
+                        </button>
+
+                        <button
                             onClick={() => setShowManualModal(true)}
                             className="flex items-center space-x-2 bg-white/10 text-white px-4 py-2 rounded-lg font-bold hover:bg-white/20 transition-colors border border-white/10 uppercase text-xs tracking-wider"
                         >
                             <PlusCircle className="w-4 h-4" />
-                            <span>Add New Entry</span>
+                            <span>Add Entry</span>
                         </button>
 
                         <label className="flex items-center space-x-2 bg-brand-gold text-black px-4 py-2 rounded-lg font-bold hover:bg-yellow-500 transition-colors cursor-pointer uppercase text-xs tracking-wider">
                             <Upload className="w-4 h-4" />
                             <span>Import OLO</span>
                             <input type="file" accept=".csv" className="hidden" onChange={(e) => handleFileUpload(e, 'OLO')} disabled={uploading} />
-                        </label>
-
-                        <label className="flex items-center space-x-2 bg-brand-red text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors cursor-pointer uppercase text-xs tracking-wider">
-                            <Camera className="w-4 h-4" />
-                            <span>Scan Ticket</span>
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'Ticket')} disabled={uploading} />
                         </label>
                     </div>
                 </div>
@@ -303,8 +307,23 @@ export const Dashboard = () => {
                 </div>
             </main>
 
+            {/* Modals */}
             <Modal title="Add Manual Entry" isOpen={showManualModal} onClose={() => setShowManualModal(false)}>
                 <ManualEntryForm onSubmit={handleManualSubmit} onClose={() => setShowManualModal(false)} />
+            </Modal>
+
+            {/* Manager Weekly Close Modal (Using Modal wrapper for consistency, though form has its own style) */}
+            <Modal title="" isOpen={showManagerModal} onClose={() => setShowManagerModal(false)}>
+                <div className="p-0">
+                    <WeeklyInputForm
+                        onSubmit={() => {
+                            fetchStats(); // Refresh stats after close
+                            // Maybe trigger confetti?
+                        }}
+                        onClose={() => setShowManagerModal(false)}
+                        storeId={parseInt(user?.id || "180")}
+                    />
+                </div>
             </Modal>
         </div>
     );
