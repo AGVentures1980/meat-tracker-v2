@@ -191,3 +191,15 @@ src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected
 [0mPOST /api/v1/auth/login [32m200[0m 103.903 ms - 454[0m
 [0mGET /api/v1/dashboard/bi-network [32m200[0m 74.174 ms - 17780[0m
 [0mGET /api/v1/dashboard/company-stats [32m200[0m 35.931 ms - 17969[0m
+[INFO] 02:50:12 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+🚀 Server running on http://localhost:3001
+[INFO] 02:50:28 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+🚀 Server running on http://localhost:3001
+[INFO] 02:50:45 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+🚀 Server running on http://localhost:3001

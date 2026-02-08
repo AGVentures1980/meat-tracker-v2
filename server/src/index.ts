@@ -53,6 +53,43 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+import { PrismaClient, Role } from '@prisma/client';
+import bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
+
+async function ensureDirectorUser() {
+    try {
+        const email = 'dallas@texasdebrazil.com';
+        const password = 'Dallas2026';
+        // @ts-ignore: Role 'director' added to schema, allowing string override until regen
+        const role = 'director' as any;
+        const name = 'Director Dallas';
+
+        console.log(`[Startup] Ensuring user ${email} exists...`);
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await prisma.user.upsert({
+            where: { email },
+            update: {
+                password_hash: hashedPassword,
+                role: role
+            },
+            create: {
+                email,
+                password_hash: hashedPassword,
+                role: role
+            },
+        });
+        console.log(`[Startup] SUCCESS: Verified user ${user.email} with role ${user.role}`);
+    } catch (error) {
+        console.error('[Startup] FAILED to ensure director user:', error);
+    }
+}
+
+// Start Server after DB Check
+ensureDirectorUser().then(() => {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
 });
