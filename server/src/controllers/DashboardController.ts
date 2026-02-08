@@ -21,8 +21,8 @@ export class DashboardController {
                 return res.status(400).json({ error: 'Invalid Store ID' });
             }
 
-            // Security Check: Ensure user belongs to this store (or is admin)
-            if (user.role !== 'admin' && user.storeId !== id) {
+            // Security Check: Ensure user belongs to this store (or is admin/director)
+            if (user.role !== 'admin' && user.role !== 'director' && user.storeId !== id) {
                 return res.status(403).json({ error: 'Access Denied: You do not have permission to view this store.' });
             }
 
@@ -47,7 +47,7 @@ export class DashboardController {
             // If Admin: Return all.
             // If Manager: Return ONLY their store.
 
-            if (user.role === 'admin') {
+            if (user.role === 'admin' || user.role === 'director') {
                 return res.json(stats);
             } else {
                 // Filter for the user's store
