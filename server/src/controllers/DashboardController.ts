@@ -1,6 +1,9 @@
 
 import { Request, Response } from 'express';
 import { MeatEngine } from '../engine/MeatEngine';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export class DashboardController {
     static async getStats(req: Request, res: Response) {
@@ -70,6 +73,46 @@ export class DashboardController {
         } catch (error) {
             console.error('Report Card Error:', error);
             return res.status(500).json({ error: 'Failed to fetch report card' });
+        }
+    }
+
+    static async getCompanyAggregateStats(req: Request, res: Response) {
+        try {
+            const { year, week } = req.query;
+            const y = year ? parseInt(year as string) : undefined;
+            const w = week ? parseInt(week as string) : undefined;
+
+            const stats = await MeatEngine.getCompanyAggregateStats(y, w);
+            return res.json(stats);
+        } catch (error) {
+            console.error('Company Aggregate Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch company stats' });
+        }
+    }
+
+    static async updateStoreTargets(req: Request, res: Response) {
+        try {
+            const { targets } = req.body; // Expects { storeId: number, target: number }[]
+
+            if (!Array.isArray(targets)) {
+                return res.status(400).json({ error: 'Invalid format. Expected array of targets.' });
+            }
+
+            const updated = [];
+            for (const t of targets) {
+                if (t.storeId && t.target) {
+                    const result = await prisma.store.update({
+                        where: { id: t.storeId },
+                        data: { target_lbs_guest: parseFloat(t.target) }
+                    });
+                    updated.push(result);
+                }
+            }
+
+            return res.json({ message: `Updated ${updated.length} stores`, updated });
+        } catch (error) {
+            console.error('Update Targets Error:', error);
+            return res.status(500).json({ error: 'Failed to update targets' });
         }
     }
 }

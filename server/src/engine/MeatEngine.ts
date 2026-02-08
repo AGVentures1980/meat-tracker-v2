@@ -385,23 +385,59 @@ export class MeatEngine {
         const lbsPerGuestYTD = 1.79; // Slightly higher
         const planLbsPerGuestYTD = 1.76;
 
-        // Variance Impact YTD calculation
-        // Impact = (Actual YTD - Plan YTD) * Total Guests YTD (approx Week * 8 for 2 months) * Cost/Lb
-        const estimatedGuestsYTD = totalGuests * 8; // Mock multiplier for 8 weeks
-        const avgCostPerLb = totalUsedQty > 0 ? (totalUsedValue / totalUsedQty) : 6.00;
-        const impactYTD = (lbsPerGuestYTD - planLbsPerGuestYTD) * estimatedGuestsYTD * avgCostPerLb;
+        // impactYTD - incomplete
+        return {
+            lbsPerGuest, costPerGuest, planLbsPerGuest,
+            lbsPerGuest12UkAvg, lbsPerGuestPTD, lbsPerGuestYTD, planLbsPerGuestYTD
+        };
+    }
+
+    /**
+     * Aggregates data for the Executive Dashboard.
+     * Reuses getNetworkBiStats to ensure consistency.
+     */
+    static async getCompanyAggregateStats(year?: number, week?: number) {
+        const networkStats = await this.getNetworkBiStats(year, week);
+
+        // 1. Calculate Company Totals
+        let totalGuests = 0;
+        let netImpact = 0;
+        let totalLbsVariance = 0;
+
+        networkStats.forEach(stat => {
+            totalGuests += stat.guests;
+            netImpact += stat.impactYTD;
+            totalLbsVariance += stat.lbsGuestVar;
+        });
+
+        // 2. Sort for Top Lists
+        // Green = Negative Variance (Savings) -> Sorted Ascending (Most Negative First)
+        // Red = Positive Variance (Waste) -> Sorted Descending (Most Positive First)
+
+        const sortedByVariance = [...networkStats].sort((a, b) => a.lbsGuestVar - b.lbsGuestVar);
+
+        const topSavers = sortedByVariance.filter(s => s.lbsGuestVar < 0).slice(0, 10);
+        const topSpenders = sortedByVariance.filter(s => s.lbsGuestVar > 0).reverse().slice(0, 10);
+
+        // 3. Middle Tier (The rest)
+        const middleTier = sortedByVariance.filter(s => s.lbsGuestVar === 0);
+        // In reality, virtually no one is exactly 0. 
+        // Let's define Middle as anyone not in Top 10 lists.
+        const topIds = new Set([...topSavers.map(s => s.id), ...topSpenders.map(s => s.id)]);
+        const others = networkStats.filter(s => !topIds.has(s.id));
 
         return {
-            year,
-            week,
-            costPerGuest,
-            lbsPerGuest,
-            planLbsPerGuest,
-            lbsPerGuest12UkAvg,
-            lbsPerGuestPTD,
-            lbsPerGuestYTD,
-            planLbsPerGuestYTD,
-            impactYTD
+            period: `${year || 2026}-W${week || 9}`,
+            summary: {
+                total_guests: totalGuests,
+                net_impact_ytd: netImpact,
+                avg_lbs_variance: totalLbsVariance / (networkStats.length || 1),
+                status: netImpact > 0 ? 'Loss' : 'Savings'
+            },
+            top_savers: topSavers,
+            top_spenders: topSpenders,
+            middle_tier: others
         };
     }
 }
+

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { ExecutiveDashboard } from './pages/ExecutiveDashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -34,6 +35,7 @@ function AppContent() {
                     <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
                     <Route path="/settings" element={<PlaceholderPage title="System Settings" />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
+                    <Route path="/executive" element={<ExecutiveDashboard />} />
                     {/* Redirect root to dashboard */}
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 </Route>

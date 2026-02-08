@@ -8,7 +8,7 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
     const [showAlerts, setShowAlerts] = useState(false);
@@ -56,6 +56,34 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         );
                     })}
 
+
+                    {/* Executive View (Admin/Director Only) */}
+                    {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
+                        <Link
+                            to="/executive"
+                            className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
+                                ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
+                                : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                }`}
+                        >
+                            <AlertTriangle className="w-5 h-5 min-w-[20px]" />
+                            {!collapsed && <span className="text-sm font-medium tracking-wide">Executive View</span>}
+                        </Link>
+                    )}
+
+                    {/* Executive View (Admin/Director Only) */}
+                    {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
+                        <Link
+                            to="/executive"
+                            className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
+                                ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
+                                : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                }`}
+                        >
+                            <AlertTriangle className="w-5 h-5 min-w-[20px]" />
+                            {!collapsed && <span className="text-sm font-medium tracking-wide">Executive View</span>}
+                        </Link>
+                    )}
 
                     {/* Logout Button */}
                     <button

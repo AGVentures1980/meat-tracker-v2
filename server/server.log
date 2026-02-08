@@ -90,3 +90,97 @@ src/controllers/AutomationController.ts(122,1): error TS1005: '}' expected.
 [0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 43.726 ms - 19340[0m
 [0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 43.355 ms - 17895[0m
 [0mGET /api/v1/dashboard/bi-network?year=2026&week=10 [32m200[0m 36.782 ms - 17895[0m
+[INFO] 01:56:12 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts
+[ERROR] 01:56:12 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(396,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(396,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(396,49): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,65): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,75): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected.
+
+[INFO] 01:56:36 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[ERROR] 01:56:36 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(396,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(396,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(396,49): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,65): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,75): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected.
+
+[INFO] 01:57:04 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+[ERROR] 01:57:04 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(396,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(396,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(396,49): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,65): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,75): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected.
+
+[INFO] 01:59:49 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts
+[ERROR] 01:59:49 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(396,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(396,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(396,49): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,65): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,75): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(441,11): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(442,9): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(442,10): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(444,17): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(445,20): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(446,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(447,1): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(448,1): error TS1128: Declaration or statement expected.
+
+[INFO] 02:06:18 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[ERROR] 02:06:19 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(396,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(396,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(396,49): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,65): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,75): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(441,11): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(442,9): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(442,10): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(444,17): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(445,20): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(446,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(447,1): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(448,1): error TS1128: Declaration or statement expected.
+
+[INFO] 02:12:36 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+[ERROR] 02:12:36 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(396,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(396,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(396,49): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,65): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,75): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(441,11): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(442,9): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(442,10): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(444,17): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(445,20): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(446,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(447,1): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(448,1): error TS1128: Declaration or statement expected.
+
+[INFO] 02:21:43 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts
+[ERROR] 02:21:43 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(396,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(396,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(396,49): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,65): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(396,75): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected.
+
+[INFO] 02:22:05 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+🚀 Server running on http://localhost:3001
+[INFO] 02:22:58 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+🚀 Server running on http://localhost:3001

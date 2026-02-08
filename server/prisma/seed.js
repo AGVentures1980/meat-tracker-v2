@@ -87,7 +87,7 @@ async function main() {
         const store = await prisma.store.upsert({
             where: { id: storeId },
             update: { store_name: storeName },
-            create: { id: storeId, company_id: tdb.id, store_name: storeName, location: 'USA' }
+            create: { id: storeId, company_id: tdb.id, store_name: storeName, location: 'USA', target_lbs_guest: 1.76 }
         });
 
         await prisma.user.upsert({

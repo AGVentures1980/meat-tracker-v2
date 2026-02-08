@@ -21,6 +21,7 @@ model Store {
   company_id        String
   store_name        String
   location          String
+  target_lbs_guest  Float             @default(1.76)
   created_at        DateTime          @default(now())
   inventory_records InventoryRecord[]
   meat_usage        MeatUsage[]
@@ -126,6 +127,7 @@ model PurchaseRecord {
 
 enum Role {
   admin
+  director
   manager
   viewer
 }
