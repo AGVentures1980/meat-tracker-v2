@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
+import { ExecutiveSummary } from '../components/dashboard/ExecutiveSummary';
 
 // --- Types ---
 interface StorePerformance {
@@ -94,7 +95,9 @@ export const Dashboard = () => {
                         </span>
                     </div>
                 </div>
+                {/* ... buttons ... */}
                 <div className="flex gap-4">
+                    {/* ... keep existing buttons ... */}
                     <button
                         onClick={() => setShowWeeklyInput(true)}
                         className="bg-[#1a1a1a] border border-[#333] hover:border-brand-gold/50 hover:text-brand-gold text-gray-400 font-bold py-2 px-4 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono"
@@ -125,6 +128,13 @@ export const Dashboard = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Admin: Executive Summary */}
+            {user?.role === 'admin' && (
+                <div className="mb-12 border-b border-[#333] pb-8">
+                    <ExecutiveSummary />
+                </div>
+            )}
 
             {/* Network Report Card (The "Brain") */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

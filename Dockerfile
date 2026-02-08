@@ -35,10 +35,8 @@ COPY --from=server-build /app/server/prisma ./server/prisma
 # Copy built client to expected location
 # In index.ts we pointed to ../../client/dist relative to server/src/index.ts
 # but in dist/index.js, it is relative to server/dist.
-# index.js is in /app/server/dist/index.js.
-# path.join(__dirname, '../../client/dist') resolves to:
-# /app/server/dist/../../client/dist -> /app/client/dist
-# So we need to put client dist at /app/client/dist
+# index.js is in /app/server/dist/src/index.js
+# path.join(__dirname, '../../client/dist') -> /app/server/dist/src -> ../.. -> /app/server -> /app/server/client/dist
 COPY --from=client-build /app/client/dist ./server/client/dist
 
 ENV NODE_ENV=production

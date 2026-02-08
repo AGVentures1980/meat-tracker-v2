@@ -296,7 +296,8 @@ export class MeatEngine {
 
             // Metrics
             const lbsPerGuest = guests > 0 ? (usedQty / guests) : 0;
-            const target = 1.76;
+            // Use dynamically assigned target from DB (Demographic/Proximity Logic)
+            const target = store.target_lbs_guest || 1.76;
             const variance = lbsPerGuest - target;
 
             const costPerGuest = guests > 0 ? (usedValue / guests) : 0;
@@ -317,6 +318,7 @@ export class MeatEngine {
                 costPerLb,
                 costPerGuest,
                 lbsPerGuest,
+                target, // Return target for UI
                 lbsGuestVar: variance,
                 costGuestVar: costPerGuest - 10.50, // Mock Plan Cost $10.50
                 impactYTD,
