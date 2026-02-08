@@ -188,3 +188,6 @@ src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected
 🚀 Server running on http://localhost:3001
 [INFO] 02:26:30 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
 🚀 Server running on http://localhost:3001
+[0mPOST /api/v1/auth/login [32m200[0m 103.903 ms - 454[0m
+[0mGET /api/v1/dashboard/bi-network [32m200[0m 74.174 ms - 17780[0m
+[0mGET /api/v1/dashboard/company-stats [32m200[0m 35.931 ms - 17969[0m

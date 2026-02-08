@@ -23,6 +23,25 @@ export const Login = () => {
         try {
             const success = await login(email, password);
             if (success) {
+                // Check role via localStorage or another call, but simple way is to check the user object if available.
+                // Since login() updates state asynchronously, we might need to rely on the logic inside useAuth or just manual check here?
+                // Actually Login component doesn't have the user object yet in this scope...
+                // But wait, the `login` function returns success boolean.
+                // Let's modify useAuth to return the user object or check it via context after a small delay?
+                // Better: Decode the token or just check the user state in useEffect.
+
+                // Simpler: Just redirect to dashboard, and let Dashboard redirect? 
+                // No, let's look at how we can get the role.
+                // The useAuth 'login' function does NOT return the user.
+                // Let's rely on reading from localStorage which is set in login().
+                const stored = localStorage.getItem('brasameat_user');
+                if (stored) {
+                    const u = JSON.parse(stored);
+                    if (u.role === 'director') {
+                        navigate('/executive');
+                        return;
+                    }
+                }
                 navigate('/dashboard');
             } else {
                 setError("Invalid email or password");
