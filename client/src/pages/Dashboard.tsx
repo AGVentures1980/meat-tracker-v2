@@ -18,6 +18,7 @@ interface StorePerformance {
     costPerGuest: number;
     lbsPerGuest: number;
     lbsGuestVar: number; // Variance from 1.76
+    target_lbs_guest?: number; // Dynamic Target
     costGuestVar: number; // Variance from Plan
     impactYTD: number;
     status: 'Optimal' | 'Warning' | 'Critical';
@@ -79,7 +80,43 @@ export const Dashboard = () => {
     }, [user, selectedStoreId]);
 
 
-    const navigate = useNavigate();
+    const handleExport = () => {
+        if (!performanceData || performanceData.length === 0) return;
+
+        // 1. Define CSV Headers
+        const headers = ["ID", "Store Name", "Location", "Guests", "Lbs Consumed", "Lbs/Guest", "Target", "Variance", "Financial Impact", "Status"];
+
+        // 2. Map Data to CSV Rows
+        const rows = performanceData.map(store => [
+            store.id,
+            `"${store.name}"`, // Quote strings to handle commas
+            `"${store.location}"`,
+            store.guests,
+            store.usedQty.toFixed(2),
+            store.lbsPerGuest.toFixed(2),
+            (store.target_lbs_guest || 1.76).toFixed(2), // Use target field if available, else default
+            store.lbsGuestVar.toFixed(3),
+            store.impactYTD.toFixed(2),
+            store.status
+        ]);
+
+        // 3. Construct CSV String
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.join(","))
+        ].join("\n");
+
+        // 4. Trigger Download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `meat_tracker_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <DashboardLayout>
@@ -120,7 +157,7 @@ export const Dashboard = () => {
                         Manager Close
                     </button>
                     <button
-                        onClick={() => navigate('/export')}
+                        onClick={handleExport}
                         className="bg-[#1a1a1a] border border-[#333] hover:border-white/30 text-white font-bold py-2 px-4 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono"
                     >
                         <Download className="w-4 h-4 mr-2" />
