@@ -1,0 +1,46 @@
+
+> texas-meat-tracker@0.1.0 start
+> NODE_ENV=production npm run start --prefix server
+
+
+> brasa-meat-intelligence-server@1.0.0 start
+> echo 'DEBUG: Ls dist' && ls -la dist/src && node dist/src/index.js
+
+DEBUG: Ls dist
+total 16
+drwxr-xr-x@  9 alexandregarcia  staff   288 Feb  9 11:04 .
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb  7 10:56 ..
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb  7 10:56 config
+drwxr-xr-x@  9 alexandregarcia  staff   288 Feb  9 11:04 controllers
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb  7 10:56 engine
+-rw-r--r--@  1 alexandregarcia  staff  5962 Feb  9 11:19 index.js
+drwxr-xr-x@  3 alexandregarcia  staff    96 Feb  7 10:56 middleware
+drwxr-xr-x@  8 alexandregarcia  staff   256 Feb  7 10:56 routes
+drwxr-xr-x@ 24 alexandregarcia  staff   768 Feb  9 11:04 scripts
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3000
+[0mGET / [32m200[0m 6.925 ms - 536[0m
+[0mGET / [36m304[0m 0.373 ms - -[0m
+[0mGET /assets/index-C4Uk_VO2.css [32m200[0m 1.194 ms - 44644[0m
+[0mGET /assets/index-DUQTLol9.js [32m200[0m 1.043 ms - 686232[0m
+[0mGET /assets/index-C4Uk_VO2.css [36m304[0m 0.291 ms - -[0m
+[0mGET /assets/index-DUQTLol9.js [36m304[0m 0.396 ms - -[0m
+[0mGET /favicon.ico [32m200[0m 2.588 ms - 536[0m
+[0mGET /favicon.ico [36m304[0m 0.707 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.972 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.846 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.953 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.251 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.757 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 1.020 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.583 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.549 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 1.030 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.610 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.930 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.545 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.562 ms - -[0m
+[0mGET /favicon.ico [36m304[0m 0.669 ms - -[0m

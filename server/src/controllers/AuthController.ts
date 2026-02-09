@@ -22,6 +22,16 @@ export class AuthController {
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
 
+            // check if trial has expired
+            if (user.is_trial && user.trial_expires_at) {
+                if (new Date() > new Date(user.trial_expires_at)) {
+                    return res.status(403).json({
+                        error: 'Trial Expired',
+                        message: 'Your 30-day trial has ended. Please contact Alex Garcia Ventures for enterprise access.'
+                    });
+                }
+            }
+
             // 2. Verify Password
             const valid = await bcrypt.compare(password, user.password_hash);
             if (!valid) {
@@ -93,6 +103,62 @@ export class AuthController {
         } catch (error) {
             console.error('Change Password Error:', error);
             return res.status(500).json({ error: 'Failed to update password' });
+        }
+    }
+
+    static async requestDemo(req: Request, res: Response) {
+        try {
+            const { email } = req.body;
+
+            if (!email || !email.includes('@')) {
+                return res.status(400).json({ error: 'Valid email is required' });
+            }
+
+            // Check if user already exists
+            const existingUser = await prisma.user.findUnique({
+                where: { email }
+            });
+
+            if (existingUser) {
+                return res.status(400).json({ error: 'Email already registered for demo or access' });
+            }
+
+            // Create Trial User
+            // For Demo, we'll assign them a default store (e.g., Store ID 1) or create a "Demo Store"
+            // For simplicity, assigning to Store 1 (Dallas) but marked as Trial
+            const trialPassword = Math.random().toString(36).slice(-8); // Generate random temp password
+            const hashedPassword = await bcrypt.hash(trialPassword, 10);
+            const expiration = new Date();
+            expiration.setDate(expiration.getDate() + 30);
+
+            const user = await prisma.user.create({
+                data: {
+                    email,
+                    password_hash: hashedPassword,
+                    role: 'viewer', // Trials are viewers by default
+                    is_trial: true,
+                    trial_expires_at: expiration,
+                    store_id: 1, // Dallas as demo store
+                    force_change: true // Force them to set their own password on first login
+                }
+            });
+
+            // In a real app, we'd send an email here.
+            // For now, return the temporary credentials (simulating the email delivery)
+            return res.json({
+                success: true,
+                message: '30-day Demo Access Granted!',
+                details: 'In a real SaaS, credentials would be sent to your email. For this demo simulation, use the credentials below.',
+                tempCredentials: {
+                    email: user.email,
+                    password: trialPassword
+                },
+                expiresAt: expiration
+            });
+
+        } catch (error) {
+            console.error('Request Demo Error:', error);
+            return res.status(500).json({ error: 'Failed to generate demo access' });
         }
     }
 }

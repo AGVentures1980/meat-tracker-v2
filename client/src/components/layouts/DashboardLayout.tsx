@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Users, StickyNote, Settings, Menu, AlertTriangle, ArrowUpRight, ArrowDownRight, LogOut, TrendingUp } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Users, StickyNote, Settings, Menu, AlertTriangle, ArrowUpRight, ArrowDownRight, LogOut, TrendingUp } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 interface DashboardLayoutProps {
@@ -12,13 +12,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
     const [showAlerts, setShowAlerts] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+    const navigate = useNavigate();
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/1' },
-        { icon: ShoppingCart, label: 'Inventory', path: '/inventory' },
         { icon: TrendingUp, label: 'Projections', path: '/projections' }, // New Annual BI
         { icon: StickyNote, label: 'Reports', path: '/reports' },
-        { icon: Users, label: 'Users', path: '/users' },
         { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' }, // New Financial Input
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
@@ -57,20 +58,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         );
                     })}
 
-
-                    {/* Executive View (Admin/Director Only) */}
-                    {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
-                        <Link
-                            to="/executive"
-                            className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
-                                ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
-                                : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                                }`}
-                        >
-                            <AlertTriangle className="w-5 h-5 min-w-[20px]" />
-                            {!collapsed && <span className="text-sm font-medium tracking-wide">Executive View</span>}
-                        </Link>
-                    )}
 
                     {/* Executive View (Admin/Director Only) */}
                     {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
@@ -160,21 +147,21 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     <span className="text-[10px] bg-[#FF9F1C] text-black px-1 rounded font-bold">3 NEW</span>
                                 </div>
                                 <div className="divide-y divide-[#333]">
-                                    <div className="p-3 hover:bg-white/5 cursor-pointer group">
+                                    <div className="p-3 hover:bg-white/5 cursor-pointer group" onClick={() => { navigate('/dashboard/1'); setShowAlerts(false); }}>
                                         <div className="flex justify-between mb-1">
                                             <span className="text-[#FF9F1C] text-xs font-bold font-mono">WARNING</span>
                                             <span className="text-[10px] text-gray-600">2m ago</span>
                                         </div>
                                         <p className="text-xs text-gray-300">Inventory Variance Detected: <strong>Dallas</strong> (1.89 vs 1.76 Target). Action Required.</p>
                                     </div>
-                                    <div className="p-3 hover:bg-white/5 cursor-pointer group">
+                                    <div className="p-3 hover:bg-white/5 cursor-pointer group" onClick={() => { navigate('/reports'); setShowAlerts(false); }}>
                                         <div className="flex justify-between mb-1">
                                             <span className="text-gray-400 text-xs font-bold font-mono">INFO</span>
                                             <span className="text-[10px] text-gray-600">15m ago</span>
                                         </div>
                                         <p className="text-xs text-gray-300">OLO Sync Latency &gt; 300ms. Operations normal but monitoring.</p>
                                     </div>
-                                    <div className="p-3 hover:bg-white/5 cursor-pointer group">
+                                    <div className="p-3 hover:bg-white/5 cursor-pointer group" onClick={() => { navigate('/dashboard'); setShowAlerts(false); }}>
                                         <div className="flex justify-between mb-1">
                                             <span className="text-gray-400 text-xs font-bold font-mono">REMINDER</span>
                                             <span className="text-[10px] text-gray-600">1h ago</span>
@@ -188,7 +175,38 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             </div>
                         )}
 
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C5A059] to-[#F0E68C] border-2 border-[#121212]"></div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C5A059] to-[#F0E68C] border-2 border-[#121212] cursor-pointer hover:ring-2 hover:ring-[#C5A059] transition-all overflow-hidden"
+                            >
+                                <img src={`https://ui-avatars.com/api/?name=${user?.email}&background=C5A059&color=fff`} alt="User" />
+                            </button>
+
+                            {showProfileMenu && (
+                                <div className="absolute top-10 right-0 w-48 bg-[#1a1a1a] border border-[#333] shadow-2xl z-[60] rounded-sm py-1 animate-in fade-in slide-in-from-top-2">
+                                    <div className="px-4 py-2 border-b border-[#333]">
+                                        <p className="text-xs text-gray-500 font-mono underline uppercase tracking-tighter">Current User</p>
+                                        <p className="text-[11px] text-white font-bold truncate">{user?.email}</p>
+                                        <p className="text-[10px] text-[#C5A059] font-mono uppercase">{user?.role}</p>
+                                    </div>
+                                    <button className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2">
+                                        <Users className="w-3 h-3" /> Profile Settings
+                                    </button>
+                                    <button className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2">
+                                        <StickyNote className="w-3 h-3" /> Security Logs
+                                    </button>
+                                    <div className="border-t border-[#333] mt-1 pt-1">
+                                        <button
+                                            onClick={logout}
+                                            className="w-full text-left px-4 py-2 text-xs text-[#FF2A6D] hover:bg-[#FF2A6D]/10 flex items-center gap-2"
+                                        >
+                                            <LogOut className="w-3 h-3" /> Log Out System
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </header>
 

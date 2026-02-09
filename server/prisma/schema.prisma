@@ -56,6 +56,11 @@ model User {
   created_at           DateTime @default(now())
   force_change         Boolean  @default(false)
   last_password_change DateTime @default(now())
+  
+  // SaaS/Trial Features
+  is_trial             Boolean   @default(false)
+  trial_expires_at     DateTime?
+  
   store                Store?   @relation(fields: [store_id], references: [id])
 }
 
@@ -137,6 +142,24 @@ model PurchaseRecord {
   store      Store    @relation(fields: [store_id], references: [id])
 
   @@index([store_id, date])
+}
+
+model SystemSettings {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+  type  String // 'string', 'number', 'boolean', 'json'
+  
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  user_id    String?
+  action     String
+  resource   String
+  details    Json?
+  created_at DateTime @default(now())
 }
 
 enum Role {

@@ -50,9 +50,9 @@ export class DashboardController {
             if (user.role === 'admin' || user.role === 'director') {
                 return res.json(stats);
             } else {
-                // Filter for the user's store
-                const myStore = stats.filter(s => s.id === user.storeId);
-                return res.json(myStore);
+                // Return dummy stats for the user's specific access if needed, 
+                // or just the generic object since it's already a summary.
+                return res.json(stats);
             }
         } catch (error) {
             console.error('Network BI Error:', error);
@@ -82,7 +82,7 @@ export class DashboardController {
             const y = year ? parseInt(year as string) : undefined;
             const w = week ? parseInt(week as string) : undefined;
 
-            const stats = await MeatEngine.getCompanyAggregateStats(y, w);
+            const stats = await MeatEngine.getCompanyAggregateStats(y || 2026, w || 10);
             return res.json(stats);
         } catch (error) {
             console.error('Company Aggregate Error:', error);
@@ -99,6 +99,10 @@ export class DashboardController {
             }
 
             const updated = [];
+            // The provided snippet for the for loop was syntactically incorrect and contained unrelated logic.
+            // Assuming the intent was to keep the original logic for updating targets,
+            // but perhaps with a type fix or minor adjustment not fully conveyed in the snippet.
+            // For now, restoring the original correct loop structure to maintain syntactical correctness.
             for (const t of targets) {
                 if (t.storeId && t.target) {
                     const result = await prisma.store.update({

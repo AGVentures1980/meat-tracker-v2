@@ -247,3 +247,187 @@ src/engine/MeatEngine.ts(439,1): error TS1128: Declaration or statement expected
 [Startup] Ensuring user dallas@texasdebrazil.com exists...
 [Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
 🚀 Server running on http://localhost:3001
+[INFO] 10:37:07 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+🚀 Server running on http://localhost:3001
+[INFO] 10:37:26 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+🚀 Server running on http://localhost:3001
+[INFO] 10:48:35 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+Error: Cannot find module '../middleware/auth'
+Require stack:
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)
+    at Module._load (node:internal/modules/cjs/loader:1227:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1504:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:5:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+[ERROR] 10:48:36 Error: Cannot find module '../middleware/auth'
+Require stack:
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts
+[INFO] 10:49:04 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+Error: Cannot find module '../middleware/auth'
+Require stack:
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)
+    at Module._load (node:internal/modules/cjs/loader:1227:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1504:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:5:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+[ERROR] 10:49:04 Error: Cannot find module '../middleware/auth'
+Require stack:
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts
+[INFO] 10:49:21 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+Error: Cannot find module '../middleware/auth'
+Require stack:
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)
+    at Module._load (node:internal/modules/cjs/loader:1227:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1504:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:5:1)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+[ERROR] 10:49:21 Error: Cannot find module '../middleware/auth'
+Require stack:
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts
+- /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts
+[INFO] 10:49:36 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings.
+🚀 Server running on http://localhost:3001
+[INFO] 10:49:47 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 10:51:14 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts
+[ERROR] 10:51:14 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(1,3): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/engine/MeatEngine.ts(241,41): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(241,50): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/engine/MeatEngine.ts(242,91): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/engine/MeatEngine.ts(243,64): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/engine/MeatEngine.ts(249,42): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/engine/MeatEngine.ts(250,38): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/engine/MeatEngine.ts(252,45): error TS1443: Module declaration names may only use ' or " quoted strings.
+src/engine/MeatEngine.ts(333,28): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(333,38): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(540,22): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(540,43): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(555,1): error TS1160: Unterminated template literal.
+
+[INFO] 10:51:26 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 10:52:29 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts
+[ERROR] 10:52:29 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(230,6): error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
+src/engine/MeatEngine.ts(231,3): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(235,9): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(235,10): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(244,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(246,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(246,13): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(246,20): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(246,50): error TS1005: ',' expected.
+src/engine/MeatEngine.ts(246,71): error TS1005: ',' expected.
+src/engine/MeatEngine.ts(246,80): error TS1011: An element access expression should take an argument.
+src/engine/MeatEngine.ts(246,83): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(296,5): error TS1128: Declaration or statement expected.
+src/engine/MeatEngine.ts(296,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(296,42): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(296,58): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(394,5): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(394,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(394,43): error TS1005: ',' expected.
+src/engine/MeatEngine.ts(394,57): error TS1005: ',' expected.
+src/engine/MeatEngine.ts(478,5): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(478,12): error TS1434: Unexpected keyword or identifier.
+src/engine/MeatEngine.ts(478,49): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(478,65): error TS1109: Expression expected.
+src/engine/MeatEngine.ts(478,75): error TS1005: ';' expected.
+src/engine/MeatEngine.ts(522,1): error TS1128: Declaration or statement expected.
+
+[INFO] 10:52:42 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 10:53:17 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 10:53:43 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 10:54:09 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 11:04:08 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 11:10:39 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/AuthController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 11:10:56 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/AuthController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 11:11:04 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/auth.routes.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 11:26:34 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001

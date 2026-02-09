@@ -1,16 +1,21 @@
 
 import { Router } from 'express';
 import { DashboardController } from '../controllers/DashboardController';
+import { SettingsController } from '../controllers/SettingsController';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Specific routes first to avoid catching by :storeId
-// Specific routes first
-router.get('/company-stats', DashboardController.getCompanyAggregateStats);
-router.post('/targets', DashboardController.updateStoreTargets);
-router.get('/bi-network', DashboardController.getNetworkStats);
-router.get('/bi-report-card', DashboardController.getNetworkReportCard);
-router.get('/projections-data', DashboardController.getProjectionsData);
-router.get('/:storeId', DashboardController.getStats);
+// Dashboard Stats
+router.get('/stats/:storeId', requireAuth, DashboardController.getStats);
+router.get('/network', requireAuth, DashboardController.getNetworkStats);
+router.get('/report-card', requireAuth, DashboardController.getNetworkReportCard);
+router.get('/company-aggregate', requireAuth, DashboardController.getCompanyAggregateStats);
+router.post('/targets', requireAuth, DashboardController.updateStoreTargets);
+router.get('/projections-data', requireAuth, DashboardController.getProjectionsData);
+
+// System Settings
+router.get('/settings', requireAuth, SettingsController.getSettings);
+router.post('/settings', requireAuth, SettingsController.updateSettings);
 
 export default router;

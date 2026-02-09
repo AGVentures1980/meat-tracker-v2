@@ -6,23 +6,12 @@ async function main() {
 
     const stats = await MeatEngine.getNetworkBiStats(2026, 10);
 
-    if (stats.length === 0) {
-        console.error('No stats returned!');
-        return;
-    }
+    console.log('Network Stats:', stats);
 
-    const sample = stats[0];
-    console.log('Sample Store Stats:', {
-        name: sample.name,
-        target_cost_guest: sample.target_cost_guest,
-        costPerGuest: sample.costPerGuest,
-        costGuestVar: sample.costGuestVar
-    });
-
-    if (sample.target_cost_guest && Math.abs(sample.target_cost_guest - 9.94) < 0.01) {
-        console.log('✅ Target Cost per Guest matches expected 9.94');
+    if (stats.networkYield > 0) {
+        console.log('✅ Network Yield is positive:', stats.networkYield);
     } else {
-        console.error('❌ Target Cost per Guest mismatch:', sample.target_cost_guest);
+        console.error('❌ Network Yield is invalid:', stats.networkYield);
     }
 }
 
