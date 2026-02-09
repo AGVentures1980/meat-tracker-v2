@@ -46,4 +46,5 @@ WORKDIR /app/server
 EXPOSE 3000
 
 # We use npm start to ensure migrations and seed are run
-CMD ["npm", "run", "start"]
+# Ensure database is up-to-date and seeded before starting
+CMD npx prisma db push && npx prisma db seed && npm run start
