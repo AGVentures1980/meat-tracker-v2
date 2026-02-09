@@ -10,6 +10,7 @@ const router = Router();
 router.get('/stats/:storeId', requireAuth, DashboardController.getStats);
 router.get('/network', requireAuth, DashboardController.getNetworkStats);
 router.get('/report-card', requireAuth, DashboardController.getNetworkReportCard);
+router.get('/company-stats', requireAuth, DashboardController.getCompanyStats); // New Route for Dashboard.tsx
 router.get('/company-aggregate', requireAuth, DashboardController.getCompanyAggregateStats);
 router.post('/targets', requireAuth, DashboardController.updateStoreTargets);
 router.get('/projections-data', requireAuth, DashboardController.getProjectionsData);
