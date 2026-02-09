@@ -52,6 +52,10 @@ app.use('/api/v1/upload', requireAuth, uploadRoutes);
 app.use('/api/v1/inventory', requireAuth, inventoryRoutes);
 app.use('/api/v1/automation', requireAuth, automationRoutes);
 
+// Temporary Setup Route (Remove in production later)
+import { SetupController } from './controllers/SetupController';
+app.get('/api/v1/setup-demo', SetupController.runDemoSetup);
+
 // Serve Static Frontend (Production)
 const CLIENT_BUILD_PATH = process.env.NODE_ENV === 'production'
     ? path.join(__dirname, '../../../client/dist') // From dist/src/index.js
