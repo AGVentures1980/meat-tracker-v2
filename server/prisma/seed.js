@@ -85,8 +85,13 @@ async function main() {
         const storeId = parseInt(account.id);
         const storeName = account.name;
         const store = await prisma.store.upsert({
-            where: { id: storeId },
-            update: { store_name: storeName },
+            where: {
+                company_id_store_name: {
+                    company_id: tdb.id,
+                    store_name: storeName
+                }
+            },
+            update: {},
             create: { id: storeId, company_id: tdb.id, store_name: storeName, location: 'USA', target_lbs_guest: 1.76 }
         });
 
