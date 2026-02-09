@@ -62,9 +62,7 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
         setLoadingOlo(true);
         try {
             const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
-            const token = user.role === 'admin'
-                ? 'Bearer mock-token'
-                : `Bearer store-${user.id}-${user.role || 'manager'}`;
+            const token = `Bearer ${user.token}`;
 
             const res = await fetch(`${baseUrl}/automation/olo-sales?week=10`, {
                 headers: { 'Authorization': token }
@@ -95,9 +93,7 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
 
         try {
             const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
-            const token = user.role === 'admin'
-                ? 'Bearer mock-token'
-                : `Bearer store-${user.id}-${user.role || 'manager'}`;
+            const token = `Bearer ${user.token}`;
 
             const res = await fetch(`${baseUrl}/automation/ocr-invoice`, {
                 method: 'POST',
@@ -157,9 +153,7 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
             };
 
             const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
-            const token = user.role === 'admin'
-                ? 'Bearer mock-token'
-                : `Bearer store-${user.id}-${user.role || 'manager'}`;
+            const token = `Bearer ${user.token}`;
 
             const res = await fetch(`${baseUrl}/inventory/weekly-close`, {
                 method: 'POST',

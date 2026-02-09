@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { Save, RefreshCw, AlertCircle, Database, Lock, Sliders, DollarSign, Target } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface Setting {
     id: string;
@@ -10,20 +11,20 @@ interface Setting {
 }
 
 export const SettingsPage = () => {
+    const { user } = useAuth(); // Get user from context
     const [settings, setSettings] = useState<Setting[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     useEffect(() => {
-        fetchSettings();
-    }, []);
+        if (user) fetchSettings();
+    }, [user]);
 
     const fetchSettings = async () => {
         try {
-            const token = localStorage.getItem('token');
             const res = await fetch('/api/v1/dashboard/settings', {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await res.json();
             setSettings(data);
@@ -42,12 +43,11 @@ export const SettingsPage = () => {
         setSaving(true);
         setMessage(null);
         try {
-            const token = localStorage.getItem('token');
             const res = await fetch('/api/v1/dashboard/settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${user?.token}`
                 },
                 body: JSON.stringify({ settings })
             });

@@ -30,12 +30,11 @@ export const NetworkReportCard = () => {
         try {
             const baseUrl = '/api/v1';
 
-            // Construct Token
-            const token = user.role === 'admin'
-                ? 'Bearer mock-token'
-                : `Bearer store-${user.id}-${user.role || 'manager'}`;
+            // Use Real JWT from Auth Context
+            const token = `Bearer ${user.token}`;
 
-            const res = await fetch(`${baseUrl}/dashboard/bi-report-card?year=${year}&week=${week}`, {
+            // Correct Endpoint matching backend routes
+            const res = await fetch(`${baseUrl}/dashboard/report-card?year=${year}&week=${week}`, {
                 headers: { 'Authorization': token }
             });
 
