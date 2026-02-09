@@ -115,4 +115,39 @@ export class DashboardController {
             return res.status(500).json({ error: 'Failed to update targets' });
         }
     }
+
+    static async getProjectionsData(req: Request, res: Response) {
+        try {
+            const stores = await prisma.store.findMany({
+                include: {
+                    reports: {
+                        orderBy: { generated_at: 'desc' },
+                        take: 1
+                    }
+                }
+            });
+
+            // Fallback rates if no reports exist
+            const DEFAULT_LUNCH_GUESTS = 15000;
+            const DEFAULT_DINNER_GUESTS = 45000;
+
+            const data = stores.map(s => {
+                const latestReport = s.reports[0];
+                return {
+                    id: s.id,
+                    name: s.store_name,
+                    location: s.location,
+                    lunchGuestsLastYear: latestReport ? Math.round(latestReport.dine_in_guests) : DEFAULT_LUNCH_GUESTS,
+                    dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : DEFAULT_DINNER_GUESTS,
+                    lunchPrice: s.location.includes('Texas') ? 33.99 : 37.99,
+                    dinnerPrice: s.location.includes('Texas') ? 59.99 : 63.99
+                };
+            });
+
+            return res.json(data);
+        } catch (error) {
+            console.error('Projections Data Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch projections data' });
+        }
+    }
 }

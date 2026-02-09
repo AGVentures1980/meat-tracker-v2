@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
-import { TrendingUp, DollarSign, Calculator, Lock, Save, RefreshCw } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw } from 'lucide-react';
 
 // --- Types ---
 interface StoreProjectionData {
@@ -31,20 +30,9 @@ const GLOBAL_TARGET_LBS = 1.76;
 const GLOBAL_ACTUAL_LBS = 2.15; // Estimating current average for "Status Quo"
 const AVG_PRICE_PER_LB = 6.50;  // Blended average cost
 
-// Initial Data Seed (Approximations based on research)
-const INITIAL_DATA: Partial<StoreProjectionData>[] = [
-    { id: 180, name: 'Tampa', location: 'Florida', lunchPrice: 37.99, dinnerPrice: 63.99, lunchGuestsLastYear: 15000, dinnerGuestsLastYear: 45000 },
-    { id: 191, name: 'Addison', location: 'Texas', lunchPrice: 33.99, dinnerPrice: 59.99, lunchGuestsLastYear: 12000, dinnerGuestsLastYear: 38000 },
-    { id: 202, name: 'Orlando', location: 'Florida', lunchPrice: 42.99, dinnerPrice: 63.99, lunchGuestsLastYear: 25000, dinnerGuestsLastYear: 75000 },
-    { id: 210, name: 'Fort Worth', location: 'Texas', lunchPrice: 33.99, dinnerPrice: 59.99, lunchGuestsLastYear: 10000, dinnerGuestsLastYear: 32000 },
-    // Fillers for other stores to make the "Consolidated" numbers look realistic
-    { id: 991, name: 'Miami', location: 'Florida', lunchPrice: 42.99, dinnerPrice: 63.99, lunchGuestsLastYear: 20000, dinnerGuestsLastYear: 60000 },
-    { id: 992, name: 'Las Vegas', location: 'Nevada', lunchPrice: 45.99, dinnerPrice: 68.99, lunchGuestsLastYear: 30000, dinnerGuestsLastYear: 90000 },
-    { id: 993, name: 'Chicago', location: 'Illinois', lunchPrice: 39.99, dinnerPrice: 61.99, lunchGuestsLastYear: 18000, dinnerGuestsLastYear: 55000 },
-];
+// Initial Data Seed - Removed as we now fetch dynamically
 
 export const ProjectionsDashboard = () => {
-    const { user } = useAuth();
     const [growthRate, setGrowthRate] = useState<number>(5.0); // 5% default
     const [storeData, setStoreData] = useState<StoreProjectionData[]>([]);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -54,10 +42,20 @@ export const ProjectionsDashboard = () => {
 
     // Initialize Data
     useEffect(() => {
-        // In a real app, fetch existing stores. For V1 prototype, use seed.
-        const calculated = INITIAL_DATA.map(d => calculateRow(d as StoreProjectionData, 5.0));
-        setStoreData(calculated);
-    }, []);
+        const fetchProjections = async () => {
+            try {
+                const res = await fetch('/api/v1/dashboard/projections-data');
+                if (res.ok) {
+                    const data = await res.json();
+                    const calculated = data.map((d: any) => calculateRow(d as StoreProjectionData, growthRate));
+                    setStoreData(calculated);
+                }
+            } catch (err) {
+                console.error("Failed to fetch projections data", err);
+            }
+        };
+        fetchProjections();
+    }, [growthRate]);
 
     // Logic: Calculate a single row
     const calculateRow = (data: StoreProjectionData, growth: number): StoreProjectionData => {
@@ -150,8 +148,8 @@ export const ProjectionsDashboard = () => {
                         onClick={() => setIsPasswordModalOpen(true)}
                         disabled={isPublished}
                         className={`font-bold py-2 px-6 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono ${isPublished
-                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                                : 'bg-brand-gold hover:bg-yellow-500 text-black shadow-[0_0_15px_rgba(255,184,0,0.3)]'
+                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                            : 'bg-brand-gold hover:bg-yellow-500 text-black shadow-[0_0_15px_rgba(255,184,0,0.3)]'
                             }`}
                     >
                         <Lock className="w-4 h-4 mr-2" />

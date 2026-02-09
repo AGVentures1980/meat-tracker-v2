@@ -10,6 +10,7 @@ router.get('/company-stats', DashboardController.getCompanyAggregateStats);
 router.post('/targets', DashboardController.updateStoreTargets);
 router.get('/bi-network', DashboardController.getNetworkStats);
 router.get('/bi-report-card', DashboardController.getNetworkReportCard);
+router.get('/projections-data', DashboardController.getProjectionsData);
 router.get('/:storeId', DashboardController.getStats);
 
 export default router;
