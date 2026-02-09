@@ -5,6 +5,7 @@ import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { ExecutiveSummary } from '../components/dashboard/ExecutiveSummary';
+import { useAuth } from '../context/AuthContext'; // Added this import based on the edit, though it was implicitly used.
 
 // --- Types ---
 interface StorePerformance {
@@ -34,11 +35,18 @@ export const Dashboard = () => {
     const [showWeeklyInput, setShowWeeklyInput] = useState(false);
     const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
 
+    const { user } = useAuth();
+
     useEffect(() => {
         const fetchData = async () => {
+            if (!user?.token) return;
             try {
                 setLoading(true);
-                const res = await fetch('/api/v1/dashboard/company-stats');
+                const res = await fetch('/api/v1/dashboard/company-stats', {
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
                 if (res.ok) {
                     const data = await res.json();
                     setPerformanceData(data.performance || []);
@@ -50,7 +58,7 @@ export const Dashboard = () => {
             }
         };
         fetchData();
-    }, []);
+    }, [user?.token]);
 
     return (
         <DashboardLayout>

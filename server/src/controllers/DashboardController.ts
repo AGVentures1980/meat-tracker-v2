@@ -132,15 +132,16 @@ export class DashboardController {
             const DEFAULT_DINNER_GUESTS = 45000;
 
             const data = stores.map(s => {
-                const latestReport = s.reports[0];
+                const latestReport = s.reports[0] as any;
+                const store = s as any;
                 return {
-                    id: s.id,
-                    name: s.store_name,
-                    location: s.location,
+                    id: store.id,
+                    name: store.store_name,
+                    location: store.location,
                     lunchGuestsLastYear: latestReport ? Math.round(latestReport.dine_in_guests) : DEFAULT_LUNCH_GUESTS,
                     dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : DEFAULT_DINNER_GUESTS,
-                    lunchPrice: s.location.includes('Texas') ? 33.99 : 37.99,
-                    dinnerPrice: s.location.includes('Texas') ? 59.99 : 63.99
+                    lunchPrice: store.location.includes('Texas') ? 33.99 : 37.99,
+                    dinnerPrice: store.location.includes('Texas') ? 59.99 : 63.99
                 };
             });
 

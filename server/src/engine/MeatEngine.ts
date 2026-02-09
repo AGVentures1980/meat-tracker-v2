@@ -314,15 +314,15 @@ export class MeatEngine {
 
             const guests = report?.extra_customers || 0; // "extra_customers" reused as guest count in seed
 
+            const s = store as any;
             // 2. Get Inventory & Purchases (Picanha only for simplicity of V2 prototype)
-            // Ideally this iterates over all items
-            const invRecords = await prisma.inventoryRecord.findMany({
-                where: { store_id: store.id },
+            const invRecords = await (prisma as any).inventoryRecord.findMany({
+                where: { store_id: s.id },
                 orderBy: { date: 'asc' }
             });
 
-            const purchases = await prisma.purchaseRecord.findMany({
-                where: { store_id: store.id }
+            const purchases = await (prisma as any).purchaseRecord.findMany({
+                where: { store_id: s.id }
             });
 
             // Calculate Consumption
@@ -332,46 +332,40 @@ export class MeatEngine {
             if (invRecords.length >= 2) {
                 const startInv = invRecords[0].quantity;
                 const endInv = invRecords[invRecords.length - 1].quantity;
-                const purchaseQty = purchases.reduce((acc, p) => acc + p.quantity, 0);
-                const purchaseCost = purchases.reduce((acc, p) => acc + p.cost_total, 0);
+                const purchaseQty = purchases.reduce((acc: any, p: any) => acc + p.quantity, 0);
+                const purchaseCost = purchases.reduce((acc: any, p: any) => acc + p.cost_total, 0);
 
-                // Consumption = (Start + Purchase) - End
                 usedQty = (startInv + purchaseQty) - endInv;
-                usedValue = purchaseCost; // Simplification: Use purchase cost as COGS proxy for this week
+                usedValue = purchaseCost;
             } else {
-                // Fallback if missing inventory data (e.g. new store)
                 usedQty = report?.total_lbs || 0;
-                usedValue = usedQty * 6.50; // Est $6.50/lb
+                usedValue = usedQty * 6.50;
             }
 
-            // Metrics
             const lbsPerGuest = guests > 0 ? (usedQty / guests) : 0;
-            // Use dynamically assigned target from DB (Demographic/Proximity Logic)
-            const target = store.target_lbs_guest || 1.76;
+            const target = s.target_lbs_guest || 1.76;
             const variance = lbsPerGuest - target;
 
             const costPerGuest = guests > 0 ? (usedValue / guests) : 0;
             const costPerLb = usedQty > 0 ? (usedValue / usedQty) : 0;
 
-            // Financial Impact
-            // Impact = (Actual Lbs/Guest - Target) * Guests * AvgCost/Lb
             const impactLbs = (lbsPerGuest - target) * guests;
             const impactYTD = impactLbs * (costPerLb || 6.00);
 
-            const targetCostGuest = store.target_cost_guest || 9.94;
+            const targetCostGuest = s.target_cost_guest || 9.94;
 
             results.push({
-                id: store.id,
-                name: store.store_name,
-                location: store.location,
+                id: s.id,
+                name: s.store_name,
+                location: s.location,
                 guests,
                 usedQty,
                 usedValue,
                 costPerLb,
                 costPerGuest,
                 lbsPerGuest,
-                target_lbs_guest: target, // Return target for UI (renamed to match Interface)
-                target_cost_guest: targetCostGuest, // New Field
+                target_lbs_guest: target,
+                target_cost_guest: targetCostGuest,
                 lbsGuestVar: variance,
                 costGuestVar: costPerGuest - targetCostGuest,
                 impactYTD,
@@ -489,6 +483,7 @@ export class MeatEngine {
                 avg_lbs_variance: totalLbsVariance / (networkStats.length || 1),
                 status: netImpact > 0 ? 'Loss' : 'Savings'
             },
+            performance: networkStats, // This is what Dashboard.tsx expects
             top_savers: topSavers,
             top_spenders: topSpenders,
             middle_tier: others

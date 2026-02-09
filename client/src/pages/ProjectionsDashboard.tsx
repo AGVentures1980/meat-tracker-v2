@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 // --- Types ---
 interface StoreProjectionData {
@@ -52,6 +53,7 @@ const MEAT_STANDARDS: Record<string, number> = {
 // Initial Data Seed - Removed as we now fetch dynamically
 
 export const ProjectionsDashboard = () => {
+    const { user } = useAuth();
     const [growthRate, setGrowthRate] = useState<number>(5.0); // 5% default
     const [storeData, setStoreData] = useState<StoreProjectionData[]>([]);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -63,8 +65,13 @@ export const ProjectionsDashboard = () => {
     // Initialize Data
     useEffect(() => {
         const fetchProjections = async () => {
+            if (!user?.token) return;
             try {
-                const res = await fetch('/api/v1/dashboard/projections-data');
+                const res = await fetch('/api/v1/dashboard/projections-data', {
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
                 if (res.ok) {
                     const data = await res.json();
                     const calculated = data.map((d: any) => calculateRow(d as StoreProjectionData, growthRate));
@@ -75,7 +82,7 @@ export const ProjectionsDashboard = () => {
             }
         };
         fetchProjections();
-    }, [growthRate]);
+    }, [growthRate, user?.token]);
 
     // Logic: Calculate a single row
     const calculateRow = (data: StoreProjectionData, growth: number): StoreProjectionData => {
