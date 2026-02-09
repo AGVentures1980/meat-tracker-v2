@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Users, StickyNote, Settings, Menu, AlertTriangle, ArrowUpRight, ArrowDownRight, LogOut } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, StickyNote, Settings, Menu, AlertTriangle, ArrowUpRight, ArrowDownRight, LogOut, TrendingUp } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -16,6 +16,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/1' },
         { icon: ShoppingCart, label: 'Inventory', path: '/inventory' },
+        { icon: TrendingUp, label: 'Projections', path: '/projections' }, // New Annual BI
         { icon: StickyNote, label: 'Reports', path: '/reports' },
         { icon: Users, label: 'Users', path: '/users' },
         { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' }, // New Financial Input

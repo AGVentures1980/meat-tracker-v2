@@ -35,11 +35,23 @@ export class MeatEngine {
             }
         });
 
+        // Fetch Store Details (for Target Cost)
+        const store = await prisma.store.findUnique({
+            where: { id: storeId }
+        });
+        const STORE_COST_TARGET = store?.target_cost_guest || 9.94;
+
+        // Fetch Store-Specific Targets
+        const storeTargets = await prisma.storeMeatTarget.findMany({
+            where: { store_id: storeId }
+        });
+
         const totalLbsMonth = sales.reduce((acc, item) => acc + item.lbs, 0);
 
         // 2. Calculate Metrics
-        // New Logic: Target is 1.76 lbs/guest
-        const extraCustomers = Math.round(totalLbsMonth / GLOBAL_TARGET_PER_GUEST);
+        // New Logic: Target is 1.76 lbs/guest (or store specific)
+        const STORE_LBS_TARGET = store?.target_lbs_guest || GLOBAL_TARGET_PER_GUEST;
+        const extraCustomers = Math.round(totalLbsMonth / STORE_LBS_TARGET);
 
         // 3. Projections
         const daysPassed = getDate(now) || 1;
@@ -53,40 +65,52 @@ export class MeatEngine {
         // 4. Financial Calculation (Phase 9)
         // Hardcoded prices matching the WeeklyPriceInput for prototype
         const WEEKLY_PRICES: Record<string, number> = {
-            'picanha': 5.80,
-            'fraldinha/flank steak': 6.50,
-            'tri-tip': 5.20,
-            'filet mignon': 14.20,
-            'beef ribs': 7.50,
-            'pork ribs': 4.50,
-            'pork loin': 3.80,
-            'chicken drumstick': 1.80,
-            'chicken breast': 3.20,
-            'lamb chops': 12.50,
-            'leg of lamb': 8.50,
+            'picanha': 9.14,
+            'fraldinha/flank steak': 8.24,
+            'tri-tip': 5.26,
+            'filet mignon': 9.50,
+            'beef ribs': 8.36,
+            'pork ribs': 2.80,
+            'pork loin': 2.47,
+            'chicken drumstick': 1.37,
+            'chicken breast': 1.47,
+            'lamb chops': 13.91,
+            'leg of lamb': 6.21,
             'lamb picanha': 9.20,
-            'sausage': 4.20
+            'sausage': 3.16,
+            'bacon': 3.33,
+            'bone-in ribeye': 9.14,
+            'pork belly': 4.50
         };
 
         let totalProjectedSavings = 0;
+        let totalActualCostGuest = 0;
 
         const idealComparison = topMeats.map(meat => {
-            let standard = 0.10; // Default fallback
+            let standardLbs = 0.10; // Default fallback
+            let targetCostGuest = 0.00;
+            let source = 'Default';
 
-            for (const key of Object.keys(MEAT_STANDARDS)) {
-                if (meat.name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(meat.name.toLowerCase())) {
-                    standard = MEAT_STANDARDS[key];
-                    break;
+            // 1. Try Store Specific Target
+            const specificTarget = storeTargets.find(t => t.protein === meat.name || meat.name.includes(t.protein));
+            if (specificTarget) {
+                standardLbs = specificTarget.target;
+                targetCostGuest = specificTarget.cost_target || 0;
+                source = 'Store Target';
+            } else {
+                // 2. Fallback to Global Standards
+                for (const key of Object.keys(MEAT_STANDARDS)) {
+                    if (meat.name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(meat.name.toLowerCase())) {
+                        standardLbs = MEAT_STANDARDS[key];
+                        source = 'Global Standard';
+                        // implied cost target?
+                        break;
+                    }
                 }
             }
 
             const actualPerGuest = extraCustomers > 0 ? (meat.value / extraCustomers) : 0;
-            const variance = actualPerGuest - standard;
-
-            // Financial Impact for this meat
-            // Formula: Variance (Lbs/Guest) * Total Guests * Price/Lb
-            // Negative Variance = SAVINGS (Used less than standard)
-            // Positive Variance = LOSS (Over portioning)
+            const varianceLbs = actualPerGuest - standardLbs;
 
             // Find price
             let price = 6.00; // Default
@@ -97,19 +121,39 @@ export class MeatEngine {
                 }
             }
 
-            const impactDollars = variance * extraCustomers * price;
-            totalProjectedSavings -= impactDollars; // Invert: Positive Variance (Waste) subtracts from savings. Negative Variance (Efficiency) adds to savings.
+            // Financial Metrics
+            const actualCostGuest = actualPerGuest * price;
+            totalActualCostGuest += actualCostGuest;
+
+            // If no specific cost target, derive it from Lbs Target * Price 
+            if (targetCostGuest === 0 && standardLbs > 0) {
+                targetCostGuest = standardLbs * price;
+            }
+
+            const varianceCost = actualCostGuest - targetCostGuest;
+
+            // Legacy Savings calc (based on Lbs Variance)
+            const impactDollars = varianceLbs * extraCustomers * price;
+            totalProjectedSavings -= impactDollars;
 
             return {
                 ...meat,
-                actualPerGuest,
-                goalPerGuest: standard,
-                variance,
+                actualPerGuest,         // Lbs/Guest
+                goalPerGuest: standardLbs, // Target Lbs/Guest
+                variance: varianceLbs,     // Lbs Variance
+
+                // New Financial Fields
                 pricePerLb: price,
-                impactDollars: -impactDollars, // Show "Savings" as positive, "Loss" as negative
-                status: variance > 0.05 ? 'High' : variance < -0.05 ? 'Low' : 'Ideal'
+                actualCostGuest,        // Actual $/Guest
+                targetCostGuest,        // Target $/Guest
+                varianceCost,           // $/Guest Variance
+
+                impactDollars: -impactDollars,
+                status: varianceLbs > 0.05 ? 'High' : varianceLbs < -0.05 ? 'Low' : 'Ideal'
             };
         });
+
+        const storeFinancialVariance = totalActualCostGuest - STORE_COST_TARGET;
 
         return {
             totalLbsMonth,
@@ -120,7 +164,13 @@ export class MeatEngine {
             weeklyChart,
             financials: {
                 total_savings: totalProjectedSavings,
-                status: totalProjectedSavings >= 0 ? 'Savings' : 'Loss'
+
+                // New Financial Summary
+                store_target_cost_guest: STORE_COST_TARGET,
+                actual_cost_guest: totalActualCostGuest,
+                variance_cost_guest: storeFinancialVariance,
+
+                status: storeFinancialVariance > 0.5 ? 'Critical' : storeFinancialVariance > 0 ? 'Over Budget' : 'Under Budget'
             }
         };
     }
@@ -308,6 +358,8 @@ export class MeatEngine {
             const impactLbs = (lbsPerGuest - target) * guests;
             const impactYTD = impactLbs * (costPerLb || 6.00);
 
+            const targetCostGuest = store.target_cost_guest || 9.94;
+
             results.push({
                 id: store.id,
                 name: store.store_name,
@@ -318,9 +370,10 @@ export class MeatEngine {
                 costPerLb,
                 costPerGuest,
                 lbsPerGuest,
-                target, // Return target for UI
+                target_lbs_guest: target, // Return target for UI (renamed to match Interface)
+                target_cost_guest: targetCostGuest, // New Field
                 lbsGuestVar: variance,
-                costGuestVar: costPerGuest - 10.50, // Mock Plan Cost $10.50
+                costGuestVar: costPerGuest - targetCostGuest,
                 impactYTD,
                 status: Math.abs(variance) < 0.1 ? 'Optimal' : variance > 0 ? 'Warning' : 'Critical'
             });

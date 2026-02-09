@@ -5,6 +5,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ExecutiveDashboard } from './pages/ExecutiveDashboard';
+import { ProjectionsDashboard } from './pages/ProjectionsDashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -29,6 +30,7 @@ function AppContent() {
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/:storeId" element={<Dashboard />} />
+                    <Route path="/projections" element={<ProjectionsDashboard />} />
                     <Route path="/inventory" element={<PlaceholderPage title="Inventory Management" />} />
                     <Route path="/reports" element={<PlaceholderPage title="Reporting Suite" />} />
                     <Route path="/prices" element={<WeeklyPriceInput />} />

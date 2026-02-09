@@ -22,7 +22,9 @@ model Store {
   store_name        String
   location          String
   target_lbs_guest  Float             @default(1.76)
+  target_cost_guest Float             @default(9.94)
   created_at        DateTime          @default(now())
+
   inventory_records InventoryRecord[]
   meat_usage        MeatUsage[]
   orders            Order[]
@@ -31,6 +33,18 @@ model Store {
   company           Company           @relation(fields: [company_id], references: [id])
   uploads           Upload[]
   users             User[]
+  meat_targets      StoreMeatTarget[]
+} 
+
+model StoreMeatTarget {
+  id          String   @id @default(uuid())
+  store_id    Int
+  protein     String
+  target      Float    // lbs/guest target
+  cost_target Float?   // $/guest target (optional for backward compatibility)
+  store       Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, protein])
 }
 
 model User {
