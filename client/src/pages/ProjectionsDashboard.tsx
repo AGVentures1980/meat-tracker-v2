@@ -30,12 +30,32 @@ const GLOBAL_TARGET_LBS = 1.76;
 const GLOBAL_ACTUAL_LBS = 2.15; // Estimating current average for "Status Quo"
 const AVG_PRICE_PER_LB = 6.50;  // Blended average cost
 
+const MEAT_STANDARDS: Record<string, number> = {
+    "Picanha": 0.39,
+    "Alcatra": 0.22,
+    "Fraldinha/Flank Steak": 0.24,
+    "Tri-Tip": 0.15,
+    "Filet Mignon": 0.10,
+    "Bone-in Ribeye": 0.09,
+    "Beef Ribs": 0.08,
+    "Pork Ribs": 0.12,
+    "Pork Loin": 0.06,
+    "Pork Belly": 0.04,
+    "Chicken Drumstick": 0.13,
+    "Chicken Breast": 0.14,
+    "Lamb Chops": 0.07,
+    "Leg of Lamb": 0.08,
+    "Lamb Picanha": 0.10,
+    "Sausage": 0.06
+};
+
 // Initial Data Seed - Removed as we now fetch dynamically
 
 export const ProjectionsDashboard = () => {
     const [growthRate, setGrowthRate] = useState<number>(5.0); // 5% default
     const [storeData, setStoreData] = useState<StoreProjectionData[]>([]);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [isBreakdownModalOpen, setIsBreakdownModalOpen] = useState(false);
     const [publishPassword, setPublishPassword] = useState('');
     const [publishError, setPublishError] = useState('');
     const [isPublished, setIsPublished] = useState(false);
@@ -126,6 +146,13 @@ export const ProjectionsDashboard = () => {
     const totalVolume = storeData.reduce((acc, d) => acc + d.projectedMeatLbs, 0);
     const totalSavingsObs = storeData.reduce((acc, d) => acc + d.savingsDollars, 0);
 
+    // Meat Breakdown Calculation
+    const totalGuests = storeData.reduce((acc, d) => acc + d.projectedLunchGuests + d.projectedDinnerGuests, 0);
+    const meatBreakdown = Object.entries(MEAT_STANDARDS).map(([meat, factor]) => ({
+        name: meat,
+        projectedLbs: totalGuests * factor
+    })).sort((a, b) => b.projectedLbs - a.projectedLbs);
+
     // Formatting
     const fmtCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
     const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n));
@@ -179,13 +206,20 @@ export const ProjectionsDashboard = () => {
                 </div>
 
                 {/* 2. Total Buying Power */}
-                <div className="bg-[#1a1a1a] border border-[#333] p-6 rounded-sm group hover:border-brand-gold/30 transition-colors">
+                <div
+                    onClick={() => setIsBreakdownModalOpen(true)}
+                    className="bg-[#1a1a1a] border border-[#333] p-6 rounded-sm group hover:border-brand-gold hover:bg-[#222] transition-all cursor-pointer relative"
+                >
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <RefreshCw className="w-4 h-4 text-brand-gold" />
+                    </div>
                     <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-2 font-mono">Negotiation Power (Vol)</h3>
                     <div className="text-4xl font-bold text-white font-mono mb-1 group-hover:text-brand-gold transition-colors">
                         {fmtNum(totalVolume)} <span className="text-lg text-gray-500">LBS</span>
                     </div>
-                    <div className="text-xs text-gray-400">
-                        Projected Annual Meat Requirement
+                    <div className="text-xs text-gray-400 flex justify-between items-center">
+                        <span>Projected Annual Meat Requirement</span>
+                        <span className="text-brand-gold font-bold text-[10px] animate-pulse">VIEW BREAKDOWN →</span>
                     </div>
                 </div>
 
@@ -304,6 +338,74 @@ export const ProjectionsDashboard = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Meat Breakdown Modal */}
+            {isBreakdownModalOpen && (
+                <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-[120] flex items-center justify-center p-6">
+                    <div className="bg-[#1a1a1a] border border-[#333] w-full max-w-2xl shadow-2xl relative">
+                        <div className="p-6 border-b border-[#333] flex justify-between items-center bg-[#222]">
+                            <div>
+                                <h2 className="text-2xl font-mono font-bold text-white flex items-center">
+                                    <Calculator className="w-6 h-6 mr-3 text-brand-gold" />
+                                    NEGOTIATION BREAKDOWN
+                                </h2>
+                                <p className="text-gray-500 text-xs uppercase tracking-widest mt-1 font-mono">Projected Annual Volume by Meat Type</p>
+                            </div>
+                            <button
+                                onClick={() => setIsBreakdownModalOpen(false)}
+                                className="text-gray-500 hover:text-white transition-colors"
+                            >
+                                <RefreshCw className="w-6 h-6 rotate-45" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                <div className="bg-black/40 border border-[#333] p-4">
+                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Total Proj. Guests</p>
+                                    <p className="text-2xl font-bold text-white font-mono">{fmtNum(totalGuests)}</p>
+                                </div>
+                                <div className="bg-black/40 border border-[#333] p-4">
+                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Network Volume</p>
+                                    <p className="text-2xl font-bold text-brand-gold font-mono">{fmtNum(totalVolume)} LBS</p>
+                                </div>
+                            </div>
+
+                            <div className="max-h-[400px] overflow-y-auto border border-[#333]">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
+                                            <th className="p-4 font-normal">Meat Type</th>
+                                            <th className="p-4 font-normal text-right">Standard (Lbs/Guest)</th>
+                                            <th className="p-4 font-normal text-right text-brand-gold">Proj. Volume (Lbs)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#333] font-mono text-sm">
+                                        {meatBreakdown.map(item => (
+                                            <tr key={item.name} className="hover:bg-[#252525] transition-colors">
+                                                <td className="p-4 font-bold text-white">{item.name}</td>
+                                                <td className="p-4 text-right text-gray-400">{MEAT_STANDARDS[item.name].toFixed(2)}</td>
+                                                <td className="p-4 text-right font-bold text-brand-gold bg-brand-gold/5">
+                                                    {fmtNum(item.projectedLbs)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="mt-6 flex justify-end">
+                                <button
+                                    onClick={() => setIsBreakdownModalOpen(false)}
+                                    className="bg-brand-gold hover:bg-yellow-500 text-black font-bold px-8 py-3 font-mono text-sm shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all active:scale-95"
+                                >
+                                    CLOSE BREAKDOWN
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Password Modal */}
             {isPasswordModalOpen && (
