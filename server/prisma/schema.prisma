@@ -34,6 +34,8 @@ model Store {
   uploads           Upload[]
   users             User[]
   meat_targets      StoreMeatTarget[]
+
+  @@unique([company_id, store_name])
 } 
 
 model StoreMeatTarget {

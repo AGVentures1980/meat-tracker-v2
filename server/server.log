@@ -434,3 +434,10 @@ src/engine/MeatEngine.ts(522,1): error TS1128: Declaration or statement expected
 [0mGET /api/v1/dashboard/settings [33m401[0m 2.699 ms - 25[0m
 [0mGET /api/v1/dashboard/settings [33m401[0m 0.900 ms - 25[0m
 [0mGET /api/v1/dashboard/settings [33m401[0m 0.665 ms - 25[0m
+[0mGET /api/v1/dashboard/settings [33m401[0m 0.730 ms - 25[0m
+[INFO] 11:41:56 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/AuthController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001

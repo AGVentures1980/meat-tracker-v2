@@ -124,8 +124,28 @@ export class AuthController {
             }
 
             // Create Trial User
-            // For Demo, we'll assign them a default store (e.g., Store ID 1) or create a "Demo Store"
-            // For simplicity, assigning to Store 1 (Dallas) but marked as Trial
+            // Assign to Demo Playground (isolated from real client data)
+            const demoCompany = await prisma.company.findUnique({
+                where: { id: 'demo-playground-agv' }
+            });
+
+            if (!demoCompany) {
+                return res.status(500).json({
+                    error: 'Demo environment not initialized. Please contact support.'
+                });
+            }
+
+            // Get first demo store
+            const demoStore = await prisma.store.findFirst({
+                where: { company_id: demoCompany.id }
+            });
+
+            if (!demoStore) {
+                return res.status(500).json({
+                    error: 'Demo stores not available. Please contact support.'
+                });
+            }
+
             const trialPassword = Math.random().toString(36).slice(-8); // Generate random temp password
             const hashedPassword = await bcrypt.hash(trialPassword, 10);
             const expiration = new Date();
@@ -138,7 +158,7 @@ export class AuthController {
                     role: 'viewer', // Trials are viewers by default
                     is_trial: true,
                     trial_expires_at: expiration,
-                    store_id: 1, // Dallas as demo store
+                    store_id: demoStore.id, // Assign to Demo Store (isolated)
                     force_change: true // Force them to set their own password on first login
                 }
             });

@@ -28,7 +28,7 @@ export const StorePerformanceTable = () => {
         const fetchData = async () => {
             try {
                 // Check if running in Vite dev mode or Production
-                const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3000/api/v1';
+                const baseUrl = '/api/v1';
                 const res = await fetch(`${baseUrl}/dashboard/bi-network`);
 
                 if (res.ok) {

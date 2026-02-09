@@ -17,7 +17,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const navigate = useNavigate();
 
     const navItems = [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/1' },
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
         { icon: TrendingUp, label: 'Projections', path: '/projections' }, // New Annual BI
         { icon: StickyNote, label: 'Reports', path: '/reports' },
         { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' }, // New Financial Input
