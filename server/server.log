@@ -431,3 +431,6 @@ src/engine/MeatEngine.ts(522,1): error TS1128: Declaration or statement expected
 [Startup] Ensuring default system settings exist...
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 Server running on http://localhost:3001
+[0mGET /api/v1/dashboard/settings [33m401[0m 2.699 ms - 25[0m
+[0mGET /api/v1/dashboard/settings [33m401[0m 0.900 ms - 25[0m
+[0mGET /api/v1/dashboard/settings [33m401[0m 0.665 ms - 25[0m

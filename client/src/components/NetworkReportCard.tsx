@@ -28,7 +28,7 @@ export const NetworkReportCard = () => {
 
         setLoading(true);
         try {
-            const baseUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:3001/api/v1';
+            const baseUrl = '/api/v1';
 
             // Construct Token
             const token = user.role === 'admin'

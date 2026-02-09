@@ -22,7 +22,7 @@ export const SettingsPage = () => {
     const fetchSettings = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3001/api/v1/dashboard/settings', {
+            const res = await fetch('/api/v1/dashboard/settings', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -43,7 +43,7 @@ export const SettingsPage = () => {
         setMessage(null);
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3001/api/v1/dashboard/settings', {
+            const res = await fetch('/api/v1/dashboard/settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
