@@ -16,6 +16,8 @@ COPY server/package*.json ./
 RUN npm ci
 COPY server/ ./
 # Generate Prisma Client
+ARG DATABASE_URL
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN npx prisma generate
 RUN npm run build
 
