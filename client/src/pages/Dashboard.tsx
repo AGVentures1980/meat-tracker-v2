@@ -27,14 +27,82 @@ interface StorePerformance {
 
 // ... imports
 
-// Inside Component ...
+export const Dashboard = () => {
+    const navigate = useNavigate();
+    const [performanceData, setPerformanceData] = useState<StorePerformance[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showWeeklyInput, setShowWeeklyInput] = useState(false);
+    const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const res = await fetch('/api/v1/dashboard/company-stats');
+                if (res.ok) {
+                    const data = await res.json();
+                    setPerformanceData(data.performance || []);
+                }
+            } catch (err) {
+                console.error("Failed to fetch dashboard data", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    return (
+        <DashboardLayout>
+            <div className="p-6">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                            Meat Intelligence
+                            <span className="bg-[#FF2A6D]/10 text-[#FF2A6D] text-xs px-2 py-1 rounded-none border border-[#FF2A6D]/30 uppercase tracking-widest font-mono">Real-Time</span>
+                        </h1>
+                        <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">Network Performance Monitoring • 2026 Q1</p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex bg-[#1a1a1a] border border-[#333] p-1 rounded-sm">
+                            <button className="px-3 py-1.5 text-xs font-bold text-white bg-[#333] rounded-xs shadow-lg flex items-center gap-2">
+                                <LayoutGrid size={14} /> Grid
+                            </button>
+                            <button className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-white transition-colors flex items-center gap-2">
+                                <TrendingUp size={14} /> Charts
+                            </button>
+                        </div>
+                        <button className="bg-[#C5A059] hover:bg-[#D5B069] text-black px-4 py-2 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 rounded-sm active:scale-95 shadow-[0_0_20px_rgba(197,160,89,0.2)]">
+                            <DownloadCloud size={16} /> Export Data
+                        </button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                    <NetworkReportCard />
+                </div>
+
+                {/* Performance Grid */}
+                <div className="bg-[#1a1a1a] border border-[#333] rounded-sm overflow-hidden shadow-2xl">
+                    <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#222]">
+                        <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
+                            <Camera size={14} className="text-[#C5A059]" /> Performance by Location
+                        </h3>
+                        <div className="flex items-center gap-4 text-[10px] text-gray-500 font-mono">
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#00FF94]"></span> Under Meta</span>
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#FF2A6D]"></span> Acima Meta</span>
+                        </div>
+                    </div>
+
+                    <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
                                 <th className="p-4 font-normal">Store Location</th>
                                 <th className="p-4 font-normal text-right">Guests</th>
-                                <th className="p-4 font-normal text-right">Lbs/Guest<br/><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
-                                <th className="p-4 font-normal text-right">$/Guest<br/><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
+                                <th className="p-4 font-normal text-right">Lbs/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
+                                <th className="p-4 font-normal text-right">$/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
                                 <th className="p-4 font-normal text-right">Var $/Guest</th>
                                 <th className="p-4 font-normal text-right">Fin. Impact</th>
                                 <th className="p-4 font-normal text-center">Status</th>
@@ -45,13 +113,13 @@ interface StorePerformance {
                                 <tr><td colSpan={7} className="p-8 text-center text-gray-500 animate-pulse">Initializing Data Stream...</td></tr>
                             ) : (
                                 performanceData.map((store) => (
-                                    <tr key={store.id} className="hover:bg-[#252525] transition-colors group">
-                                        <td className="p-4 font-bold text-white group-hover:text-[#00FF94] transition-colors">
+                                    <tr key={store.id} className="hover:bg-[#252525] transition-colors group cursor-pointer" onClick={() => navigate(`/dashboard/${store.id}`)}>
+                                        <td className="p-4 font-bold text-white group-hover:text-[#C5A059] transition-colors">
                                             {store.name}
                                             <span className="block text-[10px] text-gray-600 font-normal uppercase">{store.location}</span>
                                         </td>
                                         <td className="p-4 text-right text-gray-300">{store.guests.toLocaleString()}</td>
-                                        
+
                                         {/* Lbs/Guest */}
                                         <td className="p-4 text-right">
                                             <div className={`font-bold ${store.lbsPerGuest > (store.target_lbs_guest || 1.76) ? 'text-[#FF9F1C]' : 'text-[#00FF94]'}`}>
@@ -73,7 +141,7 @@ interface StorePerformance {
                                         </td>
 
                                         {/* Cost Variance */}
-                                         <td className={`p-4 text-right ${store.costGuestVar > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                        <td className={`p-4 text-right ${store.costGuestVar > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
                                             {store.costGuestVar > 0 ? '+' : ''}${store.costGuestVar.toFixed(2)}
                                         </td>
 
@@ -92,25 +160,23 @@ interface StorePerformance {
                                 ))
                             )}
                         </tbody>
-                    </table >
-                </div >
-            </div >
+                    </table>
+                </div>
+            </div>
 
-    {/* Input Modal */ }
-{
-    showWeeklyInput && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <WeeklyInputForm
-                storeId={selectedStoreId}
-                onClose={() => setShowWeeklyInput(false)}
-                onSubmit={() => {
-                    // Trigger refresh
-                    window.location.reload();
-                }}
-            />
-        </div>
-    )
-}
-        </DashboardLayout >
+            {/* Input Modal */}
+            {showWeeklyInput && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <WeeklyInputForm
+                        storeId={selectedStoreId}
+                        onClose={() => setShowWeeklyInput(false)}
+                        onSubmit={() => {
+                            // Trigger refresh
+                            window.location.reload();
+                        }}
+                    />
+                </div>
+            )}
+        </DashboardLayout>
     );
 };
