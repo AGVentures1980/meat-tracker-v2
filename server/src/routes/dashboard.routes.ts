@@ -10,6 +10,7 @@ const router = Router();
 router.get('/stats/:storeId', DashboardController.getStats);
 router.get('/network', DashboardController.getNetworkStats);
 router.get('/report-card', DashboardController.getNetworkReportCard);
+router.get('/bi-report-card', DashboardController.getNetworkReportCard); // Alias for Stale Frontend
 router.get('/company-stats', DashboardController.getCompanyStats); // New Route for Dashboard.tsx
 router.get('/company-aggregate', DashboardController.getCompanyAggregateStats);
 router.get('/company-stats', DashboardController.getExecutiveStats); // New endpoint for ExecutiveSummary
