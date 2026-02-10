@@ -9,18 +9,23 @@ export class WasteController {
     static async getStatus(req: Request, res: Response) {
         try {
             // @ts-ignore
-            const userStoreId = req.user.store_id || 1; // Default to 1 if not set
+            const userStoreId = req.user?.storeId || req.user?.store_id || 1;
             let storeId = userStoreId;
+
+            // @ts-ignore
+            console.log(`[WasteStatus] Fetching for store: ${storeId} (User role: ${(req as any).user?.role})`);
 
             // Allow Admin/Director override
             // @ts-ignore
-            if ((req.user.role === 'admin' || req.user.role === 'director') && req.query.store_id) {
+            if (((req as any).user?.role === 'admin' || (req as any).user?.role === 'director') && req.query.store_id) {
                 storeId = parseInt(req.query.store_id as string);
+                console.log(`[WasteStatus] Admin override to store: ${storeId}`);
             }
 
             const today = new Date();
             const centralDate = this.getCentralDateTime(today);
             const dateStr = centralDate.toISOString().split('T')[0];
+            console.log(`[WasteStatus] Business Date: ${dateStr}`);
 
             const startOfWeek = new Date(centralDate);
             const day = startOfWeek.getDay() || 7; // Get current day number, converting Sun(0) to 7 if needed
@@ -55,6 +60,7 @@ export class WasteController {
                     date: new Date(dateStr)
                 }
             });
+            console.log(`[WasteStatus] Found ${todaysLogs.length} logs for today.`);
 
             const hasLunch = todaysLogs.some(log => log.shift === 'LUNCH');
             const hasDinner = todaysLogs.some(log => log.shift === 'DINNER');
@@ -181,11 +187,11 @@ export class WasteController {
     static async logWaste(req: Request, res: Response) {
         try {
             // @ts-ignore
-            const userId = req.user.userId;
+            const userId = req.user?.userId;
             // @ts-ignore
-            const userRole = req.user.role;
+            const userRole = req.user?.role;
             // @ts-ignore
-            let userStoreId = req.user.store_id || 1;
+            let userStoreId = req.user?.storeId || req.user?.store_id || 1;
 
             const { shift, items, date, store_id } = req.body; // items: [{protein, weight, reason}]
 

@@ -118,11 +118,25 @@ const WastePage = () => {
     if (loading) return <div className="p-8 text-[#C5A059] font-mono animate-pulse">Checking Compliance Protocols...</div>;
 
     // Determine UI State based on Status
-    const isLocked = status?.compliance.is_locked;
-    const isBlockedToday = !status?.today.can_input_lunch && !status?.today.can_input_dinner;
+    const isLocked = status?.compliance?.is_locked;
+    const isBlockedToday = !status?.today?.can_input_lunch && !status?.today?.can_input_dinner;
 
     // Auto-select shift for display if only one option
-    const activeShift = status?.today.can_input_lunch ? 'LUNCH' : (status?.today.can_input_dinner ? 'DINNER' : 'NONE');
+    const activeShift = status?.today?.can_input_lunch ? 'LUNCH' : (status?.today?.can_input_dinner ? 'DINNER' : 'NONE');
+
+    if (!status || status.error) {
+        return (
+            <div className="max-w-4xl mx-auto p-6 space-y-8">
+                <div className="bg-red-900/20 border border-red-500 text-red-500 p-6 rounded flex flex-col gap-2">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                        <AlertTriangle className="w-6 h-6" />
+                        Infrastructure Error
+                    </h2>
+                    <p className="text-sm opacity-80">{status?.error || 'Failed to connect to the Waste Compliance API. Please refresh or contact support.'}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-8">
