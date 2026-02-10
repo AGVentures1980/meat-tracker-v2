@@ -71,14 +71,38 @@ async function main() {
         create: { id: 'tdb-main', name: 'Texas de Brazil', plan: 'enterprise' }
     });
 
-    // Specific Targets defined by User (Phase 12)
+    // Specific Targets defined by User (Phase 12 - Derived from Batch 2-8 Raw Data Sums)
     const TARGET_OVERRIDES = {
+        // Direct Matches & Primary Proxies
         'Addison': 1.23,
-        'Denver': 1.77,   // Proxy for Albuquerque
-        'Birming': 1.84,  // Proxy for Atlanta
-        'SanAnt': 1.80,   // Proxy for Austin Congress
-        'FairOak': 1.90,  // Proxy for Baltimore
-        'Tacoma': 1.80    // Proxy for Bellevue
+        'Dallas': 1.77,   // Dallas Uptown
+        'Orlando': 1.89,
+        'Vegas': 1.83,
+        'SanAnt': 1.57,
+        'Houston': 1.68,
+        'Irvine': 1.78,
+        'Denver': 1.71,
+        'Pitt': 1.79,
+        'MiamiB': 1.75,
+
+        // Proxies (Mapped from Regional Data)
+        'Buffalo': 1.77,  // Proxy for Burlington
+        'FairOak': 1.75,  // AVG for DC Metro (Baltimore/Reston/Tysons/Washington)
+        'Jax': 1.77,
+        'Omaha': 1.77,    // Proxy for Kansas City
+        'Rich': 1.56,     // Proxy for Bethesda
+        'Saw': 1.63,      // Proxy for Fort Lauderdale
+        'Tacoma': 1.80,   // Proxy for PNW (Bellevue/Lynnwood/Portland)
+        'Yonkers': 1.70,  // AVG for NY Metro (LI/NY/Paramus/Queens/White Plains)
+        'Carls': 1.79,    // Proxy for San Diego
+        'BRouge': 1.72,   // Proxy for New Orleans
+        'Birming': 1.78,  // Proxy for Atlanta/Dunwoody
+        'Fresno': 1.85,   // AVG for NorCal (Emeryville/SF/San Jose)
+        'Milwauk': 1.72,  // Proxy for Minneapolis
+        'Cucamon': 1.72,  // AVG for LA Metro (Bev Hills/El Segundo/LA/Pasadena)
+        'Schaum': 1.76,   // AVG for Chicago Metro (Chicago/Naperville/Oak Brook)
+        'WHart': 1.73,    // Proxy for New England (Boston/Providence)
+        'Detroit': 1.72   // Proxy for Troy
     };
 
     for (const [email, account] of Object.entries(ACCOUNTS)) {
