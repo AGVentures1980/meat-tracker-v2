@@ -155,7 +155,7 @@ export const Login = () => {
                     </div>
 
                     <div className="flex items-center justify-between pt-2">
-                        <div className="text-xs text-gray-500">v2.0 Protected System</div>
+                        <div className="text-xs text-brand-gold font-mono font-bold uppercase tracking-widest">v2.2 - SYSTEM LIVE</div>
                         <button
                             type="button"
                             onClick={() => setShowResetModal(true)}
