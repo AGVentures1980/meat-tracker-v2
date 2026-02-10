@@ -227,7 +227,7 @@ export class MeatEngine {
             // Calculate Guests (Mock/Estimate if missing)
             // In a real scenario, this comes from OrderItem or POS integration
             // For Demo/Seed, we reverse engineer from ideal: Guests = Lbs / Target
-            let guests = Math.round(totalLbs / (store.target_lbs_guest || 1.76));
+            let guests = Math.round(totalLbs / ((store as any).target_lbs_guest || 1.76));
 
             // Add some noise to make it realistic if it's exact match
             if (guests > 0) {
@@ -256,12 +256,12 @@ export class MeatEngine {
                 costPerLb: estimatedCostPerLb,
                 costPerGuest,
                 lbsPerGuest,
-                lbsGuestVar: lbsPerGuest - (store.target_lbs_guest || 1.76),
-                target_lbs_guest: store.target_lbs_guest || 1.76,
-                target_cost_guest: store.target_cost_guest || 9.94,
-                costGuestVar: costPerGuest - (store.target_cost_guest || 9.94),
-                impactYTD: (costPerGuest - (store.target_cost_guest || 9.94)) * guests, // Simple impact calc
-                status: Math.abs(lbsPerGuest - (store.target_lbs_guest || 1.76)) < 0.1 ? 'Optimal' : 'Warning'
+                lbsGuestVar: lbsPerGuest - ((store as any).target_lbs_guest || 1.76),
+                target_lbs_guest: (store as any).target_lbs_guest || 1.76,
+                target_cost_guest: (store as any).target_cost_guest || 9.94,
+                costGuestVar: costPerGuest - ((store as any).target_cost_guest || 9.94),
+                impactYTD: (costPerGuest - ((store as any).target_cost_guest || 9.94)) * guests, // Simple impact calc
+                status: Math.abs(lbsPerGuest - ((store as any).target_lbs_guest || 1.76)) < 0.1 ? 'Optimal' : 'Warning'
             });
         }
 
