@@ -71,6 +71,16 @@ async function main() {
         create: { id: 'tdb-main', name: 'Texas de Brazil', plan: 'enterprise' }
     });
 
+    // Specific Targets defined by User (Phase 12)
+    const TARGET_OVERRIDES = {
+        'Addison': 1.23,
+        'Denver': 1.77,   // Proxy for Albuquerque
+        'Birming': 1.84,  // Proxy for Atlanta
+        'SanAnt': 1.80,   // Proxy for Austin Congress
+        'FairOak': 1.90,  // Proxy for Baltimore
+        'Tacoma': 1.80    // Proxy for Bellevue
+    };
+
     for (const [email, account] of Object.entries(ACCOUNTS)) {
         const hashedPassword = await bcrypt.hash(account.pass, 10);
         if (isNaN(parseInt(account.id))) {
@@ -84,6 +94,8 @@ async function main() {
 
         const storeId = parseInt(account.id);
         const storeName = account.name;
+        const targetLbs = TARGET_OVERRIDES[storeName] || 1.76;
+
         const store = await prisma.store.upsert({
             where: {
                 company_id_store_name: {
@@ -91,8 +103,8 @@ async function main() {
                     store_name: storeName
                 }
             },
-            update: {},
-            create: { id: storeId, company_id: tdb.id, store_name: storeName, location: 'USA', target_lbs_guest: 1.76 }
+            update: { target_lbs_guest: targetLbs },
+            create: { id: storeId, company_id: tdb.id, store_name: storeName, location: 'USA', target_lbs_guest: targetLbs }
         });
 
         await prisma.user.upsert({
