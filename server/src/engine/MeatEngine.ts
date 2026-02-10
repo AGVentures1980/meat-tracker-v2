@@ -212,14 +212,17 @@ export class MeatEngine {
             const end = endOfMonth(now);
 
             // Fetch Meat Usage (Consumed)
-            const meatUsage = await prisma.meatUsage.findMany({
+            // Fix: Use OrderItem (Sales) as proxy for usage if MeatUsage is empty or for consistency with seed data
+            const sales = await prisma.orderItem.findMany({
                 where: {
-                    store_id: store.id,
-                    date: { gte: start, lte: end }
+                    order: {
+                        store_id: store.id,
+                        order_date: { gte: start, lte: end }
+                    }
                 }
             });
 
-            const totalLbs = meatUsage.reduce((acc, m) => acc + m.lbs_total, 0);
+            const totalLbs = sales.reduce((acc, m) => acc + m.lbs, 0);
 
             // Calculate Guests (Mock/Estimate if missing)
             // In a real scenario, this comes from OrderItem or POS integration
