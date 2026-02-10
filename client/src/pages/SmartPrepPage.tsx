@@ -285,6 +285,7 @@ export const SmartPrepPage = () => {
                                     <span className="text-xs text-gray-500 uppercase">Prep Qty</span>
                                     <div className="text-right">
                                         <div className="text-3xl font-black text-white leading-none">{Math.ceil(item.recommended_units)}</div>
+                                        <p className="text-[10px] text-gray-500 font-mono">Build ID: 2.5.11-ACCOUNTABILITY</p>
                                         <div className="text-[10px] text-gray-500 uppercase mt-1">Pieces / Packs</div>
                                     </div>
                                 </div>
