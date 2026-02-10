@@ -15,7 +15,8 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'http://localhost:5173',
-        'https://meat-intelligence.up.railway.app'
+        'https://meat-intelligence.up.railway.app',
+        'https://meat-intelligence-final.up.railway.app'
     ],
     credentials: true
 }));
