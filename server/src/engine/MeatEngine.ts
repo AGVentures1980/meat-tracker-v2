@@ -146,12 +146,27 @@ export class MeatEngine {
     }
 
     static async getNetworkReportCard(year: number, week: number) {
+        // Mock Data for Network Report Card to match Frontend Interface
         return {
-            stores: [
-                { id: 1, name: 'Dallas', status: 'optimal', yield: 99.2 },
-                { id: 2, name: 'Fort Worth', status: 'warning', yield: 96.5 },
-                { id: 3, name: 'Addison', status: 'optimal', yield: 98.8 }
-            ]
+            year,
+            week,
+            costPerGuest: 11.20,
+            lbsPerGuest: 1.85,
+            planLbsPerGuest: 1.76,
+            lbsPerGuest12UkAvg: 1.82,
+            lbsPerGuestPTD: 1.84,
+            lbsPerGuestYTD: 1.83,
+            planLbsPerGuestYTD: 1.76,
+            impactYTD: -125000 // Negative means savings in this context? Or Loss? Frontend says: impactYTD < 0 ? '-' : '+'. 
+            // If impactYTD < 0, it renders with Red color?
+            // Frontend: data.impactYTD < 0 ? 'bg-[#FF2A6D]/10' : 'bg-[#00FF94]/10'
+            // Text: data.impactYTD < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]' (Red vs Green)
+            // Usually Green is good. So Positive should be good?
+            // But logic says: Net Impact is Cost Variance.
+            // If I am OVER budget, variance is positive -> Bad -> Red.
+            // If I am UNDER budget, variance is negative -> Good -> Green.
+            // Let's return positive 45000 (Loss) to test or negative (Savings).
+            // Let's set it to valid number.
         };
     }
 
