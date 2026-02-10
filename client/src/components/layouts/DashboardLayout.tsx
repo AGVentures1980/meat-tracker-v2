@@ -24,7 +24,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 
-    return (
     const [alerts, setAlerts] = useState([
         { id: 1, type: 'WARNING', time: '2m ago', message: 'Inventory Variance Detected: Dallas (1.89 vs 1.76 Target). Action Required.', path: '/dashboard/1', color: '#FF9F1C' },
         { id: 2, type: 'INFO', time: '15m ago', message: 'OLO Sync Latency > 300ms. Operations normal but monitoring.', path: '/reports', color: 'gray-400' },
