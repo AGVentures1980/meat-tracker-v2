@@ -48,28 +48,26 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
             });
             const data = await response.json();
 
-            // Combine all lists to get full store list
-            const allStores = [
+            // Use the full performance list if available, otherwise combine
+            const sourceList = data.performance || [
                 ...data.top_savers,
                 ...data.top_spenders,
                 ...data.middle_tier
-            ].map((s: any) => ({
+            ];
+
+            // Deduplicate just in case we used the combined method (though performance is best)
+            const uniqueStores = Array.from(new Map(sourceList.map((s: any) => [s.id, s])).values());
+
+            const allStoresLists = uniqueStores.map((s: any) => ({
                 id: s.id,
                 name: s.name,
                 location: s.location,
-                target_lbs_guest: 1.76 // Default fallback, but we want the REAL DB value.
-                // The current company-stats endpoint might NOT return the raw target.
-                // We should update the backend to return it, OR just accept we are editing blindly for a moment.
-                // BETTER: Let's fetch the report card or similar.
-                // Actually, let's use the `company-stats` but realize we need to update `MeatEngine` 
-                // to include `target_lbs_guest` in the response for this to be perfect.
-                // For MVP: Let's assume 1.76 displayed is the "current" if not provided, 
-                // but checking `MeatEngine.ts`, `getNetworkBiStats` calculates based on target but doesn't return it explicitly.
+                target_lbs_guest: s.target_lbs_guest || 1.76
             }));
 
             // Sort by Name
-            allStores.sort((a, b) => a.name.localeCompare(b.name));
-            setStores(allStores);
+            allStoresLists.sort((a: any, b: any) => a.name.localeCompare(b.name));
+            setStores(allStoresLists as StoreTarget[]);
 
         } catch (err) {
             setError("Failed to load store list.");
