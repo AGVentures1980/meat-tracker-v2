@@ -134,7 +134,8 @@ export class SettingsController {
                         user_id: creator.id,
                         action: 'CREATE_STORE',
                         resource: store.store_name,
-                        details: { target: target_lbs_guest, manager: manager_email }
+                        details: { target: target_lbs_guest, manager: manager_email },
+                        location: 'System'
                     }
                 });
 
