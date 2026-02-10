@@ -19,10 +19,12 @@ export class WasteController {
             }
 
             const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-            const startOfWeek = new Date(today);
+            const centralDate = this.getCentralDateTime(today);
+            const dateStr = centralDate.toISOString().split('T')[0];
+
+            const startOfWeek = new Date(centralDate);
             const day = startOfWeek.getDay() || 7; // Get current day number, converting Sun(0) to 7 if needed
-            if (day !== 1) startOfWeek.setHours(-24 * (day - 1)); // Set to Monday
+            if (day !== 1) startOfWeek.setDate(startOfWeek.getDate() - (day - 1)); // Set to Monday
             startOfWeek.setHours(0, 0, 0, 0);
 
 
@@ -74,7 +76,8 @@ export class WasteController {
             let canInputDinner = !compliance.is_locked;
             let statusMessage = "Open for Entry";
 
-            const currentWindow = this.getShiftWindow(today);
+            const centralNow = this.getCentralDateTime(today);
+            const currentWindow = this.getShiftWindow(centralNow);
 
             if (compliance.is_locked) {
                 canInputLunch = false;
@@ -190,7 +193,8 @@ export class WasteController {
             if ((userRole === 'admin' || userRole === 'director') && store_id) {
                 userStoreId = parseInt(store_id);
             }
-            const logDate = new Date(date || new Date().toISOString().split('T')[0]);
+            const centralNow = this.getCentralDateTime(new Date());
+            const logDate = new Date(date || centralNow.toISOString().split('T')[0]);
 
             // 1. Validate The Garcia Rule (Server Side Enforcement)
             const existingLogs = await prisma.wasteLog.findMany({
@@ -218,10 +222,10 @@ export class WasteController {
 
             // 3. Update Compliance Counters
             // Find current week compliance
-            const today = new Date();
-            const startOfWeek = new Date(today);
+            const centralDate = this.getCentralDateTime(new Date());
+            const startOfWeek = new Date(centralDate);
             const day = startOfWeek.getDay() || 7;
-            if (day !== 1) startOfWeek.setHours(-24 * (day - 1));
+            if (day !== 1) startOfWeek.setDate(startOfWeek.getDate() - (day - 1));
             startOfWeek.setHours(0, 0, 0, 0);
 
             const compliance = await prisma.wasteCompliance.findUnique({
@@ -260,12 +264,9 @@ export class WasteController {
         }
     }
 
-    private static getShiftWindow(now: Date) {
+    private static getShiftWindow(centralTime: Date) {
         // Force Central Time (CST) for Brasa Operations (Dallas/Austin base)
         // EST is -5, CST is -6. We'll use -6 as the baseline for the "The Garcia Rule".
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const centralTime = new Date(utc + (3600000 * -6));
-
         const day = centralTime.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
         const hour = centralTime.getHours();
         const minute = centralTime.getMinutes();
@@ -297,5 +298,13 @@ export class WasteController {
         }
 
         return 'CLOSED';
+    }
+
+    private static getCentralDateTime(now: Date): Date {
+        // CST (Central Standard Time) is UTC-6. 
+        // CDT (Central Daylight Time) is UTC-5.
+        // For simplicity and matching Brasa operational baseline: force UTC-6.
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        return new Date(utc + (3600000 * -6));
     }
 }
