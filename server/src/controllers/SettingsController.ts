@@ -36,7 +36,8 @@ export class SettingsController {
                         user_id: user.id,
                         action: 'UPDATE_SETTING',
                         resource: s.key,
-                        details: { oldValue: '...', newValue: s.value }
+                        details: { oldValue: '...', newValue: s.value },
+                        location: 'System'
                     }
                 });
             }
