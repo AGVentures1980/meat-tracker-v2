@@ -84,8 +84,6 @@ async function main() {
         'Denver': 1.71,
         'Pitt': 1.79,
         'MiamiB': 1.75,
-
-        // Proxies (Mapped from Regional Data)
         'Buffalo': 1.77,  // Proxy for Burlington
         'FairOak': 1.75,  // AVG for DC Metro (Baltimore/Reston/Tysons/Washington)
         'Jax': 1.77,
@@ -102,8 +100,26 @@ async function main() {
         'Cucamon': 1.72,  // AVG for LA Metro (Bev Hills/El Segundo/LA/Pasadena)
         'Schaum': 1.76,   // AVG for Chicago Metro (Chicago/Naperville/Oak Brook)
         'WHart': 1.73,    // Proxy for New England (Boston/Providence)
-        'Detroit': 1.72   // Proxy for Troy
+        'Detroit': 1.72,  // Proxy for Troy
+
+        // Manual / Geo Matches (Batch 1 & Geo)
+        'Albuquerque': 1.77,
+        'Atlanta': 1.84,
+        'Austin': 1.80,
+        'Baltimore': 1.90,
+        'Bellevue': 1.80,
+        'SanJuan': 1.95,
+        'Honolulu': 1.95,
+        'Phila': 1.82,
+        'Wash': 1.82,        // Metro
+        'Chicago': 1.82,     // Metro
+        'New York': 1.82,    // Metro
+        'Los Angeles': 1.82, // Metro
+        'San Francisco': 1.82 // Metro
     };
+
+    const TOURIST_CITIES = ['Orlando', 'Vegas', 'Miami', 'Anaheim', 'Fort Lauderdale', 'Hallandale', 'San Juan', 'Honolulu'];
+    const METRO_CITIES = ['Dallas', 'Chicago', 'New York', 'Detroit', 'Houston', 'SanAnt', 'Denver', 'Wash', 'Phila', 'Boston', 'Los Angeles', 'San Francisco', 'Atlanta'];
 
     for (const [email, account] of Object.entries(ACCOUNTS)) {
         const hashedPassword = await bcrypt.hash(account.pass, 10);
@@ -118,7 +134,19 @@ async function main() {
 
         const storeId = parseInt(account.id);
         const storeName = account.name;
-        const targetLbs = TARGET_OVERRIDES[storeName] || 1.76;
+
+        // Calculate Target
+        let targetLbs = TARGET_OVERRIDES[storeName];
+        if (!targetLbs) {
+            // Heuristic Fallback
+            if (TOURIST_CITIES.some(c => storeName.includes(c))) {
+                targetLbs = 1.95;
+            } else if (METRO_CITIES.some(c => storeName.includes(c))) {
+                targetLbs = 1.82;
+            } else {
+                targetLbs = 1.76;
+            }
+        }
 
         const store = await prisma.store.upsert({
             where: {

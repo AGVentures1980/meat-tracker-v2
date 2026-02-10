@@ -14,6 +14,7 @@ router.get('/bi-report-card', DashboardController.getNetworkReportCard); // Alia
 router.get('/company-stats', DashboardController.getCompanyStats);
 router.post('/targets', DashboardController.updateStoreTargets);
 router.get('/projections-data', DashboardController.getProjectionsData);
+router.post('/targets/sync', requireAuth, DashboardController.syncStoreTargets);
 
 // System Settings
 router.get('/settings', requireAuth, SettingsController.getSettings);

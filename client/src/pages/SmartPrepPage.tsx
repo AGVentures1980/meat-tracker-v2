@@ -10,6 +10,8 @@ export const SmartPrepPage = () => {
     const [forecast, setForecast] = useState<number>(150);
     const [prepData, setPrepData] = useState<any>(null);
 
+    const [error, setError] = useState<string | null>(null);
+
     // Debounce forecast updates to avoid API spam
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -20,12 +22,14 @@ export const SmartPrepPage = () => {
 
     const fetchPrepData = async () => {
         setLoading(true);
+        setError(null);
         try {
             const token = localStorage.getItem('auth_token');
             // Allow forecast override via query param
             const res = await fetch(`/api/v1/dashboard/smart-prep?guests=${forecast}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
             if (res.ok) {
                 const data = await res.json();
                 setPrepData(data);
@@ -35,9 +39,13 @@ export const SmartPrepPage = () => {
                 if (!prepData) { // Initial load
                     setForecast(data.forecast_guests);
                 }
+            } else {
+                const err = await res.json();
+                setError(err.error || 'Failed to load prep data');
             }
         } catch (error) {
             console.error(error);
+            setError('Is the server running? Connection failed.');
         } finally {
             setLoading(false);
         }
@@ -104,11 +112,21 @@ export const SmartPrepPage = () => {
                 </div>
 
                 {/* Prep Grid */}
-                {loading && !prepData ? (
-                    <div className="text-center py-20 text-gray-500">Calculating optimal prep levels...</div>
-                ) : (
+                {loading && !prepData && (
+                    <div className="text-center py-20 text-gray-500 animate-pulse">Calculating optimal prep levels...</div>
+                )}
+
+                {error && (
+                    <div className="text-center py-20 text-[#FF2A6D]">
+                        <p className="font-bold">System Error</p>
+                        <p className="text-sm">{error}</p>
+                        <button onClick={fetchPrepData} className="mt-4 px-4 py-2 bg-[#333] hover:bg-[#444] rounded text-white text-sm">Retry Connection</button>
+                    </div>
+                )}
+
+                {!loading && !error && prepData && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {prepData?.prep_list.map((item: any) => (
+                        {prepData.prep_list.map((item: any) => (
                             <div key={item.protein} className="bg-[#121212] border border-[#333] rounded p-4 hover:border-[#00FF94]/50 transition-colors group">
                                 <div className="flex justify-between items-start mb-3">
                                     <h3 className="font-bold text-lg text-white group-hover:text-[#00FF94] transition-colors">{item.protein}</h3>

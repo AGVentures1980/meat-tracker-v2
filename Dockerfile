@@ -5,7 +5,7 @@ WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./
-ARG CACHE_BUST=2026-02-10-11-17
+ARG CACHE_BUST=2026-02-10T16:30:00Z
 RUN npm run build
 
 # Stage 2: Build Server

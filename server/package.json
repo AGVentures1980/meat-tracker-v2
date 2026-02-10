@@ -1,6 +1,6 @@
 {
     "name": "brasa-meat-intelligence-server",
-    "version": "1.0.0",
+    "version": "2.4.2",
     "description": "Backend API for Brasa Meat Intelligence",
     "main": "src/index.js",
     "scripts": {

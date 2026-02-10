@@ -118,7 +118,7 @@ export class DashboardController {
                 if (t.storeId && t.target) {
                     const result = await prisma.store.update({
                         where: { id: t.storeId },
-                        data: { target_lbs_guest: parseFloat(t.target) }
+                        data: { target_lbs_guest: parseFloat(t.target) } as any
                     });
                     updated.push(result);
                 }
@@ -156,7 +156,8 @@ export class DashboardController {
                     lunchGuestsLastYear: latestReport ? Math.round(latestReport.dine_in_guests) : DEFAULT_LUNCH_GUESTS,
                     dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : DEFAULT_DINNER_GUESTS,
                     lunchPrice: store.location.includes('Texas') ? 33.99 : 37.99,
-                    dinnerPrice: store.location.includes('Texas') ? 59.99 : 63.99
+                    dinnerPrice: store.location.includes('Texas') ? 59.99 : 63.99,
+                    target_lbs_guest: store.target_lbs_guest || 1.76
                 };
             });
 
@@ -166,4 +167,94 @@ export class DashboardController {
             return res.status(500).json({ error: 'Failed to fetch projections data' });
         }
     }
+
+
+    static async syncStoreTargets(req: Request, res: Response) {
+        try {
+            console.log('🔄 Syncing Store Targets from Standards...');
+
+            // Specific Targets defined by User (Phase 12 - Derived from Batch 2-8 Raw Data Sums)
+            const TARGET_OVERRIDES: Record<string, number> = {
+                // Direct Matches & Primary Proxies
+                'Addison': 1.23,
+                'Dallas': 1.77,   // Dallas Uptown
+                'Orlando': 1.89,
+                'Vegas': 1.83,
+                'SanAnt': 1.57,
+                'Houston': 1.68,
+                'Irvine': 1.78,
+                'Denver': 1.71,
+                'Pitt': 1.79,
+                'MiamiB': 1.75,
+                'Buffalo': 1.77,  // Proxy for Burlington
+                'FairOak': 1.75,  // AVG for DC Metro
+                'Jax': 1.77,
+                'Omaha': 1.77,    // Proxy for Kansas City
+                'Rich': 1.56,     // Proxy for Bethesda
+                'Saw': 1.63,      // Proxy for Fort Lauderdale
+                'Tacoma': 1.80,   // Proxy for PNW
+                'Yonkers': 1.70,  // AVG for NY Metro
+                'Carls': 1.79,    // Proxy for San Diego
+                'BRouge': 1.72,   // Proxy for New Orleans
+                'Birming': 1.78,  // Proxy for Atlanta/Dunwoody
+                'Fresno': 1.85,   // AVG for NorCal
+                'Milwauk': 1.72,  // Proxy for Minneapolis
+                'Cucamon': 1.72,  // AVG for LA Metro
+                'Schaum': 1.76,   // AVG for Chicago Metro
+                'WHart': 1.73,    // Proxy for New England
+                'Detroit': 1.72,  // Proxy for Troy
+
+                // Manual / Geo Matches (Batch 1 & Geo)
+                'Albuquerque': 1.77,
+                'Atlanta': 1.84,
+                'Austin': 1.80,
+                'Baltimore': 1.90,
+                'Bellevue': 1.80,
+                'SanJuan': 1.95,
+                'Honolulu': 1.95,
+                'Phila': 1.82,
+                'Wash': 1.82,        // Metro
+                'Chicago': 1.82,     // Metro
+                'New York': 1.82,    // Metro
+                'Los Angeles': 1.82, // Metro
+                'San Francisco': 1.82 // Metro
+            };
+
+            const TOURIST_CITIES = ['Orlando', 'Vegas', 'Miami', 'Anaheim', 'Fort Lauderdale', 'Hallandale', 'San Juan', 'Honolulu'];
+            const METRO_CITIES = ['Dallas', 'Chicago', 'New York', 'Detroit', 'Houston', 'SanAnt', 'Denver', 'Wash', 'Phila', 'Boston', 'Los Angeles', 'San Francisco', 'Atlanta'];
+
+            const stores = await prisma.store.findMany();
+            let updatedCount = 0;
+
+            for (const s of stores) {
+                const store = s as any;
+                const storeName = store.store_name;
+                let targetLbs = TARGET_OVERRIDES[storeName];
+
+                if (!targetLbs) {
+                    if (TOURIST_CITIES.some(c => storeName.includes(c))) {
+                        targetLbs = 1.95;
+                    } else if (METRO_CITIES.some(c => storeName.includes(c))) {
+                        targetLbs = 1.82;
+                    } else {
+                        targetLbs = 1.76;
+                    }
+                }
+
+                if (store.target_lbs_guest !== targetLbs) {
+                    await prisma.store.update({
+                        where: { id: store.id },
+                        data: { target_lbs_guest: targetLbs } as any
+                    });
+                    updatedCount++;
+                }
+            }
+
+            return res.json({ message: `Synced targets for ${updatedCount} stores.` });
+        } catch (error) {
+            console.error('Sync Targets Error:', error);
+            return res.status(500).json({ error: 'Failed to sync targets' });
+        }
+    }
 }
+

@@ -20,6 +20,7 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
     const [stores, setStores] = useState<StoreTarget[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [syncing, setSyncing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Fetch all stores and their current targets
@@ -28,6 +29,28 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
             fetchStores();
         }
     }, [isOpen]);
+
+    const handleSync = async () => {
+        if (!confirm("Are you sure you want to reset all store targets to the standard defaults? This will overwrite manual changes.")) return;
+
+        setSyncing(true);
+        try {
+            const response = await fetch('/api/v1/dashboard/targets/sync', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+
+            if (!response.ok) throw new Error("Failed to sync targets");
+
+            // Reload stores to show new values
+            await fetchStores();
+            alert("Targets reset successfully!");
+        } catch (err) {
+            setError("Failed to sync targets.");
+        } finally {
+            setSyncing(false);
+        }
+    };
 
     const fetchStores = async () => {
         try {
@@ -184,8 +207,15 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
                         <Save className="w-4 h-4" />
                         {saving ? 'Saving...' : 'Save Changes'}
                     </button>
+                    <button
+                        onClick={handleSync}
+                        disabled={syncing}
+                        className="px-4 py-2 rounded bg-blue-500/20 text-blue-400 font-bold text-sm hover:bg-blue-500/30 disabled:opacity-50 flex items-center gap-2 border border-blue-500/50"
+                    >
+                        {syncing ? 'Syncing...' : 'Reset to Standards'}
+                    </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

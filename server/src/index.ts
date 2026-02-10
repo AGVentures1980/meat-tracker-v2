@@ -142,25 +142,8 @@ async function ensureDefaultSettings() {
             });
         }
 
-        // Seed Store-Specific Targets
-        const stores = await prisma.store.findMany();
-        const targets: Record<string, number> = {
-            "Dallas": 1.76,
-            "Fort Worth": 1.82,
-            "Addison": 1.74,
-            "Austin": 1.85,
-            "Houston": 1.73,
-            "San Antonio": 1.78,
-            "McAllen": 1.80
-        };
-
-        for (const store of stores) {
-            const target = targets[store.store_name] || 1.76;
-            await prisma.store.update({
-                where: { id: store.id },
-                data: { target_lbs_guest: target } as any
-            });
-        }
+        // Seed Store-Specific Targets - REMOVED to avoid overwriting user changes.
+        // Targets are now managed via the Executive Dashboard and Sync API.
 
         console.log(`[Startup] SUCCESS: Verified default system settings and store targets.`);
     } catch (error) {

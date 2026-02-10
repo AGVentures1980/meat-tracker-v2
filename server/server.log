@@ -645,3 +645,58 @@ Error: Route.get() requires a callback function but got a [object Undefined]
 [Startup] Ensuring default system settings exist...
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 Server running on http://localhost:3001
+[INFO] 13:22:20 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts
+[ERROR] 13:22:20 ⨯ Unable to compile TypeScript:
+src/controllers/DashboardController.ts(168,5): error TS1128: Declaration or statement expected.
+src/controllers/DashboardController.ts(255,1): error TS1005: '}' expected.
+
+[INFO] 13:22:21 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+[ERROR] 13:22:21 ⨯ Unable to compile TypeScript:
+src/controllers/DashboardController.ts(168,5): error TS1128: Declaration or statement expected.
+src/controllers/DashboardController.ts(255,1): error TS1005: '}' expected.
+
+[INFO] 13:23:03 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts
+[ERROR] 13:23:03 ⨯ Unable to compile TypeScript:
+src/controllers/DashboardController.ts(171,5): error TS1128: Declaration or statement expected.
+src/controllers/DashboardController.ts(171,12): error TS1434: Unexpected keyword or identifier.
+src/controllers/DashboardController.ts(171,38): error TS1005: ',' expected.
+src/controllers/DashboardController.ts(171,52): error TS1005: ',' expected.
+src/controllers/DashboardController.ts(171,64): error TS1005: ';' expected.
+
+[INFO] 13:23:28 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts
+[ERROR] 13:23:28 ⨯ Unable to compile TypeScript:
+src/controllers/DashboardController.ts(258,1): error TS1005: '}' expected.
+
+[INFO] 13:24:08 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 13:24:37 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 13:24:51 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 13:26:49 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 13:30:00 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,7 @@ interface StoreProjectionData {
     dinnerGuestsLastYear: number;
     lunchPrice: number;
     dinnerPrice: number;
+    target_lbs_guest: number;
 
     // Calculated
     projectedLunchGuests: number;
@@ -85,6 +86,7 @@ export const ProjectionsDashboard = () => {
     }, [growthRate, user?.token]);
 
     // Logic: Calculate a single row
+    // Logic: Calculate a single row
     const calculateRow = (data: StoreProjectionData, growth: number): StoreProjectionData => {
         const factor = 1 + (growth / 100);
 
@@ -96,7 +98,8 @@ export const ProjectionsDashboard = () => {
         const rev = (projLunch * data.lunchPrice) + (projDinner * data.dinnerPrice);
 
         // Meat Volume (Target)
-        const targetLbs = totalGuests * GLOBAL_TARGET_LBS;
+        // Use store specific target (or fallback if somehow missing, though interface says required)
+        const targetLbs = totalGuests * (data.target_lbs_guest || GLOBAL_TARGET_LBS);
 
         // Status Quo (Inefficiency)
         const statusQuoLbs = totalGuests * GLOBAL_ACTUAL_LBS;
@@ -266,6 +269,7 @@ export const ProjectionsDashboard = () => {
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">Dinner<br />Guests (LY)</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">Lunch<br />Price ($)</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">Dinner<br />Price ($)</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">Target<br />Lbs/Guest</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333]">Proj.<br />Guests</th>
                                 <th className="p-4 font-normal text-right">Proj.<br />Revenue</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333]">Meat Vol<br />(Target)</th>
@@ -303,6 +307,12 @@ export const ProjectionsDashboard = () => {
                                         <input className="bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none"
                                             value={store.dinnerPrice}
                                             onChange={(e) => handleStoreChange(store.id, 'dinnerPrice', e.target.value)}
+                                        />
+                                    </td>
+                                    <td className="p-2 text-right">
+                                        <input className="bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none"
+                                            value={store.target_lbs_guest}
+                                            onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', e.target.value)}
                                         />
                                     </td>
 
