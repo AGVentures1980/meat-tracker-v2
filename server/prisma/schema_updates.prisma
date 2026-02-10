@@ -1,0 +1,27 @@
+
+model WasteLog {
+  id          String   @id @default(uuid())
+  store_id    Int
+  date        DateTime @db.Date
+  shift       String   // 'LUNCH' | 'DINNER'
+  input_by    String
+  user_id     String
+  items       Json     // Array of { protein: string, weight: number, reason: string }
+  created_at  DateTime @default(now())
+  store       Store    @relation(fields: [store_id], references: [id])
+  
+  @@unique([store_id, date, shift]) // Prevent duplicate shift inputs
+}
+
+model WasteCompliance {
+  id          String   @id @default(uuid())
+  store_id    Int
+  week_start  DateTime @db.Date // Monday of the week
+  lunch_count Int      @default(0)
+  dinner_count Int     @default(0)
+  is_locked   Boolean  @default(false)
+  unlocked_by String?  // Director ID who unlocked it
+  store       Store    @relation(fields: [store_id], references: [id])
+  
+  @@unique([store_id, week_start])
+}

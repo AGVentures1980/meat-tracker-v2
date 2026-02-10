@@ -13,11 +13,17 @@ import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
 import { Landing } from './pages/Landing';
 
+import { DashboardLayout } from './components/layouts/DashboardLayout';
+
 // Protected Route Wrapper
 const ProtectedRoute = () => {
     const { user } = useAuth();
     if (!user) return <Navigate to="/login" replace />;
-    return <Outlet />;
+    return (
+        <DashboardLayout>
+            <Outlet />
+        </DashboardLayout>
+    );
 };
 
 function AppContent() {

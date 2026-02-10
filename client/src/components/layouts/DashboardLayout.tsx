@@ -11,7 +11,10 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     AlertTriangle,
-    Users
+    Users,
+    Network,
+    DollarSign,
+    Trash2
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -35,7 +38,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         { icon: StickyNote, label: 'Reports', path: '/reports' },
         { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' }, // New Financial Input
         { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
-        { id: 'smart-prep', label: 'Smart Prep', icon: ChefHat, path: '/smart-prep' }
+        { id: 'smart-prep', label: 'Smart Prep', icon: ChefHat, path: '/smart-prep' },
+        { id: 'waste', label: 'Waste Log', icon: Trash2, path: '/waste' }
     ];
 
     const [alerts, setAlerts] = useState([
@@ -50,10 +54,40 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         navigate(path);
     };
 
+    const [networkStats, setNetworkStats] = useState({
+        system_sales: 0,
+        active_stores: 0,
+        system_labor: 0,
+        active_alerts: 0,
+        status: 'OFFLINE'
+    });
+
+    useEffect(() => {
+        const fetchHealth = async () => {
+            if (!user?.token) return;
+            try {
+                const res = await fetch('/api/v1/dashboard/network-health', {
+                    headers: { 'Authorization': `Bearer ${user.token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setNetworkStats(data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch network health", err);
+            }
+        };
+
+        fetchHealth();
+        // Poll every 60 seconds
+        const interval = setInterval(fetchHealth, 60000);
+        return () => clearInterval(interval);
+    }, [user]);
+
     return (
         <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden">
             {/* Sidebar */}
-            <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 flex flex-col`}>
+            <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 flex flex-col print:hidden`}>
                 <div className="p-4 border-b border-[#333] flex items-center justify-between">
                     {!collapsed && (
                         <div className="flex items-center gap-2">
@@ -123,35 +157,31 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0 relative">
                 {/* Ticker Header */}
-                <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between">
+                <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between print:hidden">
                     <div className="flex items-center gap-6 overflow-hidden text-xs font-mono">
                         <div className="flex items-center gap-2 text-gray-400">
                             <span className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse"></span>
                             SYSTEM ONLINE
                         </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-gray-500">NY:</span>
-                            <span className="text-[#00FF94] flex items-center">
-                                98.2% <ArrowUpRight className="w-3 h-3" />
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-gray-500">MIA:</span>
-                            <span className="text-[#00FF94] flex items-center">
-                                97.5% <ArrowUpRight className="w-3 h-3" />
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-gray-500">DAL:</span>
-                            <span className="text-[#FF2A6D] flex items-center">
-                                89.1% <ArrowDownRight className="w-3 h-3" />
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-gray-500">LAS:</span>
-                            <span className="text-[#FF9F1C] flex items-center">
-                                92.0% <ArrowDownRight className="w-3 h-3" />
-                            </span>
+                        {/* Ticker */}
+                        <div className="hidden md:flex items-center space-x-6 ml-4">
+                            <div className="flex items-center space-x-2 px-3 py-1 bg-[#222] rounded-full border border-[#333]">
+                                <Network className="w-4 h-4 text-[#C5A059]" />
+                                <span className="text-xs text-gray-400 uppercase tracking-wider">Store Network</span>
+                                <span className="text-sm font-bold text-white">{networkStats.active_stores} <span className="text-[10px] text-gray-500 font-normal">ACTIVE</span></span>
+                            </div>
+                            <div className="h-4 w-px bg-[#333]"></div>
+                            <div className="flex items-center space-x-2">
+                                <DollarSign className="w-4 h-4 text-green-500" />
+                                <span className="text-xs text-gray-400 uppercase">System Sales</span>
+                                <span className="text-sm font-mono text-white">${networkStats.system_sales.toLocaleString()}</span>
+                            </div>
+                            <div className="h-4 w-px bg-[#333]"></div>
+                            <div className="flex items-center space-x-2">
+                                <Users className="w-4 h-4 text-blue-500" />
+                                <span className="text-xs text-gray-400 uppercase">System Labor</span>
+                                <span className="text-sm font-mono text-white">{networkStats.system_labor}%</span>
+                            </div>
                         </div>
                     </div>
 

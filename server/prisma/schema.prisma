@@ -34,6 +34,8 @@ model Store {
   uploads           Upload[]
   users             User[]
   meat_targets      StoreMeatTarget[]
+  waste_logs        WasteLog[]
+  waste_compliance  WasteCompliance[]
 
   @@unique([company_id, store_name])
 } 
@@ -161,6 +163,8 @@ model AuditLog {
   action     String
   resource   String
   details    Json?
+  location          String
+  target_lbs_guest  Float    @default(1.76) // Custom target per store
   created_at DateTime @default(now())
 }
 
@@ -181,4 +185,31 @@ enum OrderSource {
 enum FileType {
   CSV
   Image
+}
+
+model WasteLog {
+  id          String   @id @default(uuid())
+  store_id    Int
+  date        DateTime @db.Date
+  shift       String   // 'LUNCH' | 'DINNER'
+  input_by    String
+  user_id     String
+  items       Json     // Array of { protein: string, weight: number, reason: string }
+  created_at  DateTime @default(now())
+  store       Store    @relation(fields: [store_id], references: [id])
+  
+  @@unique([store_id, date, shift]) // Prevent duplicate shift inputs
+}
+
+model WasteCompliance {
+  id          String   @id @default(uuid())
+  store_id    Int
+  week_start  DateTime @db.Date // Monday of the week
+  lunch_count Int      @default(0)
+  dinner_count Int     @default(0)
+  is_locked   Boolean  @default(false)
+  unlocked_by String?  // Director ID who unlocked it
+  store       Store    @relation(fields: [store_id], references: [id])
+  
+  @@unique([store_id, week_start])
 }

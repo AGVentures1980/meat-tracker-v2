@@ -700,3 +700,56 @@ src/controllers/DashboardController.ts(258,1): error TS1005: '}' expected.
 [Startup] Ensuring default system settings exist...
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 Server running on http://localhost:3001
+[INFO] 13:58:10 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/SmartPrepController.ts has been modified
+/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/SmartPrepController.ts:50
+            const targetLbsPerGuest = store.target_lbs_guest || 1.76;
+                  ^
+
+SyntaxError: Identifier 'targetLbsPerGuest' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1692:18)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1735:20)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+[ERROR] 13:58:10 SyntaxError: Identifier 'targetLbsPerGuest' has already been declared
+[INFO] 13:58:42 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/SmartPrepController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 13:59:21 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 14:00:41 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/NetworkHealthController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 14:07:25 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 14:14:34 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/WasteController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 14:30:18 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/WasteController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001

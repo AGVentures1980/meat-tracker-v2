@@ -3,7 +3,6 @@ import { LayoutGrid, TrendingUp, DownloadCloud } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
-import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { PerformanceChart } from '../components/dashboard/PerformanceChart';
 import { useAuth } from '../context/AuthContext';
 
@@ -89,7 +88,7 @@ export const Dashboard = () => {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <div className="p-6">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -226,6 +225,6 @@ export const Dashboard = () => {
                     />
                 </div>
             )}
-        </DashboardLayout>
+        </>
     );
 };

@@ -26,6 +26,14 @@ router.post('/settings/stores', requireAuth, SettingsController.createStore);
 
 // Smart Prep (Kitchen Intelligence)
 import { SmartPrepController } from '../controllers/SmartPrepController';
+import { NetworkHealthController } from '../controllers/NetworkHealthController';
+import { WasteController } from '../controllers/WasteController';
+
 router.get('/smart-prep', requireAuth, SmartPrepController.getDailyPrep);
+router.get('/network-health', requireAuth, NetworkHealthController.getNetworkStats);
+
+// Waste Management (The Garcia Rule)
+router.get('/waste/status', requireAuth, WasteController.getStatus);
+router.post('/waste/log', requireAuth, WasteController.logWaste);
 
 export default router;

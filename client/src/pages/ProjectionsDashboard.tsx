@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { DashboardLayout } from '../components/layouts/DashboardLayout';
 import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -168,7 +167,7 @@ export const ProjectionsDashboard = () => {
     const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n));
 
     return (
-        <DashboardLayout>
+        <div className="p-6">
             <div className="flex justify-between items-end mb-8 border-b border-white/10 pb-4">
                 <div>
                     <h1 className="text-3xl font-mono font-bold text-white tracking-tight flex items-center">
@@ -467,6 +466,6 @@ export const ProjectionsDashboard = () => {
                     </div>
                 </div>
             )}
-        </DashboardLayout>
+        </div>
     );
 };

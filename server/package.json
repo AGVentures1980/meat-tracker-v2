@@ -1,7 +1,7 @@
 {
-    "name": "brasa-meat-intelligence-server",
-    "version": "2.4.2",
-    "description": "Backend API for Brasa Meat Intelligence",
+    "name": "meat-tracker-server",
+    "version": "2.5.0",
+    "description": "Backend for Brasa Meat Tracker",
     "main": "src/index.js",
     "scripts": {
         "start": "echo 'DEBUG: Ls dist' && ls -la dist/src && node dist/src/index.js",
