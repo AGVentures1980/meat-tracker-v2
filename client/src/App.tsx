@@ -29,7 +29,8 @@ function AppContent() {
         <BrowserRouter>
             <ChangePasswordModal />
             <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<Login />} />
+                <Route path="/landing" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
 
                 <Route element={<ProtectedRoute />}>
