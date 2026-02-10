@@ -14,12 +14,24 @@ const WastePage = () => {
     const [protein, setProtein] = useState('');
     const [weight, setWeight] = useState('');
     const [reason, setReason] = useState('Trimmed Fat');
+    const [selectedStore, setSelectedStore] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
+    const stores = [
+        { id: 1, name: 'Dallas' },
+        { id: 2, name: 'Austin' },
+        { id: 3, name: 'New York' },
+        { id: 4, name: 'Miami' },
+        { id: 5, name: 'Las Vegas' }
+    ];
+
     const fetchStatus = async () => {
         try {
-            const res = await fetch('/api/v1/dashboard/waste/status', {
+            let url = '/api/v1/dashboard/waste/status';
+            if (selectedStore) url += `?store_id=${selectedStore}`;
+
+            const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await res.json();
@@ -32,8 +44,9 @@ const WastePage = () => {
     };
 
     useEffect(() => {
+        setLoading(true);
         fetchStatus();
-    }, []);
+    }, [selectedStore]);
 
     const handleAddItem = () => {
         if (!protein || !weight) return;
@@ -82,6 +95,7 @@ const WastePage = () => {
                 body: JSON.stringify({
                     shift: shiftToSubmit,
                     items: selectedItems,
+                    store_id: selectedStore || user?.store_id || 1,
                     date: new Date().toISOString().split('T')[0]
                 })
             });
@@ -117,6 +131,21 @@ const WastePage = () => {
                     <Trash2 className="w-8 h-8 text-[#FF2A6D]" />
                     Process Waste
                 </h1>
+
+                {/* Admin Store Selector */}
+                {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
+                    <div className="flex items-center gap-2 bg-[#1a1a1a] p-1 rounded border border-[#333]">
+                        <select
+                            className="bg-[#121212] text-white text-sm p-1 rounded border border-[#333] outline-none focus:border-[#C5A059]"
+                            value={selectedStore || ''}
+                            onChange={(e) => setSelectedStore(e.target.value ? parseInt(e.target.value) : null)}
+                        >
+                            <option value="">My Store (Default)</option>
+                            {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                    </div>
+                )}
+
                 <div className="flex items-center gap-4 text-sm font-mono">
                     <div className="flex flex-col items-end">
                         <span className="text-gray-500">WEEKLY COMPLIANCE</span>
