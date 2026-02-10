@@ -90,7 +90,7 @@ export class DashboardController {
         }
     }
 
-    static async getExecutiveStats(req: Request, res: Response) {
+    static async getCompanyStats(req: Request, res: Response) {
         try {
             const user = (req as any).user;
             const stats = await MeatEngine.getExecutiveStats(user);
