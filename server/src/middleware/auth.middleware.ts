@@ -17,6 +17,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
         (req as any).user = decoded;
         next();
     } catch (error) {
-        return res.status(401).json({ error: 'Invalid token' });
+        console.error('JWT Verify Error:', error); // DEBUG
+        return res.status(401).json({ error: 'Invalid token', details: (error as any).message });
     }
 };
