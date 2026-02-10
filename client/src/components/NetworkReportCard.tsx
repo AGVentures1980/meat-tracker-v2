@@ -53,6 +53,7 @@ export const NetworkReportCard = () => {
     };
 
     useEffect(() => {
+        console.log("DEBUG: NetworkReportCard v2.1 Loaded - /report-card");
         fetchData();
     }, [year, week, user]);
 
