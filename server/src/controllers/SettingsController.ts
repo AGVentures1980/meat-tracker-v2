@@ -137,6 +137,30 @@ export class SettingsController {
                     }
                 });
 
+                // 3. Seed Meat Targets (Distribution based on Standards)
+                // This ensures the new store has a baseline for every meat type, scaled to its specific total target.
+                const standards = require('../config/standards').MEAT_STANDARDS; // Lazy load or move import up
+                const totalTarget = parseFloat(target_lbs_guest);
+
+                for (const [protein, percentage] of Object.entries(standards)) {
+                    // standard values like 0.39 are based on ~1.76 total.
+                    // We need to re-distribute. 
+                    // Actually, MEAT_STANDARDS sums to ~1.76. 
+                    // So we should calculate the ratio: (Standard / 1.76) * NewTarget
+                    const standardTotal = 1.76;
+                    const ratio = (percentage as number) / standardTotal;
+                    const specificTarget = ratio * totalTarget;
+
+                    await tx.storeMeatTarget.create({
+                        data: {
+                            store_id: store.id,
+                            protein: protein,
+                            target: parseFloat(specificTarget.toFixed(3)),
+                            cost_target: 0 // Default, can be updated later
+                        }
+                    });
+                }
+
                 return { store, manager };
             });
 
