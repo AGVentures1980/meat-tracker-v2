@@ -106,7 +106,17 @@ async function main() {
         const lastWeek = new Date(now);
         lastWeek.setDate(now.getDate() - 7);
 
-        const existingOrder = await prisma.order.findFirst({ where: { store_id: store.id } });
+        // Check for recent orders (last 30 days) to avoid stale data blocking new seed
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - 30);
+
+        const existingOrder = await prisma.order.findFirst({
+            where: {
+                store_id: store.id,
+                order_date: { gte: recentDate }
+            }
+        });
+
         if (!existingOrder || store.id === 180) {
             if (store.id === 180) {
                 await prisma.orderItem.deleteMany({ where: { order: { store_id: 180 } } });
