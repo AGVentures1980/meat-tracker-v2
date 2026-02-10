@@ -14,7 +14,7 @@ import {
     Users,
     Network,
     DollarSign,
-    Trash2
+    Trash
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -39,7 +39,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' }, // New Financial Input
         { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
         { id: 'smart-prep', label: 'Smart Prep', icon: ChefHat, path: '/smart-prep' },
-        { id: 'waste', label: 'Waste Log', icon: Trash2, path: '/waste' }
+        { id: 'waste', label: 'Waste Log', icon: Trash, path: '/waste' }
     ];
 
     const [alerts, setAlerts] = useState([
@@ -146,7 +146,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <div className="p-4 border-t border-[#333]">
                     {!collapsed && (
                         <div className="text-xs text-gray-600 font-mono">
-                            v2.5.4 (Admin Fix) - LIVE
+                            v2.5.5 (Hotfix) - LIVE
                             <br />
                             CONN: <span className="text-[#00FF94]">POSTGRES-20Hr</span>
                         </div>
