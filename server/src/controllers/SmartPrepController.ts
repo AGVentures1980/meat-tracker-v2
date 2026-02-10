@@ -14,12 +14,17 @@ export class SmartPrepController {
             const userId = req.user.userId;
             // @ts-ignore
             const userRole = req.user.role;
-            const userStoreId = 1; // Default to Dallas for now
+            // @ts-ignore
+            const userStoreId = req.user.store_id || 1; // Default to Dallas if null (Admin fallback)
 
             // 1. Determine Store ID
             let storeId = userStoreId;
-            if ((userRole === 'admin' || userRole === 'director') && req.query.store_id) {
-                storeId = parseInt(req.query.store_id as string);
+            if ((userRole === 'admin' || userRole === 'director')) {
+                if (req.query.store_id) {
+                    storeId = parseInt(req.query.store_id as string);
+                } else {
+                    storeId = 1; // Explicit default for Admin view
+                }
             }
 
             // 2. Determine Date
