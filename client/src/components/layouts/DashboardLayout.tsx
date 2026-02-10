@@ -25,6 +25,19 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     ];
 
     return (
+    const [alerts, setAlerts] = useState([
+        { id: 1, type: 'WARNING', time: '2m ago', message: 'Inventory Variance Detected: Dallas (1.89 vs 1.76 Target). Action Required.', path: '/dashboard/1', color: '#FF9F1C' },
+        { id: 2, type: 'INFO', time: '15m ago', message: 'OLO Sync Latency > 300ms. Operations normal but monitoring.', path: '/reports', color: 'gray-400' },
+        { id: 3, type: 'REMINDER', time: '1h ago', message: 'Weekly Close Pending for 3 Stores. Due by 5:00 PM EST.', path: '/dashboard', color: 'gray-400' }
+    ]);
+
+    const handleAlertClick = (id: number, path: string) => {
+        setAlerts(prev => prev.filter(a => a.id !== id));
+        setShowAlerts(false);
+        navigate(path);
+    };
+
+    return (
         <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden">
             {/* Sidebar */}
             <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 flex flex-col`}>
@@ -135,8 +148,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             className={`flex items-center gap-2 px-3 py-1 rounded border transition-colors cursor-pointer ${showAlerts ? 'bg-[#FF9F1C]/20 border-[#FF9F1C]' : 'bg-[#252525] border-[#333] hover:bg-[#333]'
                                 }`}
                         >
-                            <AlertTriangle className="w-3 h-3 text-[#FF9F1C]" />
-                            <span className="text-xs font-mono text-[#FF9F1C] blinking">3 ALERTS</span>
+                            <AlertTriangle className={`w-3 h-3 ${alerts.length > 0 ? 'text-[#FF9F1C]' : 'text-gray-500'}`} />
+                            <span className={`text-xs font-mono ${alerts.length > 0 ? 'text-[#FF9F1C] blinking' : 'text-gray-500'}`}>
+                                {alerts.length} ALERTS
+                            </span>
                         </button>
 
                         {/* Alerts Dropdown/Modal */}
@@ -144,30 +159,37 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div className="absolute top-10 right-0 w-80 bg-[#1a1a1a] border border-[#333] shadow-2xl z-50 rounded-sm overflow-hidden">
                                 <div className="p-2 bg-[#252525] border-b border-[#333] flex justify-between items-center">
                                     <span className="text-xs font-mono text-gray-400 uppercase tracking-widest">System Alerts</span>
-                                    <span className="text-[10px] bg-[#FF9F1C] text-black px-1 rounded font-bold">3 NEW</span>
+                                    {alerts.length > 0 ? (
+                                        <span className="text-[10px] bg-[#FF9F1C] text-black px-1 rounded font-bold">{alerts.length} NEW</span>
+                                    ) : (
+                                        <span className="text-[10px] text-gray-500">NO NEW ALERTS</span>
+                                    )}
                                 </div>
                                 <div className="divide-y divide-[#333]">
-                                    <div className="p-3 hover:bg-white/5 cursor-pointer group" onClick={() => { navigate('/dashboard/1'); setShowAlerts(false); }}>
-                                        <div className="flex justify-between mb-1">
-                                            <span className="text-[#FF9F1C] text-xs font-bold font-mono">WARNING</span>
-                                            <span className="text-[10px] text-gray-600">2m ago</span>
+                                    {alerts.length === 0 ? (
+                                        <div className="p-4 text-center text-xs text-gray-500 italic">
+                                            All systems operational.
                                         </div>
-                                        <p className="text-xs text-gray-300">Inventory Variance Detected: <strong>Dallas</strong> (1.89 vs 1.76 Target). Action Required.</p>
-                                    </div>
-                                    <div className="p-3 hover:bg-white/5 cursor-pointer group" onClick={() => { navigate('/reports'); setShowAlerts(false); }}>
-                                        <div className="flex justify-between mb-1">
-                                            <span className="text-gray-400 text-xs font-bold font-mono">INFO</span>
-                                            <span className="text-[10px] text-gray-600">15m ago</span>
-                                        </div>
-                                        <p className="text-xs text-gray-300">OLO Sync Latency &gt; 300ms. Operations normal but monitoring.</p>
-                                    </div>
-                                    <div className="p-3 hover:bg-white/5 cursor-pointer group" onClick={() => { navigate('/dashboard'); setShowAlerts(false); }}>
-                                        <div className="flex justify-between mb-1">
-                                            <span className="text-gray-400 text-xs font-bold font-mono">REMINDER</span>
-                                            <span className="text-[10px] text-gray-600">1h ago</span>
-                                        </div>
-                                        <p className="text-xs text-gray-300">Weekly Close Pending for <strong>3 Stores</strong>. Due by 5:00 PM EST.</p>
-                                    </div>
+                                    ) : (
+                                        alerts.map(alert => (
+                                            <div
+                                                key={alert.id}
+                                                className="p-3 hover:bg-white/5 cursor-pointer group"
+                                                onClick={() => handleAlertClick(alert.id, alert.path)}
+                                            >
+                                                <div className="flex justify-between mb-1">
+                                                    <span className={`text-[${alert.color}] text-xs font-bold font-mono`} style={{ color: alert.type === 'WARNING' ? '#FF9F1C' : undefined }}>{alert.type}</span>
+                                                    <span className="text-[10px] text-gray-600">{alert.time}</span>
+                                                </div>
+                                                <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{
+                                                    __html: alert.message.replace(
+                                                        /(Dallas|3 Stores)/g,
+                                                        '<strong>$1</strong>'
+                                                    )
+                                                }} />
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                                 <div className="p-2 bg-[#151515] border-t border-[#333] text-center">
                                     <button className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider">View All Logs</button>
