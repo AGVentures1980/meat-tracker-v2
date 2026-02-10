@@ -47,4 +47,4 @@ EXPOSE 3000
 
 # We use npm start to ensure migrations and seed are run
 # Ensure database is up-to-date and seeded before starting
-CMD npx prisma db push --accept-data-loss && npx prisma db seed && npm run start
+CMD npx prisma db push --accept-data-loss && (npx prisma db seed || true) && npm run start
