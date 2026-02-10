@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
-import { Utensils, Users, ChefHat, Scale, Calculator } from 'lucide-react';
+import { Users, ChefHat, Scale } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const SmartPrepPage = () => {

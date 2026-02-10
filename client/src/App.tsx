@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
@@ -9,6 +9,9 @@ import { ProjectionsDashboard } from './pages/ProjectionsDashboard';
 import { SettingsPage } from './pages/SettingsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SmartPrepPage } from './pages/SmartPrepPage';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
+import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
+import { Landing } from './pages/Landing';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -16,14 +19,6 @@ const ProtectedRoute = () => {
     if (!user) return <Navigate to="/login" replace />;
     return <Outlet />;
 };
-
-
-
-import { ChangePasswordModal } from './components/ChangePasswordModal';
-
-import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
-
-import { Landing } from './pages/Landing';
 
 function AppContent() {
     useEffect(() => {
