@@ -11,6 +11,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SmartPrepPage } from './pages/SmartPrepPage';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
+import WastePage from './pages/WastePage';
 import { Landing } from './pages/Landing';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
@@ -50,6 +51,7 @@ function AppContent() {
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
                     <Route path="/smart-prep" element={<SmartPrepPage />} />
+                    <Route path="/waste" element={<WastePage />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                 </Route>
 
