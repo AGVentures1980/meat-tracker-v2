@@ -310,7 +310,8 @@ export class MeatEngine {
             },
             top_savers: topSavers,
             top_spenders: topSpenders,
-            middle_tier: middleTier
+            middle_tier: middleTier,
+            performance: performance // Include full list for Dashboard grid and export
         };
     }
 }
