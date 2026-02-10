@@ -156,7 +156,7 @@ export const Login = () => {
 
                     <div className="flex items-center justify-between pt-2">
                         <div className="mt-8 text-center">
-                            <p className="text-[#C5A059] text-xs font-mono tracking-widest">v2.5.6 - SYSTEM LIVE</p>
+                            <p className="text-[#C5A059] text-xs font-mono tracking-widest">v2.5.8 - SYSTEM LIVE</p>
                         </div>
                         <button
                             type="button"
