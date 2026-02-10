@@ -36,6 +36,7 @@ model Store {
   meat_targets      StoreMeatTarget[]
   waste_logs        WasteLog[]
   waste_compliance  WasteCompliance[]
+  prep_logs         PrepLog[]
 
   @@unique([company_id, store_name])
 } 
@@ -212,4 +213,17 @@ model WasteCompliance {
   store       Store    @relation(fields: [store_id], references: [id])
   
   @@unique([store_id, week_start])
+}
+
+model PrepLog {
+  id          String   @id @default(uuid())
+  store_id    Int
+  date        DateTime @db.Date
+  forecast    Int
+  data        Json     // Stores calculated list: { prep_list: [...] }
+  user_id     String
+  created_at  DateTime @default(now())
+  store       Store    @relation(fields: [store_id], references: [id])
+  
+  @@unique([store_id, date])
 }

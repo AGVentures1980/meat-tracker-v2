@@ -10,6 +10,7 @@ export const SmartPrepPage = () => {
     const [prepData, setPrepData] = useState<any>(null);
 
     const [error, setError] = useState<string | null>(null);
+    const [lockLoading, setLockLoading] = useState(false);
 
     const [selectedStore, setSelectedStore] = useState<number | null>(null);
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -53,7 +54,7 @@ export const SmartPrepPage = () => {
             if (res.ok) {
                 const data = await res.json();
                 setPrepData(data);
-                if (!prepData) { // Initial load
+                if (data.is_locked) {
                     setForecast(data.forecast_guests);
                 }
             } else {
@@ -65,6 +66,46 @@ export const SmartPrepPage = () => {
             setError('Is the server running? Connection failed.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleLock = async () => {
+        if (!prepData || !user?.token || prepData.is_locked) return;
+
+        if (!window.confirm("Are you sure you want to finalize this plan? This will lock adjustments for today and send the data to the Director.")) {
+            return;
+        }
+
+        setLockLoading(true);
+        try {
+            const res = await fetch('/api/v1/dashboard/smart-prep/lock', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`
+                },
+                body: JSON.stringify({
+                    store_id: selectedStore || user.store_id || 1,
+                    date: selectedDate,
+                    forecast: forecast,
+                    data: {
+                        prep_list: prepData.prep_list,
+                        target_lbs_guest: prepData.target_lbs_guest
+                    }
+                })
+            });
+
+            if (res.ok) {
+                await fetchPrepData();
+            } else {
+                const err = await res.json();
+                alert(err.error || 'Failed to lock plan');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to connect to server');
+        } finally {
+            setLockLoading(false);
         }
     };
 
@@ -151,6 +192,21 @@ export const SmartPrepPage = () => {
                     >
                         <Printer className="w-4 h-4" /> Print Guide
                     </button>
+
+                    {prepData?.is_locked ? (
+                        <div className="bg-[#00FF94]/10 border border-[#00FF94]/50 px-4 py-2 rounded flex items-center gap-2 text-[#00FF94] font-bold animate-pulse">
+                            <ChefHat className="w-4 h-4" /> PLAN LOCKED
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleLock}
+                            disabled={lockLoading || loading}
+                            className="bg-[#00FF94] hover:bg-[#00e685] text-black px-4 py-2 rounded flex items-center gap-2 font-bold transition-all disabled:opacity-50"
+                        >
+                            <ChefHat className="w-4 h-4" /> {lockLoading ? 'SAVING...' : 'FINALIZE & SEND'}
+                        </button>
+                    )}
+
                     <div>
                         <div className="text-sm text-gray-400">Target</div>
                         <div className="text-xl font-bold text-[#00FF94] font-mono">{prepData?.target_lbs_guest || '1.76'} <span className="text-xs text-gray-500">LBS/GUEST</span></div>
@@ -181,8 +237,9 @@ export const SmartPrepPage = () => {
                             max="1000"
                             step="10"
                             value={forecast}
+                            disabled={prepData?.is_locked}
                             onChange={(e) => setForecast(parseInt(e.target.value))}
-                            className="w-full h-2 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#00FF94]"
+                            className={`w-full h-2 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#00FF94] ${prepData?.is_locked ? 'opacity-30 cursor-not-allowed' : ''}`}
                         />
                         <div className="flex justify-between text-xs text-gray-600 font-mono">
                             <span>50</span>

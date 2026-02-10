@@ -74,19 +74,33 @@ export class WasteController {
             let canInputDinner = !compliance.is_locked;
             let statusMessage = "Open for Entry";
 
+            const currentWindow = this.getShiftWindow(today);
+
             if (compliance.is_locked) {
                 canInputLunch = false;
                 canInputDinner = false;
                 statusMessage = "LOCKED: Weekly Quota Missed. Contact Director.";
+            } else if (hasLunch || hasDinner) {
+                canInputLunch = false;
+                canInputDinner = false;
+                statusMessage = `Completed for Today (${hasLunch ? 'Lunch' : 'Dinner'} Logged). Resume Tomorrow.`;
+            } else if (currentWindow === 'CLOSED') {
+                canInputLunch = false;
+                canInputDinner = false;
+                statusMessage = "System is outside of input hours. Store is currently closed for waste logs.";
             } else {
-                if (hasLunch) {
-                    canInputLunch = false; // Already done
-                    canInputDinner = false; // Blocked by Garcia Rule (1 shift per day)
-                    statusMessage = "Completed for Today (Lunch Logged). Resume Tomorrow.";
-                } else if (hasDinner) {
-                    canInputLunch = false; // Blocked by Garcia Rule
-                    canInputDinner = false; // Already done
-                    statusMessage = "Completed for Today (Dinner Logged). Resume Tomorrow.";
+                if (currentWindow === 'LUNCH') {
+                    canInputLunch = true;
+                    canInputDinner = false;
+                    statusMessage = "Lunch shift is open for waste entry.";
+                } else if (currentWindow === 'DINNER') {
+                    canInputLunch = false;
+                    canInputDinner = true;
+                    statusMessage = "Dinner shift is open for waste entry.";
+                } else if (currentWindow === 'ANY') {
+                    canInputLunch = true;
+                    canInputDinner = true;
+                    statusMessage = "Store is open (All Day). Choose either shift to log.";
                 }
             }
 
@@ -244,5 +258,39 @@ export class WasteController {
             console.error(error);
             res.status(500).json({ error: 'Failed to log waste' });
         }
+    }
+
+    private static getShiftWindow(now: Date) {
+        const day = now.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const currentTime = hour + minute / 60;
+
+        // Saturday (6)
+        if (day === 6) {
+            if (currentTime >= 11 && currentTime < 23.5) return 'ANY';
+            return 'CLOSED';
+        }
+        // Sunday (0)
+        if (day === 0) {
+            if (currentTime >= 11 && currentTime < 21) return 'ANY';
+            return 'CLOSED';
+        }
+
+        // Friday (5)
+        if (day === 5) {
+            if (currentTime >= 11 && currentTime < 14) return 'LUNCH';
+            if (currentTime >= 17 && currentTime < 23.5) return 'DINNER';
+            return 'CLOSED';
+        }
+
+        // Mon-Thu (1, 2, 3, 4)
+        if (day >= 1 && day <= 4) {
+            if (currentTime >= 11 && currentTime < 14) return 'LUNCH';
+            if (currentTime >= 17 && currentTime < 21.5) return 'DINNER';
+            return 'CLOSED';
+        }
+
+        return 'CLOSED';
     }
 }

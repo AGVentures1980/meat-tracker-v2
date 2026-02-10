@@ -32,6 +32,32 @@ export class SmartPrepController {
             const date = new Date(dateStr);
             const dayOfWeek = date.getDay(); // 0 = Sun
 
+            // 2.5 Check if Locked
+            const savedLog = await prisma.prepLog.findUnique({
+                where: {
+                    store_id_date: {
+                        store_id: storeId,
+                        date: date
+                    }
+                }
+            });
+
+            if (savedLog) {
+                // Return saved data
+                const store = await prisma.store.findUnique({
+                    where: { id: storeId }
+                });
+                return res.json({
+                    store_name: store?.store_name || 'Store',
+                    date: dateStr,
+                    forecast_guests: savedLog.forecast,
+                    ...(savedLog.data as any),
+                    is_locked: true,
+                    locked_by: savedLog.user_id,
+                    locked_at: savedLog.created_at
+                });
+            }
+
             // 3. Get Store & Target Settings
             // Check schema to ensure 'meat_targets' exists. Passively handling it if not.
             const store = await prisma.store.findUnique({
@@ -112,6 +138,46 @@ export class SmartPrepController {
             console.error('Smart Prep Error:', error);
             // Return a safe fallback if DB fails so UI doesn't crash
             return res.status(500).json({ error: 'Failed to generate prep list' });
+        }
+    }
+
+    static async lockPrepPlan(req: Request, res: Response) {
+        try {
+            // @ts-ignore
+            const userId = req.user.userId;
+            const { store_id, date, forecast, data } = req.body;
+
+            if (!store_id || !date || !forecast || !data) {
+                return res.status(400).json({ error: 'Missing required fields' });
+            }
+
+            const existing = await prisma.prepLog.findUnique({
+                where: {
+                    store_id_date: {
+                        store_id: parseInt(store_id),
+                        date: new Date(date)
+                    }
+                }
+            });
+
+            if (existing) {
+                return res.status(400).json({ error: 'This day is already locked for this store.' });
+            }
+
+            await prisma.prepLog.create({
+                data: {
+                    store_id: parseInt(store_id),
+                    date: new Date(date),
+                    forecast: parseInt(forecast),
+                    data: { prep_list: data.prep_list, target_lbs_guest: data.target_lbs_guest },
+                    user_id: userId
+                }
+            });
+
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Lock Prep Error:', error);
+            res.status(500).json({ error: 'Failed to lock prep plan' });
         }
     }
 }
