@@ -855,3 +855,36 @@ SyntaxError: Identifier 'targetLbsPerGuest' has already been declared
 [Startup] Ensuring default system settings exist...
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 Server running on http://localhost:3001
+[0mPOST /api/v1/auth/login [33m401[0m 101.720 ms - 31[0m
+JWT Verify Error: JsonWebTokenError: jwt must be provided
+    at Object.module.exports [as verify] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/jsonwebtoken/verify.js:60:17)
+    at requireAuth (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/middleware/auth.middleware.ts:16:29)
+    at Layer.handle [as handle_request] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:328:13)
+    at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:286:9
+    at router.process_params (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:280:10)
+    at logger (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/morgan/index.js:144:5)
+    at Layer.handle [as handle_request] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:328:13)
+[0mGET /api/v1/dashboard/waste/status [33m401[0m 2.734 ms - 58[0m
+[0mPOST /api/v1/auth/login [33m401[0m 54.577 ms - 31[0m
+[0mPOST /api/v1/auth/login [32m200[0m 69.612 ms - 454[0m
+JWT Verify Error: JsonWebTokenError: jwt malformed
+    at Object.module.exports [as verify] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/jsonwebtoken/verify.js:70:17)
+    at requireAuth (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/middleware/auth.middleware.ts:16:29)
+    at Layer.handle [as handle_request] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:328:13)
+    at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:286:9
+    at router.process_params (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:280:10)
+    at logger (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/morgan/index.js:144:5)
+    at Layer.handle [as handle_request] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:328:13)
+[0mGET /api/v1/dashboard/waste/status [33m401[0m 0.383 ms - 51[0m
+[INFO] 18:53:39 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/WasteController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001

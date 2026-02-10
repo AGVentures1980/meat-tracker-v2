@@ -180,7 +180,11 @@ export class WasteController {
 
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: 'Failed to fetch waste status' });
+            res.status(500).json({
+                error: 'Failed to fetch waste status',
+                details: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined
+            });
         }
     }
 
