@@ -47,4 +47,104 @@ export class SettingsController {
             return res.status(500).json({ error: 'Failed to update settings' });
         }
     }
+
+    // --- Store Management ---
+
+    static async getStores(req: Request, res: Response) {
+        try {
+            const stores = await prisma.store.findMany({
+                orderBy: { store_name: 'asc' },
+                include: {
+                    users: {
+                        where: { role: 'manager' },
+                        select: { email: true, role: true }
+                    }
+                }
+            });
+            return res.json(stores);
+        } catch (error) {
+            console.error('Fetch Stores Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch stores' });
+        }
+    }
+
+    static async createStore(req: Request, res: Response) {
+        try {
+            const { store_name, target_lbs_guest, manager_email, manager_password, location } = req.body;
+            const creator = (req as any).user;
+
+            if (!store_name || !target_lbs_guest) {
+                return res.status(400).json({ error: 'Store Name and Target are required' });
+            }
+
+            // 1. Create Store
+            // We need a unique ID. Since our IDs are integers, we need to find the max or use a sequence.
+            // But usually autoincrement is best. The schema definition might be manual ID though?
+            // Let's check schema/seed. Seed manually assigns IDs. Schema?
+            // "id Int @id" usually implies manual unless @default(autoincrement())
+            // Let's assume we need to find the max ID + 1 if it's not autoincrement.
+            // Checking seed.js: "create: { id: storeId, ..." implies manual.
+
+            const maxStore = await prisma.store.findFirst({ orderBy: { id: 'desc' } });
+            const newId = (maxStore?.id || 0) + 1;
+
+            // 2. Transaction
+            const result = await prisma.$transaction(async (tx) => {
+                // Find TDB Company
+                const company = await tx.company.findFirst();
+                if (!company) throw new Error("Company not found");
+
+                const store = await tx.store.create({
+                    data: {
+                        id: newId,
+                        company_id: company.id,
+                        store_name,
+                        location: location || 'USA',
+                        target_lbs_guest: parseFloat(target_lbs_guest),
+                        target_cost_guest: 9.94 // Default
+                    }
+                });
+
+                let manager = null;
+                if (manager_email && manager_password) {
+                    // Check if exists
+                    const existingUser = await tx.user.findUnique({ where: { email: manager_email } });
+                    if (existingUser) {
+                        throw new Error(`User ${manager_email} already exists`);
+                    }
+
+                    const bcrypt = require('bcrypt'); // Lazy load
+                    const hash = await bcrypt.hash(manager_password, 10);
+
+                    manager = await tx.user.create({
+                        data: {
+                            email: manager_email,
+                            password_hash: hash,
+                            role: 'manager',
+                            store_id: store.id,
+                            force_change: true
+                        }
+                    });
+                }
+
+                // Audit Log
+                await tx.auditLog.create({
+                    data: {
+                        user_id: creator.id,
+                        action: 'CREATE_STORE',
+                        resource: store.store_name,
+                        details: { target: target_lbs_guest, manager: manager_email }
+                    }
+                });
+
+                return { store, manager };
+            });
+
+            return res.json(result);
+
+        } catch (error: any) {
+            console.error('Create Store Error:', error);
+            return res.status(500).json({ error: error.message || 'Failed to create store' });
+        }
+    }
 }

@@ -19,4 +19,8 @@ router.get('/projections-data', DashboardController.getProjectionsData);
 router.get('/settings', requireAuth, SettingsController.getSettings);
 router.post('/settings', requireAuth, SettingsController.updateSettings);
 
+// Store Management
+router.get('/settings/stores', requireAuth, SettingsController.getStores);
+router.post('/settings/stores', requireAuth, SettingsController.createStore);
+
 export default router;

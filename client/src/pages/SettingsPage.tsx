@@ -1,17 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
-import { Settings, User, Shield, Database, Bell, Save } from 'lucide-react';
+import { Settings, User, Shield, Database, Bell, Save, MapPin, Plus, Store as StoreIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const SettingsPage = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('general');
+    const [stores, setStores] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [newStore, setNewStore] = useState({
+        name: '',
+        target: '1.76',
+        managerEmail: '',
+        managerPass: ''
+    });
+
+    // Fetch Stores logic
+    const fetchStores = async () => {
+        try {
+            const token = localStorage.getItem('auth_token');
+            const res = await fetch('/api/v1/dashboard/settings/stores', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setStores(data);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'locations') {
+            fetchStores();
+        }
+    }, [activeTab]);
+
+    const handleCreateStore = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('auth_token');
+            const res = await fetch('/api/v1/dashboard/settings/stores', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    store_name: newStore.name,
+                    target_lbs_guest: newStore.target,
+                    manager_email: newStore.managerEmail,
+                    manager_password: newStore.managerPass
+                })
+            });
+
+            if (res.ok) {
+                alert('Store Created Successfully!');
+                setNewStore({ name: '', target: '1.76', managerEmail: '', managerPass: '' });
+                fetchStores();
+            } else {
+                const err = await res.json();
+                alert(`Error: ${err.error}`);
+            }
+        } catch (error) {
+            alert('Failed to connect to server');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const tabs = [
         { id: 'general', label: 'General', icon: Settings },
         { id: 'account', label: 'Account', icon: User },
         { id: 'security', label: 'Security', icon: Shield },
         { id: 'data', label: 'Data & Sync', icon: Database },
+        { id: 'locations', label: 'Locations', icon: MapPin },
         { id: 'notifications', label: 'Notifications', icon: Bell },
     ];
 
@@ -47,7 +111,7 @@ export const SettingsPage = () => {
                     </div>
 
                     {/* Content Area */}
-                    <div className="flex-1 bg-[#1a1a1a] border border-[#333] rounded-sm p-8">
+                    <div className="flex-1 bg-[#1a1a1a] border border-[#333] rounded-sm p-8 min-h-[600px]">
                         {activeTab === 'general' && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <h3 className="text-xl font-bold text-white border-b border-[#333] pb-4">General Settings</h3>
@@ -146,6 +210,101 @@ export const SettingsPage = () => {
                             </div>
                         )}
 
+                        {activeTab === 'locations' && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div className="flex justify-between items-center border-b border-[#333] pb-4">
+                                    <h3 className="text-xl font-bold text-white">Store Locations</h3>
+                                    <span className="text-xs text-brand-gold font-mono">{stores.length} ACTIVE STORES</span>
+                                </div>
+
+                                {/* Add New Store Form */}
+                                <div className="p-6 bg-[#252525] border border-brand-gold/20 rounded-sm">
+                                    <h4 className="text-sm text-white font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <Plus className="w-4 h-4 text-brand-gold" /> Add New Location
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Store Name</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Miami Downtown"
+                                                value={newStore.name}
+                                                onChange={e => setNewStore({ ...newStore, name: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Target LBS/Guest</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={newStore.target}
+                                                onChange={e => setNewStore({ ...newStore, target: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Manager Email</label>
+                                            <input
+                                                type="email"
+                                                placeholder="manager@texasdebrazil.com"
+                                                value={newStore.managerEmail}
+                                                onChange={e => setNewStore({ ...newStore, managerEmail: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Manager Password</label>
+                                            <input
+                                                type="password"
+                                                placeholder="Initial Password"
+                                                value={newStore.managerPass}
+                                                onChange={e => setNewStore({ ...newStore, managerPass: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 flex justify-end">
+                                        <button
+                                            onClick={handleCreateStore}
+                                            disabled={isLoading}
+                                            className="bg-brand-gold hover:bg-yellow-500 text-black px-6 py-2 rounded-sm font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
+                                        >
+                                            {isLoading ? 'Creating...' : 'Create Store'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Stores List */}
+                                <div className="space-y-2">
+                                    <h4 className="text-xs uppercase text-gray-500 font-mono mb-2">Existing Locations</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2">
+                                        {stores.map(store => (
+                                            <div key={store.id} className="p-4 bg-[#121212] border border-[#333] rounded-sm hover:border-brand-gold/30 transition-colors">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <StoreIcon className="w-4 h-4 text-gray-600" />
+                                                        <h5 className="text-white font-bold">{store.store_name}</h5>
+                                                    </div>
+                                                    <span className="text-xs font-mono text-brand-gold">{store.target_lbs_guest.toFixed(2)} LBS</span>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mb-2">Lat/Long Match: {store.location}</p>
+                                                {store.users && store.users.length > 0 ? (
+                                                    <div className="text-[10px] text-gray-400 border-t border-[#333] pt-2">
+                                                        Manager: <span className="text-white">{store.users[0].email}</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-[10px] text-red-500 border-t border-[#333] pt-2">
+                                                        No Manager Assigned
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {activeTab === 'data' && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <h3 className="text-xl font-bold text-white border-b border-[#333] pb-4">Data & Integrations</h3>
@@ -226,15 +385,8 @@ export const SettingsPage = () => {
                             </div>
                         )}
 
-                        {/* Save Button Footer */}
-                        <div className="mt-12 pt-6 border-t border-[#333] flex justify-end">
-                            <button
-                                onClick={() => alert('Settings Saved Successfully!')}
-                                className="bg-brand-gold hover:bg-yellow-500 text-black px-6 py-2 rounded-sm font-bold text-sm uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95 shadow-[0_0_15px_rgba(197,160,89,0.2)]"
-                            >
-                                <Save className="w-4 h-4" /> Save Changes
-                            </button>
-                        </div>
+                        {/* Save Button Footer only for general tabs where explicit save is needed, but here created custom actions inside tabs */}
+                        {/* Keeping generic save for consistency if needed, but actions are direct inside components now */}
                     </div>
                 </div>
             </div>
