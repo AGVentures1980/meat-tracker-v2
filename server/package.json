@@ -4,7 +4,7 @@
     "description": "Backend for Brasa Meat Tracker",
     "main": "src/index.js",
     "scripts": {
-        "start": "echo 'DEBUG: Ls dist' && ls -la dist/src && node dist/src/index.js",
+        "start": "npx prisma db push --accept-data-loss && echo 'DEBUG: Ls dist' && ls -la dist/src && node dist/src/index.js",
         "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
         "build": "tsc --incremental"
     },
