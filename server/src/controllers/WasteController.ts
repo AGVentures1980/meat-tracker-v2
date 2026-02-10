@@ -261,9 +261,14 @@ export class WasteController {
     }
 
     private static getShiftWindow(now: Date) {
-        const day = now.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
-        const hour = now.getHours();
-        const minute = now.getMinutes();
+        // Force Central Time (CST) for Brasa Operations (Dallas/Austin base)
+        // EST is -5, CST is -6. We'll use -6 as the baseline for the "The Garcia Rule".
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const centralTime = new Date(utc + (3600000 * -6));
+
+        const day = centralTime.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+        const hour = centralTime.getHours();
+        const minute = centralTime.getMinutes();
         const currentTime = hour + minute / 60;
 
         // Saturday (6)
