@@ -441,3 +441,183 @@ src/engine/MeatEngine.ts(522,1): error TS1128: Declaration or statement expected
 [Startup] Ensuring default system settings exist...
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 Server running on http://localhost:3001
+[INFO] 13:24:48 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 13:29:31 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 13:29:33 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 13:29:33 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 08:30:27 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 08:30:28 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 08:30:29 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 08:30:29 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 08:30:31 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 08:30:31 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 08:34:56 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 08:34:56 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 08:37:20 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 08:37:21 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 08:49:08 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 08:49:08 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 09:03:03 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 09:03:03 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 09:03:07 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 09:03:08 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 09:03:09 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:13:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 09:03:09 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 09:05:34 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:14:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 09:05:34 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 09:17:04 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+Error: Route.get() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as get] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts:16:8)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-39127398728031026.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 09:17:04 Error: Route.get() requires a callback function but got a [object Undefined]
+[INFO] 09:17:04 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/routes/dashboard.routes.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001
+[INFO] 09:23:02 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 Server running on http://localhost:3001

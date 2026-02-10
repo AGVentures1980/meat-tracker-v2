@@ -99,7 +99,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <div className="p-4 border-t border-[#333]">
                     {!collapsed && (
                         <div className="text-xs text-gray-600 font-mono">
-                            v2.2 - LIVE
+                            v2.3 - LIVE
                             <br />
                             CONN: <span className="text-[#00FF94]">POSTGRES-20Hr</span>
                         </div>
