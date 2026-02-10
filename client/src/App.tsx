@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
@@ -25,6 +25,10 @@ import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
 import { Landing } from './pages/Landing';
 
 function AppContent() {
+    useEffect(() => {
+        console.log("Brasa App Initialized - Build: " + new Date().toISOString());
+    }, []);
+
     return (
         <BrowserRouter>
             <ChangePasswordModal />
