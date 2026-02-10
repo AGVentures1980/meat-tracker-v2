@@ -224,6 +224,8 @@ export class MeatEngine {
             // Cost Estimation (Mock for now as we lack purchase data in seed)
             const estimatedCostPerLb = 5.65;
             const totalCost = totalLbs * estimatedCostPerLb;
+            // const costPerGuest = totalCost / guests; // This was unused and causing lint error if I didn't use it, but logic below re-calcs it or uses it.
+            // Actually, let's just use the calculated one.
             const costPerGuest = totalCost / guests;
 
             performanceProp.push({
@@ -246,5 +248,51 @@ export class MeatEngine {
         }
 
         return { performance: performanceProp };
+    }
+
+    static async getExecutiveStats(user: any) {
+        // Reuse the logic to get store-level performance
+        const { performance } = await this.getCompanyDashboardStats(user);
+
+        // Aggregate Defaults
+        let totalGuests = 0;
+        let totalNetImpact = 0;
+        let totalVarianceSum = 0;
+
+        performance.forEach(store => {
+            totalGuests += store.guests;
+            totalNetImpact += store.impactYTD;
+            totalVarianceSum += store.lbsGuestVar;
+        });
+
+        const avgVariance = performance.length > 0 ? totalVarianceSum / performance.length : 0;
+
+        // Sort by Impact (Savings vs Spending)
+        // Impact is Cost Variance * Guests.
+        // Positive Impact = Overspending (Bad). Negative Impact = Savings (Good).
+        // Frontend expects "Top Savers" (Efficiency) and "Top Spenders" (Opportunity).
+
+        // Sort ascending (Lowest impact first -> represents savings if negative)
+        const sortedBySavings = [...performance].sort((a, b) => a.impactYTD - b.impactYTD);
+
+        const topSavers = sortedBySavings.filter(s => s.impactYTD < 0).slice(0, 10);
+        const topSpenders = [...performance].sort((a, b) => b.impactYTD - a.impactYTD).filter(s => s.impactYTD > 0).slice(0, 10);
+
+        // Defined Middle Tier as those not in top 10 lists (optional, or just return rest)
+        const topIds = new Set([...topSavers.map(s => s.id), ...topSpenders.map(s => s.id)]);
+        const middleTier = performance.filter(s => !topIds.has(s.id));
+
+        return {
+            period: `Current Month`, // Dynamic later
+            summary: {
+                total_guests: totalGuests,
+                net_impact_ytd: totalNetImpact,
+                avg_lbs_variance: avgVariance,
+                status: totalNetImpact <= 0 ? 'Savings' : 'Loss'
+            },
+            top_savers: topSavers,
+            top_spenders: topSpenders,
+            middle_tier: middleTier
+        };
     }
 }

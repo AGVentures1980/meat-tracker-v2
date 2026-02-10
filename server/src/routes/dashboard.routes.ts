@@ -12,6 +12,7 @@ router.get('/network', requireAuth, DashboardController.getNetworkStats);
 router.get('/report-card', requireAuth, DashboardController.getNetworkReportCard);
 router.get('/company-stats', requireAuth, DashboardController.getCompanyStats); // New Route for Dashboard.tsx
 router.get('/company-aggregate', requireAuth, DashboardController.getCompanyAggregateStats);
+router.get('/company-stats', requireAuth, DashboardController.getExecutiveStats); // New endpoint for ExecutiveSummary
 router.post('/targets', requireAuth, DashboardController.updateStoreTargets);
 router.get('/projections-data', requireAuth, DashboardController.getProjectionsData);
 

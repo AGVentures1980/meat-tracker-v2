@@ -90,6 +90,17 @@ export class DashboardController {
         }
     }
 
+    static async getExecutiveStats(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const stats = await MeatEngine.getExecutiveStats(user);
+            return res.json(stats);
+        } catch (error) {
+            console.error('Executive Stats Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch executive stats' });
+        }
+    }
+
     static async updateStoreTargets(req: Request, res: Response) {
         try {
             const { targets } = req.body; // Expects { storeId: number, target: number }[]
