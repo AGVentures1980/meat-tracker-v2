@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '../components/layouts/DashboardLayout';
-import { FileText, Calendar, Download, Filter, Printer } from 'lucide-react';
+import { FileText, Calendar, Download, Filter, Printer, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const ReportsPage = () => {
@@ -15,8 +15,6 @@ export const ReportsPage = () => {
         { id: 'variance', name: 'Variance Analysis', description: 'Deep dive into protein usage vs ideal standards.', icon: Filter, color: 'text-[#FF2A6D]' },
         { id: 'inventory', name: 'Inventory Logs', description: 'Raw inventory counts and audit trails.', icon: Calendar, color: 'text-blue-400' },
     ];
-
-    import { Activity } from 'lucide-react';
 
     return (
         <DashboardLayout>
