@@ -8,6 +8,7 @@ import { ExecutiveDashboard } from './pages/ExecutiveDashboard';
 import { ProjectionsDashboard } from './pages/ProjectionsDashboard';
 import { SettingsPage } from './pages/SettingsPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { SmartPrepPage } from './pages/SmartPrepPage';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -47,6 +48,7 @@ function AppContent() {
                     <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
+                    <Route path="/smart-prep" element={<SmartPrepPage />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                 </Route>
 

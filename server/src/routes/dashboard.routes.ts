@@ -23,4 +23,8 @@ router.post('/settings', requireAuth, SettingsController.updateSettings);
 router.get('/settings/stores', requireAuth, SettingsController.getStores);
 router.post('/settings/stores', requireAuth, SettingsController.createStore);
 
+// Smart Prep (Kitchen Intelligence)
+import { SmartPrepController } from '../controllers/SmartPrepController';
+router.get('/smart-prep', requireAuth, SmartPrepController.getDailyPrep);
+
 export default router;
