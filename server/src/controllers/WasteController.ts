@@ -166,9 +166,16 @@ export class WasteController {
             // @ts-ignore
             const userId = req.user.userId;
             // @ts-ignore
-            const userStoreId = req.user.store_id || 1;
+            const userRole = req.user.role;
+            // @ts-ignore
+            let userStoreId = req.user.store_id || 1;
 
-            const { shift, items, date } = req.body; // items: [{protein, weight, reason}]
+            const { shift, items, date, store_id } = req.body; // items: [{protein, weight, reason}]
+
+            // Admin Override
+            if ((userRole === 'admin' || userRole === 'director') && store_id) {
+                userStoreId = parseInt(store_id);
+            }
             const logDate = new Date(date || new Date().toISOString().split('T')[0]);
 
             // 1. Validate The Garcia Rule (Server Side Enforcement)
