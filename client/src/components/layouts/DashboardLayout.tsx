@@ -3,12 +3,9 @@ import React, { useState } from 'react';
 import {
     LayoutDashboard,
     TrendingUp,
-    FileText,
     Settings,
     LogOut,
     Menu,
-    X,
-    ChevronRight,
     ChefHat,
     StickyNote,
     ArrowUpRight,
@@ -56,7 +53,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     return (
         <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden">
             {/* Sidebar */}
-            <aside className={`${collapsed ? 'w-16' : 'w-64'} bg - [#1a1a1a] border - r border - [#333] transition - all duration - 300 flex flex - col`}>
+            <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 flex flex-col`}>
                 <div className="p-4 border-b border-[#333] flex items-center justify-between">
                     {!collapsed && (
                         <div className="flex items-center gap-2">
@@ -76,7 +73,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`w - full flex items - center gap - 3 p - 3 rounded transition - colors ${active
+                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
                                     ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
                                     : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                     } `}
@@ -92,7 +89,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
                         <Link
                             to="/executive"
-                            className={`w - full flex items - center gap - 3 p - 3 rounded transition - colors ${location.pathname === '/executive'
+                            className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
                                 ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
                                 : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                 } `}
@@ -161,11 +158,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     <div className="flex items-center gap-4 relative">
                         <button
                             onClick={() => setShowAlerts(!showAlerts)}
-                            className={`flex items - center gap - 2 px - 3 py - 1 rounded border transition - colors cursor - pointer ${showAlerts ? 'bg-[#FF9F1C]/20 border-[#FF9F1C]' : 'bg-[#252525] border-[#333] hover:bg-[#333]'
+                            className={`flex items-center gap-2 px-3 py-1 rounded border transition-colors cursor-pointer ${showAlerts ? 'bg-[#FF9F1C]/20 border-[#FF9F1C]' : 'bg-[#252525] border-[#333] hover:bg-[#333]'
                                 } `}
                         >
-                            <AlertTriangle className={`w - 3 h - 3 ${alerts.length > 0 ? 'text-[#FF9F1C]' : 'text-gray-500'} `} />
-                            <span className={`text - xs font - mono ${alerts.length > 0 ? 'text-[#FF9F1C] blinking' : 'text-gray-500'} `}>
+                            <AlertTriangle className={`w-3 h-3 ${alerts.length > 0 ? 'text-[#FF9F1C]' : 'text-gray-500'} `} />
+                            <span className={`text-xs font-mono ${alerts.length > 0 ? 'text-[#FF9F1C] blinking' : 'text-gray-500'} `}>
                                 {alerts.length} ALERTS
                             </span>
                         </button>
@@ -194,7 +191,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                                 onClick={() => handleAlertClick(alert.id, alert.path)}
                                             >
                                                 <div className="flex justify-between mb-1">
-                                                    <span className={`text - [${alert.color}] text - xs font - bold font - mono`} style={{ color: alert.type === 'WARNING' ? '#FF9F1C' : undefined }}>{alert.type}</span>
+                                                    <span className={`text-[${alert.color}] text-xs font-bold font-mono`} style={{ color: alert.type === 'WARNING' ? '#FF9F1C' : undefined }}>{alert.type}</span>
                                                     <span className="text-[10px] text-gray-600">{alert.time}</span>
                                                 </div>
                                                 <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{
