@@ -36,6 +36,7 @@ model Store {
   users             User[]
   waste_compliance  WasteCompliance[]
   delivery_sales    DeliverySale[]
+  invoices          InvoiceRecord[]
   waste_logs        WasteLog[]
 
   @@unique([company_id, store_name])
@@ -142,6 +143,21 @@ model PurchaseRecord {
   quantity   Float
   cost_total Float
   store      Store    @relation(fields: [store_id], references: [id])
+
+  @@index([store_id, date])
+}
+
+model InvoiceRecord {
+  id             String   @id @default(uuid())
+  store_id       Int
+  date           DateTime @default(now())
+  invoice_number String?
+  item_name      String
+  quantity       Float
+  price_per_lb   Float
+  cost_total     Float
+  source         String   @default("Manual") // Manual or OCR
+  store          Store    @relation(fields: [store_id], references: [id])
 
   @@index([store_id, date])
 }
