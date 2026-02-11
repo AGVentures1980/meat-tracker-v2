@@ -14,7 +14,8 @@ import {
     Users,
     Network,
     DollarSign,
-    Trash
+    Trash,
+    Truck
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -37,12 +38,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     const navItems = [
         { icon: LayoutDashboard, label: t('nav_dashboard'), path: '/dashboard' },
-        { icon: TrendingUp, label: 'Projections', path: '/projections' }, // New Annual BI
+        { icon: TrendingUp, label: t('nav_projections'), path: '/projections' },
         { icon: StickyNote, label: t('nav_reports'), path: '/reports' },
-        { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' }, // New Financial Input
-        { id: 'settings', label: t('nav_settings'), icon: Settings, path: '/settings' },
+        { icon: ArrowUpRight, label: t('nav_meat_prices'), path: '/prices' },
         { id: 'smart-prep', label: t('nav_smart_prep'), icon: ChefHat, path: '/smart-prep' },
-        { id: 'waste', label: t('nav_waste_log'), icon: Trash, path: '/waste' }
+        { id: 'delivery', label: t('nav_delivery'), icon: Truck, path: '/delivery' },
+        { id: 'waste', label: t('nav_waste_log'), icon: Trash, path: '/waste' },
+        { id: 'settings', label: t('nav_settings'), icon: Settings, path: '/settings' }
     ];
 
     const [alerts, setAlerts] = useState([
@@ -132,7 +134,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 } `}
                         >
                             <AlertTriangle className="w-5 h-5 min-w-[20px]" />
-                            {!collapsed && <span className="text-sm font-medium tracking-wide">Executive View</span>}
+                            {!collapsed && <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>}
                         </Link>
                     )}
 
@@ -149,7 +151,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <div className="p-4 border-t border-[#333]">
                     {!collapsed && (
                         <div className="text-xs text-gray-600 font-mono">
-                            v2.5.18-FINAL (Accountability) - LIVE
+                            v2.5.19-DELIVERY (Accountability) - LIVE
                             <br />
                             CONN: <span className="text-[#00FF94]">POSTGRES-20Hr</span>
                         </div>

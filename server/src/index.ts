@@ -40,6 +40,7 @@ import orderRoutes from './routes/order.routes';
 import uploadRoutes from './routes/upload.routes';
 import inventoryRoutes from './routes/inventory.routes';
 import automationRoutes from './routes/automation.routes';
+import deliveryRoutes from './routes/delivery.routes';
 
 import path from 'path';
 
@@ -51,7 +52,7 @@ app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/v1/orders', requireAuth, orderRoutes);
 app.use('/api/v1/upload', requireAuth, uploadRoutes);
 app.use('/api/v1/inventory', requireAuth, inventoryRoutes);
-app.use('/api/v1/automation', requireAuth, automationRoutes);
+app.use('/api/v1/delivery', requireAuth, deliveryRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
@@ -157,7 +158,7 @@ async function ensureDefaultSettings() {
 // Start Server after DB Check
 ensureDirectorUser().then(() => ensureDefaultSettings()).then(() => {
     app.listen(PORT, () => {
-        console.log(`🚀 BRASA INTEL v2.5.18-FINAL running on http://localhost:${PORT}`);
+        console.log(`🚀 BRASA INTEL v2.5.19-DELIVERY running on http://localhost:${PORT}`);
         console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
     });
 });
