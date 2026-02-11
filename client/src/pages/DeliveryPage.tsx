@@ -155,7 +155,7 @@ export const DeliveryPage = () => {
 
                     {syncStats ? (
                         <div className="animate-in slide-in-from-bottom-2 duration-500">
-                            <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div className="bg-[#121212] p-4 border border-[#333] rounded-sm">
                                     <p className="text-[10px] text-gray-500 uppercase font-mono mb-1">Meat Yield (Lbs)</p>
                                     <p className="text-2xl font-bold text-brand-gold">{syncStats.meatLbs}</p>
@@ -165,10 +165,26 @@ export const DeliveryPage = () => {
                                     <p className="text-2xl font-bold text-[#00FF94]">{syncStats.guests}</p>
                                 </div>
                             </div>
+
+                            {/* Protein Breakdown */}
+                            <div className="bg-[#121212] p-4 border border-[#333] rounded-sm mb-6 max-h-48 overflow-y-auto">
+                                <h4 className="text-[9px] uppercase text-gray-400 font-bold mb-3 flex justify-between border-b border-[#333] pb-2">
+                                    <span>Protein Distribution</span>
+                                    <span>Lbs</span>
+                                </h4>
+                                <div className="space-y-2">
+                                    {(syncStats.proteins || []).map((p: any, i: number) => (
+                                        <div key={i} className="flex justify-between items-center text-xs">
+                                            <span className="text-gray-300">{p.protein}</span>
+                                            <span className="text-brand-gold font-mono font-bold">{p.lbs.toFixed(1)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         <div className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-[#333] rounded-sm mb-6 bg-[#121212]">
-                            <p className="text-xs text-gray-600 font-mono">AWAITING {timeRange} SYNC</p>
+                            <p className="text-xs text-gray-600 font-mono uppercase italic">Awaiting API Synchronization</p>
                         </div>
                     )}
 
@@ -197,20 +213,31 @@ export const DeliveryPage = () => {
                     </p>
 
                     {scanResult ? (
-                        <div className="mb-6 animate-in fade-in duration-500">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-[#121212] p-3 border border-brand-gold/30 rounded-sm">
-                                    <p className="text-[9px] text-gray-500 uppercase font-mono mb-1">Total Lbs Scan</p>
-                                    <p className="text-xl font-bold text-white">{scanResult.metrics.totalLbs}</p>
-                                </div>
-                                <div className="bg-[#121212] p-3 border border-brand-gold/30 rounded-sm">
-                                    <p className="text-[9px] text-gray-500 uppercase font-mono mb-1">Calculated Guests</p>
-                                    <p className="text-xl font-bold text-brand-gold">{scanResult.metrics.calculatedGuests}</p>
+                        <div className="animate-in fade-in duration-500">
+                            <div className="bg-[#121212] p-4 border border-brand-gold/30 rounded-sm mb-6">
+                                <h4 className="text-[9px] uppercase text-gray-400 font-bold mb-3 flex justify-between border-b border-[#333] pb-2">
+                                    <span>OCR Meat Identified</span>
+                                    <span>Weight (Lbs)</span>
+                                </h4>
+                                <div className="space-y-2">
+                                    {(scanResult.proteinBreakdown || []).map((p: any, i: number) => (
+                                        <div key={i} className="flex justify-between items-center text-xs">
+                                            <span className="text-white font-medium">{p.protein}</span>
+                                            <span className="text-brand-gold font-mono font-bold">{p.lbs.toFixed(1)}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
+
+                            <button
+                                onClick={() => setScanResult(null)}
+                                className="w-full border border-[#444] text-gray-400 hover:text-white hover:bg-[#333] px-6 py-2 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all mb-4"
+                            >
+                                Reset & Scan New Ticket
+                            </button>
                         </div>
                     ) : (
-                        <label className="h-32 border-2 border-dashed border-[#333] hover:border-brand-gold/50 transition-all rounded-sm flex flex-col items-center justify-center bg-[#121212] cursor-pointer group/upload mb-6">
+                        <label className="h-48 border-2 border-dashed border-[#333] hover:border-brand-gold/50 transition-all rounded-sm flex flex-col items-center justify-center bg-[#121212] cursor-pointer group/upload mb-6">
                             <input type="file" className="hidden" onChange={handleTicketUpload} accept="image/*" />
                             {isScanning ? (
                                 <>
@@ -226,17 +253,10 @@ export const DeliveryPage = () => {
                         </label>
                     )}
 
-                    {scanResult ? (
-                        <button
-                            onClick={() => setScanResult(null)}
-                            className="w-full border border-[#444] text-gray-400 hover:text-white hover:bg-[#333] px-6 py-2 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all"
-                        >
-                            Reset & Scan New Ticket
-                        </button>
-                    ) : (
-                        <div className="mt-6 p-4 border border-[#333] rounded-sm bg-[#151515]">
+                    {!scanResult && (
+                        <div className="p-4 border border-[#333] rounded-sm bg-[#151515]">
                             <h4 className="text-[10px] uppercase text-gray-500 font-bold mb-3 tracking-widest">Identification Engine</h4>
-                            <p className="text-[11px] text-gray-400 mb-2 italic">Standard decomposition active for mixed packs</p>
+                            <p className="text-[11px] text-gray-400 italic">Standard decomposition active for mixed packs</p>
                         </div>
                     )}
                 </div>
@@ -257,7 +277,6 @@ export const DeliveryPage = () => {
                 {history.length > 0 ? (
                     <div className="space-y-6">
                         <div className="h-48 w-full bg-[#121212] border border-[#333] rounded-sm relative p-4 flex items-end gap-2">
-                            {/* Simple Visual Bar Chart representing History */}
                             {history.slice(-14).map((h, i) => (
                                 <div key={i} className="flex-1 flex flex-col items-center group/bar cursor-help">
                                     <div
@@ -267,7 +286,7 @@ export const DeliveryPage = () => {
                                     <p className="text-[8px] text-gray-600 mt-2 font-mono">
                                         {new Date(h.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}
                                     </p>
-                                    <div className="absolute opacity-0 group-hover/bar:opacity-100 bottom-full mb-2 bg-brand-gold text-black text-[10px] font-bold p-1 rounded-sm whitespace-nowrap pointer-events-none">
+                                    <div className="absolute opacity-0 group-hover/bar:opacity-100 bottom-full mb-2 bg-brand-gold text-black text-[10px] font-bold p-1 rounded-sm whitespace-nowrap pointer-events-none z-10">
                                         {h.source}: {h.total_lbs} LBS
                                     </div>
                                 </div>
@@ -311,6 +330,6 @@ export const DeliveryPage = () => {
                     OCR Scan ID
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
