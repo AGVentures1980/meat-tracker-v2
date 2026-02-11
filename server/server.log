@@ -924,3 +924,10 @@ JWT Verify Error: JsonWebTokenError: jwt malformed
 [Startup] Ensuring default system settings exist...
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 Server running on http://localhost:3001
+[INFO] 22:05:11 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.5.18-FINAL running on http://localhost:3001
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE
