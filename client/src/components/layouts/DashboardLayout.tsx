@@ -9,7 +9,6 @@ import {
     ChefHat,
     StickyNote,
     ArrowUpRight,
-    ArrowDownRight,
     AlertTriangle,
     Users,
     Network,

@@ -1012,3 +1012,22 @@ Error: listen EADDRINUSE: address already in use :::3001
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 BRASA INTEL v2.5.19-DELIVERY running on http://localhost:3001
 📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+[INFO] 23:03:31 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DeliveryController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts:160:9
+[ERROR] 23:03:32 Error: listen EADDRINUSE: address already in use :::3001
+[INFO] 23:04:12 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.5.21-MENU running on http://localhost:3001
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE

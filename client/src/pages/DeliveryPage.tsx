@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Truck, RefreshCw, Camera, Upload, CheckCircle2, AlertCircle, ShoppingCart } from 'lucide-react';
+import { Truck, RefreshCw, Camera, Upload, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const DeliveryPage = () => {

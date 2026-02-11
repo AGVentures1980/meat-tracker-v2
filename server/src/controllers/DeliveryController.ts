@@ -3,18 +3,18 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Standard Decomposition for Combo Items (Texas de Brazil Standards)
+// Standard Decomposition for Combo Items (Texas de Brazil Official Delivery Menu)
 const MEAT_DECOMPOSITION = {
     "feast": [
-        { protein: "Picanha", share: 0.40 }, // 0.8 lbs
-        { protein: "Fraldinha/Flank Steak", share: 0.30 }, // 0.6 lbs
-        { protein: "Chicken Drumstick", share: 0.20 }, // 0.4 lbs
-        { protein: "Sausage", share: 0.10 } // 0.2 lbs
+        { protein: "Picanha", share: 0.25 },
+        { protein: "Fraldinha/Flank Steak", share: 0.25 },
+        { protein: "Chicken Drumstick", share: 0.25 }, // Map to Parmesan Drummettes share
+        { protein: "Sausage", share: 0.25 }
     ],
     "plate": [
-        { protein: "Picanha", share: 0.50 }, // 0.5 lbs
-        { protein: "Filet Mignon", share: 0.30 }, // 0.3 lbs
-        { protein: "Lamb Chops", share: 0.20 } // 0.2 lbs
+        { protein: "Picanha", share: 0.40 },
+        { protein: "Filet Mignon", share: 0.30 },
+        { protein: "Spicy Sirloin", share: 0.30 }
     ]
 };
 
@@ -37,13 +37,21 @@ export class DeliveryController {
                 weight: totalWeight * p.share
             }));
         } else {
-            // Loose Meat Logic: Map to closest match in official list
-            // For now, simple match
+            // Precise logic for all Delivery Proteins provided by Alex
             let detected = "Other";
-            if (lowerName.includes('picanha')) detected = "Picanha";
-            else if (lowerName.includes('flank') || lowerName.includes('fraldinha')) detected = "Fraldinha/Flank Steak";
+            if (lowerName.includes('garlic picanha')) detected = "Garlic Picanha";
+            else if (lowerName.includes('spicy sirloin')) detected = "Spicy Sirloin";
+            else if (lowerName.includes('picanha')) detected = "Picanha";
+            else if (lowerName.includes('flank') || lowerName.includes('fraldinha')) detected = "Flank Steak";
+            else if (lowerName.includes('filet mignon wrapped in bacon')) detected = "Filet Mignon Bacon";
             else if (lowerName.includes('filet')) detected = "Filet Mignon";
-            else if (lowerName.includes('lamb')) detected = "Lamb Chops";
+            else if (lowerName.includes('sausage')) detected = "Brazilian Sausage";
+            else if (lowerName.includes('chicken breast wrapped in bacon')) detected = "Chicken Bacon";
+            else if (lowerName.includes('drummettes')) detected = "Parmesan Drummettes";
+            else if (lowerName.includes('leg of lamb')) detected = "Leg of Lamb";
+            else if (lowerName.includes('lamb chops')) detected = "Lamb Chops";
+            else if (lowerName.includes('pork ribs')) detected = "Barbecued Pork Ribs";
+            else if (lowerName.includes('pork loin')) detected = "Parmesan Pork Loin";
 
             breakdown = [{ protein: detected, weight: totalWeight }];
         }
