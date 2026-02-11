@@ -54,8 +54,14 @@ app.use('/api/v1/inventory', requireAuth, inventoryRoutes);
 app.use('/api/v1/automation', requireAuth, automationRoutes);
 
 // Temporary Setup Route (Remove in production later)
+// Temporary Setup Route (Remove in production later)
 import { SetupController } from './controllers/SetupController';
 app.get('/api/v1/setup-demo', SetupController.runDemoSetup);
+
+// Debug / Emergency Migration Route
+import { DebugController } from './controllers/DebugController';
+app.get('/api/v1/debug/migrate', DebugController.runMigration);
+app.get('/api/v1/debug/env', DebugController.checkEnv);
 
 // Serve Static Frontend (Production)
 const CLIENT_BUILD_PATH = process.env.NODE_ENV === 'production'
