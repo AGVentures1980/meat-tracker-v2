@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Settings, User, Shield, Database, Bell, MapPin, Plus, Store as StoreIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export const SettingsPage = () => {
     const { user } = useAuth();
+    const { language, setLanguage, t } = useLanguage();
     const [activeTab, setActiveTab] = useState('general');
     const [stores, setStores] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -125,11 +127,15 @@ export const SettingsPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Language & Region</label>
-                                    <select className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none">
-                                        <option>English (US) - USD ($)</option>
-                                        <option>Portuguese (BR) - BRL (R$)</option>
-                                        <option>Spanish (MX) - MXN ($)</option>
+                                    <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">{t('language')} & Region</label>
+                                    <select
+                                        value={language}
+                                        onChange={(e) => setLanguage(e.target.value as any)}
+                                        className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                    >
+                                        <option value="en">English (US) - USD ($)</option>
+                                        <option value="pt">Português (BR) - BRL (R$)</option>
+                                        <option disabled>Spanish (MX) - MXN ($)</option>
                                     </select>
                                 </div>
                             </div>

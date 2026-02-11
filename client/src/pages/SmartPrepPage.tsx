@@ -1,10 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { Users, ChefHat, Scale, Printer, ArrowLeft, CheckCircle2, AlertCircle, Building2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export const SmartPrepPage = () => {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [forecast, setForecast] = useState<number>(150);
     const [prepData, setPrepData] = useState<any>(null);
@@ -14,7 +15,14 @@ export const SmartPrepPage = () => {
     const [lockLoading, setLockLoading] = useState(false);
 
     const [selectedStore, setSelectedStore] = useState<number | null>(null);
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const getCentralDate = () => {
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const central = new Date(utc + (3600000 * -6));
+        return central.toISOString().split('T')[0];
+    };
+
+    const [selectedDate, setSelectedDate] = useState<string>(getCentralDate());
 
     // Role check
     const isExecutive = user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin');
@@ -159,8 +167,8 @@ export const SmartPrepPage = () => {
                                 key={store.id}
                                 onClick={() => setSelectedStore(store.id)}
                                 className={`p-4 rounded-lg border text-left transition-all group relative overflow-hidden ${store.is_locked
-                                        ? 'bg-[#121212] border-[#00FF94]/30 hover:border-[#00FF94]'
-                                        : 'bg-[#1a1214] border-[#FF2A6D]/30 hover:border-[#FF2A6D] shadow-[0_0_15px_rgba(255,42,109,0.05)]'
+                                    ? 'bg-[#121212] border-[#00FF94]/30 hover:border-[#00FF94]'
+                                    : 'bg-[#1a1214] border-[#FF2A6D]/30 hover:border-[#FF2A6D] shadow-[0_0_15px_rgba(255,42,109,0.05)]'
                                     }`}
                             >
                                 <div className="flex justify-between items-start mb-4">
@@ -256,9 +264,9 @@ export const SmartPrepPage = () => {
                     <div>
                         <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
                             <ChefHat className="w-8 h-8 text-[#00FF94]" />
-                            {selectedStore ? prepData?.store_name : 'Smart Prep'}
+                            {selectedStore ? prepData?.store_name : t('smart_prep_title')}
                         </h1>
-                        <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">Kitchen Production Guide</p>
+                        <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">{t('smart_prep_subtitle')}</p>
                     </div>
                 </div>
                 <div className="text-right flex items-center gap-4">
@@ -271,7 +279,7 @@ export const SmartPrepPage = () => {
 
                     {prepData?.is_locked ? (
                         <div className="bg-[#00FF94]/10 border border-[#00FF94]/50 px-4 py-2 rounded flex items-center gap-2 text-[#00FF94] font-bold">
-                            <CheckCircle2 className="w-4 h-4" /> PLAN LOCKED
+                            <CheckCircle2 className="w-4 h-4" /> {t('plan_locked')}
                         </div>
                     ) : (
                         <button
@@ -279,7 +287,7 @@ export const SmartPrepPage = () => {
                             disabled={lockLoading || loading}
                             className="bg-[#00FF94] hover:bg-[#00e685] text-black px-4 py-2 rounded flex items-center gap-2 font-bold transition-all disabled:opacity-50"
                         >
-                            <ChefHat className="w-4 h-4" /> {lockLoading ? 'SAVING...' : 'FINALIZE & SEND'}
+                            <ChefHat className="w-4 h-4" /> {lockLoading ? 'SAVING...' : t('finalize_send')}
                         </button>
                     )}
 
@@ -294,7 +302,7 @@ export const SmartPrepPage = () => {
             <div className={`bg-[#1a1a1a] border border-[#333] rounded-lg p-6 mb-8 shadow-xl print:hidden transition-opacity ${prepData?.is_locked ? 'opacity-80' : ''}`}>
                 <div className="flex flex-col md:flex-row items-center gap-8">
                     <div className="bg-[#252525] p-4 rounded w-full md:w-auto text-center min-w-[200px]">
-                        <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">Projected Guests</h3>
+                        <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">{t('projected_guests')}</h3>
                         <div className="text-4xl font-black text-white flex items-center justify-center gap-2">
                             <Users className="w-6 h-6 text-gray-500" />
                             {forecast}
@@ -303,8 +311,8 @@ export const SmartPrepPage = () => {
 
                     <div className="flex-1 w-full space-y-2">
                         <label className="text-sm text-gray-400 flex justify-between">
-                            <span>Adjust Projection</span>
-                            {prepData?.is_locked && <span className="text-[#00FF94] text-xs font-bold uppercase tracking-widest">Plan Finalized</span>}
+                            <span>{t('adjust_projection')}</span>
+                            {prepData?.is_locked && <span className="text-[#00FF94] text-xs font-bold uppercase tracking-widest">{t('plan_locked')}</span>}
                         </label>
                         <input
                             type="range"

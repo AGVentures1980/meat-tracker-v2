@@ -10,8 +10,10 @@ export class SmartPrepController {
 
     static async getNetworkPrepStatus(req: Request, res: Response) {
         try {
-            // 1. Determine Date
-            const dateStr = req.query.date as string || new Date().toISOString().split('T')[0];
+            // 1. Determine Date (Force Central Time - Business Date)
+            const today = new Date();
+            const centralNow = SmartPrepController.getCentralDateTime(today);
+            const dateStr = req.query.date as string || centralNow.toISOString().split('T')[0];
             const date = new Date(dateStr);
 
             // 2. Fetch all stores
@@ -80,7 +82,9 @@ export class SmartPrepController {
             }
 
             // 2. Determine Date
-            const dateStr = req.query.date as string || new Date().toISOString().split('T')[0];
+            const today = new Date();
+            const centralNow = SmartPrepController.getCentralDateTime(today);
+            const dateStr = req.query.date as string || centralNow.toISOString().split('T')[0];
             const date = new Date(dateStr);
             const dayOfWeek = date.getDay(); // 0 = Sun
 
@@ -231,5 +235,13 @@ export class SmartPrepController {
             console.error('Lock Prep Error:', error);
             res.status(500).json({ error: 'Failed to lock prep plan' });
         }
+    }
+
+    private static getCentralDateTime(now: Date): Date {
+        // CST (Central Standard Time) is UTC-6. 
+        // CDT (Central Daylight Time) is UTC-5.
+        // For simplicity and matching Brasa operational baseline: force UTC-6.
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        return new Date(utc + (3600000 * -6));
     }
 }

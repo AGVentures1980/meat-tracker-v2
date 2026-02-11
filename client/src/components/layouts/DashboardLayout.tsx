@@ -23,8 +23,11 @@ interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
+import { useLanguage } from '../../context/LanguageContext';
+
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const { logout, user } = useAuth();
+    const { t } = useLanguage();
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
     const [showAlerts, setShowAlerts] = useState(false);
@@ -33,13 +36,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const navigate = useNavigate();
 
     const navItems = [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+        { icon: LayoutDashboard, label: t('nav_dashboard'), path: '/dashboard' },
         { icon: TrendingUp, label: 'Projections', path: '/projections' }, // New Annual BI
-        { icon: StickyNote, label: 'Reports', path: '/reports' },
+        { icon: StickyNote, label: t('nav_reports'), path: '/reports' },
         { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' }, // New Financial Input
-        { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
-        { id: 'smart-prep', label: 'Smart Prep', icon: ChefHat, path: '/smart-prep' },
-        { id: 'waste', label: 'Waste Log', icon: Trash, path: '/waste' }
+        { id: 'settings', label: t('nav_settings'), icon: Settings, path: '/settings' },
+        { id: 'smart-prep', label: t('nav_smart_prep'), icon: ChefHat, path: '/smart-prep' },
+        { id: 'waste', label: t('nav_waste_log'), icon: Trash, path: '/waste' }
     ];
 
     const [alerts, setAlerts] = useState([
