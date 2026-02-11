@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Truck, RefreshCw, Camera, Upload, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export const DeliveryPage = () => {
     const { t } = useLanguage();
+    const { user } = useAuth();
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncStats, setSyncStats] = useState<any>(null);
     const [isScanning, setIsScanning] = useState(false);
@@ -19,7 +21,7 @@ export const DeliveryPage = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('brasa_token')}`
+                    'Authorization': `Bearer ${user?.token}`
                 },
                 body: JSON.stringify({ storeId: 1, date: new Date().toISOString() })
             });
@@ -56,11 +58,10 @@ export const DeliveryPage = () => {
         formData.append('ticket', file);
 
         try {
-            const token = localStorage.getItem('brasa_token');
             const response = await fetch('/api/v1/delivery/process-ticket', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${user?.token}`
                 },
                 body: formData
             });
