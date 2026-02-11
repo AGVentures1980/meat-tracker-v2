@@ -23,7 +23,7 @@ export class WasteController {
             }
 
             const today = new Date();
-            const centralDate = this.getCentralDateTime(today);
+            const centralDate = WasteController.getCentralDateTime(today);
             const dateStr = centralDate.toISOString().split('T')[0];
             console.log(`[WasteStatus] Business Date: ${dateStr}`);
 
