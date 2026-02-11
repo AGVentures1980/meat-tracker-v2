@@ -8,6 +8,58 @@ const prisma = new PrismaClient();
 
 export class SmartPrepController {
 
+    static async getNetworkPrepStatus(req: Request, res: Response) {
+        try {
+            // 1. Determine Date
+            const dateStr = req.query.date as string || new Date().toISOString().split('T')[0];
+            const date = new Date(dateStr);
+
+            // 2. Fetch all stores
+            const stores = await prisma.store.findMany({
+                select: {
+                    id: true,
+                    store_name: true,
+                    location: true
+                },
+                orderBy: { store_name: 'asc' }
+            });
+
+            // 3. Fetch all prep logs for this date
+            const logs = await prisma.prepLog.findMany({
+                where: { date: date },
+                select: {
+                    store_id: true,
+                    forecast: true,
+                    created_at: true
+                }
+            });
+
+            // 4. Map stores to their status
+            const statusGrid = stores.map(store => {
+                const log = logs.find(l => l.store_id === store.id);
+                return {
+                    id: store.id,
+                    name: store.store_name,
+                    location: store.location,
+                    is_locked: !!log,
+                    forecast: log ? log.forecast : null,
+                    submitted_at: log ? log.created_at : null
+                };
+            });
+
+            return res.json({
+                date: dateStr,
+                total_stores: stores.length,
+                submitted_count: logs.length,
+                stores: statusGrid
+            });
+
+        } catch (error) {
+            console.error('Network Prep Status Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch network prep status' });
+        }
+    }
+
     static async getDailyPrep(req: Request, res: Response) {
         try {
             // @ts-ignore

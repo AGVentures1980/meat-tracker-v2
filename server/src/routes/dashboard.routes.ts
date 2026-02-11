@@ -30,6 +30,7 @@ import { NetworkHealthController } from '../controllers/NetworkHealthController'
 import { WasteController } from '../controllers/WasteController';
 
 router.get('/smart-prep', requireAuth, SmartPrepController.getDailyPrep);
+router.get('/smart-prep/network-status', requireAuth, SmartPrepController.getNetworkPrepStatus);
 router.post('/smart-prep/lock', requireAuth, SmartPrepController.lockPrepPlan);
 router.get('/network-health', requireAuth, NetworkHealthController.getNetworkStats);
 
