@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutGrid, TrendingUp, DownloadCloud } from 'lucide-react';
+import { LayoutGrid, TrendingUp, DownloadCloud, Brain, AlertTriangle, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
@@ -25,11 +25,11 @@ interface StorePerformance {
     status: 'Optimal' | 'Warning' | 'Critical';
 }
 
-// ... imports
-
 export const Dashboard = () => {
     const navigate = useNavigate();
     const [performanceData, setPerformanceData] = useState<StorePerformance[]>([]);
+    const [anomalies, setAnomalies] = useState<any[]>([]);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showWeeklyInput, setShowWeeklyInput] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'charts'>('grid');
@@ -41,17 +41,27 @@ export const Dashboard = () => {
             if (!user?.token) return;
             try {
                 setLoading(true);
-                const res = await fetch('/api/v1/dashboard/company-stats', {
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                if (res.ok) {
-                    const data = await res.json();
+                // Parallel fetch
+                const [perfRes, anomalyRes, suggestRes] = await Promise.all([
+                    fetch('/api/v1/dashboard/company-stats', { headers: { 'Authorization': `Bearer ${user.token}` } }),
+                    fetch('/api/v1/intelligence/anomalies', { headers: { 'Authorization': `Bearer ${user.token}` } }),
+                    fetch('/api/v1/intelligence/supply-suggestions', { headers: { 'Authorization': `Bearer ${user.token}` } })
+                ]);
+
+                if (perfRes.ok) {
+                    const data = await perfRes.json();
                     setPerformanceData(data.performance || []);
                 }
+                if (anomalyRes.ok) {
+                    const data = await anomalyRes.json();
+                    setAnomalies(data.anomalies || []);
+                }
+                if (suggestRes.ok) {
+                    const data = await suggestRes.json();
+                    setSuggestions(data.suggestions || []);
+                }
             } catch (err) {
-                console.error("Failed to fetch dashboard data", err);
+                console.error("Failed to fetch dashboard intelligence", err);
             } finally {
                 setLoading(false);
             }
@@ -94,8 +104,9 @@ export const Dashboard = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                            <Brain className="text-[#C5A059] w-8 h-8" />
                             Meat Intelligence
-                            <span className="bg-[#FF2A6D]/10 text-[#FF2A6D] text-xs px-2 py-1 rounded-none border border-[#FF2A6D]/30 uppercase tracking-widest font-mono">Real-Time</span>
+                            <span className="bg-[#FF2A6D]/10 text-[#FF2A6D] text-xs px-2 py-1 rounded-none border border-[#FF2A6D]/30 uppercase tracking-widest font-mono">v2.5.28 Predictive</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">Network Performance Monitoring • 2026 Q1</p>
                     </div>
@@ -126,6 +137,68 @@ export const Dashboard = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
                     <NetworkReportCard />
+                </div>
+
+                {/* Intelligence Hub */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 animate-in slide-in-from-bottom-4">
+                    {/* Anomalies Card */}
+                    <div className="bg-[#1a1a1a] border border-[#333] border-l-4 border-l-[#FF2A6D] p-6 rounded-sm shadow-xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                            <AlertTriangle className="w-20 h-20" />
+                        </div>
+                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <AlertTriangle className="text-[#FF2A6D] w-5 h-5" />
+                            Anomaly Detection (15% Variance)
+                        </h3>
+                        {anomalies.length > 0 ? (
+                            <div className="space-y-4">
+                                {anomalies.map((a, i) => (
+                                    <div key={i} className="flex justify-between items-center bg-[#121212] p-3 border border-[#333] group hover:border-[#FF2A6D]/50 transition-all cursor-pointer" onClick={() => navigate(`/dashboard/${a.storeId}`)}>
+                                        <div>
+                                            <p className="text-white font-bold text-sm tracking-tight">{a.name}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase font-mono">Consumo: {a.lbsPerGuest.toFixed(2)} vs Tgt: {a.target.toFixed(2)}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[#FF2A6D] font-mono font-bold">+{a.variance.toFixed(1)}%</p>
+                                            <p className="text-[9px] text-[#FF2A6D] uppercase">Potential Waste</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="h-24 flex items-center justify-center border border-dashed border-[#333] bg-[#121212]">
+                                <p className="text-[11px] text-gray-600 font-mono uppercase">Equilíbrio Ativo: Nenhum desvio crítico detectado.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Supply Suggestion Card */}
+                    <div className="bg-[#1a1a1a] border border-[#333] border-l-4 border-l-[#00FF94] p-6 rounded-sm shadow-xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                            <ShoppingBag className="w-20 h-20" />
+                        </div>
+                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <ShoppingBag className="text-[#00FF94] w-5 h-5" />
+                            Procurement Intelligence (Supply Chain)
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            {suggestions.slice(0, 4).map((s, i) => (
+                                <div key={i} className="bg-[#121212] p-3 border border-[#333]">
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">{s.protein}</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <p className="text-xl font-bold text-white">+{s.suggestedOrder}</p>
+                                        <span className="text-[10px] text-gray-500 font-mono">{s.unit}</span>
+                                    </div>
+                                    <p className={`text-[9px] uppercase font-bold mt-2 ${s.priority === 'High' ? 'text-red-400' : 'text-gray-500'}`}>
+                                        {s.priority} Priority
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                        <button className="w-full mt-6 bg-[#333] hover:bg-[#444] text-white py-2 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
+                            Generate Full Order Sheet <ArrowRight size={12} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Performance View */}

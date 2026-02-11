@@ -13,6 +13,7 @@ export const DeliveryPage = () => {
     const [timeRange, setTimeRange] = useState<'W' | 'M' | 'Q' | 'Y'>('W');
     const [pageError, setPageError] = useState<string | null>(null);
     const [history, setHistory] = useState<any[]>([]);
+    const [selectedEntry, setSelectedEntry] = useState<any>(null);
 
     const fetchHistory = async () => {
         try {
@@ -278,20 +279,44 @@ export const DeliveryPage = () => {
                     <div className="space-y-6">
                         <div className="h-48 w-full bg-[#121212] border border-[#333] rounded-sm relative p-4 flex items-end gap-2">
                             {history.slice(-14).map((h, i) => (
-                                <div key={i} className="flex-1 flex flex-col items-center group/bar cursor-help">
+                                <div
+                                    key={i}
+                                    className="flex-1 flex flex-col items-center group/bar cursor-pointer"
+                                    onClick={() => setSelectedEntry(h)}
+                                >
                                     <div
-                                        className="w-full bg-brand-gold/20 border-t border-brand-gold group-hover/bar:bg-brand-gold/40 transition-all"
+                                        className={`w-full border-t transition-all ${selectedEntry?.id === h.id ? 'bg-brand-gold border-white' : 'bg-brand-gold/20 border-brand-gold group-hover/bar:bg-brand-gold/40'}`}
                                         style={{ height: `${(h.total_lbs / Math.max(...history.map(x => x.total_lbs))) * 100}%` }}
                                     ></div>
                                     <p className="text-[8px] text-gray-600 mt-2 font-mono">
                                         {new Date(h.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}
                                     </p>
                                     <div className="absolute opacity-0 group-hover/bar:opacity-100 bottom-full mb-2 bg-brand-gold text-black text-[10px] font-bold p-1 rounded-sm whitespace-nowrap pointer-events-none z-10">
-                                        {h.source}: {h.total_lbs} LBS
+                                        {h.source}: {h.total_lbs} LBS (Click for Detail)
                                     </div>
                                 </div>
                             ))}
                         </div>
+
+                        {/* selectedEntry Detail Overlay */}
+                        {selectedEntry && (
+                            <div className="bg-[#121212] border border-brand-gold/50 p-4 rounded-sm animate-in slide-in-from-top-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="text-xs font-bold text-brand-gold uppercase tracking-widest">
+                                        Detailed Breakdown: {new Date(selectedEntry.date).toLocaleDateString()} ({selectedEntry.source})
+                                    </h4>
+                                    <button onClick={() => setSelectedEntry(null)} className="text-gray-500 hover:text-white text-xs">✕ CLOSE</button>
+                                </div>
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {(selectedEntry.protein_breakdown || []).map((p: any, idx: number) => (
+                                        <div key={idx} className="bg-[#1a1a1a] p-2 border border-[#333] rounded-sm flex justify-between items-center">
+                                            <span className="text-[10px] text-gray-400 capitalize">{p.protein}</span>
+                                            <span className="text-xs font-bold text-white font-mono">{p.lbs.toFixed(1)} LB</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="bg-[#121212] p-3 border border-[#333] rounded-sm">
