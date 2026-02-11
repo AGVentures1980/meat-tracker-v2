@@ -43,6 +43,7 @@ import automationRoutes from './routes/automation.routes';
 import deliveryRoutes from './routes/delivery.routes';
 import purchaseRoutes from './routes/purchase.routes';
 import intelligenceRoutes from './routes/intelligence.routes';
+import analystRoutes from './routes/analyst.routes';
 
 import path from 'path';
 
@@ -57,6 +58,7 @@ app.use('/api/v1/inventory', requireAuth, inventoryRoutes);
 app.use('/api/v1/delivery', requireAuth, deliveryRoutes);
 app.use('/api/v1/purchases', requireAuth, purchaseRoutes);
 app.use('/api/v1/intelligence', requireAuth, intelligenceRoutes);
+app.use('/api/v1/analyst', requireAuth, analystRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)

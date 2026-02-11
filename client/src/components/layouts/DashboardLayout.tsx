@@ -14,7 +14,8 @@ import {
     Network,
     DollarSign,
     Trash,
-    Truck
+    Truck,
+    Zap
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -125,16 +126,28 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
                     {/* Executive View (Admin/Director Only) */}
                     {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
-                        <Link
-                            to="/executive"
-                            className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
-                                ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
-                                : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                                } `}
-                        >
-                            <AlertTriangle className="w-5 h-5 min-w-[20px]" />
-                            {!collapsed && <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>}
-                        </Link>
+                        <>
+                            <Link
+                                to="/executive"
+                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
+                                    ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
+                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                    } `}
+                            >
+                                <AlertTriangle className="w-5 h-5 min-w-[20px]" />
+                                {!collapsed && <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>}
+                            </Link>
+                            <Link
+                                to="/executive-analyst"
+                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive-analyst'
+                                    ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
+                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                    } `}
+                            >
+                                <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
+                                {!collapsed && <span className="text-sm font-medium tracking-wide">Data Analyst</span>}
+                            </Link>
+                        </>
                     )}
 
                     {/* Logout Button */}
@@ -150,7 +163,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <div className="p-4 border-t border-[#333]">
                     {!collapsed && (
                         <div className="text-xs text-gray-600 font-mono">
-                            v2.5.27-GOLD (Intelligence) - LIVE
+                            v2.6.0-GOLD (Analyst) - LIVE
                             <br />
                             CONN: <span className="text-[#00FF94]">POSTGRES-20Hr</span>
                         </div>

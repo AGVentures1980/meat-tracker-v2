@@ -1222,3 +1222,10 @@ Error: listen EADDRINUSE: address already in use :::3001
     at app.listen (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/application.js:635:24)
     at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts:164:9
 [ERROR] 23:46:05 Error: listen EADDRINUSE: address already in use :::3001
+[INFO] 23:53:01 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.5.27-GOLD running on http://localhost:3001
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE

@@ -14,6 +14,7 @@ import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
 import WastePage from './pages/WastePage';
 import { Landing } from './pages/Landing';
 import { DeliveryPage } from './pages/DeliveryPage';
+import { ExecutiveAnalyst } from './pages/ExecutiveAnalyst';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -55,6 +56,7 @@ function AppContent() {
                     <Route path="/delivery" element={<DeliveryPage />} />
                     <Route path="/waste" element={<WastePage />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
+                    <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                 </Route>
 
                 {/* Catch all redirect to login */}
