@@ -118,7 +118,17 @@ export class DeliveryController {
      * POST /api/v1/delivery/process-ticket
      */
     static async processTicket(req: Request, res: Response) {
+        const requestId = Math.random().toString(36).substring(7);
+        console.log(`[OCR DEBUG ${requestId}] Starting ticket processing...`);
+
         try {
+            // Log file info if available
+            if (req.file) {
+                console.log(`[OCR DEBUG ${requestId}] File received: ${req.file.originalname} (${req.file.size} bytes)`);
+            } else {
+                console.warn(`[OCR DEBUG ${requestId}] NO FILE RECEIVED in request`);
+            }
+
             // Mocking OCR "Detection" based on Alex's real ticket image
             // Ticket shows: 2 x Picanha ($29.58) -> 1 x 1/2 lb ($14.79)
             const scannedItems = [
@@ -130,7 +140,7 @@ export class DeliveryController {
                 "Picanha": 1.0 // 2 * 0.5 lbs
             };
 
-            return res.json({
+            const responsePayload = {
                 success: true,
                 message: "Ticket parsed successfully (Picanha 1/2 lb detected)",
                 metrics: {
@@ -142,9 +152,17 @@ export class DeliveryController {
                     lbs
                 })),
                 items: scannedItems
+            };
+
+            console.log(`[OCR DEBUG ${requestId}] Processing complete. Returning success.`);
+            return res.json(responsePayload);
+        } catch (error: any) {
+            console.error(`[OCR DEBUG ${requestId}] CRITICAL ERROR:`, error);
+            return res.status(500).json({
+                success: false,
+                error: 'OCR internal failure',
+                details: error.message
             });
-        } catch (error) {
-            return res.status(500).json({ error: 'OCR failed' });
         }
     }
 }

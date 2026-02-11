@@ -8,11 +8,12 @@ export const DeliveryPage = () => {
     const [syncStats, setSyncStats] = useState<any>(null);
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState<any>(null);
-
     const [timeRange, setTimeRange] = useState<'W' | 'M' | 'Q' | 'Y'>('W');
+    const [pageError, setPageError] = useState<string | null>(null);
 
     const handleOloSync = async () => {
         setIsSyncing(true);
+        setPageError(null);
         try {
             const response = await fetch('/api/v1/delivery/sync-olo', {
                 method: 'POST',
@@ -22,6 +23,10 @@ export const DeliveryPage = () => {
                 },
                 body: JSON.stringify({ storeId: 1, date: new Date().toISOString() })
             });
+
+            if (!response.ok) {
+                throw new Error(`Sync Error: ${response.status} ${response.statusText}`);
+            }
 
             const result = await response.json();
             if (result.success) {
@@ -33,7 +38,8 @@ export const DeliveryPage = () => {
                     status: 'success'
                 });
             }
-        } catch (error) {
+        } catch (error: any) {
+            setPageError(error.message);
             console.error('Sync failed', error);
         } finally {
             setIsSyncing(false);
@@ -45,6 +51,7 @@ export const DeliveryPage = () => {
         if (!file) return;
 
         setIsScanning(true);
+        setPageError(null);
         const formData = new FormData();
         formData.append('ticket', file);
 
@@ -58,11 +65,21 @@ export const DeliveryPage = () => {
                 body: formData
             });
 
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Upload failed (${response.status})`);
+            }
+
             const result = await response.json();
+            console.log('Scan result received:', result);
+
             if (result.success) {
                 setScanResult(result);
+            } else {
+                setPageError(result.error || 'Unknown error');
             }
-        } catch (error) {
+        } catch (error: any) {
+            setPageError(error.message);
             console.error('Scan failed', error);
         } finally {
             setIsScanning(false);
@@ -79,6 +96,12 @@ export const DeliveryPage = () => {
                     </h1>
                     <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">{t('delivery_subtitle')}</p>
                 </div>
+
+                {pageError && (
+                    <div className="flex-1 mx-8 bg-red-500/10 border border-red-500/50 p-3 rounded-sm flex items-center gap-3 animate-in slide-in-from-top-2">
+                        <span className="text-red-500 text-xs font-bold uppercase font-mono">System Error: {pageError}</span>
+                    </div>
+                )}
 
                 <div className="flex bg-[#1a1a1a] p-1 rounded-sm border border-[#333]">
                     {['W', 'M', 'Q', 'Y'].map((range) => (
