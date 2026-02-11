@@ -82,8 +82,8 @@ export class WasteController {
             let canInputDinner = !compliance.is_locked;
             let statusMessage = "Open for Entry";
 
-            const centralNow = this.getCentralDateTime(today);
-            const currentWindow = this.getShiftWindow(centralNow);
+            const centralNow = WasteController.getCentralDateTime(today);
+            const currentWindow = WasteController.getShiftWindow(centralNow);
 
             if (compliance.is_locked) {
                 canInputLunch = false;
@@ -203,7 +203,7 @@ export class WasteController {
             if ((userRole === 'admin' || userRole === 'director') && store_id) {
                 userStoreId = parseInt(store_id);
             }
-            const centralNow = this.getCentralDateTime(new Date());
+            const centralNow = WasteController.getCentralDateTime(new Date());
             const logDate = new Date(date || centralNow.toISOString().split('T')[0]);
 
             // 1. Validate The Garcia Rule (Server Side Enforcement)
@@ -232,7 +232,7 @@ export class WasteController {
 
             // 3. Update Compliance Counters
             // Find current week compliance
-            const centralDate = this.getCentralDateTime(new Date());
+            const centralDate = WasteController.getCentralDateTime(new Date());
             const startOfWeek = new Date(centralDate);
             const day = startOfWeek.getDay() || 7;
             if (day !== 1) startOfWeek.setDate(startOfWeek.getDate() - (day - 1));

@@ -156,7 +156,7 @@ export const Login = () => {
 
                     <div className="flex items-center justify-between pt-2">
                         <div className="mt-8 text-center">
-                            <p className="text-[#C5A059]/40 text-[10px] font-mono uppercase tracking-[0.2em]">v2.5.11 System Engine</p>
+                            <p className="text-[#C5A059]/40 text-[10px] font-mono uppercase tracking-[0.2em]">v2.5.15-final System Engine</p>
                         </div>
                         <button
                             type="button"
