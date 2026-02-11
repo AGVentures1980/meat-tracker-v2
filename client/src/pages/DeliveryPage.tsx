@@ -12,6 +12,23 @@ export const DeliveryPage = () => {
     const [scanResult, setScanResult] = useState<any>(null);
     const [timeRange, setTimeRange] = useState<'W' | 'M' | 'Q' | 'Y'>('W');
     const [pageError, setPageError] = useState<string | null>(null);
+    const [history, setHistory] = useState<any[]>([]);
+
+    const fetchHistory = async () => {
+        try {
+            const response = await fetch('/api/v1/delivery/history', {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            const data = await response.json();
+            if (data.success) setHistory(data.history);
+        } catch (error) {
+            console.error('Failed to fetch history', error);
+        }
+    };
+
+    useState(() => {
+        fetchHistory();
+    });
 
     const handleOloSync = async () => {
         setIsSyncing(true);
@@ -39,6 +56,7 @@ export const DeliveryPage = () => {
                     calculatedAt: new Date().toLocaleTimeString(),
                     status: 'success'
                 });
+                fetchHistory(); // Refresh BI
             }
         } catch (error: any) {
             setPageError(error.message);
@@ -72,10 +90,9 @@ export const DeliveryPage = () => {
             }
 
             const result = await response.json();
-            console.log('Scan result received:', result);
-
             if (result.success) {
                 setScanResult(result);
+                fetchHistory(); // Refresh BI
             } else {
                 setPageError(result.error || 'Unknown error');
             }
@@ -120,7 +137,7 @@ export const DeliveryPage = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* OLO Sync Card */}
                 <div className="bg-[#1a1a1a] border border-[#333] rounded-sm p-6 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -146,30 +163,6 @@ export const DeliveryPage = () => {
                                 <div className="bg-[#121212] p-4 border border-[#333] rounded-sm">
                                     <p className="text-[10px] text-gray-500 uppercase font-mono mb-1">Calculated Guests</p>
                                     <p className="text-2xl font-bold text-[#00FF94]">{syncStats.guests}</p>
-                                </div>
-                            </div>
-
-                            {/* Protein Breakdown Table */}
-                            <div className="bg-[#121212] border border-[#333] rounded-sm p-4 mb-6">
-                                <h4 className="text-[10px] uppercase text-gray-500 font-bold mb-3 tracking-widest flex justify-between">
-                                    Protein Distribution
-                                    <span className="text-brand-gold">ACTUAL LBS</span>
-                                </h4>
-                                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                                    {syncStats.proteins?.map((p: any, i: number) => (
-                                        <div key={i} className="flex flex-col gap-1">
-                                            <div className="flex justify-between text-[11px]">
-                                                <span className="text-gray-300">{p.protein}</span>
-                                                <span className="text-white font-mono">{p.lbs} LB</span>
-                                            </div>
-                                            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-brand-gold"
-                                                    style={{ width: `${(p.lbs / syncStats.meatLbs) * 100}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -205,7 +198,7 @@ export const DeliveryPage = () => {
 
                     {scanResult ? (
                         <div className="mb-6 animate-in fade-in duration-500">
-                            <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-[#121212] p-3 border border-brand-gold/30 rounded-sm">
                                     <p className="text-[9px] text-gray-500 uppercase font-mono mb-1">Total Lbs Scan</p>
                                     <p className="text-xl font-bold text-white">{scanResult.metrics.totalLbs}</p>
@@ -214,31 +207,6 @@ export const DeliveryPage = () => {
                                     <p className="text-[9px] text-gray-500 uppercase font-mono mb-1">Calculated Guests</p>
                                     <p className="text-xl font-bold text-brand-gold">{scanResult.metrics.calculatedGuests}</p>
                                 </div>
-                            </div>
-
-                            {/* OCR breakdown */}
-                            <div className="bg-[#121212] border border-[#333] rounded-sm p-3 mb-4">
-                                <p className="text-[10px] text-gray-500 uppercase font-bold mb-3 flex justify-between">
-                                    Protein Identification
-                                    <span className="text-brand-gold">ORDER: {scanResult.items[0]?.id.slice(-5)}</span>
-                                </p>
-                                {scanResult.proteinBreakdown?.map((p: any, i: number) => (
-                                    <div key={i} className="flex flex-col gap-2 mb-3 last:mb-0">
-                                        <div className="flex justify-between text-[11px]">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-brand-gold shadow-[0_0_8px_rgba(223,178,89,0.5)]" />
-                                                <span className="text-gray-200 font-bold">{p.protein}</span>
-                                            </div>
-                                            <span className="text-white font-mono">{p.lbs} LB</span>
-                                        </div>
-                                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-brand-gold transition-all duration-1000"
-                                                style={{ width: `${(p.lbs / scanResult.metrics.totalLbs) * 100}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
                             </div>
                         </div>
                     ) : (
@@ -268,37 +236,79 @@ export const DeliveryPage = () => {
                     ) : (
                         <div className="mt-6 p-4 border border-[#333] rounded-sm bg-[#151515]">
                             <h4 className="text-[10px] uppercase text-gray-500 font-bold mb-3 tracking-widest">Identification Engine</h4>
-                            <p className="text-[11px] text-gray-400 mb-2 italic">Standard decomposition active for mixed packs:</p>
-                            <div className="space-y-1">
-                                <div className="flex justify-between text-[10px]">
-                                    <span className="text-gray-500 tracking-tighter italic">Picanha / Flank / Chicken / Sausage Mapping...</span>
-                                </div>
-                            </div>
+                            <p className="text-[11px] text-gray-400 mb-2 italic">Standard decomposition active for mixed packs</p>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Compliance Sidebar Mockup */}
-            <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-[#00FF94]/10 rounded-full">
-                        <CheckCircle2 className="w-6 h-6 text-[#00FF94]" />
-                    </div>
+            {/* PERSISTENT BI HISTORY SECTION */}
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-sm p-6 overflow-hidden">
+                <div className="flex justify-between items-center mb-6">
                     <div>
-                        <p className="text-sm font-bold text-white">Protein Intelligence Active</p>
-                        <p className="text-[10px] text-gray-500 font-mono uppercase italic">Identifying specific meat types from mixed orders...</p>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-[#00FF94]" />
+                            Delivery Protein Intelligence (BI)
+                        </h3>
+                        <p className="text-xs text-gray-500 font-mono uppercase italic">Historical consumption volume from OLO & OCR</p>
                     </div>
                 </div>
-                <div className="flex gap-4">
-                    <div className="text-right">
-                        <p className="text-[10px] text-gray-500 uppercase font-mono">Sync Accuracy</p>
-                        <p className="text-sm font-bold text-[#00FF94]">99.2%</p>
+
+                {history.length > 0 ? (
+                    <div className="space-y-6">
+                        <div className="h-48 w-full bg-[#121212] border border-[#333] rounded-sm relative p-4 flex items-end gap-2">
+                            {/* Simple Visual Bar Chart representing History */}
+                            {history.slice(-14).map((h, i) => (
+                                <div key={i} className="flex-1 flex flex-col items-center group/bar cursor-help">
+                                    <div
+                                        className="w-full bg-brand-gold/20 border-t border-brand-gold group-hover/bar:bg-brand-gold/40 transition-all"
+                                        style={{ height: `${(h.total_lbs / Math.max(...history.map(x => x.total_lbs))) * 100}%` }}
+                                    ></div>
+                                    <p className="text-[8px] text-gray-600 mt-2 font-mono">
+                                        {new Date(h.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}
+                                    </p>
+                                    <div className="absolute opacity-0 group-hover/bar:opacity-100 bottom-full mb-2 bg-brand-gold text-black text-[10px] font-bold p-1 rounded-sm whitespace-nowrap pointer-events-none">
+                                        {h.source}: {h.total_lbs} LBS
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-[#121212] p-3 border border-[#333] rounded-sm">
+                                <p className="text-[9px] text-gray-500 uppercase font-bold mb-1">Cycle Total (Lbs)</p>
+                                <p className="text-xl font-serif text-white">{history.reduce((acc, curr) => acc + curr.total_lbs, 0).toFixed(1)} LB</p>
+                            </div>
+                            <div className="bg-[#121212] p-3 border border-[#333] rounded-sm">
+                                <p className="text-[9px] text-gray-500 uppercase font-bold mb-1">Active Database Entries</p>
+                                <p className="text-xl font-serif text-brand-gold">{history.length}</p>
+                            </div>
+                            <div className="bg-[#121212] p-3 border border-[#333] rounded-sm">
+                                <p className="text-[9px] text-gray-500 uppercase font-bold mb-1">Latest Order Source</p>
+                                <p className="text-xl font-serif text-[#00FF94]">{history[history.length - 1]?.source || 'None'}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="text-right">
-                        <p className="text-[10px] text-gray-500 uppercase font-mono">Active Target</p>
-                        <p className="text-sm font-bold text-white">0.5 LB/2G</p>
+                ) : (
+                    <div className="h-48 border border-dashed border-[#333] rounded-sm flex items-center justify-center bg-[#121212]">
+                        <p className="text-xs text-gray-600 font-mono uppercase italic animate-pulse">No Historical Data Found. Sync APIs to begin persistence.</p>
                     </div>
+                )}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-8 flex gap-6 px-2">
+                <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase font-mono">
+                    <div className="w-2 h-2 bg-brand-gold"></div>
+                    Verified Consumption
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase font-mono">
+                    <div className="w-2 h-2 bg-blue-500"></div>
+                    OLO Integration
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase font-mono">
+                    <div className="w-2 h-2 bg-[#FF2A6D]"></div>
+                    OCR Scan ID
                 </div>
             </div>
         </div>

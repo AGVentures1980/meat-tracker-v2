@@ -35,6 +35,7 @@ model Store {
   uploads           Upload[]
   users             User[]
   waste_compliance  WasteCompliance[]
+  delivery_sales    DeliverySale[]
   waste_logs        WasteLog[]
 
   @@unique([company_id, store_name])
@@ -204,6 +205,21 @@ model PrepLog {
   @@unique([store_id, date])
 }
 
+model DeliverySale {
+  id                String   @id @default(uuid())
+  store_id          Int
+  date              DateTime @default(now())
+  source            OrderSource
+  order_external_id String?
+  total_lbs         Float
+  guests            Int
+  protein_breakdown Json
+  created_at        DateTime @default(now())
+  store             Store    @relation(fields: [store_id], references: [id])
+
+  @@index([store_id, date])
+}
+
 enum Role {
   admin
   manager
@@ -216,6 +232,7 @@ enum OrderSource {
   UberEats
   DoorDash
   Manual
+  OCR
 }
 
 enum FileType {
