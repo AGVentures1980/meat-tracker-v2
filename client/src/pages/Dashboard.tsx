@@ -5,6 +5,7 @@ import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
 import { PerformanceChart } from '../components/dashboard/PerformanceChart';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 // --- Types ---
 interface StorePerformance {
@@ -35,6 +36,7 @@ export const Dashboard = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'charts'>('grid');
 
     const { user } = useAuth();
+    const { t } = useLanguage();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -105,10 +107,10 @@ export const Dashboard = () => {
                     <div>
                         <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
                             <Brain className="text-[#C5A059] w-8 h-8" />
-                            Meat Intelligence
-                            <span className="bg-[#FF2A6D]/10 text-[#FF2A6D] text-xs px-2 py-1 rounded-none border border-[#FF2A6D]/30 uppercase tracking-widest font-mono">v2.5.28 Predictive</span>
+                            {t('analyst_title')}
+                            <span className="bg-[#FF2A6D]/10 text-[#FF2A6D] text-xs px-2 py-1 rounded-none border border-[#FF2A6D]/30 uppercase tracking-widest font-mono">{t('system_version')} Predictive</span>
                         </h1>
-                        <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">Network Performance Monitoring • 2026 Q1</p>
+                        <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">{t('analyst_subtitle')}</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -117,7 +119,7 @@ export const Dashboard = () => {
                                 onClick={() => setViewMode('grid')}
                                 className={`px-3 py-1.5 text-xs font-bold rounded-xs transition-all flex items-center gap-2 ${viewMode === 'grid' ? 'text-white bg-[#333] shadow-lg' : 'text-gray-500 hover:text-white'}`}
                             >
-                                <LayoutGrid size={14} /> Grid
+                                <LayoutGrid size={14} /> {t('appearance')}
                             </button>
                             <button
                                 onClick={() => setViewMode('charts')}
@@ -130,7 +132,7 @@ export const Dashboard = () => {
                             onClick={handleExport}
                             className="bg-[#C5A059] hover:bg-[#D5B069] text-black px-4 py-2 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 rounded-sm active:scale-95 shadow-[0_0_20px_rgba(197,160,89,0.2)]"
                         >
-                            <DownloadCloud size={16} /> Export Data
+                            <DownloadCloud size={16} /> {t('report_export_csv')}
                         </button>
                     </div>
                 </div>
@@ -148,7 +150,7 @@ export const Dashboard = () => {
                         </div>
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                             <AlertTriangle className="text-[#FF2A6D] w-5 h-5" />
-                            Anomaly Detection (15% Variance)
+                            {t('analyst_critical_anomalies')} (15% Variance)
                         </h3>
                         {anomalies.length > 0 ? (
                             <div className="space-y-4">
@@ -179,7 +181,7 @@ export const Dashboard = () => {
                         </div>
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                             <ShoppingBag className="text-[#00FF94] w-5 h-5" />
-                            Procurement Intelligence (Supply Chain)
+                            {t('price_ocr_title')} (Supply Chain)
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             {suggestions.slice(0, 4).map((s, i) => (
@@ -195,8 +197,11 @@ export const Dashboard = () => {
                                 </div>
                             ))}
                         </div>
-                        <button className="w-full mt-6 bg-[#333] hover:bg-[#444] text-white py-2 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
-                            Generate Full Order Sheet <ArrowRight size={12} />
+                        <button
+                            onClick={(e) => { e.stopPropagation(); navigate('/projections'); }}
+                            className="w-full mt-6 bg-[#C5A059] hover:bg-[#D5B069] text-black py-2 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all relative z-20 shadow-lg"
+                        >
+                            {t('procurement_intel_btn')} <ArrowRight size={12} />
                         </button>
                     </div>
                 </div>
@@ -206,23 +211,23 @@ export const Dashboard = () => {
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-sm overflow-hidden shadow-2xl">
                         <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#222]">
                             <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
-                                Performance by Location
+                                {t('executive_overview')}
                             </h3>
                             <div className="flex items-center gap-4 text-[10px] text-gray-500 font-mono">
-                                <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#00FF94]"></span> Under Meta</span>
-                                <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#FF2A6D]"></span> Acima Meta</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#00FF94]"></span> {t('analyst_verified_logic')}</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#FF2A6D]"></span> {t('analyst_requires_action')}</span>
                             </div>
                         </div>
 
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
-                                    <th className="p-4 font-normal">Store Location</th>
-                                    <th className="p-4 font-normal text-right">Guests</th>
+                                    <th className="p-4 font-normal">{t('proj_col_store')}</th>
+                                    <th className="p-4 font-normal text-right">{t('projected_guests')}</th>
                                     <th className="p-4 font-normal text-right">Lbs/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
                                     <th className="p-4 font-normal text-right">$/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
-                                    <th className="p-4 font-normal text-right">Var $/Guest</th>
-                                    <th className="p-4 font-normal text-right">Fin. Impact</th>
+                                    <th className="p-4 font-normal text-right">{t('price_weekly_drift')} $/Guest</th>
+                                    <th className="p-4 font-normal text-right">{t('price_cost_impact')}</th>
                                     <th className="p-4 font-normal text-center">Status</th>
                                 </tr>
                             </thead>

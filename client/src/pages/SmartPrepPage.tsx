@@ -96,7 +96,7 @@ export const SmartPrepPage = () => {
     const handleLock = async () => {
         if (!prepData || !user?.token || prepData.is_locked) return;
 
-        if (!window.confirm("Are you sure you want to finalize this plan? This will lock adjustments for today and send the data to the Director.")) {
+        if (!window.confirm(t('confirm_finalize'))) {
             return;
         }
 
@@ -292,8 +292,8 @@ export const SmartPrepPage = () => {
                     )}
 
                     <div>
-                        <div className="text-sm text-gray-400">Target</div>
-                        <div className="text-xl font-bold text-[#00FF94] font-mono">{prepData?.target_lbs_guest || '1.76'} <span className="text-xs text-gray-500">LBS/G/P</span></div>
+                        <div className="text-sm text-gray-400">{t('label_target')}</div>
+                        <div className="text-xl font-bold text-[#00FF94] font-mono">{prepData?.target_lbs_guest || '1.76'} <span className="text-xs text-gray-500">{t('unit_lbs')}/G/P</span></div>
                     </div>
                 </div>
             </div>
@@ -330,7 +330,7 @@ export const SmartPrepPage = () => {
                         <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">{t('total_meat_needed')}</h3>
                         <div className="text-3xl font-bold text-white flex items-center justify-center gap-2">
                             <Scale className="w-5 h-5 text-gray-500" />
-                            {prepData ? Math.round(prepData.forecast_guests * prepData.target_lbs_guest) : 0} <span className="text-sm text-gray-500">LBS</span>
+                            {prepData ? Math.round(prepData.forecast_guests * prepData.target_lbs_guest) : 0} <span className="text-sm text-gray-500">{t('unit_lbs')}</span>
                         </div>
                     </div>
                 </div>
@@ -355,7 +355,7 @@ export const SmartPrepPage = () => {
                                 </div>
                                 <div className="flex justify-between items-center text-xs text-gray-400">
                                     <span>{t('prep_total_weight')}</span>
-                                    <span className="font-mono">{item.recommended_lbs} lbs</span>
+                                    <span className="font-mono">{item.recommended_lbs} {t('unit_lbs').toLowerCase()}</span>
                                 </div>
                             </div>
                         </div>

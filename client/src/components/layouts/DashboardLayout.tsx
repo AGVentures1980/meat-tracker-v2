@@ -163,9 +163,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <div className="p-4 border-t border-[#333]">
                     {!collapsed && (
                         <div className="text-xs text-gray-600 font-mono">
-                            v2.6.2-NEGOTIATOR - LIVE
+                            {t('system_version')} - {t('system_live')}
                             <br />
-                            CONN: <span className="text-[#00FF94]">POSTGRES-20Hr</span>
+                            {t('conn_label')}: <span className="text-[#00FF94]">POSTGRES-20Hr</span>
                         </div>
                     )}
                 </div>
@@ -228,7 +228,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 <div className="divide-y divide-[#333]">
                                     {alerts.length === 0 ? (
                                         <div className="p-4 text-center text-xs text-gray-500 italic">
-                                            All systems operational.
+                                            {t('all_systems_op')}
                                         </div>
                                     ) : (
                                         alerts.map(alert => (
@@ -252,7 +252,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     )}
                                 </div>
                                 <div className="p-2 bg-[#151515] border-t border-[#333] text-center">
-                                    <button className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider">View All Logs</button>
+                                    <button onClick={() => navigate('/reports')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider">{t('view_all_logs')}</button>
                                 </div>
                             </div>
                         )}
@@ -268,14 +268,20 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             {showProfileMenu && (
                                 <div className="absolute top-10 right-0 w-48 bg-[#1a1a1a] border border-[#333] shadow-2xl z-[60] rounded-sm py-1 animate-in fade-in slide-in-from-top-2">
                                     <div className="px-4 py-2 border-b border-[#333]">
-                                        <p className="text-xs text-gray-500 font-mono underline uppercase tracking-tighter">Current User</p>
+                                        <p className="text-xs text-gray-500 font-mono underline uppercase tracking-tighter">{t('profile_current_user')}</p>
                                         <p className="text-[11px] text-white font-bold truncate">{user?.email}</p>
                                         <p className="text-[10px] text-[#C5A059] font-mono uppercase">{user?.role}</p>
                                     </div>
-                                    <button className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2">
+                                    <button
+                                        onClick={() => { navigate('/settings'); setShowProfileMenu(false); }}
+                                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2"
+                                    >
                                         <Users className="w-3 h-3" /> {t('profile_settings')}
                                     </button>
-                                    <button className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2">
+                                    <button
+                                        onClick={() => { navigate('/reports'); setShowProfileMenu(false); }}
+                                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2"
+                                    >
                                         <StickyNote className="w-3 h-3" /> {t('security_logs')}
                                     </button>
                                     <div className="border-t border-[#333] mt-1 pt-1">
@@ -283,7 +289,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                             onClick={logout}
                                             className="w-full text-left px-4 py-2 text-xs text-[#FF2A6D] hover:bg-[#FF2A6D]/10 flex items-center gap-2"
                                         >
-                                            <LogOut className="w-3 h-3" /> Log Out System
+                                            <LogOut className="w-3 h-3" /> {t('profile_logout_system')}
                                         </button>
                                     </div>
                                 </div>

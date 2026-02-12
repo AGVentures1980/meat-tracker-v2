@@ -35,6 +35,8 @@ if [ ! -z "$DOCKER_CMD" ]; then
     echo "📊 Monitoring logs: $DOCKER_CMD logs -f"
 else
     echo "⚠️ WARNING: Docker not found. Falling back to NODE.JS mode..."
+    echo "🏗️ Cleaning previous builds..."
+    rm -rf client/dist server/dist
     echo "🏗️ Building project..."
     cd server && npx prisma generate && cd ..
     npm run build
