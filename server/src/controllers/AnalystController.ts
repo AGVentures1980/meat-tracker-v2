@@ -46,11 +46,11 @@ export class AnalystController {
             if (topSpenders.length > 0) {
                 problems.push({
                     id: 'FIN_DRAG',
-                    title: 'High Financial Drag detected in Prime Locations',
+                    title: 'prob_fin_drag_title',
                     severity: 'Critical',
                     locations: topSpenders.map(s => s.name),
-                    description: `These locations are exceeding $/Guest targets by a significant margin, contributing to a total loss of $${topSpenders.reduce((acc, s) => acc + s.impactYTD, 0).toLocaleString()} in this period.`,
-                    solution: 'Direct intervention required. Audit Purchase Invoices (OCR) for price discrepancies versus group contract. Synchronize with Procurement to lock weighted average prices.'
+                    description: 'prob_fin_drag_desc',
+                    solution: 'prob_fin_drag_sol'
                 });
             }
 
@@ -59,25 +59,25 @@ export class AnalystController {
             if (consumptionOutliers.length > 0) {
                 problems.push({
                     id: 'CONS_ANOMALY',
-                    title: 'Systemic Consumption Overages',
+                    title: 'prob_cons_anomaly_title',
                     severity: 'High',
                     locations: consumptionOutliers.map(s => s.name),
-                    description: 'Consumption (Lbs/Guest) is > 20% above the group ideal standard. This suggests potential prep over-production or inventory shrinkage.',
-                    solution: 'Activate "Waste Log Lockdown" for these stores. Enforce the Garcia Rule (Alternating Item Rule) strictly for 14 days and compare with Smart Prep forecasts.'
+                    description: 'prob_cons_anomaly_desc',
+                    solution: 'prob_cons_anomaly_sol'
                 });
             }
 
             // 3. Strategic Recommendations
             const recommendations = [
                 {
-                    area: 'Negotiation Power',
-                    action: 'Leverage total network volume to renegotiate Picanha prices. Current volume indicates a 12% increase in bargaining power.',
-                    impact: 'Estimated $45k/month savings.'
+                    area: 'rec_area_neg_power',
+                    action: 'rec_action_neg_power',
+                    impact: 'rec_impact_neg_power'
                 },
                 {
-                    area: 'Operational Efficiency',
-                    action: 'Deploy "Smart Prep v2" to top 5 red flag stores to automate thawing schedules.',
-                    impact: 'Reduction of 0.15 lbs/guest in waste.'
+                    area: 'rec_area_op_eff',
+                    action: 'rec_action_op_eff',
+                    impact: 'rec_impact_op_eff'
                 }
             ];
 

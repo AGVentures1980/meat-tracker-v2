@@ -145,7 +145,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     } `}
                             >
                                 <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
-                                {!collapsed && <span className="text-sm font-medium tracking-wide">Data Analyst</span>}
+                                {!collapsed && <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>}
                             </Link>
                         </>
                     )}
@@ -156,14 +156,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         className="w-full flex items-center gap-3 p-3 rounded transition-colors text-gray-400 hover:bg-[#FF2A6D]/10 hover:text-[#FF2A6D] mt-2"
                     >
                         <LogOut className="w-5 h-5 min-w-[20px]" />
-                        {!collapsed && <span className="text-sm font-medium tracking-wide">Log Out</span>}
+                        {!collapsed && <span className="text-sm font-medium tracking-wide">{t('logout')}</span>}
                     </button>
                 </nav>
 
                 <div className="p-4 border-t border-[#333]">
                     {!collapsed && (
                         <div className="text-xs text-gray-600 font-mono">
-                            v2.6.0-GOLD (Analyst) - LIVE
+                            v2.6.2-NEGOTIATOR - LIVE
                             <br />
                             CONN: <span className="text-[#00FF94]">POSTGRES-20Hr</span>
                         </div>
@@ -178,7 +178,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     <div className="flex items-center gap-6 overflow-hidden text-xs font-mono">
                         <div className="flex items-center gap-2 text-gray-400">
                             <span className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse"></span>
-                            SYSTEM ONLINE
+                            {t('system_online')}
                         </div>
                         {/* Ticker */}
                         <div className="hidden md:flex items-center space-x-6 ml-4">
@@ -210,7 +210,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         >
                             <AlertTriangle className={`w-3 h-3 ${alerts.length > 0 ? 'text-[#FF9F1C]' : 'text-gray-500'} `} />
                             <span className={`text-xs font-mono ${alerts.length > 0 ? 'text-[#FF9F1C] blinking' : 'text-gray-500'} `}>
-                                {alerts.length} ALERTS
+                                {alerts.length} {t('alerts')}
                             </span>
                         </button>
 
@@ -273,10 +273,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                         <p className="text-[10px] text-[#C5A059] font-mono uppercase">{user?.role}</p>
                                     </div>
                                     <button className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2">
-                                        <Users className="w-3 h-3" /> Profile Settings
+                                        <Users className="w-3 h-3" /> {t('profile_settings')}
                                     </button>
                                     <button className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2">
-                                        <StickyNote className="w-3 h-3" /> Security Logs
+                                        <StickyNote className="w-3 h-3" /> {t('security_logs')}
                                     </button>
                                     <div className="border-t border-[#333] mt-1 pt-1">
                                         <button

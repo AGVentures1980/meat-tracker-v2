@@ -4,6 +4,8 @@ import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw, Ship } from 'lucid
 import { useAuth } from '../context/AuthContext';
 import { ProposalPreview } from '../components/ProposalPreview';
 
+import { useLanguage } from '../context/LanguageContext';
+
 // --- Types ---
 interface StoreProjectionData {
     id: number;
@@ -55,6 +57,7 @@ const MEAT_STANDARDS: Record<string, number> = {
 
 export const ProjectionsDashboard = () => {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const [growthRate, setGrowthRate] = useState<number>(5.0); // 5% default
     const [storeData, setStoreData] = useState<StoreProjectionData[]>([]);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -148,7 +151,7 @@ export const ProjectionsDashboard = () => {
             setPublishError('');
             // Here we would call an API to persist targets
         } else {
-            setPublishError('Invalid Executive Password');
+            setPublishError(t('exec_invalid_password'));
         }
     };
 
@@ -174,10 +177,10 @@ export const ProjectionsDashboard = () => {
                 <div>
                     <h1 className="text-3xl font-mono font-bold text-white tracking-tight flex items-center">
                         <Calculator className="w-8 h-8 mr-3 text-brand-gold" />
-                        ANNUAL PROJECTIONS & NEGOTIATION
+                        {t('proj_title')}
                     </h1>
                     <p className="text-gray-500 font-mono text-sm mt-1">
-                        FY 2027 STRATEGIC PLANNING • VOLUME & REVENUE FORECAST
+                        {t('proj_subtitle')}
                     </p>
                 </div>
 
@@ -191,14 +194,14 @@ export const ProjectionsDashboard = () => {
                             }`}
                     >
                         <Lock className="w-4 h-4 mr-2" />
-                        {isPublished ? 'Targets Published' : 'Publish Corporate Targets'}
+                        {isPublished ? t('proj_targets_published') : t('proj_publish_corporate')}
                     </button>
                     <button
                         onClick={() => setShowProposal(true)}
                         className="bg-[#222] border border-[#333] text-brand-gold font-bold py-2 px-6 rounded-sm flex items-center hover:bg-[#333] transition-all uppercase text-sm tracking-wide font-mono"
                     >
                         <Ship className="w-4 h-4 mr-2" />
-                        Generate Vendor Proposal
+                        {t('proj_gen_proposal')}
                     </button>
                 </div>
             </div>
@@ -207,11 +210,11 @@ export const ProjectionsDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* 1. projected Growth Input */}
                 <div className="bg-[#1a1a1a] border border-[#333] p-6 rounded-sm">
-                    <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-4 font-mono">Growth Assumption</h3>
+                    <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-4 font-mono">{t('proj_growth_assumption')}</h3>
                     <div className="flex items-center">
                         <TrendingUp className="w-8 h-8 text-[#00FF94] mr-4" />
                         <div className="flex-1">
-                            <label className="text-xs text-gray-400 block mb-1">Year-over-Year Growth</label>
+                            <label className="text-xs text-gray-400 block mb-1">{t('proj_yoy_growth')}</label>
                             <input
                                 type="number"
                                 value={growthRate}
@@ -231,13 +234,13 @@ export const ProjectionsDashboard = () => {
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <RefreshCw className="w-4 h-4 text-brand-gold" />
                     </div>
-                    <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-2 font-mono">Negotiation Power (Vol)</h3>
+                    <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-2 font-mono">{t('proj_neg_power_vol')}</h3>
                     <div className="text-4xl font-bold text-white font-mono mb-1 group-hover:text-brand-gold transition-colors">
                         {fmtNum(totalVolume)} <span className="text-lg text-gray-500">LBS</span>
                     </div>
                     <div className="text-xs text-gray-400 flex justify-between items-center">
-                        <span>Projected Annual Meat Requirement</span>
-                        <span className="text-brand-gold font-bold text-[10px] animate-pulse">VIEW BREAKDOWN →</span>
+                        <span>{t('proj_annual_meat_req')}</span>
+                        <span className="text-brand-gold font-bold text-[10px] animate-pulse">{t('proj_view_breakdown')}</span>
                     </div>
                 </div>
 
@@ -246,12 +249,12 @@ export const ProjectionsDashboard = () => {
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                         <DollarSign className="w-16 h-16 text-[#00FF94]" />
                     </div>
-                    <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-2 font-mono">Efficiency Opportunity</h3>
+                    <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-2 font-mono">{t('proj_eff_opportunity')}</h3>
                     <div className="text-4xl font-bold text-[#00FF94] font-mono mb-1">
                         {fmtCurrency(totalSavingsObs)}
                     </div>
                     <div className="text-xs text-gray-400">
-                        Potential Savings vs. Status Quo
+                        {t('proj_pot_savings')}
                     </div>
                 </div>
             </div>
@@ -261,10 +264,10 @@ export const ProjectionsDashboard = () => {
                 <div className="p-4 border-b border-[#333] bg-[#222] flex justify-between items-center">
                     <h3 className="text-white font-mono font-bold flex items-center">
                         <RefreshCw className="w-4 h-4 mr-2 text-gray-400" />
-                        STORE-LEVEL FORECASTING
+                        {t('proj_store_forecasting')}
                     </h3>
                     <div className="text-xs text-gray-500 font-mono">
-                        TOTAL PROJECTED REVENUE: <span className="text-white font-bold text-sm ml-1">{fmtCurrency(totalRevenue)}</span>
+                        {t('proj_total_rev')}: <span className="text-white font-bold text-sm ml-1">{fmtCurrency(totalRevenue)}</span>
                     </div>
                 </div>
 
@@ -272,16 +275,16 @@ export const ProjectionsDashboard = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
-                                <th className="p-4 font-normal sticky left-0 bg-[#121212] z-10">Store Location</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">Lunch<br />Guests (LY)</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">Dinner<br />Guests (LY)</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">Lunch<br />Price ($)</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">Dinner<br />Price ($)</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">Target<br />Lbs/Guest</th>
-                                <th className="p-4 font-normal text-right border-l border-[#333]">Proj.<br />Guests</th>
-                                <th className="p-4 font-normal text-right">Proj.<br />Revenue</th>
-                                <th className="p-4 font-normal text-right border-l border-[#333]">Meat Vol<br />(Target)</th>
-                                <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">Savings<br />Opportunity</th>
+                                <th className="p-4 font-normal sticky left-0 bg-[#121212] z-10">{t('proj_col_store')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_lunch_ly')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_dinner_ly')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_lunch_price')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_dinner_price')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">{t('proj_col_target_lbs')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_proj_guests')}</th>
+                                <th className="p-4 font-normal text-right">{t('proj_col_proj_rev')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_meat_vol')}</th>
+                                <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#333] font-mono text-sm">
@@ -342,9 +345,9 @@ export const ProjectionsDashboard = () => {
                         </tbody>
                         <tfoot className="bg-[#222] font-mono font-bold text-white">
                             <tr>
-                                <td className="p-4 sticky left-0 bg-[#222] z-10 border-r border-[#333]">TOTALS</td>
+                                <td className="p-4 sticky left-0 bg-[#222] z-10 border-r border-[#333]">{t('proj_totals')}</td>
                                 <td colSpan={4} className="p-4 text-center text-gray-500 text-xs font-normal uppercase tracking-widest">
-                                    Network Consolidated
+                                    {t('proj_network_cons')}
                                 </td>
                                 <td className="p-4 text-right border-l border-[#333]">
                                     {fmtNum(storeData.reduce((a, b) => a + b.projectedLunchGuests + b.projectedDinnerGuests, 0))}
@@ -372,9 +375,9 @@ export const ProjectionsDashboard = () => {
                             <div>
                                 <h2 className="text-2xl font-mono font-bold text-white flex items-center">
                                     <Calculator className="w-6 h-6 mr-3 text-brand-gold" />
-                                    NEGOTIATION BREAKDOWN
+                                    {t('proj_breakdown_title')}
                                 </h2>
-                                <p className="text-gray-500 text-xs uppercase tracking-widest mt-1 font-mono">Projected Annual Volume by Meat Type</p>
+                                <p className="text-gray-500 text-xs uppercase tracking-widest mt-1 font-mono">{t('proj_breakdown_vol_type')}</p>
                             </div>
                             <button
                                 onClick={() => setIsBreakdownModalOpen(false)}
@@ -387,11 +390,11 @@ export const ProjectionsDashboard = () => {
                         <div className="p-6">
                             <div className="grid grid-cols-2 gap-4 mb-6">
                                 <div className="bg-black/40 border border-[#333] p-4">
-                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Total Proj. Guests</p>
+                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">{t('proj_total_proj_guests')}</p>
                                     <p className="text-2xl font-bold text-white font-mono">{fmtNum(totalGuests)}</p>
                                 </div>
                                 <div className="bg-black/40 border border-[#333] p-4">
-                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Network Volume</p>
+                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">{t('proj_network_vol')}</p>
                                     <p className="text-2xl font-bold text-brand-gold font-mono">{fmtNum(totalVolume)} LBS</p>
                                 </div>
                             </div>
@@ -400,9 +403,9 @@ export const ProjectionsDashboard = () => {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
-                                            <th className="p-4 font-normal">Meat Type</th>
-                                            <th className="p-4 font-normal text-right">Standard (Lbs/Guest)</th>
-                                            <th className="p-4 font-normal text-right text-brand-gold">Proj. Volume (Lbs)</th>
+                                            <th className="p-4 font-normal">{t('proj_meat_type')}</th>
+                                            <th className="p-4 font-normal text-right">{t('proj_standard_lbs')}</th>
+                                            <th className="p-4 font-normal text-right text-brand-gold">{t('proj_col_meat_vol')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[#333] font-mono text-sm">
@@ -424,7 +427,7 @@ export const ProjectionsDashboard = () => {
                                     onClick={() => setIsBreakdownModalOpen(false)}
                                     className="bg-brand-gold hover:bg-yellow-500 text-black font-bold px-8 py-3 font-mono text-sm shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all active:scale-95"
                                 >
-                                    CLOSE BREAKDOWN
+                                    {t('proj_close_breakdown')}
                                 </button>
                             </div>
                         </div>
@@ -438,15 +441,14 @@ export const ProjectionsDashboard = () => {
                     <div className="bg-[#1a1a1a] border border-[#333] p-8 max-w-md w-full rounded-sm relative">
                         <h2 className="text-2xl font-mono font-bold text-white mb-4 flex items-center">
                             <Lock className="w-6 h-6 mr-3 text-red-500" />
-                            EXECUTIVE APPROVAL
+                            {t('exec_approval_title')}
                         </h2>
                         <p className="text-gray-400 text-sm mb-6">
-                            This action will overwrite annual targets for all stores based on the current projection parameters.
-                            This cannot be undone.
+                            {t('exec_approval_desc')}
                         </p>
 
                         <div className="mb-6">
-                            <label className="text-xs text-gray-500 uppercase font-mono mb-2 block">Master Password</label>
+                            <label className="text-xs text-gray-500 uppercase font-mono mb-2 block">{t('exec_master_password')}</label>
                             <input
                                 type="password"
                                 className="w-full bg-black border border-[#333] p-3 text-white font-mono focus:border-red-500 outline-none"
@@ -463,13 +465,13 @@ export const ProjectionsDashboard = () => {
                                 onClick={() => setIsPasswordModalOpen(false)}
                                 className="flex-1 bg-transparent border border-[#333] text-gray-400 py-3 font-mono text-sm hover:text-white hover:border-white transition-colors"
                             >
-                                CANCEL
+                                {t('exec_cancel')}
                             </button>
                             <button
                                 onClick={handlePublish}
                                 className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 font-mono text-sm shadow-[0_0_15px_rgba(220,38,38,0.4)]"
                             >
-                                CONFIRM & PUBLISH
+                                {t('exec_confirm_publish')}
                             </button>
                         </div>
                     </div>
