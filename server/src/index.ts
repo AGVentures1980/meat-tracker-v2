@@ -45,6 +45,7 @@ import purchaseRoutes from './routes/purchase.routes';
 import intelligenceRoutes from './routes/intelligence.routes';
 import analystRoutes from './routes/analyst.routes';
 import negotiationRoutes from './routes/negotiation.routes';
+import reportRoutes from './routes/report.routes';
 
 import path from 'path';
 
@@ -61,6 +62,7 @@ app.use('/api/v1/purchases', requireAuth, purchaseRoutes);
 app.use('/api/v1/intelligence', requireAuth, intelligenceRoutes);
 app.use('/api/v1/analyst', requireAuth, analystRoutes);
 app.use('/api/v1/negotiation', requireAuth, negotiationRoutes);
+app.use('/api/v1/reports', requireAuth, reportRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
@@ -166,7 +168,7 @@ async function ensureDefaultSettings() {
 // Start Server after DB Check
 ensureDirectorUser().then(() => ensureDefaultSettings()).then(() => {
     app.listen(PORT, () => {
-        console.log(`🚀 BRASA INTEL v2.6.2-FINAL-AUDIT running on http://localhost:${PORT}`);
+        console.log(`🚀 BRASA INTEL v2.6.3-REPORTS running on http://localhost:${PORT}`);
         console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
     });
 });

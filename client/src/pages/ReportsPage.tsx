@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { FileText, Calendar, Download, Filter, Printer, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileText, Calendar, Download, Filter, Printer, Activity, Loader2 } from 'lucide-react';
 
 import { useLanguage } from '../context/LanguageContext';
 
@@ -7,32 +7,65 @@ export const ReportsPage = () => {
     const { t } = useLanguage();
     const [selectedReport, setSelectedReport] = useState('full-summary');
     const [dateRange, setDateRange] = useState('this-month');
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
 
-    // Mock Report Data (In real app, fetch from API)
     const reports = [
-        { id: 'full-summary', name: t('report_exec_summary'), description: t('report_exec_summary_desc'), icon: FileText, color: 'text-brand-gold' },
-        { id: 'flash', name: t('report_flash'), description: t('report_flash_desc'), icon: Activity, color: 'text-[#00FF94]' },
-        { id: 'variance', name: t('report_variance'), description: t('report_variance_desc'), icon: Filter, color: 'text-[#FF2A6D]' },
-        { id: 'inventory', name: t('report_inventory'), description: t('report_inventory_desc'), icon: Calendar, color: 'text-blue-400' },
+        { id: 'full-summary', name: t('report_exec_summary'), description: t('report_exec_summary_desc'), icon: FileText, color: 'text-brand-gold', endpoint: '/api/v1/reports/executive-summary' },
+        { id: 'flash', name: t('report_flash'), description: t('report_flash_desc'), icon: Activity, color: 'text-[#00FF94]', endpoint: '/api/v1/reports/flash' },
+        { id: 'variance', name: t('report_variance'), description: t('report_variance_desc'), icon: Filter, color: 'text-[#FF2A6D]', endpoint: '/api/v1/reports/variance' },
+        { id: 'inventory', name: t('report_inventory'), description: t('report_inventory_desc'), icon: Calendar, color: 'text-blue-400', endpoint: '/api/v1/reports/variance' },
     ];
 
-    const handleExport = () => {
-        let csvContent = "data:text/csv;charset=utf-8,";
+    useEffect(() => {
+        const fetchReport = async () => {
+            setLoading(true);
+            try {
+                const report = reports.find(r => r.id === selectedReport);
+                if (!report) return;
 
-        if (selectedReport === 'full-summary') {
-            csvContent += "Metric,Value,Status\n";
-            csvContent += "Total Revenue,$842k,Target met\n";
-            csvContent += "Avg Lbs/Guest,1.82,Warning\n";
-            csvContent += "Waste Impact,-$12.4k,Action Required\n";
-        } else {
-            csvContent += "Date,Location,Value,Unit\n";
-            csvContent += `${new Date().toLocaleDateString()},Miami,450,LBS\n`;
-            csvContent += `${new Date().toLocaleDateString()},Orlando,380,LBS\n`;
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}${report.endpoint}?range=${dateRange}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                setData(result);
+            } catch (error) {
+                console.error('Failed to fetch report:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReport();
+    }, [selectedReport, dateRange]);
+
+    const handleExport = () => {
+        if (!data) return;
+
+        let csvContent = "\ufeff"; // UTF-8 BOM for Excel
+
+        if (selectedReport === 'full-summary' && data.performance) {
+            csvContent += "Location,City,Guests,Consumption,LbsPerGuest,Target,Variance,Impact,Status\n";
+            data.performance.forEach((s: any) => {
+                csvContent += `${s.name},${s.location},${s.guests},${s.usedQty.toFixed(2)},${s.lbsPerGuest.toFixed(2)},${s.target_lbs_guest.toFixed(2)},${s.lbsGuestVar.toFixed(2)},${s.impactYTD.toFixed(2)},${s.status}\n`;
+            });
+        } else if (selectedReport === 'flash' && Array.isArray(data)) {
+            csvContent += "Location,City,Today Lbs,Status\n";
+            data.forEach((s: any) => {
+                csvContent += `${s.name},${s.location},${(s.todayLbs || 0).toFixed(2)},${s.status}\n`;
+            });
+        } else if (selectedReport === 'variance' && data.variance) {
+            csvContent += "Protein,Actual,Ideal,Variance\n";
+            data.variance.forEach((v: any) => {
+                csvContent += `${v.protein},${v.actual.toFixed(2)},${v.ideal.toFixed(2)},${v.variance.toFixed(2)}\n`;
+            });
         }
 
-        const encodedUri = encodeURI(csvContent);
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
         link.setAttribute("download", `brasa_report_${selectedReport}_${dateRange}.csv`);
         document.body.appendChild(link);
         link.click();
@@ -104,12 +137,13 @@ export const ReportsPage = () => {
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <button className="p-2 border border-[#444] text-gray-400 hover:text-white hover:bg-[#333] rounded-sm transition-colors" title="Print">
+                            <button onClick={() => window.print()} className="p-2 border border-[#444] text-gray-400 hover:text-white hover:bg-[#333] rounded-sm transition-colors" title="Print">
                                 <Printer className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={handleExport}
-                                className="bg-brand-gold hover:bg-yellow-500 text-black px-4 py-2 rounded-sm font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95"
+                                disabled={loading || !data}
+                                className="bg-brand-gold hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed text-black px-4 py-2 rounded-sm font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95"
                             >
                                 <Download className="w-4 h-4" /> {t('report_export_csv')}
                             </button>
@@ -119,12 +153,75 @@ export const ReportsPage = () => {
                     {/* report preview placeholder */}
                     <div className="flex-1 bg-[#121212] border border-[#333] rounded-sm p-8 flex items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                        <div className="text-center relative z-10">
-                            <FileText className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                            <h3 className="text-gray-500 font-mono mb-2">{t('report_preview_mode')}</h3>
-                            <p className="text-gray-600 text-xs max-w-md mx-auto">
-                                {t('report_preview_desc')}
-                            </p>
+                        <div className="text-center relative z-10 w-full">
+                            {loading ? (
+                                <div className="flex flex-col items-center gap-4">
+                                    <Loader2 className="w-12 h-12 text-brand-gold animate-spin" />
+                                    <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">{t('analyst_scanning')}</p>
+                                </div>
+                            ) : data ? (
+                                <div className="text-left w-full h-full">
+                                    <div className="bg-[#1a1a1a] p-6 border border-[#333] rounded-sm">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <FileText className="w-6 h-6 text-brand-gold" />
+                                            <h4 className="text-white font-bold font-mono uppercase tracking-tighter">{t('report_data_ready')}</h4>
+                                        </div>
+                                        <p className="text-gray-400 text-sm mb-6 max-w-lg leading-relaxed">
+                                            {t('report_preview_desc')}
+                                        </p>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            {selectedReport === 'full-summary' && data.summary && (
+                                                <>
+                                                    <div className="p-4 bg-[#222] border border-[#333] rounded-sm">
+                                                        <div className="text-[10px] text-gray-500 uppercase mb-1">Impact YTD</div>
+                                                        <div className={`text-lg font-bold font-mono ${data.summary.net_impact_ytd <= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
+                                                            ${Math.abs(data.summary.net_impact_ytd).toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-4 bg-[#222] border border-[#333] rounded-sm">
+                                                        <div className="text-[10px] text-gray-500 uppercase mb-1">Total Guests</div>
+                                                        <div className="text-lg font-bold font-mono text-white">
+                                                            {data.summary.total_guests.toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-4 bg-[#222] border border-[#333] rounded-sm">
+                                                        <div className="text-[10px] text-gray-500 uppercase mb-1">Active Stores</div>
+                                                        <div className="text-lg font-bold font-mono text-white">
+                                                            {data.performance?.length || 0}
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            {selectedReport === 'flash' && Array.isArray(data) && (
+                                                <div className="col-span-3">
+                                                    <div className="text-[10px] text-gray-500 uppercase mb-2">{t('report_network_snapshot')}</div>
+                                                    <div className="text-sm text-gray-400 font-mono">
+                                                        {data.filter((s: any) => s.todayLbs > 0).length} {t('report_stores_reporting')}.
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {selectedReport === 'variance' && data.variance && (
+                                                <div className="col-span-3">
+                                                    <div className="text-[10px] text-gray-500 uppercase mb-2">{t('report_top_anomaly')}</div>
+                                                    <div className="text-lg font-bold font-mono text-[#FF2A6D]">
+                                                        {data.variance[0]?.protein}: {data.variance[0]?.variance.toFixed(2)} LBS
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <FileText className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+                                    <h3 className="text-gray-500 font-mono mb-2">{t('report_preview_mode')}</h3>
+                                    <p className="text-gray-600 text-xs max-w-md mx-auto">
+                                        {t('report_preview_desc')}
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

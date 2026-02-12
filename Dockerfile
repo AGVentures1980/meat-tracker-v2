@@ -5,7 +5,7 @@ WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./
-ARG CACHE_BUST=1739343410
+ARG CACHE_BUST=1739385500
 RUN npm run build
 
 # Stage 2: Build Server
