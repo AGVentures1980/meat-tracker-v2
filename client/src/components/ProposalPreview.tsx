@@ -199,8 +199,8 @@ export const ProposalPreview = ({ onClose }: { onClose: () => void }) => {
                         </div>
                     </div>
 
-                    <div className="mt-auto pt-12 text-[9px] text-gray-400 font-sans uppercase tracking-[0.2em] text-center border-t border-gray-100">
-                        Brasa Intel Strategic Suite • Generated via Autonomous Analyst Engine v2.6.0
+                    <div className="mt-auto pt-12 text-[9px] text-gray-400 font-sans uppercase tracking-[0.1em] text-center border-t border-gray-100 italic">
+                        Brasa Intel Strategic Suite • Generated via Autonomous Negotiator Engine v2.6.2-NEGOTIATOR
                     </div>
 
                 </div>
