@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw } from 'lucide-react';
+import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw, Ship } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { ProposalPreview } from '../components/ProposalPreview';
 
 // --- Types ---
 interface StoreProjectionData {
@@ -61,6 +62,7 @@ export const ProjectionsDashboard = () => {
     const [publishPassword, setPublishPassword] = useState('');
     const [publishError, setPublishError] = useState('');
     const [isPublished, setIsPublished] = useState(false);
+    const [showProposal, setShowProposal] = useState(false);
 
     // Initialize Data
     useEffect(() => {
@@ -190,6 +192,13 @@ export const ProjectionsDashboard = () => {
                     >
                         <Lock className="w-4 h-4 mr-2" />
                         {isPublished ? 'Targets Published' : 'Publish Corporate Targets'}
+                    </button>
+                    <button
+                        onClick={() => setShowProposal(true)}
+                        className="bg-[#222] border border-[#333] text-brand-gold font-bold py-2 px-6 rounded-sm flex items-center hover:bg-[#333] transition-all uppercase text-sm tracking-wide font-mono"
+                    >
+                        <Ship className="w-4 h-4 mr-2" />
+                        Generate Vendor Proposal
                     </button>
                 </div>
             </div>
@@ -465,6 +474,10 @@ export const ProjectionsDashboard = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showProposal && (
+                <ProposalPreview onClose={() => setShowProposal(false)} />
             )}
         </div>
     );
