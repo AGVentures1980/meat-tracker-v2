@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Save, DollarSign, TrendingDown, TrendingUp, Loader2, ChevronLeft, ChevronRight, Lock, FileText, Camera, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 
 export const WeeklyPriceInput = () => {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isProcessingOCR, setIsProcessingOCR] = useState(false);
@@ -100,7 +102,7 @@ export const WeeklyPriceInput = () => {
         setLoading(true);
         await new Promise(r => setTimeout(r, 1000));
         setLoading(false);
-        alert('Weekly Prices Updated!');
+        alert(t('price_updated_alert'));
     };
 
     const isLocked = weekRange.end < new Date();
@@ -117,10 +119,10 @@ export const WeeklyPriceInput = () => {
                 <div>
                     <h1 className="text-4xl font-serif font-bold text-white mb-2 flex items-center gap-4">
                         <DollarSign className="w-10 h-10 text-brand-gold bg-brand-gold/10 p-2 rounded-full" />
-                        Weighted Protein Pricing
+                        {t('price_title')}
                     </h1>
                     <p className="text-gray-500 font-mono uppercase tracking-widest text-xs italic">
-                        v2.5.26-ALPHA Intelligence Engine Active
+                        v2.6.2-NEGOTIATOR - {t('price_subtitle')}
                     </p>
                 </div>
                 <div className="flex flex-col items-end gap-3">
@@ -129,7 +131,7 @@ export const WeeklyPriceInput = () => {
                             <ChevronLeft className="w-6 h-6" />
                         </button>
                         <div>
-                            <div className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Effective Week</div>
+                            <div className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">{t('price_effective_week')}</div>
                             <div className="text-white font-mono text-lg flex items-center gap-2">
                                 {weekRange.text}
                                 {isLocked && <Lock className="w-4 h-4 text-red-500" />}
@@ -150,10 +152,10 @@ export const WeeklyPriceInput = () => {
                     </div>
                     <h3 className="text-white font-bold mb-4 flex items-center gap-2">
                         <Camera className="w-5 h-5 text-brand-gold" />
-                        Invoice Intelligence (OCR)
+                        {t('price_ocr_title')}
                     </h3>
                     <p className="text-gray-500 text-sm mb-6">
-                        Upload invoices from multiple deliveries. System detects weights and prices automatically.
+                        {t('price_ocr_desc')}
                     </p>
 
                     <label className="w-full flex flex-col items-center justify-center h-32 border-2 border-dashed border-[#333] hover:border-brand-gold/50 transition-all rounded-sm bg-black/40 cursor-pointer group/upload">
@@ -163,14 +165,14 @@ export const WeeklyPriceInput = () => {
                         ) : (
                             <>
                                 <Plus className="w-8 h-8 text-gray-600 group-hover/upload:text-brand-gold transition-all" />
-                                <span className="text-[10px] font-mono text-gray-500 mt-2 uppercase tracking-widest">Scan Invoice (JPG/PDF)</span>
+                                <span className="text-[10px] font-mono text-gray-500 mt-2 uppercase tracking-widest">{t('price_scan_invoice')}</span>
                             </>
                         )}
                     </label>
 
                     <div className="mt-6 flex flex-col gap-2">
                         <div className="flex justify-between text-[10px] font-mono text-gray-600">
-                            <span>Last Sync:</span>
+                            <span>{t('price_last_sync')}:</span>
                             <span>{new Date().toLocaleTimeString()}</span>
                         </div>
                     </div>
@@ -181,21 +183,21 @@ export const WeeklyPriceInput = () => {
                     <div className="p-5 border-b border-[#333] bg-black/40 flex justify-between items-center">
                         <h3 className="font-bold text-white flex items-center gap-2 uppercase tracking-widest text-xs">
                             <TrendingUp className="w-4 h-4 text-green-500" />
-                            Protein Market Cost (Weighted Ave)
+                            {t('price_market_cost')}
                         </h3>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                <span className="text-[9px] text-gray-500 uppercase font-mono">Weighted Value</span>
+                                <span className="text-[9px] text-gray-500 uppercase font-mono">{t('price_weighted_val')}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="divide-y divide-[#333] overflow-y-auto max-h-[500px]">
                         <div className="grid grid-cols-12 gap-4 p-5 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-black/20">
-                            <div className="col-span-6">Protein Description</div>
-                            <div className="col-span-3 text-right">Cost History</div>
-                            <div className="col-span-3 text-right">Market Price ($)</div>
+                            <div className="col-span-6">{t('price_protein_desc')}</div>
+                            <div className="col-span-3 text-right">{t('price_cost_history')}</div>
+                            <div className="col-span-3 text-right">{t('price_market_price')}</div>
                         </div>
 
                         {prices.map((item) => {
@@ -205,11 +207,11 @@ export const WeeklyPriceInput = () => {
                                 <div key={item.id} className="grid grid-cols-12 gap-4 p-5 items-center hover:bg-white/5 transition-colors group">
                                     <div className="col-span-6">
                                         <div className="font-bold text-white group-hover:text-brand-gold transition-colors">{item.item}</div>
-                                        <div className="text-[9px] text-gray-500 font-mono mt-1">STANDARD CALCULATION: {item.unit}</div>
+                                        <div className="text-[9px] text-gray-500 font-mono mt-1">{t('price_standard_calc')}: {item.unit}</div>
                                     </div>
                                     <div className="col-span-3 text-right">
                                         <div className="text-gray-500 font-mono text-xs">${item.last.toFixed(2)}</div>
-                                        <div className="text-[9px] text-gray-600 uppercase">Last Week</div>
+                                        <div className="text-[9px] text-gray-600 uppercase">{t('price_last_week')}</div>
                                     </div>
                                     <div className="col-span-3 flex flex-col items-end">
                                         <div className="relative mb-1">
@@ -225,7 +227,7 @@ export const WeeklyPriceInput = () => {
                                         </div>
                                         {hasWeighted && (
                                             <span className="text-[8px] px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-full font-bold uppercase animate-pulse">
-                                                Weighted CPM Applied
+                                                {t('price_weighted_applied')}
                                             </span>
                                         )}
                                     </div>
@@ -241,7 +243,7 @@ export const WeeklyPriceInput = () => {
                             className="bg-brand-gold hover:bg-yellow-500 text-black font-bold py-3 px-10 rounded-sm shadow-xl flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 uppercase text-xs tracking-widest"
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            Update Master Ledger
+                            {t('price_update_ledger')}
                         </button>
                     </div>
                 </div>
@@ -252,15 +254,15 @@ export const WeeklyPriceInput = () => {
                 <div className="bg-[#1a1a1a] p-6 border border-[#333] rounded-sm">
                     <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs flex items-center gap-2">
                         <TrendingDown className="w-4 h-4 text-green-500" />
-                        Cost Impact Summary
+                        {t('price_cost_impact')}
                     </h3>
                     <div className="space-y-4">
                         <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-500">Weekly Price Drift</span>
+                            <span className="text-gray-500">{t('price_weekly_drift')}</span>
                             <span className="text-red-400 font-mono">+1.22%</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-500">Projected Margin Loss</span>
+                            <span className="text-gray-500">{t('price_proj_margin_loss')}</span>
                             <span className="text-white font-mono">-$2,140</span>
                         </div>
                         <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
@@ -272,15 +274,15 @@ export const WeeklyPriceInput = () => {
                 <div className="bg-[#1a1a1a] p-6 border border-[#333] rounded-sm">
                     <h3 className="text-white font-bold mb-4 uppercase tracking-widest text-xs flex items-center gap-2">
                         <Lock className="w-4 h-4 text-brand-gold" />
-                        Accountability Status
+                        {t('price_accountability')}
                     </h3>
                     <div className="flex items-center gap-4 text-xs">
                         <div className="p-3 bg-[#00FF94]/10 rounded-full">
                             <TrendingUp className="w-5 h-5 text-[#00FF94]" />
                         </div>
                         <div>
-                            <p className="text-white font-bold">Ledger Verified</p>
-                            <p className="text-gray-500 font-mono italic uppercase text-[9px]">Market prices applied to all waste calculations.</p>
+                            <p className="text-white font-bold">{t('price_ledger_verified')}</p>
+                            <p className="text-gray-500 font-mono italic uppercase text-[9px]">{t('price_market_verified_desc')}</p>
                         </div>
                     </div>
                 </div>

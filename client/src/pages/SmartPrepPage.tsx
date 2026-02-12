@@ -152,14 +152,14 @@ export const SmartPrepPage = () => {
                             onChange={(e) => setSelectedDate(e.target.value)}
                         />
                         <div className="bg-[#1a1a1a] px-4 py-2 rounded border border-[#333] text-sm">
-                            <span className="text-gray-500">Submitted:</span>
+                            <span className="text-gray-500">{t('prep_submitted')}:</span>
                             <span className="ml-2 text-white font-bold">{networkStatus?.submitted_count} / {networkStatus?.total_stores}</span>
                         </div>
                     </div>
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20 text-gray-500 animate-pulse">Scanning store network...</div>
+                    <div className="text-center py-20 text-gray-500 animate-pulse">{t('prep_scanning')}</div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {networkStatus?.stores.map((store: any) => (
@@ -186,7 +186,7 @@ export const SmartPrepPage = () => {
                                 {store.is_locked ? (
                                     <div className="space-y-2">
                                         <div className="flex justify-between items-end">
-                                            <span className="text-[10px] text-gray-500 uppercase">Projected Guests</span>
+                                            <span className="text-[10px] text-gray-500 uppercase">{t('projected_guests')}</span>
                                             <span className="text-xl font-black text-white">{store.forecast}</span>
                                         </div>
                                         <div className="w-full h-1 bg-[#1a1a1a] rounded overflow-hidden">
@@ -195,7 +195,7 @@ export const SmartPrepPage = () => {
                                     </div>
                                 ) : (
                                     <div className="py-4">
-                                        <div className="text-[#FF2A6D] text-xs font-bold uppercase tracking-widest text-center">Awaiting Submission</div>
+                                        <div className="text-[#FF2A6D] text-xs font-bold uppercase tracking-widest text-center">{t('prep_awaiting')}</div>
                                     </div>
                                 )}
 
@@ -274,7 +274,7 @@ export const SmartPrepPage = () => {
                         onClick={() => window.print()}
                         className="bg-[#333] hover:bg-[#444] text-white px-4 py-2 rounded flex items-center gap-2 transition-colors border border-[#444]"
                     >
-                        <Printer className="w-4 h-4" /> Print Guide
+                        <Printer className="w-4 h-4" /> {t('prep_print_guide')}
                     </button>
 
                     {prepData?.is_locked ? (
@@ -327,7 +327,7 @@ export const SmartPrepPage = () => {
                     </div>
 
                     <div className="bg-[#252525] p-4 rounded w-full md:w-auto text-center min-w-[200px] border border-[#333]">
-                        <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">Total Meat Needed</h3>
+                        <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">{t('total_meat_needed')}</h3>
                         <div className="text-3xl font-bold text-white flex items-center justify-center gap-2">
                             <Scale className="w-5 h-5 text-gray-500" />
                             {prepData ? Math.round(prepData.forecast_guests * prepData.target_lbs_guest) : 0} <span className="text-sm text-gray-500">LBS</span>
@@ -347,14 +347,14 @@ export const SmartPrepPage = () => {
                             </div>
                             <div className="space-y-4">
                                 <div className="flex justify-between items-end border-b border-[#333] pb-2">
-                                    <span className="text-xs text-gray-500 uppercase">Prep Qty</span>
+                                    <span className="text-xs text-gray-500 uppercase">{t('prep_qty')}</span>
                                     <div className="text-right">
                                         <div className="text-3xl font-black text-white leading-none">{Math.ceil(item.recommended_units)}</div>
-                                        <p className="text-[10px] text-gray-500 uppercase mt-1">Pieces / Packs</p>
+                                        <p className="text-[10px] text-gray-500 uppercase mt-1">{t('prep_pieces_packs')}</p>
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center text-xs text-gray-400">
-                                    <span>Total Weight</span>
+                                    <span>{t('prep_total_weight')}</span>
                                     <span className="font-mono">{item.recommended_lbs} lbs</span>
                                 </div>
                             </div>
