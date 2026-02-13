@@ -22,7 +22,8 @@ export const WeeklyPriceInput = () => {
         { id: 4, item: 'Filet Mignon', current: 9.50, last: 9.30, unit: 'lb' },
         { id: 5, item: 'Beef Ribs', current: 8.36, last: 8.20, unit: 'lb' },
         { id: 6, item: 'Lamb Chops', current: 13.91, last: 13.50, unit: 'lb' },
-        { id: 13, item: 'Sausage', current: 3.16, last: 3.10, unit: 'lb' }
+        { id: 13, item: 'Sausage', current: 3.16, last: 3.10, unit: 'lb' },
+        { id: 14, item: 'Bacon', current: 2.50, last: 2.45, unit: 'lb' }
     ]);
 
     const handlePriceChange = (id: number, newVal: string) => {
@@ -81,7 +82,7 @@ export const WeeklyPriceInput = () => {
     const SYSTEM_ITEMS = [
         'Picanha', 'Fraldinha/Flank Steak', 'Tri-Tip', 'Filet Mignon', 'Beef Ribs',
         'Lamb Chops', 'Leg of Lamb', 'Lamb Picanha', 'Sausage', 'Chicken Drumstick',
-        'Chicken Breast', 'Pork Ribs', 'Pork Loin', 'Shrimp'
+        'Chicken Breast', 'Pork Ribs', 'Pork Loin', 'Shrimp', 'Bacon'
     ];
 
     const handleInvoiceOCR = async (e: React.ChangeEvent<HTMLInputElement>) => {

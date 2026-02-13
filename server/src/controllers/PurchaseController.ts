@@ -199,6 +199,28 @@ export class PurchaseController {
                     price_per_lb: 0.83, // Unit Price ($20.86) / 25lb = $0.83/lb (Approx)
                     confidence: 0.99,
                     invoice_number: "59114321"
+                },
+                // 7. BEEF TRI TIP (Catch Weight Logic)
+                // Example: 2 CS ... TRI TIP PEELED ... T/WT= 65.40
+                {
+                    raw_text: "IBP BEEF TRI TIP PEELED\nT/WT= 65.40",
+                    detected_item: "Tri-Tip",
+                    quantity: 65.40,
+                    price_per_lb: 5.26,
+                    confidence: 0.98,
+                    invoice_number: "59114321"
+                },
+                // 8. BACON (Case x Size Logic)
+                // Example: 2 CS ... SMTHFLD BACON SLAB ... 2/15 LB
+                // User Logic: QTY (2) * SIZE (15) = 30 LBS (Assuming user treats "15" as case net or pack logic matches)
+                // If text is "2/15 LB", standard logic is 2*15=30.
+                {
+                    raw_text: "SMTHFLD BACON SLAB 16/20 GF\nPACK:2 SIZE:15 LB",
+                    detected_item: "Bacon",
+                    quantity: 30.00, // 1 CS * 2 * 15 LB = 30 LB (Matches User Logic of Total Box Weight)
+                    price_per_lb: 1.86, // $56.00 / 30lb
+                    confidence: 0.96,
+                    invoice_number: "59114321"
                 }
             ];
 
