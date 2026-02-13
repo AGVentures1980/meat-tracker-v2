@@ -119,16 +119,45 @@ export class ReportController {
             const stats = await MeatEngine.getDashboardStats(targetId, start, end);
             return res.json({
                 storeId: targetId,
+                storeName: (await prisma.store.findUnique({ where: { id: targetId } }))?.store_name,
                 variance: stats.topMeats.map((m: any) => ({
                     protein: m.name,
                     actual: m.actual,
                     ideal: m.ideal,
-                    variance: m.actual - m.ideal
+                    variance: m.actual - m.ideal,
+                    status: m.actual <= m.ideal ? 'Saving' : 'Loss'
                 }))
             });
         } catch (error) {
             console.error('Report Error (Variance):', error);
             return res.status(500).json({ error: 'Failed to generate variance report' });
+        }
+    }
+
+    /**
+     * Inventory Report: Histórico de contagens e compras.
+     */
+    static async getInventoryReport(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const { storeId, range } = req.query;
+            const { start, end } = getDateRange(range as string);
+
+            const id = storeId ? parseInt(storeId as string) : user.storeId;
+            if (!id && user.role !== 'admin' && user.role !== 'director') {
+                return res.status(400).json({ error: 'Store ID required' });
+            }
+
+            const targetId = id || (await prisma.store.findFirst())?.id;
+            const history = await MeatEngine.getInventoryHistory(targetId, start, end);
+
+            return res.json({
+                storeId: targetId,
+                history
+            });
+        } catch (error) {
+            console.error('Report Error (Inventory):', error);
+            return res.status(500).json({ error: 'Failed to generate inventory report' });
         }
     }
 }

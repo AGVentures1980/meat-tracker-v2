@@ -11,3 +11,16 @@
 🚀 BRASA INTEL v2.6.5-HOTFIX running on http://localhost:3002
 📅 Business Date Sync: Central Time (UTC-6) ACTIVE
 [0mGET /assets/index-0t-EDWdj.js [32m200[0m 3.016 ms - 795525[0m
+[INFO] 03:16:19 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts
+[ERROR] 03:16:19 ⨯ Unable to compile TypeScript:
+src/engine/MeatEngine.ts(157,5): error TS1128: Declaration or statement expected.
+
+[INFO] 03:16:31 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/engine/MeatEngine.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.6.5-HOTFIX running on http://localhost:3002
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE

@@ -15,7 +15,7 @@ export const ReportsPage = () => {
         { id: 'full-summary', name: t('report_exec_summary'), description: t('report_exec_summary_desc'), icon: FileText, color: 'text-brand-gold', endpoint: '/api/v1/reports/executive-summary' },
         { id: 'flash', name: t('report_flash'), description: t('report_flash_desc'), icon: Activity, color: 'text-[#00FF94]', endpoint: '/api/v1/reports/flash' },
         { id: 'variance', name: t('report_variance'), description: t('report_variance_desc'), icon: Filter, color: 'text-[#FF2A6D]', endpoint: '/api/v1/reports/variance' },
-        { id: 'inventory', name: t('report_inventory'), description: t('report_inventory_desc'), icon: Calendar, color: 'text-blue-400', endpoint: '/api/v1/reports/variance' },
+        { id: 'inventory', name: t('report_inventory'), description: t('report_inventory_desc'), icon: Calendar, color: 'text-blue-400', endpoint: '/api/v1/reports/inventory' },
     ];
 
     const fetchReport = useCallback(async () => {
@@ -182,9 +182,9 @@ export const ReportsPage = () => {
                                             <h4 className="text-white font-bold font-mono uppercase tracking-tighter">{t('report_data_ready')}</h4>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                        <div className="flex-1 overflow-auto">
                                             {selectedReport === 'full-summary' && data.summary && (
-                                                <>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                                     <div className="p-5 bg-[#222] border border-[#333] rounded-sm relative overflow-hidden group/card hover:border-brand-gold/50 transition-all">
                                                         <div className="absolute top-0 right-0 p-2 opacity-10 group-hover/card:opacity-20 transition-opacity">
                                                             <DollarSign className="w-12 h-12" />
@@ -207,16 +207,107 @@ export const ReportsPage = () => {
                                                             {(data.summary.total_guests || 0).toLocaleString()}
                                                         </div>
                                                     </div>
-                                                </>
+                                                </div>
                                             )}
 
                                             {selectedReport === 'flash' && Array.isArray(data) && (
-                                                <div className="col-span-3">
-                                                    <div className="text-sm text-gray-400 font-mono mb-2">
-                                                        {data.length} locations reporting.
+                                                <div className="border border-[#333] rounded-sm overflow-hidden">
+                                                    <table className="w-full text-left text-xs font-mono">
+                                                        <thead>
+                                                            <tr className="bg-[#222] text-gray-400 uppercase tracking-widest border-b border-[#333]">
+                                                                <th className="p-3">Location</th>
+                                                                <th className="p-3">City</th>
+                                                                <th className="p-3 text-right">Lbs Consumption</th>
+                                                                <th className="p-3 text-right">Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-[#333]">
+                                                            {data.map((row: any, i: number) => (
+                                                                <tr key={i} className="hover:bg-white/5 transition-colors">
+                                                                    <td className="p-3 text-white font-bold">{row.name}</td>
+                                                                    <td className="p-3 text-gray-400">{row.location}</td>
+                                                                    <td className="p-3 text-right text-brand-gold">{row.todayLbs?.toLocaleString()} lbs</td>
+                                                                    <td className="p-3 text-right">
+                                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.status === 'Active' ? 'bg-green-500/20 text-green-500' : 'bg-gray-500/20 text-gray-500'}`}>
+                                                                            {row.status}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+
+                                            {selectedReport === 'variance' && data.variance && (
+                                                <div className="border border-[#333] rounded-sm overflow-hidden">
+                                                    <div className="bg-[#222] p-3 border-b border-[#333] flex justify-between items-center">
+                                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Deep Dive: {data.storeName}</span>
                                                     </div>
-                                                    <div className="h-40 bg-[#222] rounded border border-[#333] flex items-center justify-center text-gray-600 text-xs">
-                                                        Flash Report Visualization Placeholder
+                                                    <table className="w-full text-left text-xs font-mono">
+                                                        <thead>
+                                                            <tr className="bg-[#1a1a1a] text-gray-500 uppercase tracking-widest border-b border-[#333]">
+                                                                <th className="p-3">Protein</th>
+                                                                <th className="p-3 text-right">Actual</th>
+                                                                <th className="p-3 text-right">Ideal</th>
+                                                                <th className="p-3 text-right">Variance</th>
+                                                                <th className="p-3 text-right">Impact</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-[#333]">
+                                                            {data.variance.map((v: any, i: number) => (
+                                                                <tr key={i} className="hover:bg-white/5 transition-colors">
+                                                                    <td className="p-3 text-white font-bold">{v.protein}</td>
+                                                                    <td className="p-3 text-right text-gray-300">{v.actual.toLocaleString()} lbs</td>
+                                                                    <td className="p-3 text-right text-gray-500">{v.ideal.toLocaleString()} lbs</td>
+                                                                    <td className={`p-3 text-right font-bold ${v.variance <= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
+                                                                        {v.variance > 0 ? '+' : ''}{v.variance.toFixed(2)}
+                                                                    </td>
+                                                                    <td className="p-3 text-right">
+                                                                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold ${v.status === 'Saving' ? 'bg-[#00FF94]/10 text-[#00FF94]' : 'bg-[#FF2A6D]/10 text-[#FF2A6D]'}`}>
+                                                                            {v.status}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+
+                                            {selectedReport === 'inventory' && data.history && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="border border-[#333] rounded-sm overflow-hidden">
+                                                        <div className="bg-[#222] p-3 border-b border-[#333] text-[10px] text-gray-400 uppercase tracking-widest font-bold">Recent Purchases</div>
+                                                        <div className="max-h-60 overflow-auto">
+                                                            <table className="w-full text-left text-[10px] font-mono">
+                                                                <tbody className="divide-y divide-[#333]">
+                                                                    {data.history.purchases.map((p: any, i: number) => (
+                                                                        <tr key={i} className="hover:bg-white/5">
+                                                                            <td className="p-2 text-gray-500">{new Date(p.date).toLocaleDateString()}</td>
+                                                                            <td className="p-2 text-white font-bold">{p.item}</td>
+                                                                            <td className="p-2 text-right text-brand-gold">{p.quantity} lbs</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <div className="border border-[#333] rounded-sm overflow-hidden">
+                                                        <div className="bg-[#222] p-3 border-b border-[#333] text-[10px] text-gray-400 uppercase tracking-widest font-bold">Inventory Counts</div>
+                                                        <div className="max-h-60 overflow-auto">
+                                                            <table className="w-full text-left text-[10px] font-mono">
+                                                                <tbody className="divide-y divide-[#333]">
+                                                                    {data.history.counts.map((c: any, i: number) => (
+                                                                        <tr key={i} className="hover:bg-white/5">
+                                                                            <td className="p-2 text-gray-500">{new Date(c.date).toLocaleDateString()}</td>
+                                                                            <td className="p-2 text-white font-bold">{c.item}</td>
+                                                                            <td className="p-2 text-right text-blue-400">{c.quantity} lbs</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}

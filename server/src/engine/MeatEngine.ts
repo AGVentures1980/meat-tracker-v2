@@ -81,6 +81,14 @@ export class MeatEngine {
 
     private static async getTopMeats(storeId: number, start: Date, end: Date) {
         const standards = await this.getSetting('meat_standards', MEAT_STANDARDS);
+
+        // Fetch specific targets for this store
+        const storeTargets = await prisma.storeMeatTarget.findMany({
+            where: { store_id: storeId }
+        });
+        const targetMap: Record<string, number> = {};
+        storeTargets.forEach(t => { targetMap[t.protein] = t.target; });
+
         const sales = await prisma.orderItem.findMany({
             where: {
                 order: {
@@ -96,15 +104,52 @@ export class MeatEngine {
             meatSummary[protein] = (meatSummary[protein] || 0) + item.lbs;
         });
 
+        const totalLbs = Object.values(meatSummary).reduce((a, b) => a + b, 0);
+        // We use the same guest calculation as getDashboardStats for consistency
+        const storeData = await (prisma as any).store.findUnique({ where: { id: storeId } });
+        const globalTarget = await this.getSetting('global_target_lbs_guest', GLOBAL_TARGET_PER_GUEST);
+        const STORE_LBS_TARGET = storeData?.target_lbs_guest || globalTarget;
+        const estimatedGuests = Math.round(totalLbs / STORE_LBS_TARGET);
+
         return Object.entries(meatSummary).map(([name, actual]) => {
-            const standard = standards[name] || 0.10;
+            // Ideal is based on (Guest Count * Protein Target)
+            // If protein target is missing, fallback to standard share * total actual (legacy)
+            const proteinTarget = targetMap[name];
+            const ideal = proteinTarget ? (estimatedGuests * proteinTarget) : (actual * 0.98);
+
             return {
                 name,
                 actual,
-                ideal: Math.round(actual * 0.98),
-                trend: Math.random() > 0.5 ? 'up' : 'down'
+                ideal: Math.round(ideal),
+                trend: actual > ideal ? 'up' : 'down'
             };
-        }).sort((a, b) => b.actual - a.actual).slice(0, 5);
+        }).sort((a, b) => b.actual - a.actual).slice(0, 10); // Expanded to 10 for reports
+    }
+
+    static async getInventoryHistory(storeId: number, start: Date, end: Date) {
+        const purchases = await (prisma as any).purchaseRecord.findMany({
+            where: { store_id: storeId, date: { gte: start, lte: end } },
+            orderBy: { date: 'desc' }
+        });
+
+        const counts = await (prisma as any).inventoryRecord.findMany({
+            where: { store_id: storeId, date: { gte: start, lte: end } },
+            orderBy: { date: 'desc' }
+        });
+
+        return {
+            purchases: purchases.map(p => ({
+                date: p.date,
+                item: p.item_name,
+                quantity: p.quantity,
+                cost: p.cost_total
+            })),
+            counts: counts.map(c => ({
+                date: c.date,
+                item: c.item_name,
+                quantity: c.quantity
+            }))
+        };
     }
 
     private static async getWeeklyHistory(storeId: number, proteins: string[]) {
