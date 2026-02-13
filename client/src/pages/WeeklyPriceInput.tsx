@@ -14,6 +14,9 @@ export const WeeklyPriceInput = () => {
     // State for calculated weighted averages
     const [weightedAverages, setWeightedAverages] = useState<Record<string, number>>({});
 
+    // Batch Scan Result State (Duplicate/Success Summary)
+    const [scanResult, setScanResult] = useState<{ total: number; successful: number; duplicates: number } | null>(null);
+
     // Mock Data State - In real app, fetch from DB based on selectedDate
     const [prices, setPrices] = useState([
         { id: 1, item: 'Picanha', current: 9.14, last: 9.00, unit: 'lb' },
@@ -484,6 +487,49 @@ export const WeeklyPriceInput = () => {
                 </div>
             </div>
         </div>
+            </div >
+
+    {/* Duplicate/Batch Result Modal */ }
+{
+    scanResult && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-lg shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-brand-gold/20 flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-brand-gold" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-white">Upload Complete</h3>
+                        <p className="text-gray-400 text-sm">Batch processing summary</p>
+                    </div>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                    <div className="flex justify-between items-center p-3 bg-[#252525] rounded border border-[#333]">
+                        <span className="text-gray-300">Total Files</span>
+                        <span className="font-mono font-bold text-white">{scanResult.total}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-[#252525] rounded border border-[#333]">
+                        <span className="text-[#00FF94]">Processed Successfully</span>
+                        <span className="font-mono font-bold text-[#00FF94]">{scanResult.successful}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-[#252525] rounded border border-red-500/30">
+                        <span className="text-red-400">Duplicates Skipped</span>
+                        <span className="font-mono font-bold text-red-400">{scanResult.duplicates}</span>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => setScanResult(null)}
+                    className="w-full py-3 bg-brand-gold hover:bg-yellow-500 text-black font-bold rounded shadow-lg transition-all active:scale-95 uppercase tracking-widest text-sm"
+                >
+                    Acknowledge
+                </button>
+            </div>
+        </div>
+    )
+}
+        </div >
     );
 };
 
