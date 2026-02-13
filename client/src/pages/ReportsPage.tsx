@@ -153,41 +153,43 @@ export const ReportsPage = () => {
                     {/* report preview placeholder */}
                     <div className="flex-1 bg-[#121212] border border-[#333] rounded-sm p-8 flex items-center justify-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                        <div className="text-center relative z-10 w-full">
+                        <div className="text-center relative z-10 w-full h-full flex flex-col">
                             {loading ? (
-                                <div className="flex flex-col items-center gap-4">
+                                <div className="m-auto flex flex-col items-center gap-4">
                                     <Loader2 className="w-12 h-12 text-brand-gold animate-spin" />
                                     <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">{t('analyst_scanning')}</p>
                                 </div>
                             ) : data ? (
-                                <div className="text-left w-full h-full">
-                                    <div className="bg-[#1a1a1a] p-6 border border-[#333] rounded-sm">
+                                <div className="text-left w-full h-full flex flex-col">
+                                    <div className="bg-[#1a1a1a] p-6 border border-[#333] rounded-sm flex-1 flex flex-col">
                                         <div className="flex items-center gap-3 mb-4">
                                             <FileText className="w-6 h-6 text-brand-gold" />
                                             <h4 className="text-white font-bold font-mono uppercase tracking-tighter">{t('report_data_ready')}</h4>
                                         </div>
-                                        <p className="text-gray-400 text-sm mb-6 max-w-lg leading-relaxed">
-                                            {t('report_preview_desc')}
-                                        </p>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                             {selectedReport === 'full-summary' && data.summary && (
                                                 <>
-                                                    <div className="p-4 bg-[#222] border border-[#333] rounded-sm">
-                                                        <div className="text-[10px] text-gray-500 uppercase mb-1">Impact YTD</div>
-                                                        <div className={`text-lg font-bold font-mono ${data.summary.net_impact_ytd <= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
-                                                            ${Math.abs(data.summary.net_impact_ytd).toLocaleString()}
+                                                    <div className="p-5 bg-[#222] border border-[#333] rounded-sm relative overflow-hidden group/card hover:border-brand-gold/50 transition-all">
+                                                        <div className="absolute top-0 right-0 p-2 opacity-10 group-hover/card:opacity-20 transition-opacity">
+                                                            <DollarSign className="w-12 h-12" />
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-bold">Total Estimated Spend</div>
+                                                        <div className="text-2xl font-bold font-mono text-white">
+                                                            ${(data.summary.total_spend || 0).toLocaleString()}
                                                         </div>
                                                     </div>
-                                                    <div className="p-4 bg-[#222] border border-[#333] rounded-sm">
-                                                        <div className="text-[10px] text-gray-500 uppercase mb-1">Total Guests</div>
-                                                        <div className="text-lg font-bold font-mono text-white">
-                                                            {data.summary.total_guests.toLocaleString()}
+                                                    <div className="p-5 bg-[#222] border border-[#333] rounded-sm relative overflow-hidden group/card hover:border-brand-gold/50 transition-all">
+                                                        <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-bold">Net Variance Impact</div>
+                                                        <div className={`text-2xl font-bold font-mono ${data.summary.net_impact_ytd <= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
+                                                            {data.summary.net_impact_ytd <= 0 ? '+' : ''}${(Math.abs(data.summary.net_impact_ytd) || 0).toLocaleString()}
                                                         </div>
+                                                        <div className="text-[9px] text-gray-500 mt-1 uppercase">Below/Above Target</div>
                                                     </div>
-                                                    <div className="p-4 bg-[#222] border border-[#333] rounded-sm">
-                                                        <div className="text-[10px] text-gray-500 uppercase mb-1">Active Stores</div>
-                                                        <div className="text-lg font-bold font-mono text-white">
-                                                            {data.performance?.length || 0}
+                                                    <div className="p-5 bg-[#222] border border-[#333] rounded-sm relative overflow-hidden group/card hover:border-brand-gold/50 transition-all">
+                                                        <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-bold">Network Guests</div>
+                                                        <div className="text-2xl font-bold font-mono text-white">
+                                                            {(data.summary.total_guests || 0).toLocaleString()}
                                                         </div>
                                                     </div>
                                                 </>
@@ -195,32 +197,37 @@ export const ReportsPage = () => {
 
                                             {selectedReport === 'flash' && Array.isArray(data) && (
                                                 <div className="col-span-3">
-                                                    <div className="text-[10px] text-gray-500 uppercase mb-2">{t('report_network_snapshot')}</div>
-                                                    <div className="text-sm text-gray-400 font-mono">
-                                                        {data.filter((s: any) => s.todayLbs > 0).length} {t('report_stores_reporting')}.
+                                                    <div className="text-sm text-gray-400 font-mono mb-2">
+                                                        {data.length} locations reporting.
                                                     </div>
-                                                </div>
-                                            )}
-
-                                            {selectedReport === 'variance' && data.variance && (
-                                                <div className="col-span-3">
-                                                    <div className="text-[10px] text-gray-500 uppercase mb-2">{t('report_top_anomaly')}</div>
-                                                    <div className="text-lg font-bold font-mono text-[#FF2A6D]">
-                                                        {data.variance[0]?.protein}: {data.variance[0]?.variance.toFixed(2)} LBS
+                                                    <div className="h-40 bg-[#222] rounded border border-[#333] flex items-center justify-center text-gray-600 text-xs">
+                                                        Flash Report Visualization Placeholder
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
+
+                                        <div className="mt-auto pt-6 border-t border-[#333]">
+                                            <p className="text-gray-400 text-sm mb-4 max-w-lg leading-relaxed">
+                                                {t('report_preview_desc')}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
-                                <>
+                                <div className="m-auto text-center">
                                     <FileText className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                                     <h3 className="text-gray-500 font-mono mb-2">{t('report_preview_mode')}</h3>
-                                    <p className="text-gray-600 text-xs max-w-md mx-auto">
-                                        {t('report_preview_desc')}
+                                    <p className="text-gray-600 text-xs max-w-md mx-auto mb-6">
+                                        Unable to load report data. Please check connection.
                                     </p>
-                                </>
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="text-brand-gold hover:underline text-xs"
+                                    >
+                                        Retry Connection
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
