@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Calendar, Download, Filter, Printer, Activity, Loader2 } from 'lucide-react';
+import { FileText, Calendar, Download, Filter, Printer, Activity, Loader2, DollarSign } from 'lucide-react';
 
 import { useLanguage } from '../context/LanguageContext';
 
