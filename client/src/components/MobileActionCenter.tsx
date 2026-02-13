@@ -12,7 +12,7 @@ export const MobileActionCenter = ({ onSwitchToDesktop }: { onSwitchToDesktop: (
             label: 'Scan Invoice',
             sub: 'Lançar Compra',
             icon: Camera,
-            path: '/price-input',
+            path: '/prices',
             color: 'text-brand-gold',
             bg: 'bg-brand-gold/10',
             border: 'border-brand-gold/20'

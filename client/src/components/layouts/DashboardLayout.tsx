@@ -91,8 +91,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     return (
         <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden">
-            {/* Sidebar */}
-            <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 flex flex-col print:hidden`}>
+            {/* Sidebar (Desktop Only) */}
+            <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 hidden md:flex flex-col print:hidden`}>
                 <div className="p-4 border-b border-[#333] flex items-center justify-between">
                     {!collapsed && (
                         <div className="flex items-center gap-2">
@@ -105,7 +105,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     </button>
                 </div>
 
-                <nav className="flex-1 p-2 space-y-1">
+                <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
                     {navItems.map((item) => {
                         const active = location.pathname.includes(item.path.split('/')[1]);
                         return (
@@ -172,13 +172,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col min-w-0 relative">
+            <main className="flex-1 flex flex-col min-w-0 relative pb-20 md:pb-0">
                 {/* Ticker Header */}
                 <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between print:hidden">
                     <div className="flex items-center gap-6 overflow-hidden text-xs font-mono">
                         <div className="flex items-center gap-2 text-gray-400">
                             <span className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse"></span>
-                            {t('system_online')}
+                            <span className="hidden md:inline">{t('system_online')}</span>
                         </div>
                         {/* Ticker */}
                         <div className="hidden md:flex items-center space-x-6 ml-4">
@@ -302,6 +302,26 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 < div className="flex-1 overflow-auto p-6 bg-[#121212]" onClick={() => setShowAlerts(false)}>
                     {children}
                 </div >
+
+                {/* Mobile Bottom Navigation */}
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex justify-around p-2 z-50 pb-safe">
+                    <button onClick={() => navigate('/dashboard')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/dashboard' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                        <LayoutDashboard size={20} />
+                        <span className="text-[10px] mt-1">Home</span>
+                    </button>
+                    <button onClick={() => navigate('/prices')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/prices' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                        <ArrowUpRight size={20} />
+                        <span className="text-[10px] mt-1">Prices</span>
+                    </button>
+                    <button onClick={() => navigate('/waste')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/waste' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                        <Trash size={20} />
+                        <span className="text-[10px] mt-1">Waste</span>
+                    </button>
+                    <button onClick={() => navigate('/reports')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/reports' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                        <StickyNote size={20} />
+                        <span className="text-[10px] mt-1">Reports</span>
+                    </button>
+                </div>
             </main >
         </div >
     );
