@@ -14,19 +14,19 @@ The database is already in sync with the Prisma schema.
 
 Running generate... (Use --skip-generate to skip the generators)
 [2K[1A[2K[GRunning generate... - Prisma Client
-[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 71ms
+[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 135ms
 
 DEBUG: Ls dist
 total 16
-drwxr-xr-x@  9 alexandregarcia  staff   288 Feb 13 00:32 .
-drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 13 00:32 ..
-drwxr-xr-x@  5 alexandregarcia  staff   160 Feb 13 00:32 config
-drwxr-xr-x@ 20 alexandregarcia  staff   640 Feb 13 00:32 controllers
-drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 13 00:32 engine
--rw-r--r--@  1 alexandregarcia  staff  7173 Feb 13 00:32 index.js
-drwxr-xr-x@  3 alexandregarcia  staff    96 Feb 13 00:32 middleware
-drwxr-xr-x@ 14 alexandregarcia  staff   448 Feb 13 00:32 routes
-drwxr-xr-x@ 25 alexandregarcia  staff   800 Feb 13 00:32 scripts
+drwxr-xr-x@  9 alexandregarcia  staff   288 Feb 13 00:34 .
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 13 00:34 ..
+drwxr-xr-x@  5 alexandregarcia  staff   160 Feb 13 00:34 config
+drwxr-xr-x@ 20 alexandregarcia  staff   640 Feb 13 00:34 controllers
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 13 00:34 engine
+-rw-r--r--@  1 alexandregarcia  staff  7173 Feb 13 00:34 index.js
+drwxr-xr-x@  3 alexandregarcia  staff    96 Feb 13 00:34 middleware
+drwxr-xr-x@ 14 alexandregarcia  staff   448 Feb 13 00:34 routes
+drwxr-xr-x@ 25 alexandregarcia  staff   800 Feb 13 00:34 scripts
 [Startup] Ensuring user dallas@texasdebrazil.com exists...
 [Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
 [Startup] Ensuring default system settings exist...
