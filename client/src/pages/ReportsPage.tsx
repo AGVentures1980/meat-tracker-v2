@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FileText, Calendar, Download, Filter, Printer, Activity, Loader2, DollarSign } from 'lucide-react';
-
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export const ReportsPage = () => {
     const { t } = useLanguage();
+    const { user } = useAuth();
     const [selectedReport, setSelectedReport] = useState('full-summary');
     const [dateRange, setDateRange] = useState('this-month');
     const [data, setData] = useState<any>(null);
@@ -17,36 +18,42 @@ export const ReportsPage = () => {
         { id: 'inventory', name: t('report_inventory'), description: t('report_inventory_desc'), icon: Calendar, color: 'text-blue-400', endpoint: '/api/v1/reports/variance' },
     ];
 
-    useEffect(() => {
-        const fetchReport = async () => {
-            setLoading(true);
-            setData(null); // Clear previous data
-            try {
-                const report = reports.find(r => r.id === selectedReport);
-                if (!report) return;
+    const fetchReport = useCallback(async () => {
+        if (!user?.token) return;
+        setLoading(true);
+        setData(null);
+        try {
+            const report = reports.find(r => r.id === selectedReport);
+            if (!report) return;
 
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}${report.endpoint}?range=${dateRange}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+            const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}${report.endpoint}?range=${dateRange}`, {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            });
 
+            if (!response.ok) {
                 const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.error || 'Failed to fetch report');
-                }
-
-                setData(result);
-            } catch (error) {
-                console.error('Failed to fetch report:', error);
-                setData(null); // Ensure data is null so error UI triggers
-            } finally {
-                setLoading(false);
+                throw new Error(result.error || 'Failed to fetch report');
             }
-        };
 
+            const result = await response.json();
+            setData(result);
+        } catch (error) {
+            console.error('Failed to fetch report:', error);
+            setData(null);
+        } finally {
+            setLoading(false);
+        }
+    }, [selectedReport, dateRange, user?.token]);
+
+    useEffect(() => {
         fetchReport();
-    }, [selectedReport, dateRange]);
+    }, [fetchReport]);
+
+    useEffect(() => {
+        const handleRetry = () => fetchReport();
+        window.addEventListener('fetch-report-retry', handleRetry);
+        return () => window.removeEventListener('fetch-report-retry', handleRetry);
+    }, [fetchReport]);
 
     const handleExport = () => {
         if (!data) return;
@@ -230,7 +237,7 @@ export const ReportsPage = () => {
                                         Unable to load report data. Please check connection.
                                     </p>
                                     <button
-                                        onClick={() => window.location.reload()}
+                                        onClick={() => window.dispatchEvent(new CustomEvent('fetch-report-retry'))}
                                         className="text-brand-gold hover:underline text-xs"
                                     >
                                         Retry Connection
