@@ -128,43 +128,35 @@ export class PurchaseController {
                     invoice_number: "59114321"
                 },
                 {
-                    raw_text: "BEEF SHORT RIB BI CH TXDB",
-                    detected_item: "Beef Ribs",
-                    quantity: 36.76,
-                    price_per_lb: 9.38,
-                    confidence: 0.88,
+                    raw_text: "TXDEBRL BEEF SIRL COULOT FAT-ON TXDB\nT/WT= 88.30",
+                    detected_item: "Picanha", // Coulotte is Picanha
+                    quantity: 88.30, // Extracted from T/WT
+                    price_per_lb: 5.79,
+                    confidence: 0.98, // High confidence due to T/WT match
                     invoice_number: "59114321"
                 },
                 {
-                    raw_text: "BEEF TNDR PLD UTIL FAT ADD",
+                    raw_text: "TXDEBRL BEEF SHORT RIB BI CH TXDB\nT/WT= 56.00",
+                    detected_item: "Beef Ribs",
+                    quantity: 56.00,
+                    price_per_lb: 5.79,
+                    confidence: 0.96,
+                    invoice_number: "59114321"
+                },
+                {
+                    raw_text: "BEEF TNDR PLD UTIL FAT ADD\nT/WT= 77.79",
                     detected_item: "Filet Mignon",
                     quantity: 77.79,
                     price_per_lb: 11.37,
-                    confidence: 0.85,
-                    invoice_number: "59114321"
-                },
-                {
-                    raw_text: "LAMB LEG AUS S HALAL TDB",
-                    detected_item: "Leg of Lamb",
-                    quantity: 45.64,
-                    price_per_lb: 5.61, // Estimated
                     confidence: 0.95,
                     invoice_number: "59114321"
                 },
                 {
-                    raw_text: "LAMB RACK FRNCH AUS HALAL",
-                    detected_item: "Lamb Chops",
-                    quantity: 32.40,
-                    price_per_lb: 13.18,
-                    confidence: 0.91,
-                    invoice_number: "59114321"
-                },
-                {
-                    raw_text: "BEEF SIRL COULOT FAT-ON TXDB",
-                    detected_item: "Picanha", // Coulotte is Picanha
-                    quantity: 85.00,
-                    price_per_lb: 5.79, // Good price!
-                    confidence: 0.78, // Slightly lower to trigger review
+                    raw_text: "LAMB LEG AUS S HALAL TDB\nT/WT= 45.64",
+                    detected_item: "Leg of Lamb",
+                    quantity: 45.64,
+                    price_per_lb: 5.61,
+                    confidence: 0.95,
                     invoice_number: "59114321"
                 }
             ];
