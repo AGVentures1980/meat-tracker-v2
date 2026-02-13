@@ -85,41 +85,56 @@ export const WeeklyPriceInput = () => {
     ];
 
     const handleInvoiceOCR = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        if (!e.target.files || e.target.files.length === 0) return;
 
         setIsProcessingOCR(true);
-        const formData = new FormData();
-        formData.append('invoice', file);
+        const files = Array.from(e.target.files);
+        const allResults: any[] = [];
+        let duplicateDetected = false;
 
         try {
-            const response = await fetch('/api/v1/purchases/process-invoice-ocr', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${user?.token}` },
-                body: formData
-            });
+            // Process files sequentially to avoid overriding state too quickly
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('invoice', file);
 
-            const result = await response.json();
-            if (result.success) {
-                // Open Review Modal with Draft Data
-                setPendingInvoices(result.results);
-                setIsDuplicate(result.is_duplicate || false);
+                const response = await fetch('/api/v1/purchases/process-invoice-ocr', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${user?.token}`
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    allResults.push(...result.results);
+                    if (result.is_duplicate) duplicateDetected = true;
+                }
+            }
+
+            if (allResults.length > 0) {
+                // Open Review Modal with Aggregated Data
+                setPendingInvoices(allResults);
+                setIsDuplicate(duplicateDetected);
                 setIsReviewOpen(true);
 
-                // Pre-fill mapping for known items
+                // Pre-fill mapping for known items (Process all results)
                 const initialMap: Record<string, string> = {};
-                result.results.forEach((inv: any) => {
+                allResults.forEach((inv: any) => {
                     const match = SYSTEM_ITEMS.find(sys => sys.toLowerCase() === inv.detected_item.toLowerCase())
                         || SYSTEM_ITEMS.find(sys => inv.raw_text.toLowerCase().includes(sys.toLowerCase()));
                     if (match) initialMap[inv.id] = match;
-                    else if (inv.detected_item === 'Beef Sirloin Flap') initialMap[inv.id] = 'Fraldinha/Flank Steak'; // Manual Logic
+                    else if (inv.detected_item === 'Beef Sirloin Flap') initialMap[inv.id] = 'Fraldinha/Flank Steak';
                 });
                 setMapping(initialMap);
             }
         } catch (error) {
-            console.error('OCR Failed', error);
+            console.error('OCR Batch Failed', error);
         } finally {
             setIsProcessingOCR(false);
+            // Reset input so same files can be selected again if needed
+            e.target.value = '';
         }
     };
 

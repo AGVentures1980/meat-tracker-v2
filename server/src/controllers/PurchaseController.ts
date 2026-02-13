@@ -109,8 +109,8 @@ export class PurchaseController {
             // Based on uploaded Sysco Images for Lexington
             // In a real scenario, we would parse the file here.
             // DUPLICATE CHECK: Verify if this invoice number already exists for this store
-            // Mocking "59114321" as the detected number for this specific simulation
-            const detectedInvoiceNumber = "59114321";
+            // SIMULATION: Generate unique invoice # for batch testing (e.g. 59114321-784)
+            const detectedInvoiceNumber = "59114321-" + Math.floor(Math.random() * 10000);
             const existingInvoice = await (prisma as any).invoiceRecord.findFirst({
                 where: {
                     store_id: storeId,
