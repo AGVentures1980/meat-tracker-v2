@@ -18,7 +18,8 @@ export const PerformanceChart = ({ data }: PerformanceChartProps) => {
         .filter(item => item && item.name)
         .sort((a, b) => (a.costGuestVar || 0) - (b.costGuestVar || 0))
         .map(item => {
-            const variance = typeof item.costGuestVar === 'number' ? item.costGuestVar : 0;
+            const rawVariance = typeof item.costGuestVar === 'number' ? item.costGuestVar : 0;
+            const variance = !isNaN(rawVariance) ? rawVariance : 0;
             return {
                 name: item.name,
                 variance: parseFloat(variance.toFixed(2)),

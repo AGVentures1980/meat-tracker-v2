@@ -126,7 +126,8 @@ export const Dashboard = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="flex bg-[#1a1a1a] border border-[#333] p-1 rounded-sm">
+                        <div className="flex bg-[#1a1a1a] border border-[#333] p-1 rounded-sm items-center">
+                            <span className="px-2 text-[9px] text-gray-600 font-mono uppercase tracking-tighter">View:</span>
                             <button
                                 onClick={() => { console.log("Switching to Grid"); setViewMode('grid'); }}
                                 className={`px-4 py-2 text-xs font-bold rounded-xs transition-all flex items-center gap-2 cursor-pointer ${viewMode === 'grid' ? 'text-white bg-[#333] shadow-lg border border-[#444]' : 'text-gray-500 hover:text-white'}`}
@@ -303,9 +304,14 @@ export const Dashboard = () => {
 
                 {/* Footnote Versioning */}
                 <div className="mt-12 pt-8 border-t border-[#333] flex justify-between items-center opacity-30 group hover:opacity-100 transition-opacity">
-                    <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
-                        Brasa Intelligent Systems • Engine v2.7.0-ULTIMATE-FORCE
-                    </p>
+                    <div>
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                            Brasa Intelligent Systems • Engine v2.7.0-ULTIMATE-FORCE
+                        </p>
+                        <p className="text-[9px] text-gray-600 mt-1">
+                            Status: {loading ? 'FETCHING' : 'READY'} • Objects: {performanceData.length} • Mode: {viewMode.toUpperCase()}
+                        </p>
+                    </div>
                     <p className="text-[10px] font-mono text-gray-600">
                         {new Date().toISOString()} • STABLE
                     </p>
