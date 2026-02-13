@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, AlertTriangle } from 'lucide-react';
+import { X, Save, AlertTriangle, Loader2, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface StoreTarget {
     id: number;
@@ -17,22 +18,24 @@ interface ExecutiveTargetEditorProps {
 
 export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTargetEditorProps) => {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const [stores, setStores] = useState<StoreTarget[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-    // Fetch all stores and their current targets
     useEffect(() => {
         if (isOpen) {
             fetchStores();
+            setSuccessMsg(null);
+            setError(null);
         }
     }, [isOpen]);
 
     const handleSync = async () => {
-        if (!confirm("Are you sure you want to reset all store targets to the standard defaults? This will overwrite manual changes.")) return;
-
         setSyncing(true);
         try {
             const response = await fetch('/api/v1/dashboard/targets/sync', {
@@ -42,11 +45,14 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
 
             if (!response.ok) throw new Error("Failed to sync targets");
 
-            // Reload stores to show new values
             await fetchStores();
-            alert("Targets reset successfully!");
+            setSuccessMsg(t('targets_reset_success') || "Targets reset successfully to standards.");
+            setShowResetConfirm(false);
+
+            // Clear success message after 3 seconds
+            setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            setError("Failed to sync targets.");
+            setError(t('error_sync_targets') || "Failed to sync targets.");
         } finally {
             setSyncing(false);
         }
@@ -55,30 +61,18 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
     const fetchStores = async () => {
         try {
             setLoading(true);
-            // We can reuse the existing endpoint or query specific data. 
-            // Ideally we'd have a lightweight endpoint for just this list.
-            // For now, let's assume we can hit the main stats endpoint or a specific one.
-            // Let's use the report card endpoint as a base or just fetch stores if we had that.
-            // Actually, let's just use the company-stats endpoint to get the list of ALL stores if possible, 
-            // or better, let's create a quick fetch to get all stores from the API if it existed.
-            // Since we don't have a dedicated "list stores" endpoint exposed simply, let's assume
-            // we can get the data from the company stats properly or just mock it for now if needed.
-            // WAIT - The company stats returns `middle_tier`, `top_savers`, `top_spenders`. 
-            // Combining these gives us all stores!
-
             const response = await fetch('/api/v1/dashboard/company-stats', {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await response.json();
 
-            // Use the full performance list if available, otherwise combine
+            // Consolidate store lists
             const sourceList = data.performance || [
                 ...data.top_savers,
                 ...data.top_spenders,
                 ...data.middle_tier
             ];
 
-            // Deduplicate just in case we used the combined method (though performance is best)
             const uniqueStores = Array.from(new Map(sourceList.map((s: any) => [s.id, s])).values());
 
             const allStoresLists = uniqueStores.map((s: any) => ({
@@ -88,12 +82,11 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
                 target_lbs_guest: s.target_lbs_guest || 1.76
             }));
 
-            // Sort by Name
             allStoresLists.sort((a: any, b: any) => a.name.localeCompare(b.name));
             setStores(allStoresLists as StoreTarget[]);
 
         } catch (err) {
-            setError("Failed to load store list.");
+            setError(t('error_load_stores') || "Failed to load store list.");
         } finally {
             setLoading(false);
         }
@@ -124,10 +117,10 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
 
             if (!response.ok) throw new Error("Failed to save");
 
-            onSave(); // Refresh parent
+            onSave();
             onClose();
         } catch (err) {
-            setError("Failed to save changes.");
+            setError(t('error_save_changes') || "Failed to save changes.");
         } finally {
             setSaving(false);
         }
@@ -137,18 +130,47 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative">
+
+                {/* Reset Confirmation Overlay */}
+                {showResetConfirm && (
+                    <div className="absolute inset-0 bg-black/90 z-10 flex items-center justify-center rounded-lg backdrop-blur-sm animate-in fade-in">
+                        <div className="bg-[#222] border border-red-900/50 p-6 rounded-lg max-w-sm text-center shadow-2xl">
+                            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                            <h3 className="text-white font-bold text-lg mb-2">{t('confirm_reset') || "Confirm Reset"}</h3>
+                            <p className="text-gray-400 text-sm mb-6">
+                                {t('reset_warning') || "Are you sure you want to reset all store targets to the standard defaults? This will overwrite manual changes."}
+                            </p>
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={() => setShowResetConfirm(false)}
+                                    className="px-4 py-2 rounded border border-[#444] text-gray-300 hover:bg-[#333]"
+                                >
+                                    {t('cancel') || "Cancel"}
+                                </button>
+                                <button
+                                    onClick={handleSync}
+                                    disabled={syncing}
+                                    className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white font-bold flex items-center gap-2"
+                                >
+                                    {syncing && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    {t('confirm') || "Yes, Reset All"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Header */}
                 <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#222]">
                     <div>
                         <h2 className="text-white font-bold text-lg flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-[#C5A059]" />
-                            Target Configuration
+                            {t('target_config_title') || "Target Configuration"}
                         </h2>
-                        <p className="text-xs text-gray-400">Set specific LBS/Guest goals per store</p>
+                        <p className="text-xs text-gray-400">{t('target_config_subtitle') || "Set specific LBS/Guest goals per store"}</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded text-gray-400">
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded text-gray-400 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -156,32 +178,34 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
                 {/* Content */}
                 <div className="flex-1 overflow-auto p-4">
                     {loading ? (
-                        <div className="text-center text-gray-500 py-8">Loading stores...</div>
+                        <div className="flex flex-col items-center justify-center py-12 gap-4">
+                            <Loader2 className="w-8 h-8 text-[#C5A059] animate-spin" />
+                            <span className="text-gray-500 text-sm font-mono uppercase tracking-widest">{t('loading_stores') || "Loading stores..."}</span>
+                        </div>
                     ) : (
-                        <table className="w-full text-sm">
-                            <thead className="text-xs text-gray-500 uppercase font-mono border-b border-[#333]">
+                        <table className="w-full text-sm border-collapse">
+                            <thead className="text-xs text-gray-500 uppercase font-mono border-b border-[#333] bg-[#1a1a1a] sticky top-0 z-0">
                                 <tr>
-                                    <th className="px-4 py-2 text-left">Store</th>
-                                    <th className="px-4 py-2 text-right">Current Target</th>
-                                    <th className="px-4 py-2 text-right">New Target</th>
+                                    <th className="px-4 py-3 text-left">{t('store') || "Store"}</th>
+                                    <th className="px-4 py-3 text-right">{t('current_target') || "Current Target"}</th>
+                                    <th className="px-4 py-3 text-right">{t('new_target') || "New Target"}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#333]">
                                 {stores.map(store => (
-                                    <tr key={store.id} className="hover:bg-white/5">
+                                    <tr key={store.id} className="hover:bg-white/5 transition-colors">
                                         <td className="px-4 py-2 text-white font-medium">
                                             {store.name}
-                                            <span className="text-xs text-gray-500 ml-2 block">{store.location}</span>
+                                            <span className="text-xs text-gray-500 ml-2 block font-mono">{store.location}</span>
                                         </td>
-                                        <td className="px-4 py-2 text-right text-gray-400">
-                                            {/* We don't verify 'current' perfectly yet without backend tweak, showing state value */}
+                                        <td className="px-4 py-2 text-right text-gray-400 font-mono">
                                             {store.target_lbs_guest.toFixed(2)}
                                         </td>
                                         <td className="px-4 py-2 text-right">
                                             <input
                                                 type="number"
                                                 step="0.01"
-                                                className="bg-[#111] border border-[#444] text-white px-2 py-1 rounded w-20 text-right focus:border-[#C5A059] outline-none"
+                                                className="bg-[#111] border border-[#444] text-white px-3 py-1.5 rounded-sm w-24 text-right focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]/50 outline-none transition-all font-mono"
                                                 value={store.target_lbs_guest}
                                                 onChange={(e) => handleTargetChange(store.id, e.target.value)}
                                             />
@@ -191,31 +215,50 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
                             </tbody>
                         </table>
                     )}
-                    {error && <div className="mt-4 p-2 bg-[#FF2A6D]/20 text-[#FF2A6D] text-xs rounded text-center">{error}</div>}
+
+                    {error && (
+                        <div className="mt-4 p-3 bg-red-900/20 border border-red-900/50 text-red-400 text-xs rounded text-center flex items-center justify-center gap-2 animate-in fade-in">
+                            <AlertTriangle className="w-4 h-4" />
+                            {error}
+                        </div>
+                    )}
+
+                    {successMsg && (
+                        <div className="mt-4 p-3 bg-green-900/20 border border-green-900/50 text-green-400 text-xs rounded text-center flex items-center justify-center gap-2 animate-in fade-in">
+                            <CheckCircle className="w-4 h-4" />
+                            {successMsg}
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-[#333] bg-[#222] flex justify-end gap-2">
-                    <button onClick={onClose} className="px-4 py-2 rounded text-gray-400 hover:text-white hover:bg-white/5 text-sm">
-                        Cancel
+                <div className="p-4 border-t border-[#333] bg-[#222] flex justify-end gap-3">
+                    <button
+                        onClick={() => setShowResetConfirm(true)}
+                        disabled={syncing || loading}
+                        className="px-4 py-2 rounded text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 disabled:opacity-50 flex items-center gap-2 text-xs font-bold uppercase tracking-wider mr-auto transition-colors"
+                    >
+                        <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
+                        {t('reset_standards') || "Reset to Standards"}
+                    </button>
+
+                    <button onClick={onClose} className="px-5 py-2 rounded text-gray-400 hover:text-white hover:bg-white/5 text-xs font-bold uppercase tracking-wider transition-colors">
+                        {t('cancel') || "Cancel"}
                     </button>
                     <button
                         onClick={handleSave}
-                        disabled={saving}
-                        className="px-4 py-2 rounded bg-[#C5A059] text-black font-bold text-sm hover:bg-[#D4AF37] disabled:opacity-50 flex items-center gap-2"
+                        disabled={saving || loading}
+                        className="px-6 py-2 rounded-sm bg-[#C5A059] text-black font-bold text-xs hover:bg-[#D4AF37] disabled:opacity-50 flex items-center gap-2 uppercase tracking-wider shadow-lg transition-all active:scale-95"
                     >
-                        <Save className="w-4 h-4" />
-                        {saving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                    <button
-                        onClick={handleSync}
-                        disabled={syncing}
-                        className="px-4 py-2 rounded bg-blue-500/20 text-blue-400 font-bold text-sm hover:bg-blue-500/30 disabled:opacity-50 flex items-center gap-2 border border-blue-500/50"
-                    >
-                        {syncing ? 'Syncing...' : 'Reset to Standards'}
+                        {saving ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Save className="w-4 h-4" />
+                        )}
+                        {saving ? (t('saving') || 'Saving...') : (t('save_changes') || 'Save Changes')}
                     </button>
                 </div>
             </div>
-        </div >
+        </div>
     );
 };
