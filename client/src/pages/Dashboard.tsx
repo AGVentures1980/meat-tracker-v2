@@ -128,14 +128,14 @@ export const Dashboard = () => {
                     <div className="flex items-center gap-3">
                         <div className="flex bg-[#1a1a1a] border border-[#333] p-1 rounded-sm">
                             <button
-                                onClick={() => setViewMode('grid')}
-                                className={`px-3 py-1.5 text-xs font-bold rounded-xs transition-all flex items-center gap-2 ${viewMode === 'grid' ? 'text-white bg-[#333] shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                onClick={() => { console.log("Switching to Grid"); setViewMode('grid'); }}
+                                className={`px-4 py-2 text-xs font-bold rounded-xs transition-all flex items-center gap-2 cursor-pointer ${viewMode === 'grid' ? 'text-white bg-[#333] shadow-lg border border-[#444]' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <LayoutGrid size={14} /> {t('appearance')}
                             </button>
                             <button
-                                onClick={() => setViewMode('charts')}
-                                className={`px-3 py-1.5 text-xs font-bold rounded-xs transition-all flex items-center gap-2 ${viewMode === 'charts' ? 'text-white bg-[#333] shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                onClick={() => { console.log("Switching to Charts"); setViewMode('charts'); }}
+                                className={`px-4 py-2 text-xs font-bold rounded-xs transition-all flex items-center gap-2 cursor-pointer ${viewMode === 'charts' ? 'text-white bg-[#333] shadow-lg border border-[#444]' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <TrendingUp size={14} /> {t('charts')}
                             </button>
@@ -300,6 +300,16 @@ export const Dashboard = () => {
                 ) : (
                     <PerformanceChart data={performanceData} />
                 )}
+
+                {/* Footnote Versioning */}
+                <div className="mt-12 pt-8 border-t border-[#333] flex justify-between items-center opacity-30 group hover:opacity-100 transition-opacity">
+                    <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                        Brasa Intelligent Systems • Engine v2.7.0.U
+                    </p>
+                    <p className="text-[10px] font-mono text-gray-600">
+                        {new Date().toISOString()} • STABLE
+                    </p>
+                </div>
             </div>
 
             {/* Input Modal */}
