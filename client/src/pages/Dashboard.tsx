@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutGrid, TrendingUp, DownloadCloud, Brain, AlertTriangle, ShoppingBag, ArrowRight } from 'lucide-react';
+import { LayoutGrid, TrendingUp, Download, AlertTriangle, ShoppingBag, Search, ChevronRight, Filter, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
@@ -150,72 +150,75 @@ export const Dashboard = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-                    <NetworkReportCard />
-                </div>
+                {/* High Density Intelligence Hub */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8 animate-in slide-in-from-bottom-4">
+                    {/* Column 1: Network Intel */}
+                    <div className="lg:col-span-1">
+                        <NetworkReportCard />
+                    </div>
 
-                {/* Intelligence Hub */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 animate-in slide-in-from-bottom-4">
-                    {/* Anomalies Card */}
-                    <div className="bg-[#1a1a1a] border border-[#333] border-l-4 border-l-[#FF2A6D] p-6 rounded-sm shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-5">
-                            <AlertTriangle className="w-20 h-20" />
+                    {/* Column 2: Anomalies Card */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-[#1a1a1a] border border-[#333] border-l-4 border-l-[#FF2A6D] p-5 rounded-sm shadow-xl relative overflow-hidden h-full">
+                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                <AlertTriangle className="w-16 h-16" />
+                            </div>
+                            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                                <AlertTriangle className="text-[#FF2A6D] w-4 h-4" />
+                                {t('analyst_critical_anomalies')}
+                            </h3>
+                            {anomalies.length > 0 ? (
+                                <div className="space-y-3">
+                                    {anomalies.slice(0, 3).map((a, i) => (
+                                        <div key={i} className="flex justify-between items-center bg-[#121212] p-2 border border-[#333] group hover:border-[#FF2A6D]/50 transition-all cursor-pointer" onClick={() => navigate(`/dashboard/${a.storeId}`)}>
+                                            <div className="truncate mr-2">
+                                                <p className="text-white font-bold text-[11px] truncate tracking-tight">{a.name}</p>
+                                                <p className="text-[9px] text-gray-500 uppercase font-mono">VAR: +{a.variance.toFixed(1)}%</p>
+                                            </div>
+                                            <div className="text-right flex-shrink-0">
+                                                <p className="text-[#FF2A6D] font-mono font-bold text-[10px]">ALERT</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="h-24 flex items-center justify-center border border-dashed border-[#333] bg-[#121212]">
+                                    <p className="text-[9px] text-gray-600 font-mono uppercase text-center px-2">Equilíbrio Ativo: Nenhum desvio.</p>
+                                </div>
+                            )}
                         </div>
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <AlertTriangle className="text-[#FF2A6D] w-5 h-5" />
-                            {t('analyst_critical_anomalies')} (15% Variance)
-                        </h3>
-                        {anomalies.length > 0 ? (
-                            <div className="space-y-4">
-                                {anomalies.map((a, i) => (
-                                    <div key={i} className="flex justify-between items-center bg-[#121212] p-3 border border-[#333] group hover:border-[#FF2A6D]/50 transition-all cursor-pointer" onClick={() => navigate(`/dashboard/${a.storeId}`)}>
+                    </div>
+
+                    {/* Column 3-4: Supply Suggestion Card */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-[#1a1a1a] border border-[#333] border-l-4 border-l-[#00FF94] p-5 rounded-sm shadow-xl relative overflow-hidden h-full">
+                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                <ShoppingBag className="w-16 h-16" />
+                            </div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                                    <ShoppingBag className="text-[#00FF94] w-4 h-4" />
+                                    {t('price_ocr_title')} (Supply Chain)
+                                </h3>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); navigate('/projections'); }}
+                                    className="text-[9px] text-[#C5A059] hover:underline uppercase font-bold tracking-widest"
+                                >
+                                    {t('procurement_intel_btn')} →
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {suggestions.slice(0, 4).map((s, i) => (
+                                    <div key={i} className="bg-[#121212] p-2 border border-[#333] flex justify-between items-center">
                                         <div>
-                                            <p className="text-white font-bold text-sm tracking-tight">{a.name}</p>
-                                            <p className="text-[10px] text-gray-500 uppercase font-mono">Consumo: {a.lbsPerGuest.toFixed(2)} vs Tgt: {a.target.toFixed(2)}</p>
+                                            <p className="text-[9px] text-gray-400 uppercase font-bold">{s.protein}</p>
+                                            <p className="text-sm font-bold text-white">+{s.suggestedOrder} <span className="text-[9px] text-gray-500 font-normal uppercase">{s.unit}</span></p>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-[#FF2A6D] font-mono font-bold">+{a.variance.toFixed(1)}%</p>
-                                            <p className="text-[9px] text-[#FF2A6D] uppercase">Potential Waste</p>
-                                        </div>
+                                        <div className={`w-1.5 h-1.5 rounded-full ${s.priority === 'High' ? 'bg-red-500 animate-pulse' : 'bg-gray-700'}`}></div>
                                     </div>
                                 ))}
                             </div>
-                        ) : (
-                            <div className="h-24 flex items-center justify-center border border-dashed border-[#333] bg-[#121212]">
-                                <p className="text-[11px] text-gray-600 font-mono uppercase">Equilíbrio Ativo: Nenhum desvio crítico detectado.</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Supply Suggestion Card */}
-                    <div className="bg-[#1a1a1a] border border-[#333] border-l-4 border-l-[#00FF94] p-6 rounded-sm shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-5">
-                            <ShoppingBag className="w-20 h-20" />
                         </div>
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <ShoppingBag className="text-[#00FF94] w-5 h-5" />
-                            {t('price_ocr_title')} (Supply Chain)
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            {suggestions.slice(0, 4).map((s, i) => (
-                                <div key={i} className="bg-[#121212] p-3 border border-[#333]">
-                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">{s.protein}</p>
-                                    <div className="flex items-baseline gap-2">
-                                        <p className="text-xl font-bold text-white">+{s.suggestedOrder}</p>
-                                        <span className="text-[10px] text-gray-500 font-mono">{s.unit}</span>
-                                    </div>
-                                    <p className={`text-[9px] uppercase font-bold mt-2 ${s.priority === 'High' ? 'text-red-400' : 'text-gray-500'}`}>
-                                        {s.priority} Priority
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); navigate('/projections'); }}
-                            className="w-full mt-6 bg-[#C5A059] hover:bg-[#D5B069] text-black py-2 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all relative z-20 shadow-lg"
-                        >
-                            {t('procurement_intel_btn')} <ArrowRight size={12} />
-                        </button>
                     </div>
                 </div>
 
