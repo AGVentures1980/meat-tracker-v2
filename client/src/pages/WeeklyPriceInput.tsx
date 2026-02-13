@@ -120,28 +120,32 @@ export const WeeklyPriceInput = () => {
                 }
             }
 
-            if (skippedCount > 0) {
-                alert(`${skippedCount} duplicate invoice(s) were skipped/ignored.`);
-            }
+            if (allResults.length > 0 || skippedCount > 0) {
+                // If we have successful results, open the review modal
+                if (allResults.length > 0) {
+                    setPendingInvoices(allResults);
+                    setIsDuplicate(false); // We filtered them out, so what remains is valid
+                    setIsReviewOpen(true);
 
-            if (allResults.length > 0) {
-                // Open Review Modal with Aggregated Data
-                setPendingInvoices(allResults);
-                setIsDuplicate(false); // We filtered them out, so what remains is valid
-                setIsReviewOpen(true);
+                    // Pre-fill mapping for known items
+                    const initialMap: Record<string, string> = {};
+                    allResults.forEach((inv: any) => {
+                        const match = SYSTEM_ITEMS.find(sys => sys.toLowerCase() === inv.detected_item.toLowerCase())
+                            || SYSTEM_ITEMS.find(sys => inv.raw_text.toLowerCase().includes(sys.toLowerCase()));
+                        if (match) initialMap[inv.id] = match;
+                        else if (inv.detected_item === 'Beef Sirloin Flap') initialMap[inv.id] = 'Fraldinha/Flank Steak';
+                    });
+                    setMapping(initialMap);
+                }
 
-                // Pre-fill mapping for known items (Process all results)
-                const initialMap: Record<string, string> = {};
-                allResults.forEach((inv: any) => {
-                    const match = SYSTEM_ITEMS.find(sys => sys.toLowerCase() === inv.detected_item.toLowerCase())
-                        || SYSTEM_ITEMS.find(sys => inv.raw_text.toLowerCase().includes(sys.toLowerCase()));
-                    if (match) initialMap[inv.id] = match;
-                    else if (inv.detected_item === 'Beef Sirloin Flap') initialMap[inv.id] = 'Fraldinha/Flank Steak';
-                });
-                setMapping(initialMap);
-            } else if (skippedCount === files.length) {
-                // All files were duplicates
-                alert(t('ocr_all_duplicates') || 'All uploaded invoices were duplicates and already exist in the system.');
+                // If we have duplicates, show the result modal (even if we also opened review)
+                if (skippedCount > 0) {
+                    setScanResult({
+                        total: files.length,
+                        successful: allResults.length,
+                        duplicates: skippedCount
+                    });
+                }
             }
         } catch (error) {
             console.error('OCR Batch Failed', error);
