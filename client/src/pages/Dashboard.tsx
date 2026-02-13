@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { LayoutGrid, TrendingUp, Download, AlertTriangle, ShoppingBag, Search, ChevronRight, Filter, Plus } from 'lucide-react';
+import { LayoutGrid, TrendingUp, Download, AlertTriangle, ShoppingBag, Search, ChevronRight, Filter, Plus, Brain, DownloadCloud } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
