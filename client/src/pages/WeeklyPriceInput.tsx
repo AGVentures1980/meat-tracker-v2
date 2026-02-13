@@ -72,6 +72,18 @@ export const WeeklyPriceInput = () => {
         fetchAverages();
     }, [selectedDate]);
 
+    const [pendingInvoices, setPendingInvoices] = useState<any[]>([]);
+    const [isReviewOpen, setIsReviewOpen] = useState(false);
+    const [isDuplicate, setIsDuplicate] = useState(false);
+    const [mapping, setMapping] = useState<Record<string, string>>({});
+
+    // System Item Options for Mapping
+    const SYSTEM_ITEMS = [
+        'Picanha', 'Fraldinha/Flank Steak', 'Tri-Tip', 'Filet Mignon', 'Beef Ribs',
+        'Lamb Chops', 'Leg of Lamb', 'Lamb Picanha', 'Sausage', 'Chicken Drumstick',
+        'Chicken Breast', 'Pork Ribs', 'Pork Loin', 'Shrimp'
+    ];
+
     const handleInvoiceOCR = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -89,12 +101,57 @@ export const WeeklyPriceInput = () => {
 
             const result = await response.json();
             if (result.success) {
-                fetchAverages(); // Refresh values
+                // Open Review Modal with Draft Data
+                setPendingInvoices(result.results);
+                setIsDuplicate(result.is_duplicate || false);
+                setIsReviewOpen(true);
+
+                // Pre-fill mapping for known items
+                const initialMap: Record<string, string> = {};
+                result.results.forEach((inv: any) => {
+                    const match = SYSTEM_ITEMS.find(sys => sys.toLowerCase() === inv.detected_item.toLowerCase())
+                        || SYSTEM_ITEMS.find(sys => inv.raw_text.toLowerCase().includes(sys.toLowerCase()));
+                    if (match) initialMap[inv.id] = match;
+                    else if (inv.detected_item === 'Beef Sirloin Flap') initialMap[inv.id] = 'Fraldinha/Flank Steak'; // Manual Logic
+                });
+                setMapping(initialMap);
             }
         } catch (error) {
             console.error('OCR Failed', error);
         } finally {
             setIsProcessingOCR(false);
+        }
+    };
+
+    const handleConfirmInvoices = async () => {
+        setLoading(true);
+        try {
+            // Prepare payload with mapped names
+            const payload = pendingInvoices.map(inv => ({
+                ...inv,
+                detected_item: mapping[inv.id] || inv.detected_item // Use user mapping or fallback
+            }));
+
+            const response = await fetch('/api/v1/purchases/confirm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user?.token}`
+                },
+                body: JSON.stringify({ invoices: payload })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                setIsReviewOpen(false);
+                setPendingInvoices([]);
+                fetchAverages(); // Refresh main table
+                alert(t('ocr_success_saved'));
+            }
+        } catch (error) {
+            console.error('Save Failed', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -113,16 +170,114 @@ export const WeeklyPriceInput = () => {
         setSelectedDate(newDate);
     };
 
-    // The provided snippet for `handleExport` was syntactically incorrect and seemed misplaced.
-    // Assuming the intent was to add a new function, it should be defined outside `navigateWeek`.
-    // As the instruction also mentions "Fix lint in ReportsPage" which is not this file,
-    // and the provided code snippet was malformed, I'm making the minimal change to
-    // keep the file syntactically correct by ignoring the malformed part of the snippet.
-    // The instruction "Update date locale and translate item names" is already handled
-    // by existing code using `t()` and `toLocaleDateString`.
-
     return (
-        <div className="max-w-5xl mx-auto p-4">
+        <div className="max-w-5xl mx-auto p-4 relative">
+            {/* Review Modal */}
+            {isReviewOpen && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#1a1a1a] border border-brand-gold rounded-sm w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                        <div className="p-6 border-b border-[#333] flex justify-between items-center sticky top-0 bg-[#1a1a1a] z-10">
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                                <FileText className="w-6 h-6 text-brand-gold" />
+                                Review Invoice Data
+                            </h2>
+                            <button onClick={() => setIsReviewOpen(false)} className="text-gray-500 hover:text-white">Close</button>
+                        </div>
+
+                        {isDuplicate && (
+                            <div className="bg-red-500/10 border border-red-500/50 p-4 mx-6 mt-4 flex items-center gap-3 rounded-sm">
+                                <Lock className="w-5 h-5 text-red-500" />
+                                <div>
+                                    <h4 className="text-red-500 font-bold text-sm uppercase tracking-widest">Duplicate Invoice Detected</h4>
+                                    <p className="text-gray-400 text-xs">This invoice number has already been processed for this store. Confirmation is locked.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="p-6 space-y-4">
+                            <div className="grid grid-cols-12 gap-4 text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 px-2">
+                                <div className="col-span-4">Raw Invoice Text</div>
+                                <div className="col-span-3">System Mapping</div>
+                                <div className="col-span-2 text-right">Qty (LBS)</div>
+                                <div className="col-span-2 text-right">Price/Lb</div>
+                                <div className="col-span-1"></div>
+                            </div>
+
+                            {pendingInvoices.map((inv) => (
+                                <div key={inv.id} className="grid grid-cols-12 gap-4 items-center bg-[#222] p-3 rounded-sm border border-[#333]">
+                                    <div className="col-span-4">
+                                        <div className="text-white font-mono text-xs truncate" title={inv.raw_text}>{inv.raw_text}</div>
+                                        <div className="text-[10px] text-gray-500 mt-1">Detected: {inv.detected_item}</div>
+                                    </div>
+                                    <div className="col-span-3">
+                                        <select
+                                            value={mapping[inv.id] || ''}
+                                            onChange={(e) => setMapping({ ...mapping, [inv.id]: e.target.value })}
+                                            className="w-full bg-[#111] border border-[#444] text-white text-xs p-2 rounded-sm outline-none focus:border-brand-gold"
+                                        >
+                                            <option value="">-- Select Item --</option>
+                                            {SYSTEM_ITEMS.map(item => (
+                                                <option key={item} value={item}>{item}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <input
+                                            type="number"
+                                            defaultValue={inv.quantity}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                setPendingInvoices(prev => prev.map(p => p.id === inv.id ? { ...p, quantity: val } : p));
+                                            }}
+                                            className="w-full bg-[#111] border border-[#444] text-white text-right text-xs p-2 rounded-sm"
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <input
+                                            type="number"
+                                            defaultValue={inv.price_per_lb}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                setPendingInvoices(prev => prev.map(p => p.id === inv.id ? { ...p, price_per_lb: val } : p));
+                                            }}
+                                            className="w-full bg-[#111] border border-[#444] text-white text-right text-xs p-2 rounded-sm"
+                                        />
+                                    </div>
+                                    <div className="col-span-1 flex justify-center">
+                                        {mapping[inv.id] ? (
+                                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Mapped"></div>
+                                        ) : (
+                                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="Mapping Required"></div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="p-6 border-t border-[#333] bg-[#222] flex justify-end gap-3 sticky bottom-0">
+                            <button
+                                onClick={() => setIsReviewOpen(false)}
+                                className="px-6 py-3 rounded-sm border border-[#444] text-gray-300 hover:text-white hover:bg-[#333] transition-all text-xs font-bold uppercase tracking-widest"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmInvoices}
+                                disabled={isDuplicate || pendingInvoices.some(inv => !mapping[inv.id]) || loading}
+                                className={`px-8 py-3 rounded-sm font-bold text-xs uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all 
+                                    ${isDuplicate
+                                        ? 'bg-red-900/50 text-red-400 cursor-not-allowed border border-red-900'
+                                        : 'bg-brand-gold text-black hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed'
+                                    }`}
+                            >
+                                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {isDuplicate ? 'Locked' : 'Confirm & Save to Ledger'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex justify-between items-center mb-12">
                 <div>
                     <h1 className="text-4xl font-serif font-bold text-white mb-2 flex items-center gap-4">

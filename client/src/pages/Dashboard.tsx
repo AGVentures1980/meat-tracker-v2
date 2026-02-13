@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
 import { PerformanceChart } from '../components/dashboard/PerformanceChart';
+import { MobileActionCenter } from '../components/MobileActionCenter';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -34,6 +35,7 @@ export const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showWeeklyInput, setShowWeeklyInput] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'charts'>('grid');
+    const [showMobileView, setShowMobileView] = useState(window.innerWidth < 768);
 
     const { user } = useAuth();
     const { t } = useLanguage();
@@ -70,6 +72,16 @@ export const Dashboard = () => {
         };
         fetchData();
     }, [user?.token]);
+
+    useEffect(() => {
+        const handleResize = () => setShowMobileView(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    if (showMobileView) {
+        return <MobileActionCenter onSwitchToDesktop={() => setShowMobileView(false)} />;
+    }
 
     const handleExport = () => {
         if (!performanceData.length) return;
