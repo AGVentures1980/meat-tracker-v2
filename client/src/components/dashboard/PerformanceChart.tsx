@@ -5,12 +5,26 @@ interface PerformanceChartProps {
 }
 
 export const PerformanceChart = ({ data }: PerformanceChartProps) => {
+    if (!data || data.length === 0) {
+        return (
+            <div className="h-[500px] w-full bg-[#1a1a1a] border border-[#333] p-6 rounded-sm flex flex-col items-center justify-center">
+                <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">No Performance Data Available</p>
+            </div>
+        );
+    }
+
     // Sort by variance to show best/worst performers
-    const chartData = [...data].sort((a, b) => a.costGuestVar - b.costGuestVar).map(item => ({
-        name: item.name,
-        variance: parseFloat(item.costGuestVar.toFixed(2)),
-        absVariance: Math.abs(item.costGuestVar)
-    }));
+    const chartData = [...data]
+        .filter(item => item && item.name)
+        .sort((a, b) => (a.costGuestVar || 0) - (b.costGuestVar || 0))
+        .map(item => {
+            const variance = typeof item.costGuestVar === 'number' ? item.costGuestVar : 0;
+            return {
+                name: item.name,
+                variance: parseFloat(variance.toFixed(2)),
+                absVariance: Math.abs(variance)
+            };
+        });
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {

@@ -309,6 +309,10 @@ export class MeatEngine {
             // Recalculate cost per guest based on actual meat usage value
             const costPerGuest = guests > 0 ? (totalCost / guests) : 0;
 
+            if (store.id === 510 || store.store_name?.includes('Lexington')) {
+                console.log(`[DIAGNOSTIC] Lexington (510) - Guests: ${guests}, Lbs: ${totalLbs}, Target: ${(store as any).target_lbs_guest}, CostGuestVar: ${costPerGuest - ((store as any).target_cost_guest || 9.94)}`);
+            }
+
             performanceProp.push({
                 id: store.id,
                 name: store.store_name,

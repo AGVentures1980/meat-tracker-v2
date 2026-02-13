@@ -137,7 +137,7 @@ export const Dashboard = () => {
                                 onClick={() => setViewMode('charts')}
                                 className={`px-3 py-1.5 text-xs font-bold rounded-xs transition-all flex items-center gap-2 ${viewMode === 'charts' ? 'text-white bg-[#333] shadow-lg' : 'text-gray-500 hover:text-white'}`}
                             >
-                                <TrendingUp size={14} /> Charts
+                                <TrendingUp size={14} /> {t('charts')}
                             </button>
                         </div>
                         <button

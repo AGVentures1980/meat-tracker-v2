@@ -183,7 +183,8 @@
         "item_filet": "Filet Mignon",
         "item_ribs": "Beef Ribs",
         "item_lamb": "Lamb Chops",
-        "procurement_intel_btn": "Procurement Intelligence"
+        "procurement_intel_btn": "Procurement Intelligence",
+        "charts": "Charts"
     },
     "pt": {
         "nav_dashboard": "Painel",
@@ -369,6 +370,7 @@
         "item_filet": "Filet Mignon",
         "item_ribs": "Costela",
         "item_lamb": "Costeletas de Cordeiro",
-        "procurement_intel_btn": "Inteligência de Suprimentos"
+        "procurement_intel_btn": "Inteligência de Suprimentos",
+        "charts": "Gráficos"
     }
 }
