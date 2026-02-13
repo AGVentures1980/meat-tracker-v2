@@ -93,7 +93,7 @@ Error: listen EADDRINUSE: address already in use :::3001
     at app.listen (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/application.js:635:24)
     at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts:170:9
 [ERROR] 01:25:23 Error: listen EADDRINUSE: address already in use :::3001
-] 01:08:16 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/PurchaseController.ts has been modified
+[INFO] 01:34:07 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/PurchaseController.ts has been modified
 [Startup] Ensuring user dallas@texasdebrazil.com exists...
 [Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
 [Startup] Ensuring default system settings exist...
@@ -104,8 +104,8 @@ Error: listen EADDRINUSE: address already in use :::3001
     at Server.listen (node:net:2102:7)
     at app.listen (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/application.js:635:24)
     at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts:170:9
-[ERROR] 01:08:17 Error: listen EADDRINUSE: address already in use :::3001
-[INFO] 01:11:31 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/PurchaseController.ts has been modified
+[ERROR] 01:34:08 Error: listen EADDRINUSE: address already in use :::3001
+] 01:11:31 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/PurchaseController.ts has been modified
 Compilation error in /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/PurchaseController.ts
 [ERROR] 01:11:32 ⨯ Unable to compile TypeScript:
 src/controllers/PurchaseController.ts(141,17): error TS1136: Property assignment expected.
@@ -146,3 +146,15 @@ Error: listen EADDRINUSE: address already in use :::3001
     at app.listen (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/application.js:635:24)
     at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts:170:9
 [ERROR] 01:25:23 Error: listen EADDRINUSE: address already in use :::3001
+[INFO] 01:34:07 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/PurchaseController.ts has been modified
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts:170:9
+[ERROR] 01:34:08 Error: listen EADDRINUSE: address already in use :::3001

@@ -146,13 +146,14 @@ export class PurchaseController {
                     confidence: 0.99,
                     invoice_number: "59114321"
                 },
-                // 2. CHICKEN DRUMSTICK (Corrected Logic per User)
-                // Row: 4 CS | 9 PACK | 63.6 OZ | CHICKEN DRUMSTICK
-                // Calc: (4 Cases * 9 Packs * 63.6 oz) / 16 = 143.1 LBS
+                // 2. CHICKEN DRUMSTICK (Corrected Logic: Piece Count)
+                // Row: 4 CS | 96 PACK (Pieces) | 3.6 OZ | CHICKEN DRUMSTICK
+                // Calc Per Case: (96 * 3.6) / 16 = 21.6 LBS
+                // Total: 21.6 * 4 Cases = 86.4 LBS
                 {
-                    raw_text: "CHICKEN DRUMSTICK IQF\nPACK:9 SIZE:63.6oz",
+                    raw_text: "CHICKEN DRUMSTICK IQF\nPACK:96 SIZE:3.6oz",
                     detected_item: "Chicken Legs",
-                    quantity: 143.10,
+                    quantity: 86.40,
                     price_per_lb: 0.98,
                     confidence: 0.99,
                     invoice_number: "59114321"
