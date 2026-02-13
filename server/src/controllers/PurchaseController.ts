@@ -146,6 +146,17 @@ export class PurchaseController {
                     confidence: 0.99,
                     invoice_number: "59114321"
                 },
+                // CHICKEN BREAST LOGIC (Pack * Size(LBS) * Qty)
+                // Row: 5 CS | 4 PACK | 10 LB | CHICKEN BREAST BL/SL
+                // Calc: 5 * 4 * 10 = 200 LBS
+                {
+                    raw_text: "CHICKEN BREAST BL/SL RANDOM\nPACK:4 SIZE:10 LB",
+                    detected_item: "Chicken Breast",
+                    quantity: 200.00, // 4 * 10lb * 5 cases
+                    price_per_lb: 2.35, // Unit Price ($94.00) / 40lbs
+                    confidence: 0.99,
+                    invoice_number: "59114321"
+                },
                 {
                     raw_text: "TXDEBRL BEEF SHORT RIB BI CH TXDB\nT/WT= 56.00",
                     detected_item: "Beef Ribs",
