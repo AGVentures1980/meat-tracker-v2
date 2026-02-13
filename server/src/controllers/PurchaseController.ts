@@ -146,25 +146,46 @@ export class PurchaseController {
                     confidence: 0.99,
                     invoice_number: "59114321"
                 },
-                // 2. CHICKEN DRUMSTICK (Poultry Logic)
-                // Line: 2 CS ... CHICKEN DRUMSTICK IQF XL
-                // Logic: 2 Cases * 4 Pack * 160oz / 16 = 80 LBS
+                // 2. CHICKEN DRUMSTICK (Corrected Logic per User)
+                // Row: 4 CS | 9 PACK | 63.6 OZ | CHICKEN DRUMSTICK
+                // Calc: (4 Cases * 9 Packs * 63.6 oz) / 16 = 143.1 LBS
                 {
-                    raw_text: "963.6 OZTYSON CHICKEN DRUMSTICK IQF XL\nPACK:4 SIZE:160z",
+                    raw_text: "CHICKEN DRUMSTICK IQF\nPACK:9 SIZE:63.6oz",
                     detected_item: "Chicken Legs",
-                    quantity: 80.00,
+                    quantity: 143.10,
                     price_per_lb: 0.98,
                     confidence: 0.99,
                     invoice_number: "59114321"
                 },
-                // 3. BEEF TRI TIP (Catch Weight)
-                // Line: 2 CS ... BEEF TRI TIP BTM SIRLOIN ... T/WT= 77.900
+                // 3. CHICKEN BREAST (Corrected Logic per User)
+                // Row: 2 CS | 4 PACK | 10 LB | CHICKEN BREAST
+                // Calc: 2 Cases * 4 Packs * 10 LB = 80 LBS
                 {
-                    raw_text: "55TARBF BEEF TRI TIP BTM SIRLOIN CH\nT/WT= 77.900",
-                    detected_item: "Tri-Tip",
-                    quantity: 77.90,
-                    price_per_lb: 5.45,
-                    confidence: 0.96,
+                    raw_text: "CHICKEN BREAST BL/SL RANDOM\nPACK:4 SIZE:10 LB",
+                    detected_item: "Chicken Breast",
+                    quantity: 80.00,
+                    price_per_lb: 2.35,
+                    confidence: 0.99,
+                    invoice_number: "59114321"
+                },
+                // 4. PORK RIBS (Catch Weight)
+                // Line: 1 CS ... PORK RIB ST. LOUIS ... T/WT= 29.600
+                {
+                    raw_text: "130#AVGFARMLND PORK RIB ST. LOUIS\nT/WT= 29.600",
+                    detected_item: "Pork Ribs",
+                    quantity: 29.60,
+                    price_per_lb: 2.90,
+                    confidence: 0.97,
+                    invoice_number: "59114321"
+                },
+                // 5. PORK LOIN (Catch Weight)
+                // Line: 2 BX ... PORK LOIN BNLS CAN ... T/WT= 42.600
+                {
+                    raw_text: "FARMLND PORK LOIN BNLS CAN\nT/WT= 42.600",
+                    detected_item: "Pork Loin",
+                    quantity: 42.60,
+                    price_per_lb: 2.15,
+                    confidence: 0.97,
                     invoice_number: "59114321"
                 }
             ];
