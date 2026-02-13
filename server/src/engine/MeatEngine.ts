@@ -239,12 +239,27 @@ export class MeatEngine {
 
             const lbsPerGuest = totalLbs / guests;
 
-            // Cost Estimation (Mock for now as we lack purchase data in seed)
-            const estimatedCostPerLb = 5.65;
+            // Cost Estimation (REAL WEIGHTED AVERAGE from Invoices)
+            // Fetch invoices for this store in this period to calculate actual price/lb
+            const invoices = await (prisma as any).invoiceRecord.findMany({
+                where: {
+                    store_id: store.id,
+                    date: { gte: start, lte: end }
+                }
+            });
+
+            let estimatedCostPerLb = 5.65; // Fallback
+            if (invoices.length > 0) {
+                const totalInvoiceWeight = invoices.reduce((acc: number, inv: any) => acc + inv.quantity, 0);
+                const totalInvoiceCost = invoices.reduce((acc: number, inv: any) => acc + inv.cost_total, 0);
+                if (totalInvoiceWeight > 0) {
+                    estimatedCostPerLb = totalInvoiceCost / totalInvoiceWeight;
+                }
+            }
+
             const totalCost = totalLbs * estimatedCostPerLb;
-            // const costPerGuest = totalCost / guests; // This was unused and causing lint error if I didn't use it, but logic below re-calcs it or uses it.
-            // Actually, let's just use the calculated one.
-            const costPerGuest = totalCost / guests;
+            // Recalculate cost per guest based on actual meat usage value
+            const costPerGuest = guests > 0 ? (totalCost / guests) : 0;
 
             performanceProp.push({
                 id: store.id,
