@@ -337,7 +337,7 @@ export const WeeklyPriceInput = () => {
                     </p>
 
                     <label className="w-full flex flex-col items-center justify-center h-32 border-2 border-dashed border-[#333] hover:border-brand-gold/50 transition-all rounded-sm bg-black/40 cursor-pointer group/upload">
-                        <input type="file" className="hidden" onChange={handleInvoiceOCR} disabled={isProcessingOCR} />
+                        <input type="file" multiple className="hidden" onChange={handleInvoiceOCR} disabled={isProcessingOCR} />
                         {isProcessingOCR ? (
                             <Loader2 className="w-8 h-8 text-brand-gold animate-spin" />
                         ) : (
