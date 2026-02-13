@@ -304,7 +304,7 @@ export const Dashboard = () => {
                 {/* Footnote Versioning */}
                 <div className="mt-12 pt-8 border-t border-[#333] flex justify-between items-center opacity-30 group hover:opacity-100 transition-opacity">
                     <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
-                        Brasa Intelligent Systems • Engine v2.7.0.U
+                        Brasa Intelligent Systems • Engine v2.7.0-ULTIMATE-FORCE
                     </p>
                     <p className="text-[10px] font-mono text-gray-600">
                         {new Date().toISOString()} • STABLE

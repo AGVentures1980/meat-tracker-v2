@@ -5,7 +5,7 @@ WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm ci
 COPY client/ ./
-ARG CACHE_BUST=1739435100
+ARG CACHE_BUST=1740051600
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 
 RUN npm run build
