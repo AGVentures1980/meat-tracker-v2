@@ -83,11 +83,11 @@ export class MeatEngine {
         const standards = await this.getSetting('meat_standards', MEAT_STANDARDS);
 
         // Fetch specific targets for this store
-        const storeTargets = await prisma.storeMeatTarget.findMany({
+        const storeTargets = await (prisma as any).storeMeatTarget.findMany({
             where: { store_id: storeId }
         });
         const targetMap: Record<string, number> = {};
-        storeTargets.forEach(t => { targetMap[t.protein] = t.target; });
+        storeTargets.forEach((t: any) => { targetMap[t.protein] = t.target; });
 
         const sales = await prisma.orderItem.findMany({
             where: {
@@ -141,13 +141,13 @@ export class MeatEngine {
         });
 
         return {
-            purchases: purchases.map(p => ({
+            purchases: purchases.map((p: any) => ({
                 date: p.date,
                 item: p.item_name,
                 quantity: p.quantity,
                 cost: p.cost_total
             })),
-            counts: counts.map(c => ({
+            counts: counts.map((c: any) => ({
                 date: c.date,
                 item: c.item_name,
                 quantity: c.quantity
