@@ -105,12 +105,18 @@ export class PurchaseController {
             const aliasMap = new Map();
             aliases.forEach((a: any) => aliasMap.set(a.alias.toLowerCase(), a.protein));
 
-            // Simulation of OCR identifying multiple proteins in one invoice
-            // Based on uploaded Sysco Images for Lexington
-            // In a real scenario, we would parse the file here.
-            // DUPLICATE CHECK: Verify if this invoice number already exists for this store
-            // SIMULATION: Generate unique invoice # for batch testing (e.g. 59114321-784)
-            const detectedInvoiceNumber = "59114321-" + Math.floor(Math.random() * 10000);
+            // DETERMINISTIC DUPLICATE PREVENTION:
+            // Generate Invoice ID based on file metadata (Name + Size).
+            // This ensures re-uploading the same file always yields the same ID.
+            const file = req.file;
+            let detectedInvoiceNumber = "UNK-" + Date.now();
+
+            if (file) {
+                const crypto = require('crypto');
+                const hash = crypto.createHash('md5').update(file.originalname + file.size).digest('hex').substring(0, 8).toUpperCase();
+                detectedInvoiceNumber = `INV-${hash}`;
+            }
+
             const existingInvoice = await (prisma as any).invoiceRecord.findFirst({
                 where: {
                     store_id: storeId,
@@ -220,7 +226,7 @@ export class PurchaseController {
                     quantity: 30.00, // 1 CS * 2 * 15 LB = 30 LB (Matches User Logic of Total Box Weight)
                     price_per_lb: 1.86, // $56.00 / 30lb
                     confidence: 0.96,
-                    invoice_number: "59114321"
+                    invoice_number: detectedInvoiceNumber
                 }
             ];
 
@@ -238,9 +244,11 @@ export class PurchaseController {
                 success: true,
                 message: existingInvoice ? 'Duplicate Invoice Detected' : 'OCR Scan Complete. Review Required.',
                 is_duplicate: !!existingInvoice,
+                invoice_number: detectedInvoiceNumber,
                 results: mockOCRResults.map((r, index) => ({
                     id: `draft-${Date.now()}-${index}`,
                     ...r,
+                    invoice_number: detectedInvoiceNumber, // Ensure consistency
                     status: 'pending_review'
                 }))
             });

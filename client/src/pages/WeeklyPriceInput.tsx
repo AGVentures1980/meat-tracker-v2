@@ -94,6 +94,8 @@ export const WeeklyPriceInput = () => {
         let duplicateDetected = false;
 
         try {
+            let skippedCount = 0;
+
             // Process files sequentially to avoid overriding state too quickly
             for (const file of files) {
                 const formData = new FormData();
@@ -109,15 +111,23 @@ export const WeeklyPriceInput = () => {
 
                 const result = await response.json();
                 if (result.success) {
-                    allResults.push(...result.results);
-                    if (result.is_duplicate) duplicateDetected = true;
+                    if (result.is_duplicate) {
+                        skippedCount++;
+                        console.log(`Skipping duplicate invoice: ${result.invoice_number}`);
+                    } else {
+                        allResults.push(...result.results);
+                    }
                 }
+            }
+
+            if (skippedCount > 0) {
+                alert(`${skippedCount} duplicate invoice(s) were skipped/ignored.`);
             }
 
             if (allResults.length > 0) {
                 // Open Review Modal with Aggregated Data
                 setPendingInvoices(allResults);
-                setIsDuplicate(duplicateDetected);
+                setIsDuplicate(false); // We filtered them out, so what remains is valid
                 setIsReviewOpen(true);
 
                 // Pre-fill mapping for known items (Process all results)
@@ -129,6 +139,9 @@ export const WeeklyPriceInput = () => {
                     else if (inv.detected_item === 'Beef Sirloin Flap') initialMap[inv.id] = 'Fraldinha/Flank Steak';
                 });
                 setMapping(initialMap);
+            } else if (skippedCount === files.length) {
+                // All files were duplicates
+                alert(t('ocr_all_duplicates') || 'All uploaded invoices were duplicates and already exist in the system.');
             }
         } catch (error) {
             console.error('OCR Batch Failed', error);
