@@ -129,10 +129,21 @@ export class PurchaseController {
                 },
                 {
                     raw_text: "TXDEBRL BEEF SIRL COULOT FAT-ON TXDB\nT/WT= 88.30",
-                    detected_item: "Picanha", // Coulotte is Picanha
-                    quantity: 88.30, // Extracted from T/WT
+                    detected_item: "Picanha",
+                    quantity: 88.30,
                     price_per_lb: 5.79,
-                    confidence: 0.98, // High confidence due to T/WT match
+                    confidence: 0.98,
+                    invoice_number: "59114321"
+                },
+                // POULTRY LOGIC (Pack * Size(oz) * Qty)
+                // Row: 2 CS | 4 PACK | 160 OZ | CHICKEN DRUMSTICK IQF XL
+                // Calc: (2 * 4 * 160) / 16 = 80 LBS
+                {
+                    raw_text: "CHICKEN DRUMSTICK IQF XL\nPACK:4 SIZE:160z",
+                    detected_item: "Chicken Legs",
+                    quantity: 80.00, // (4 * 160 * 2 cases) / 16 oz/lb
+                    price_per_lb: 0.98, // Derived from Unit Price ($39.20) / 40lbs per case
+                    confidence: 0.99,
                     invoice_number: "59114321"
                 },
                 {
