@@ -100,9 +100,12 @@ export class MeatEngine {
 
         const meatSummary: Record<string, number> = {};
         sales.forEach(item => {
-            const protein = item.protein_type || 'Unknown';
+            const rawName = item.protein_type || item.item_name || 'Unknown';
+            const protein = rawName.toLowerCase().trim();
             meatSummary[protein] = (meatSummary[protein] || 0) + item.lbs;
         });
+
+        console.log(`[MeatEngine] Found ${sales.length} sales items for store ${storeId}. Summary keys: ${Object.keys(meatSummary).join(', ')}`);
 
         const totalLbs = Object.values(meatSummary).reduce((a, b) => a + b, 0);
         // We use the same guest calculation as getDashboardStats for consistency
@@ -113,8 +116,8 @@ export class MeatEngine {
 
         return Object.entries(meatSummary).map(([name, actual]) => {
             // Ideal is based on (Guest Count * Protein Target)
-            // If protein target is missing, fallback to standard share * total actual (legacy)
-            const proteinTarget = targetMap[name];
+            // Try to find target case-insensitively
+            const proteinTarget = targetMap[name] || targetMap[Object.keys(targetMap).find(k => k.toLowerCase() === name.toLowerCase()) || ''] || 0;
             const ideal = proteinTarget ? (estimatedGuests * proteinTarget) : (actual * 0.98);
 
             return {

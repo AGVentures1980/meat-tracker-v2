@@ -117,6 +117,8 @@ export class ReportController {
             if (!targetId) return res.status(404).json({ error: 'No stores found' });
 
             const stats = await MeatEngine.getDashboardStats(targetId, start, end);
+            console.log(`[ReportController] Variance Analysis for store ${targetId} generated ${stats.topMeats.length} items.`);
+
             return res.json({
                 storeId: targetId,
                 storeName: (await prisma.store.findUnique({ where: { id: targetId } }))?.store_name,
@@ -150,6 +152,8 @@ export class ReportController {
 
             const targetId = id || (await prisma.store.findFirst())?.id;
             const history = await MeatEngine.getInventoryHistory(targetId, start, end);
+            console.log(`[ReportController] Inventory History for store ${targetId}: Purchases: ${history.purchases.length}, Counts: ${history.counts.length}`);
+
 
             return res.json({
                 storeId: targetId,
