@@ -187,6 +187,17 @@ export class PurchaseController {
                     price_per_lb: 2.15,
                     confidence: 0.97,
                     invoice_number: "59114321"
+                },
+                // 6. SLOVACK SAUSAGE (Packet Logic: 1 Pack x 25lb)
+                // Line: 2 CS ... SLOVACK SAUSAGE PORK GARLIC ... PACK:1 SIZE:25 LB
+                // Calc: 2 Cases * 1 Pack * 25 LB = 50 LBS
+                {
+                    raw_text: "SLOVACK SAUSAGE PORK GARLIC 8/1 TDB\nPACK:1 SIZE:25 LB",
+                    detected_item: "Sausage",
+                    quantity: 50.00, // 1 * 25lb * 2 cases
+                    price_per_lb: 0.83, // Unit Price ($20.86) / 25lb = $0.83/lb (Approx)
+                    confidence: 0.99,
+                    invoice_number: "59114321"
                 }
             ];
 
