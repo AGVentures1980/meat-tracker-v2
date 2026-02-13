@@ -27,7 +27,7 @@ export class MeatEngine {
     /**
      * Calculates the dashboard statistics for a given store and month.
      */
-    static async getDashboardStats(storeId: number) {
+    static async getDashboardStats(storeId: number, startProp?: Date, endProp?: Date) {
         // Fetch dynamic standards & targets
         const standards = await this.getSetting('meat_standards', MEAT_STANDARDS);
         const globalTarget = await this.getSetting('global_target_lbs_guest', GLOBAL_TARGET_PER_GUEST);
@@ -42,8 +42,8 @@ export class MeatEngine {
         });
 
         const now = new Date();
-        const start = startOfMonth(now);
-        const end = endOfMonth(now);
+        const start = startProp || startOfMonth(now);
+        const end = endProp || endOfMonth(now);
 
         const sales = await prisma.orderItem.findMany({
             where: {
@@ -183,7 +183,7 @@ export class MeatEngine {
      * Main Dashboard Data Aggregator
      * Returns performance stats for all visible stores.
      */
-    static async getCompanyDashboardStats(user: any) {
+    static async getCompanyDashboardStats(user: any, startProp?: Date, endProp?: Date) {
         // 1. Determine which stores to fetch
         const where: any = {};
         if (user.role !== 'admin' && user.role !== 'director') {
@@ -204,12 +204,12 @@ export class MeatEngine {
         });
 
         const performanceProp = [];
+        const now = new Date();
+        const start = startProp || startOfMonth(now);
+        const end = endProp || endOfMonth(now);
 
         for (const store of stores) {
-            // Calculate Stats for "This Month"
-            const now = new Date();
-            const start = startOfMonth(now);
-            const end = endOfMonth(now);
+            // Calculate Stats for the selected period
 
             // Fetch Meat Usage (Consumed)
             // Fix: Use OrderItem (Sales) as proxy for usage if MeatUsage is empty or for consistency with seed data
@@ -283,9 +283,9 @@ export class MeatEngine {
         return { performance: performanceProp };
     }
 
-    static async getExecutiveStats(user: any) {
+    static async getExecutiveStats(user: any, start?: Date, end?: Date) {
         // Reuse the logic to get store-level performance
-        const { performance } = await this.getCompanyDashboardStats(user);
+        const { performance } = await this.getCompanyDashboardStats(user, start, end);
 
         // Aggregate Defaults
         let totalGuests = 0;
