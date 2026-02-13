@@ -135,50 +135,36 @@ export class PurchaseController {
                     confidence: 0.98,
                     invoice_number: "59114321"
                 },
-                // POULTRY LOGIC (Pack * Size(oz) * Qty)
-                // Row: 2 CS | 4 PACK | 160 OZ | CHICKEN DRUMSTICK IQF XL
-                // Calc: (2 * 4 * 160) / 16 = 80 LBS
+                // FROM UPLOADED INVOICE (Step 13841)
+                // 1. BEEF SIRLOIN FLAP (Catch Weight)
+                // Line: 2 CS ... BEEF SIRLOIN FLAP CH TXDB ... T/WT= 72.100
                 {
-                    raw_text: "CHICKEN DRUMSTICK IQF XL\nPACK:4 SIZE:160z",
+                    raw_text: "160#AVGTXDEBRL BEEF SIRLOIN FLAP CH TXDB\nT/WT= 72.100",
+                    detected_item: "Fraldinha/Flank Steak",
+                    quantity: 72.10, // Catch Weight Priority
+                    price_per_lb: 8.59,
+                    confidence: 0.99,
+                    invoice_number: "59114321"
+                },
+                // 2. CHICKEN DRUMSTICK (Poultry Logic)
+                // Line: 2 CS ... CHICKEN DRUMSTICK IQF XL
+                // Logic: 2 Cases * 4 Pack * 160oz / 16 = 80 LBS
+                {
+                    raw_text: "963.6 OZTYSON CHICKEN DRUMSTICK IQF XL\nPACK:4 SIZE:160z",
                     detected_item: "Chicken Legs",
-                    quantity: 80.00, // (4 * 160 * 2 cases) / 16 oz/lb
-                    price_per_lb: 0.98, // Derived from Unit Price ($39.20) / 40lbs per case
+                    quantity: 80.00,
+                    price_per_lb: 0.98,
                     confidence: 0.99,
                     invoice_number: "59114321"
                 },
-                // CHICKEN BREAST LOGIC (Pack * Size(LBS) * Qty)
-                // Row: 5 CS | 4 PACK | 10 LB | CHICKEN BREAST BL/SL
-                // Calc: 5 * 4 * 10 = 200 LBS
+                // 3. BEEF TRI TIP (Catch Weight)
+                // Line: 2 CS ... BEEF TRI TIP BTM SIRLOIN ... T/WT= 77.900
                 {
-                    raw_text: "CHICKEN BREAST BL/SL RANDOM\nPACK:4 SIZE:10 LB",
-                    detected_item: "Chicken Breast",
-                    quantity: 200.00, // 4 * 10lb * 5 cases
-                    price_per_lb: 2.35, // Unit Price ($94.00) / 40lbs
-                    confidence: 0.99,
-                    invoice_number: "59114321"
-                },
-                {
-                    raw_text: "TXDEBRL BEEF SHORT RIB BI CH TXDB\nT/WT= 56.00",
-                    detected_item: "Beef Ribs",
-                    quantity: 56.00,
-                    price_per_lb: 5.79,
+                    raw_text: "55TARBF BEEF TRI TIP BTM SIRLOIN CH\nT/WT= 77.900",
+                    detected_item: "Tri-Tip",
+                    quantity: 77.90,
+                    price_per_lb: 5.45,
                     confidence: 0.96,
-                    invoice_number: "59114321"
-                },
-                {
-                    raw_text: "BEEF TNDR PLD UTIL FAT ADD\nT/WT= 77.79",
-                    detected_item: "Filet Mignon",
-                    quantity: 77.79,
-                    price_per_lb: 11.37,
-                    confidence: 0.95,
-                    invoice_number: "59114321"
-                },
-                {
-                    raw_text: "LAMB LEG AUS S HALAL TDB\nT/WT= 45.64",
-                    detected_item: "Leg of Lamb",
-                    quantity: 45.64,
-                    price_per_lb: 5.61,
-                    confidence: 0.95,
                     invoice_number: "59114321"
                 }
             ];
