@@ -32,9 +32,13 @@ export class ReportController {
         try {
             const user = (req as any).user;
             const range = req.query.range as string;
+            console.log(`[ReportController] Generating Executive Summary for user: ${user?.email} (${user?.role}) range: ${range}`);
+
             const { start, end } = getDateRange(range);
+            console.log(`[ReportController] Date Range: ${start.toISOString()} to ${end.toISOString()}`);
 
             const stats = await MeatEngine.getExecutiveStats(user, start, end);
+            console.log(`[ReportController] Stats generated successfully. Summary:`, stats.summary);
 
             return res.json({
                 summary: stats.summary,
@@ -44,7 +48,10 @@ export class ReportController {
                 period: { start, end }
             });
         } catch (error) {
-            console.error('Report Error (Executive Summary):', error);
+            console.error('[ReportController] Report Error (Executive Summary):', error);
+            if (error instanceof Error) {
+                console.error('[ReportController] Stack:', error.stack);
+            }
             return res.status(500).json({ error: 'Failed to generate executive summary report' });
         }
     }

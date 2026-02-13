@@ -20,6 +20,7 @@ export const ReportsPage = () => {
     useEffect(() => {
         const fetchReport = async () => {
             setLoading(true);
+            setData(null); // Clear previous data
             try {
                 const report = reports.find(r => r.id === selectedReport);
                 if (!report) return;
@@ -28,10 +29,17 @@ export const ReportsPage = () => {
                 const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}${report.endpoint}?range=${dateRange}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
                 const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to fetch report');
+                }
+
                 setData(result);
             } catch (error) {
                 console.error('Failed to fetch report:', error);
+                setData(null); // Ensure data is null so error UI triggers
             } finally {
                 setLoading(false);
             }

@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Middleware
 app.use(express.json());
@@ -79,6 +79,7 @@ const CLIENT_BUILD_PATH = process.env.NODE_ENV === 'production'
     ? path.join(__dirname, '../../../client/dist') // From dist/src/index.js
     : path.join(__dirname, '../../client/dist');  // From src/index.ts
 
+console.log(`[Static] Serving frontend from: ${CLIENT_BUILD_PATH}`);
 app.use(express.static(CLIENT_BUILD_PATH));
 
 // SPA Fallback
@@ -168,7 +169,7 @@ async function ensureDefaultSettings() {
 // Start Server after DB Check
 ensureDirectorUser().then(() => ensureDefaultSettings()).then(() => {
     app.listen(PORT, () => {
-        console.log(`🚀 BRASA INTEL v2.6.4-OCR running on http://localhost:${PORT}`);
+        console.log(`🚀 BRASA INTEL v2.6.5-HOTFIX running on http://localhost:${PORT}`);
         console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
     });
 });
