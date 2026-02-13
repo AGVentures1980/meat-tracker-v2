@@ -524,6 +524,7 @@ export const WeeklyPriceInput = () => {
                         </div>
                     )}
                 </div>
-                );
+            </div>
+        </div>
+    );
 };
-
