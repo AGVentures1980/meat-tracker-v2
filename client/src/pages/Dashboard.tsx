@@ -309,7 +309,7 @@ export const Dashboard = () => {
                 <div className="mt-12 pt-8 border-t border-[#333] flex justify-between items-center opacity-30 group hover:opacity-100 transition-opacity">
                     <div>
                         <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
-                            Brasa Intelligent Systems • Engine v2.8.1-SKEWER-MASTER
+                            Brasa Intelligent Systems • Engine v2.8.6-GARLIC-FORCE
                         </p>
                         <p className="text-[9px] text-gray-600 mt-1">
                             Status: {loading ? 'FETCHING' : 'READY'} • Objects: {performanceData.length} • Mode: {viewMode.toUpperCase()}
