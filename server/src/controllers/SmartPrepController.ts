@@ -176,7 +176,7 @@ export class SmartPrepController {
                     const piecesPerSkewer = forecast > 400 ? 10 : 9;
                     unitWeight = (piecesPerSkewer * 0.125) / 0.95;
                     unitName = 'Skewers';
-                } else if (protein === 'Filet Mignon' || protein === 'Filet Bacon' || protein === 'Petite Fillet') {
+                } else if (protein.includes('Filet') || protein.includes('Tenderloin')) {
                     unitWeight = 2.0; // 10 pieces ~3oz each
                     unitName = 'Skewers';
                 } else if (protein === 'Sausage') {
@@ -185,14 +185,25 @@ export class SmartPrepController {
                 } else if (protein === 'Chicken Drumstick') {
                     unitWeight = 2.5; // 10 pieces
                     unitName = 'Skewers';
-                } else if (protein === 'Picanha' || protein === 'Garlic Picanha' || protein === 'Spicy Picanha') {
-                    unitWeight = 3.5; // Matches whole piece / 1 skewer density
-                    unitName = 'Skewers';
-                } else if (protein === 'Lamb Picanha') {
-                    unitWeight = 1.5; // 4 pieces
+                } else if (protein.includes('Picanha')) {
+                    // Beef or Picanha sub-types
+                    unitWeight = protein.includes('Lamb') ? 1.5 : 3.5;
                     unitName = 'Skewers';
                 } else if (protein === 'Lamb Chops') {
                     unitWeight = 1.6; // 8 pieces @ 0.2lb
+                    unitName = 'Skewers';
+                } else if (protein.includes('Pork Loin')) {
+                    unitWeight = 1.8; // 12 pieces (Parmesan Pork)
+                    unitName = 'Skewers';
+                } else if (protein.includes('Ribs')) {
+                    // Beef Ribs (~4lb) or Pork Ribs (~3lb slab)
+                    unitWeight = protein.includes('Beef') ? 4.0 : 3.0;
+                    unitName = protein.includes('Beef') ? 'Ribs' : 'Skewers';
+                } else if (protein.includes('Fraldinha') || protein.includes('Flap')) {
+                    unitWeight = 2.5; // Whole piece
+                    unitName = 'Skewers';
+                } else if (protein.includes('Leg of Lamb')) {
+                    unitWeight = 4.0; // Whole leg / Large pieces
                     unitName = 'Skewers';
                 } else if (unitWeight > 1.5) {
                     unitName = 'Skewers';
