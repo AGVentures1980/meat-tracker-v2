@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Printer, FileText, Target, AlertCircle, CheckCircle2, LayoutGrid, Database, Zap, ArrowRight, Download } from 'lucide-react';
+import { Search, Printer, FileText, AlertCircle, Zap, Download } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -185,19 +185,21 @@ export const ExecutiveAnalyst = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#333]">
-                                    {data.matrix.map((row: any, i: number) => (
-                                        <tr key={i} className="hover:bg-[#222] transition-all">
-                                            <td className="p-3 border-r border-[#333] text-white font-bold">{row.name}</td>
-                                            <td className="p-3 text-right text-gray-300">{row.lbsPerGuest.toFixed(2)}</td>
-                                            <td className="p-3 text-right text-gray-300">${row.costPerGuest.toFixed(2)}</td>
-                                            <td className={`p-3 text-right font-bold ${row.impactYTD > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
-                                                {row.impactYTD > 0 ? '+' : ''}${row.impactYTD.toLocaleString()}
-                                            </td>
-                                            <td className="p-3 text-center">
-                                                <div className={`w-2 h-2 rounded-full mx-auto ${row.impactYTD > 5000 ? 'bg-[#FF2A6D] animate-pulse' : row.impactYTD > 0 ? 'bg-orange-500' : 'bg-[#00FF94]'}`}></div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {data.matrix
+                                        .sort((a: any, b: any) => a.name.localeCompare(b.name))
+                                        .map((row: any, i: number) => (
+                                            <tr key={i} className="hover:bg-[#222] transition-all">
+                                                <td className="p-3 border-r border-[#333] text-white font-bold">{row.name}</td>
+                                                <td className="p-3 text-right text-gray-300">{row.lbsPerGuest.toFixed(2)}</td>
+                                                <td className="p-3 text-right text-gray-300">${row.costPerGuest.toFixed(2)}</td>
+                                                <td className={`p-3 text-right font-bold ${row.impactYTD > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                                    {row.impactYTD > 0 ? '+' : ''}${row.impactYTD.toLocaleString()}
+                                                </td>
+                                                <td className="p-3 text-center">
+                                                    <div className={`w-2 h-2 rounded-full mx-auto ${row.impactYTD > 5000 ? 'bg-[#FF2A6D] animate-pulse' : row.impactYTD > 0 ? 'bg-orange-500' : 'bg-[#00FF94]'}`}></div>
+                                                </td>
+                                            </tr>
+                                        ))}
                                 </tbody>
                             </table>
                         </div>

@@ -221,3 +221,43 @@ ReferenceError: PrismaClient is not defined
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 BRASA INTEL v2.7.0-REPORTS-ULTIMATE running on http://localhost:3002
 📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+[INFO] 02:40:45 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/DashboardController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.7.0-REPORTS-ULTIMATE running on http://localhost:3002
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+[INFO] 02:40:48 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/SmartPrepController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.7.0-REPORTS-ULTIMATE running on http://localhost:3002
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+[INFO] 02:40:50 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/SmartPrepController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.7.0-REPORTS-ULTIMATE running on http://localhost:3002
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+[INFO] 02:42:02 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/SmartPrepController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.7.0-REPORTS-ULTIMATE running on http://localhost:3002
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+[INFO] 02:50:39 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/index.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v3.0.0-GOVERNANCE running on http://localhost:3002
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE

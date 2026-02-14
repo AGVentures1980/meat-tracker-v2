@@ -165,7 +165,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <div className="text-xs text-gray-600 font-mono">
                             {t('system_version')} - {t('system_live')}
                             <br />
-                            {t('conn_label')}: <span className="text-[#00FF94]">POSTGRES-20Hr</span>
+                            {t('conn_label')}: <span className="text-[#00FF94]">POSTGRES-CL-V3</span>
                         </div>
                     )}
                 </div>

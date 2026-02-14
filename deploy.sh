@@ -42,6 +42,13 @@ else
     npm run build
     
     echo "🚀 Starting server..."
+    # 3. Terminate previous Node instance if running on port 3000
+    LSOF_PID=$(lsof -t -i:3000)
+    if [ ! -z "$LSOF_PID" ]; then
+        echo "🛑 Terminating stale process $LSOF_PID..."
+        kill -9 $LSOF_PID
+    fi
+    
     # Start in background with PORT 3000 and pipe to log
     PORT=3000 npm start > production.log 2>&1 &
     

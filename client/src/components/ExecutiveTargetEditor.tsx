@@ -8,6 +8,8 @@ interface StoreTarget {
     name: string;
     location: string;
     target_lbs_guest: number;
+    target_cost_guest: number;
+    guests?: number;
 }
 
 interface ExecutiveTargetEditorProps {
@@ -79,7 +81,9 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
                 id: s.id,
                 name: s.name,
                 location: s.location,
-                target_lbs_guest: s.target_lbs_guest || 1.76
+                target_lbs_guest: s.target_lbs_guest || 1.76,
+                target_cost_guest: s.target_cost_guest || 9.94,
+                guests: s.guests || 0
             }));
 
             allStoresLists.sort((a: any, b: any) => a.name.localeCompare(b.name));
@@ -92,9 +96,9 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
         }
     };
 
-    const handleTargetChange = (id: number, newValue: string) => {
+    const handleTargetChange = (id: number, field: 'target_lbs_guest' | 'target_cost_guest', newValue: string) => {
         setStores(prev => prev.map(s =>
-            s.id === id ? { ...s, target_lbs_guest: parseFloat(newValue) || 0 } : s
+            s.id === id ? { ...s, [field]: parseFloat(newValue) || 0 } : s
         ));
     };
 
@@ -103,7 +107,8 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
         try {
             const targetsToUpdate = stores.map(s => ({
                 storeId: s.id,
-                target: s.target_lbs_guest
+                target_lbs_guest: s.target_lbs_guest,
+                target_cost_guest: s.target_cost_guest
             }));
 
             const response = await fetch('/api/v1/dashboard/targets', {
@@ -130,7 +135,7 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative">
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative">
 
                 {/* Reset Confirmation Overlay */}
                 {showResetConfirm && (
@@ -166,9 +171,9 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
                     <div>
                         <h2 className="text-white font-bold text-lg flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-[#C5A059]" />
-                            {t('target_config_title') || "Target Configuration"}
+                            {t('target_config_title') || "Governance: Target Configuration"}
                         </h2>
-                        <p className="text-xs text-gray-400">{t('target_config_subtitle') || "Set specific LBS/Guest goals per store"}</p>
+                        <p className="text-xs text-gray-400">{t('target_config_subtitle') || "Set specific LBS/Guest and Cost goals per store"}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-white/10 rounded text-gray-400 transition-colors">
                         <X className="w-5 h-5" />
@@ -184,11 +189,12 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
                         </div>
                     ) : (
                         <table className="w-full text-sm border-collapse">
-                            <thead className="text-xs text-gray-500 uppercase font-mono border-b border-[#333] bg-[#1a1a1a] sticky top-0 z-0">
+                            <thead className="text-xs text-gray-500 uppercase font-mono border-b border-[#333] bg-[#1a1a1a] sticky top-0 z-0 text-left">
                                 <tr>
-                                    <th className="px-4 py-3 text-left">{t('store') || "Store"}</th>
-                                    <th className="px-4 py-3 text-right">{t('current_target') || "Current Target"}</th>
-                                    <th className="px-4 py-3 text-right">{t('new_target') || "New Target"}</th>
+                                    <th className="px-4 py-3">{t('store') || "Store"}</th>
+                                    <th className="px-4 py-3 text-right">Size (Guests/mo)</th>
+                                    <th className="px-4 py-3 text-right">Efficiency (LBS/G)</th>
+                                    <th className="px-4 py-3 text-right">Financial ($/G)</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#333]">
@@ -199,16 +205,32 @@ export const ExecutiveTargetEditor = ({ isOpen, onClose, onSave }: ExecutiveTarg
                                             <span className="text-xs text-gray-500 ml-2 block font-mono">{store.location}</span>
                                         </td>
                                         <td className="px-4 py-2 text-right text-gray-400 font-mono">
-                                            {store.target_lbs_guest.toFixed(2)}
+                                            {store.guests?.toLocaleString()}
                                         </td>
                                         <td className="px-4 py-2 text-right">
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="bg-[#111] border border-[#444] text-white px-3 py-1.5 rounded-sm w-24 text-right focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]/50 outline-none transition-all font-mono"
-                                                value={store.target_lbs_guest}
-                                                onChange={(e) => handleTargetChange(store.id, e.target.value)}
-                                            />
+                                            <div className="flex flex-col items-end gap-1">
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    className="bg-[#111] border border-[#444] text-white px-3 py-1.5 rounded-sm w-24 text-right focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]/50 outline-none transition-all font-mono"
+                                                    value={store.target_lbs_guest}
+                                                    onChange={(e) => handleTargetChange(store.id, 'target_lbs_guest', e.target.value)}
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-right">
+                                            <div className="flex flex-col items-end gap-1">
+                                                <div className="relative">
+                                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-600 font-mono">$</span>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        className="bg-[#111] border border-[#444] text-white pl-6 pr-3 py-1.5 rounded-sm w-24 text-right focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]/50 outline-none transition-all font-mono"
+                                                        value={store.target_cost_guest}
+                                                        onChange={(e) => handleTargetChange(store.id, 'target_cost_guest', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

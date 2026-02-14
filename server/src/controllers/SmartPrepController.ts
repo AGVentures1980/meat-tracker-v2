@@ -23,25 +23,40 @@ export class SmartPrepController {
 
             const logs = await (prisma as any).prepLog.findMany({
                 where: { date: date },
-                select: { store_id: true, forecast: true, created_at: true }
+                select: { store_id: true, forecast: true, created_at: true, data: true }
             });
+
+            let totalPredictedCost = 0;
+            let storesWithCost = 0;
 
             const statusGrid = stores.map(store => {
                 const log = logs.find((l: any) => l.store_id === store.id);
+                const logData = log?.data as any;
+
+                if (logData?.predicted_cost_guest) {
+                    totalPredictedCost += logData.predicted_cost_guest;
+                    storesWithCost++;
+                }
+
                 return {
                     id: store.id,
                     name: store.store_name,
                     location: store.location,
                     is_locked: !!log,
                     forecast: log ? log.forecast : null,
-                    submitted_at: log ? log.created_at : null
+                    submitted_at: log ? log.created_at : null,
+                    predicted_cost_guest: logData?.predicted_cost_guest || null,
+                    target_lbs_guest: logData?.target_lbs_guest || null
                 };
             });
+
+            const companyAvgCost = storesWithCost > 0 ? (totalPredictedCost / storesWithCost) : null;
 
             return res.json({
                 date: dateStr,
                 total_stores: stores.length,
                 submitted_count: logs.length,
+                company_avg_cost_guest: companyAvgCost ? parseFloat(companyAvgCost.toFixed(2)) : null,
                 stores: statusGrid
             });
 
@@ -99,10 +114,9 @@ export class SmartPrepController {
 
             if (!store) return res.status(404).json({ error: 'Store not found' });
 
-            const TARGET_OVERRIDES: Record<number, number> = {
-                1: 1.76, 2: 1.85, 3: 1.95, 4: 1.65, 5: 2.10
-            };
-            const targetLbsPerGuest = TARGET_OVERRIDES[storeId] || (store as any).target_lbs_guest || 1.76;
+            // DELETED: TARGET_OVERRIDES (Hardcoding removed for v3.0.0 Governance)
+            const targetLbsPerGuest = (store as any).target_lbs_guest || 1.76;
+            const targetCostPerGuest = (store as any).target_cost_guest || 9.94;
 
             let forecast = 150;
             if (req.query.guests) {
@@ -195,14 +209,15 @@ export class SmartPrepController {
             }
 
             const predictedCostGuest = totalPredictedCost / forecast;
+            const toleranceThreshold = targetCostPerGuest + 0.05; // 5 cent tolerance
 
             let tacticalBriefing = "";
-            if (predictedCostGuest > FINANCIAL_TOLERANCE_THRESHOLD) {
-                tacticalBriefing = `Risco Financeiro Identificado: Custo previsto ($${predictedCostGuest.toFixed(2)}) está acima do teto de $${FINANCIAL_TOLERANCE_THRESHOLD}. Instrua a equipe a cadenciar a saída de carnes Premium (Tenderloin/Lamb) e acelerar cortes de eficiência (Coxinha/Lombo).`;
-            } else if (predictedCostGuest > FINANCIAL_TARGET_GUEST) {
-                tacticalBriefing = `Atenção: Margem apertada ($${predictedCostGuest.toFixed(2)}). Monitore o mix de carnes caras para evitar ultrapassar o teto semanal.`;
+            if (predictedCostGuest > toleranceThreshold) {
+                tacticalBriefing = `Risco Financeiro Identificado: Custo previsto ($${predictedCostGuest.toFixed(2)}) está acima do teto de $${toleranceThreshold.toFixed(2)}. Instrua a equipe a cadenciar a saída de carnes Premium (Tenderloin/Lamb) e acelerar cortes de eficiência (Coxinha/Lombo).`;
+            } else if (predictedCostGuest > targetCostPerGuest) {
+                tacticalBriefing = `Atenção: Margem apertada ($${predictedCostGuest.toFixed(2)}). Sua meta é $${targetCostPerGuest.toFixed(2)}. Monitore o mix de carnes caras para evitar ultrapassar o teto semanal.`;
             } else {
-                tacticalBriefing = `Meta Financeira OK: Custo previsto de $${predictedCostGuest.toFixed(2)} por cliente está dentro do alvo de $${FINANCIAL_TARGET_GUEST}. Margem operacional confortável.`;
+                tacticalBriefing = `Meta Financeira OK: Custo previsto de $${predictedCostGuest.toFixed(2)} por cliente está dentro do alvo de $${targetCostPerGuest.toFixed(2)}. Margem operacional confortável.`;
             }
 
             prepList.sort((a, b) => b.recommended_lbs - a.recommended_lbs);

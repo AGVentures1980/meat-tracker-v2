@@ -14,41 +14,23 @@ The database is already in sync with the Prisma schema.
 
 Running generate... (Use --skip-generate to skip the generators)
 [2K[1A[2K[GRunning generate... - Prisma Client
-[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 70ms
+[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 76ms
 
 DEBUG: Ls dist
 total 16
-drwxr-xr-x@  9 alexandregarcia  staff   288 Feb 13 02:38 .
-drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 13 02:38 ..
-drwxr-xr-x@  5 alexandregarcia  staff   160 Feb 13 02:38 config
-drwxr-xr-x@ 20 alexandregarcia  staff   640 Feb 13 02:38 controllers
-drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 13 02:38 engine
--rw-r--r--@  1 alexandregarcia  staff  7173 Feb 13 02:38 index.js
-drwxr-xr-x@  3 alexandregarcia  staff    96 Feb 13 02:38 middleware
-drwxr-xr-x@ 14 alexandregarcia  staff   448 Feb 13 02:38 routes
-drwxr-xr-x@ 25 alexandregarcia  staff   800 Feb 13 02:38 scripts
+drwxr-xr-x@  9 alexandregarcia  staff   288 Feb 14 02:58 .
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 14 02:58 ..
+drwxr-xr-x@  6 alexandregarcia  staff   192 Feb 14 02:58 config
+drwxr-xr-x@ 20 alexandregarcia  staff   640 Feb 14 02:58 controllers
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 14 02:58 engine
+-rw-r--r--@  1 alexandregarcia  staff  7244 Feb 14 02:58 index.js
+drwxr-xr-x@  3 alexandregarcia  staff    96 Feb 14 02:58 middleware
+drwxr-xr-x@ 14 alexandregarcia  staff   448 Feb 14 02:58 routes
+drwxr-xr-x@ 25 alexandregarcia  staff   800 Feb 14 02:58 scripts
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
 [Startup] Ensuring user dallas@texasdebrazil.com exists...
 [Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
 [Startup] Ensuring default system settings exist...
 [Startup] SUCCESS: Verified default system settings and store targets.
-node:events:486
-      throw er; // Unhandled 'error' event
-      ^
-
-Error: listen EADDRINUSE: address already in use :::3000
-    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
-    at listenInCluster (node:net:1997:12)
-    at Server.listen (node:net:2102:7)
-    at app.listen (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/express/lib/application.js:635:24)
-    at /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/dist/src/index.js:152:9
-Emitted 'error' event on Server instance at:
-    at emitErrorNT (node:net:1976:8)
-    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
-  code: 'EADDRINUSE',
-  errno: -48,
-  syscall: 'listen',
-  address: '::',
-  port: 3000
-}
-
-Node.js v24.13.0
+🚀 BRASA INTEL v3.0.1-FORCE running on http://localhost:3000
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE

@@ -103,24 +103,26 @@ export class DashboardController {
 
     static async updateStoreTargets(req: Request, res: Response) {
         try {
-            const { targets } = req.body; // Expects { storeId: number, target: number }[]
+            const { targets } = req.body; // Expects { storeId: number, target_lbs_guest?: number, target_cost_guest?: number }[]
 
             if (!Array.isArray(targets)) {
                 return res.status(400).json({ error: 'Invalid format. Expected array of targets.' });
             }
 
             const updated = [];
-            // The provided snippet for the for loop was syntactically incorrect and contained unrelated logic.
-            // Assuming the intent was to keep the original logic for updating targets,
-            // but perhaps with a type fix or minor adjustment not fully conveyed in the snippet.
-            // For now, restoring the original correct loop structure to maintain syntactical correctness.
             for (const t of targets) {
-                if (t.storeId && t.target) {
-                    const result = await prisma.store.update({
-                        where: { id: t.storeId },
-                        data: { target_lbs_guest: parseFloat(t.target) } as any
-                    });
-                    updated.push(result);
+                if (t.storeId) {
+                    const updateData: any = {};
+                    if (t.target_lbs_guest !== undefined) updateData.target_lbs_guest = parseFloat(t.target_lbs_guest);
+                    if (t.target_cost_guest !== undefined) updateData.target_cost_guest = parseFloat(t.target_cost_guest);
+
+                    if (Object.keys(updateData).length > 0) {
+                        const result = await (prisma.store as any).update({
+                            where: { id: t.storeId },
+                            data: updateData
+                        });
+                        updated.push(result);
+                    }
                 }
             }
 

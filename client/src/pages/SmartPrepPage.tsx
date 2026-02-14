@@ -149,12 +149,14 @@ export const SmartPrepPage = () => {
         });
 
         const predictedCostGuest = totalAdjustedCost / forecast;
+        const targetCostPerGuest = prepData.target_cost_guest || 9.94;
+        const toleranceThreshold = targetCostPerGuest + 0.05;
 
         // Dynamic Briefing Update (Frontend override if mix changes)
         let localBriefing = prepData.tactical_briefing;
         if (isExclusionActive) {
-            if (predictedCostGuest > 9.98) {
-                localBriefing = `Risco Financeiro Identificado: O ajuste de mix elevou o custo para $${predictedCostGuest.toFixed(2)}. Meta de $9.92 em risco.`;
+            if (predictedCostGuest > toleranceThreshold) {
+                localBriefing = `Risco Financeiro Identificado: O ajuste de mix elevou o custo para $${predictedCostGuest.toFixed(2)}. Meta de $${targetCostPerGuest.toFixed(2)} em risco.`;
             } else {
                 localBriefing = `Ajuste de Mix OK: Custo projetado de $${predictedCostGuest.toFixed(2)} por cliente.`;
             }
@@ -239,6 +241,15 @@ export const SmartPrepPage = () => {
                             <span className="text-gray-500">{t('prep_submitted')}:</span>
                             <span className="ml-2 text-white font-bold">{networkStatus?.submitted_count} / {networkStatus?.total_stores}</span>
                         </div>
+                        {networkStatus?.company_avg_cost_guest && (
+                            <div className={`px-4 py-2 rounded border text-sm font-bold flex items-center gap-2 ${networkStatus.company_avg_cost_guest > 9.98
+                                    ? 'bg-red-500/10 border-red-500/30 text-red-500'
+                                    : 'bg-[#00FF94]/10 border-[#00FF94]/30 text-[#00FF94]'
+                                }`}>
+                                <Building2 className="w-4 h-4" />
+                                COMPANY AVG: ${networkStatus.company_avg_cost_guest}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -268,13 +279,22 @@ export const SmartPrepPage = () => {
                                 </div>
 
                                 {store.is_locked ? (
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-end">
-                                            <span className="text-[10px] text-gray-500 uppercase">{t('projected_guests')}</span>
-                                            <span className="text-xl font-black text-white">{store.forecast}</span>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center bg-[#1a1a1a] p-2 rounded">
+                                            <div className="text-center">
+                                                <span className="text-[10px] text-gray-500 uppercase block leading-none mb-1">Guests</span>
+                                                <span className="text-lg font-black text-white">{store.forecast}</span>
+                                            </div>
+                                            <div className="h-6 w-[1px] bg-[#333]"></div>
+                                            <div className="text-center">
+                                                <span className="text-[10px] text-gray-500 uppercase block leading-none mb-1">$/Guest</span>
+                                                <span className={`text-lg font-black ${store.predicted_cost_guest > 9.98 ? 'text-red-500' : 'text-[#00FF94]'
+                                                    }`}>${store.predicted_cost_guest || '0.00'}</span>
+                                            </div>
                                         </div>
                                         <div className="w-full h-1 bg-[#1a1a1a] rounded overflow-hidden">
-                                            <div className="h-full bg-[#00FF94] w-full"></div>
+                                            <div className={`h-full w-full ${store.predicted_cost_guest > 9.98 ? 'bg-red-500' : 'bg-[#00FF94]'
+                                                }`}></div>
                                         </div>
                                     </div>
                                 ) : (
@@ -284,7 +304,7 @@ export const SmartPrepPage = () => {
                                 )}
 
                                 {/* Decorative Status Bar */}
-                                <div className={`absolute bottom-0 left-0 w-full h-[2px] ${store.is_locked ? 'bg-[#00FF94]' : 'bg-[#FF2A6D]'}`}></div>
+                                <div className={`absolute bottom-0 left-0 w-full h-[2px] ${store.is_locked ? (store.predicted_cost_guest > 9.98 ? 'bg-red-500' : 'bg-[#00FF94]') : 'bg-[#FF2A6D]'}`}></div>
                             </button>
                         ))}
                     </div>
@@ -419,16 +439,16 @@ export const SmartPrepPage = () => {
                     </div>
 
                     {/* FINANCIAL HEALTH CARD */}
-                    <div className={`p-4 rounded w-full md:w-auto text-center min-w-[200px] border transition-colors ${(adjustedPrepData?.predicted_cost_guest || 0) > 9.98
+                    <div className={`p-4 rounded w-full md:w-auto text-center min-w-[200px] border transition-colors ${(adjustedPrepData?.predicted_cost_guest || 0) > (adjustedPrepData?.target_cost_guest || 9.94) + 0.05
                         ? 'bg-red-500/10 border-red-500/50'
-                        : (adjustedPrepData?.predicted_cost_guest || 0) > 9.92
+                        : (adjustedPrepData?.predicted_cost_guest || 0) > (adjustedPrepData?.target_cost_guest || 9.94)
                             ? 'bg-yellow-500/10 border-yellow-500/50'
                             : 'bg-[#00FF94]/10 border-[#00FF94]/50'
                         }`}>
                         <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">$/GUEST (PREVISTO)</h3>
-                        <div className={`text-3xl font-black flex items-center justify-center gap-2 ${(adjustedPrepData?.predicted_cost_guest || 0) > 9.98
+                        <div className={`text-3xl font-black flex items-center justify-center gap-2 ${(adjustedPrepData?.predicted_cost_guest || 0) > (adjustedPrepData?.target_cost_guest || 9.94) + 0.05
                             ? 'text-red-500'
-                            : (adjustedPrepData?.predicted_cost_guest || 0) > 9.92
+                            : (adjustedPrepData?.predicted_cost_guest || 0) > (adjustedPrepData?.target_cost_guest || 9.94)
                                 ? 'text-yellow-500'
                                 : 'text-[#00FF94]'
                             }`}>
@@ -441,7 +461,7 @@ export const SmartPrepPage = () => {
 
             {/* TACTICAL BRIEFING CARD */}
             {adjustedPrepData?.tactical_briefing && (
-                <div className={`mb-8 p-4 rounded-lg border flex gap-4 items-start ${(adjustedPrepData?.predicted_cost_guest || 0) > 9.98
+                <div className={`mb-8 p-4 rounded-lg border flex gap-4 items-start ${(adjustedPrepData?.predicted_cost_guest || 0) > (adjustedPrepData?.target_cost_guest || 9.94) + 0.05
                     ? 'bg-red-500/5 border-red-500/20 text-red-200'
                     : 'bg-[#C5A059]/5 border-[#C5A059]/20 text-[#C5A059]'
                     }`}>
