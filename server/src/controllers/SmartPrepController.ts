@@ -2,7 +2,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { MEAT_UNIT_WEIGHTS } from '../config/meat_weights';
-import { MEAT_STANDARDS } from '../config/standards'; // Fallback
+import { MEAT_STANDARDS } from '../config/standards';
+import { MEAT_COSTS_LB, FINANCIAL_TARGET_GUEST, FINANCIAL_TOLERANCE_THRESHOLD } from '../config/costs';
 
 const prisma = new PrismaClient();
 
@@ -10,33 +11,21 @@ export class SmartPrepController {
 
     static async getNetworkPrepStatus(req: Request, res: Response) {
         try {
-            // 1. Determine Date (Force Central Time - Business Date)
             const today = new Date();
             const centralNow = SmartPrepController.getCentralDateTime(today);
             const dateStr = req.query.date as string || centralNow.toISOString().split('T')[0];
             const date = new Date(dateStr);
 
-            // 2. Fetch all stores
             const stores = await prisma.store.findMany({
-                select: {
-                    id: true,
-                    store_name: true,
-                    location: true
-                },
+                select: { id: true, store_name: true, location: true },
                 orderBy: { store_name: 'asc' }
             });
 
-            // 3. Fetch all prep logs for this date
             const logs = await (prisma as any).prepLog.findMany({
                 where: { date: date },
-                select: {
-                    store_id: true,
-                    forecast: true,
-                    created_at: true
-                }
+                select: { store_id: true, forecast: true, created_at: true }
             });
 
-            // 4. Map stores to their status
             const statusGrid = stores.map(store => {
                 const log = logs.find((l: any) => l.store_id === store.id);
                 return {
@@ -69,40 +58,29 @@ export class SmartPrepController {
             // @ts-ignore
             const userRole = req.user.role;
             // @ts-ignore
-            const userStoreId = req.user.store_id || 1; // Default to Dallas if null (Admin fallback)
+            const userStoreId = req.user.store_id || 1;
 
-            // 1. Determine Store ID
             let storeId = userStoreId;
             if ((userRole === 'admin' || userRole === 'director')) {
                 if (req.query.store_id) {
                     storeId = parseInt(req.query.store_id as string);
                 } else {
-                    storeId = 1; // Explicit default for Admin view
+                    storeId = 1;
                 }
             }
 
-            // 2. Determine Date
             const today = new Date();
             const centralNow = SmartPrepController.getCentralDateTime(today);
             const dateStr = req.query.date as string || centralNow.toISOString().split('T')[0];
             const date = new Date(dateStr);
-            const dayOfWeek = date.getDay(); // 0 = Sun
+            const dayOfWeek = date.getDay();
 
-            // 2.5 Check if Locked
             const savedLog = await (prisma as any).prepLog.findUnique({
-                where: {
-                    store_id_date: {
-                        store_id: storeId,
-                        date: date
-                    }
-                }
+                where: { store_id_date: { store_id: storeId, date: date } }
             });
 
             if (savedLog) {
-                // Return saved data
-                const store = await prisma.store.findUnique({
-                    where: { id: storeId }
-                });
+                const store = await prisma.store.findUnique({ where: { id: storeId } });
                 return res.json({
                     store_name: store?.store_name || 'Store',
                     date: dateStr,
@@ -114,61 +92,48 @@ export class SmartPrepController {
                 });
             }
 
-            // 3. Get Store & Target Settings
-            // Check schema to ensure 'meat_targets' exists. Passively handling it if not.
-            const store = await prisma.store.findUnique({
+            const store = await (prisma.store as any).findUnique({
                 where: { id: storeId },
                 include: { meat_targets: true }
             });
 
             if (!store) return res.status(404).json({ error: 'Store not found' });
 
-            // Store-level target (Lbs/Guest)
-            // Hardcoded override logic from Phase 24 retained for reliability
             const TARGET_OVERRIDES: Record<number, number> = {
-                1: 1.76, // Dallas
-                2: 1.85, // Austin
-                3: 1.95, // NYC
-                4: 1.65, // Miami
-                5: 2.10  // Vegas
+                1: 1.76, 2: 1.85, 3: 1.95, 4: 1.65, 5: 2.10
             };
-            const targetLbsPerGuest = TARGET_OVERRIDES[storeId] || store.target_lbs_guest || 1.76;
+            const targetLbsPerGuest = TARGET_OVERRIDES[storeId] || (store as any).target_lbs_guest || 1.76;
 
-            // 4. Determine Forecast
-            let forecast = 150; // default
+            let forecast = 150;
             if (req.query.guests) {
-                // Manual override
                 forecast = parseInt(req.query.guests as string);
             } else {
-                // Mock smart forecast logic
-                // In Phase 26, we simulate "Smart" prediction based on day of week
                 const baseForecast = 120;
-                forecast = baseForecast + (dayOfWeek * 25); // Fri/Sat will be higher
+                forecast = baseForecast + (dayOfWeek * 25);
             }
 
-            // 5. Calculate Prep (Efficiency Target Logic v2.8)
             const totalMeatLbs = forecast * targetLbsPerGuest;
             const prepList = [];
             const proteins = Object.keys(MEAT_UNIT_WEIGHTS);
 
+            let totalPredictedCost = 0;
+
             for (const protein of proteins) {
                 let mixPercentage = 0;
-
-                // Check for specific protein override in DB
                 const meatTargets = (store as any).meat_targets || [];
                 const specificOverride = meatTargets.find((t: any) => t.protein === protein);
 
                 if (specificOverride) {
                     mixPercentage = specificOverride.target / targetLbsPerGuest;
                 } else {
-                    // Fallback to standards
                     const stdVal = MEAT_STANDARDS[protein] || 0;
-                    mixPercentage = stdVal / 1.76; // Normalize to standard yield
+                    mixPercentage = stdVal / 1.76;
                 }
 
                 const neededLbs = totalMeatLbs * mixPercentage;
+                const costLb = MEAT_COSTS_LB[protein] || 6.00;
+                totalPredictedCost += neededLbs * costLb;
 
-                // DYNAMIC SKEWER LOGIC (v2.8)
                 let unitWeight = MEAT_UNIT_WEIGHTS[protein] || 1;
                 let unitName = 'Piece/Whole';
 
@@ -177,18 +142,17 @@ export class SmartPrepController {
                     unitWeight = (piecesPerSkewer * 0.125) / 0.95;
                     unitName = 'Skewers';
                 } else if (protein.includes('Filet') || protein.includes('Tenderloin')) {
-                    unitWeight = 2.0; // 10 pieces ~3oz each
+                    unitWeight = 2.0;
                     unitName = 'Skewers';
                 } else if (protein === 'Sausage') {
-                    unitWeight = 2.4; // 12 pieces
+                    unitWeight = 2.4;
                     unitName = 'Skewers';
                 } else if (protein === 'Chicken Drumstick') {
-                    unitWeight = 2.25; // 10 pieces @ 3.6oz (0.225lb)
+                    unitWeight = 2.25;
                     unitName = 'Skewers';
                 } else if (protein.includes('Picanha')) {
-                    // Beef or Picanha sub-types
                     if (protein.includes('Garlic')) {
-                        unitWeight = 2.4; // 11 pieces @ 3.5oz
+                        unitWeight = 2.4;
                     } else if (protein.includes('Lamb')) {
                         unitWeight = 1.5;
                     } else {
@@ -196,23 +160,22 @@ export class SmartPrepController {
                     }
                     unitName = 'Skewers';
                 } else if (protein === 'Lamb Chops') {
-                    unitWeight = 1.6; // 8 pieces @ 0.2lb
+                    unitWeight = 1.6;
                     unitName = 'Skewers';
                 } else if (protein.includes('Pork Loin')) {
-                    unitWeight = 1.8; // 12 pieces (Parmesan Pork)
+                    unitWeight = 1.8;
                     unitName = 'Skewers';
                 } else if (protein.includes('Ribs')) {
-                    // Beef Ribs (~4lb) or Pork Ribs (~3lb slab)
                     unitWeight = protein.includes('Beef') ? 4.0 : 3.0;
                     unitName = protein.includes('Beef') ? 'Ribs' : 'Skewers';
                 } else if (protein.includes('Fraldinha') || protein.includes('Flap')) {
-                    unitWeight = 2.5; // Whole piece
+                    unitWeight = 2.5;
                     unitName = 'Skewers';
                 } else if (protein.includes('Tri-Tip') || protein.includes('Spicy Sirloin')) {
-                    unitWeight = 2.5; // Whole piece / Skewer
+                    unitWeight = 2.5;
                     unitName = 'Skewers';
                 } else if (protein.includes('Leg of Lamb')) {
-                    unitWeight = 4.0; // Whole leg / Large pieces
+                    unitWeight = 4.0;
                     unitName = 'Skewers';
                 } else if (unitWeight > 1.5) {
                     unitName = 'Skewers';
@@ -226,11 +189,22 @@ export class SmartPrepController {
                     avg_weight: parseFloat(unitWeight.toFixed(2)),
                     mix_percentage: (mixPercentage * 100).toFixed(1) + '%',
                     recommended_lbs: parseFloat(neededLbs.toFixed(2)),
-                    recommended_units: Math.ceil(neededUnits) // Butchers don't prep partial skewers
+                    recommended_units: Math.ceil(neededUnits),
+                    cost_lb: costLb
                 });
             }
 
-            // Sort by Volume
+            const predictedCostGuest = totalPredictedCost / forecast;
+
+            let tacticalBriefing = "";
+            if (predictedCostGuest > FINANCIAL_TOLERANCE_THRESHOLD) {
+                tacticalBriefing = `Risco Financeiro Identificado: Custo previsto ($${predictedCostGuest.toFixed(2)}) está acima do teto de $${FINANCIAL_TOLERANCE_THRESHOLD}. Instrua a equipe a cadenciar a saída de carnes Premium (Tenderloin/Lamb) e acelerar cortes de eficiência (Coxinha/Lombo).`;
+            } else if (predictedCostGuest > FINANCIAL_TARGET_GUEST) {
+                tacticalBriefing = `Atenção: Margem apertada ($${predictedCostGuest.toFixed(2)}). Monitore o mix de carnes caras para evitar ultrapassar o teto semanal.`;
+            } else {
+                tacticalBriefing = `Meta Financeira OK: Custo previsto de $${predictedCostGuest.toFixed(2)} por cliente está dentro do alvo de $${FINANCIAL_TARGET_GUEST}. Margem operacional confortável.`;
+            }
+
             prepList.sort((a, b) => b.recommended_lbs - a.recommended_lbs);
 
             return res.json({
@@ -238,12 +212,14 @@ export class SmartPrepController {
                 date: dateStr,
                 forecast_guests: forecast,
                 target_lbs_guest: targetLbsPerGuest,
+                predicted_cost_guest: parseFloat(predictedCostGuest.toFixed(2)),
+                financial_target: FINANCIAL_TARGET_GUEST,
+                tactical_briefing: tacticalBriefing,
                 prep_list: prepList
             });
 
         } catch (error) {
             console.error('Smart Prep Error:', error);
-            // Return a safe fallback if DB fails so UI doesn't crash
             return res.status(500).json({ error: 'Failed to generate prep list' });
         }
     }
@@ -258,13 +234,8 @@ export class SmartPrepController {
                 return res.status(400).json({ error: 'Missing required fields' });
             }
 
-            const existing = await prisma.prepLog.findUnique({
-                where: {
-                    store_id_date: {
-                        store_id: parseInt(store_id),
-                        date: new Date(date)
-                    }
-                }
+            const existing = await (prisma as any).prepLog.findUnique({
+                where: { store_id_date: { store_id: parseInt(store_id), date: new Date(date) } }
             });
 
             if (existing) {
@@ -276,7 +247,12 @@ export class SmartPrepController {
                     store_id: parseInt(store_id),
                     date: new Date(date),
                     forecast: parseInt(forecast),
-                    data: { prep_list: data.prep_list, target_lbs_guest: data.target_lbs_guest },
+                    data: {
+                        prep_list: data.prep_list,
+                        target_lbs_guest: data.target_lbs_guest,
+                        predicted_cost_guest: data.predicted_cost_guest,
+                        tactical_briefing: data.tactical_briefing
+                    },
                     user_id: userId
                 }
             });
@@ -289,9 +265,6 @@ export class SmartPrepController {
     }
 
     private static getCentralDateTime(now: Date): Date {
-        // CST (Central Standard Time) is UTC-6. 
-        // CDT (Central Daylight Time) is UTC-5.
-        // For simplicity and matching Brasa operational baseline: force UTC-6.
         const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
         return new Date(utc + (3600000 * -6));
     }

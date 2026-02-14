@@ -97,12 +97,17 @@ export const SmartPrepPage = () => {
         }
     };
 
-    // REDISTRIBUTION LOGIC
+    // REDISTRIBUTION & FINANCIAL LOGIC
     const adjustedPrepData = useMemo(() => {
         if (!prepData) return null;
-        if (excludedProteins.length === 0) return prepData;
 
-        const activeItems = prepData.prep_list.filter((item: any) => !excludedProteins.includes(item.protein));
+        let activeItems = prepData.prep_list;
+        let isExclusionActive = excludedProteins.length > 0;
+
+        if (isExclusionActive) {
+            activeItems = prepData.prep_list.filter((item: any) => !excludedProteins.includes(item.protein));
+        }
+
         if (activeItems.length === 0) return prepData;
 
         // Calculate total target weight to maintain (forecast * target_lbs_guest)
@@ -114,28 +119,52 @@ export const SmartPrepPage = () => {
             return sum + (isNaN(val) ? 0 : val / 100);
         }, 0);
 
+        let totalAdjustedCost = 0;
+
+        const updatedList = prepData.prep_list.map((item: any) => {
+            const isExcluded = excludedProteins.includes(item.protein);
+            if (isExcluded) {
+                return { ...item, recommended_lbs: 0, recommended_units: 0, mix_percentage: '0.0% (EXCLUDED)' };
+            }
+
+            // Normalize weight
+            const itemMix = parseFloat(item.mix_percentage.replace('%', '')) / 100;
+            const normalizedMix = itemMix / rawMixSum;
+            const adjustedLbs = totalTargetLbs * normalizedMix;
+
+            // Financial Accumulation
+            const costLb = item.cost_lb || 6.00;
+            totalAdjustedCost += adjustedLbs * costLb;
+
+            // Recalculate units based on original density (unitWeight)
+            const unitWeight = item.avg_weight || 1;
+            const adjustedUnits = adjustedLbs / unitWeight;
+
+            return {
+                ...item,
+                recommended_lbs: parseFloat(adjustedLbs.toFixed(2)),
+                recommended_units: adjustedUnits,
+                mix_percentage: (normalizedMix * 100).toFixed(1) + '%'
+            };
+        });
+
+        const predictedCostGuest = totalAdjustedCost / forecast;
+
+        // Dynamic Briefing Update (Frontend override if mix changes)
+        let localBriefing = prepData.tactical_briefing;
+        if (isExclusionActive) {
+            if (predictedCostGuest > 9.98) {
+                localBriefing = `Risco Financeiro Identificado: O ajuste de mix elevou o custo para $${predictedCostGuest.toFixed(2)}. Meta de $9.92 em risco.`;
+            } else {
+                localBriefing = `Ajuste de Mix OK: Custo projetado de $${predictedCostGuest.toFixed(2)} por cliente.`;
+            }
+        }
+
         return {
             ...prepData,
-            prep_list: prepData.prep_list.map((item: any) => {
-                const isExcluded = excludedProteins.includes(item.protein);
-                if (isExcluded) return { ...item, recommended_lbs: 0, recommended_units: 0, mix_percentage: '0.0% (EXCLUDED)' };
-
-                // Normalize weight
-                const itemMix = parseFloat(item.mix_percentage.replace('%', '')) / 100;
-                const normalizedMix = itemMix / rawMixSum;
-                const adjustedLbs = totalTargetLbs * normalizedMix;
-
-                // Recalculate units based on original density (unitWeight)
-                const unitWeight = item.avg_weight || 1;
-                const adjustedUnits = adjustedLbs / unitWeight;
-
-                return {
-                    ...item,
-                    recommended_lbs: parseFloat(adjustedLbs.toFixed(2)),
-                    recommended_units: adjustedUnits,
-                    mix_percentage: (normalizedMix * 100).toFixed(1) + '%'
-                };
-            })
+            predicted_cost_guest: parseFloat(predictedCostGuest.toFixed(2)),
+            tactical_briefing: localBriefing,
+            prep_list: updatedList
         };
     }, [prepData, excludedProteins, forecast]);
 
@@ -167,7 +196,9 @@ export const SmartPrepPage = () => {
                     forecast: forecast,
                     data: {
                         prep_list: adjustedPrepData.prep_list,
-                        target_lbs_guest: prepData.target_lbs_guest
+                        target_lbs_guest: prepData.target_lbs_guest,
+                        predicted_cost_guest: adjustedPrepData.predicted_cost_guest,
+                        tactical_briefing: adjustedPrepData.tactical_briefing
                     }
                 })
             });
@@ -383,11 +414,44 @@ export const SmartPrepPage = () => {
                         <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">{t('total_meat_needed')}</h3>
                         <div className="text-3xl font-bold text-white flex items-center justify-center gap-2">
                             <Scale className="w-5 h-5 text-gray-500" />
-                            {prepData ? Math.round(prepData.forecast_guests * prepData.target_lbs_guest) : 0} <span className="text-sm text-gray-500">{t('unit_lbs')}</span>
+                            {prepData ? Math.round(forecast * prepData.target_lbs_guest) : 0} <span className="text-sm text-gray-500">{t('unit_lbs')}</span>
+                        </div>
+                    </div>
+
+                    {/* FINANCIAL HEALTH CARD */}
+                    <div className={`p-4 rounded w-full md:w-auto text-center min-w-[200px] border transition-colors ${(adjustedPrepData?.predicted_cost_guest || 0) > 9.98
+                        ? 'bg-red-500/10 border-red-500/50'
+                        : (adjustedPrepData?.predicted_cost_guest || 0) > 9.92
+                            ? 'bg-yellow-500/10 border-yellow-500/50'
+                            : 'bg-[#00FF94]/10 border-[#00FF94]/50'
+                        }`}>
+                        <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">$/GUEST (PREVISTO)</h3>
+                        <div className={`text-3xl font-black flex items-center justify-center gap-2 ${(adjustedPrepData?.predicted_cost_guest || 0) > 9.98
+                            ? 'text-red-500'
+                            : (adjustedPrepData?.predicted_cost_guest || 0) > 9.92
+                                ? 'text-yellow-500'
+                                : 'text-[#00FF94]'
+                            }`}>
+                            <span className="text-sm font-normal text-gray-500">$</span>
+                            {adjustedPrepData?.predicted_cost_guest || '0.00'}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* TACTICAL BRIEFING CARD */}
+            {adjustedPrepData?.tactical_briefing && (
+                <div className={`mb-8 p-4 rounded-lg border flex gap-4 items-start ${(adjustedPrepData?.predicted_cost_guest || 0) > 9.98
+                    ? 'bg-red-500/5 border-red-500/20 text-red-200'
+                    : 'bg-[#C5A059]/5 border-[#C5A059]/20 text-[#C5A059]'
+                    }`}>
+                    <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
+                    <div>
+                        <h4 className="font-bold uppercase text-xs tracking-widest mb-1">Guia Tático do Gerente (Briefing)</h4>
+                        <p className="text-sm leading-relaxed">{adjustedPrepData.tactical_briefing}</p>
+                    </div>
+                </div>
+            )}
 
             {/* Prep Grid */}
             {!loading && !error && adjustedPrepData && (
@@ -410,7 +474,8 @@ export const SmartPrepPage = () => {
                                             {isExcluded ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                         {!isExcluded && (
-                                            <span className="text-[10px] bg-[#222] text-gray-400 px-2 py-1 rounded font-mono border border-[#333]">
+                                            <span className={`text-[10px] bg-[#222] px-2 py-1 rounded font-mono border border-[#333] ${item.cost_lb > 10 ? 'text-red-400' : 'text-gray-400'
+                                                }`}>
                                                 {item.mix_percentage}
                                             </span>
                                         )}
