@@ -37,7 +37,8 @@ export const SmartPrepPage = () => {
 
     // Handle manual forecast changes (Debounced)
     useEffect(() => {
-        if (!selectedStore) return;
+        // We allow fetch even if selectedStore is null (backend will use JWT store_id)
+        // This fixes the slider for regular store users.
         const timer = setTimeout(() => {
             fetchPrepData();
         }, 500);
