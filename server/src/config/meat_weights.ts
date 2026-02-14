@@ -16,7 +16,7 @@ export const MEAT_UNIT_WEIGHTS: Record<string, number> = {
     "Pork Ribs": 3.0,        // Slab
     "Pork Loin": 8.0,        // Whole Loin
     "Pork Belly": 8.0,       // Whole Belly
-    "Chicken Drumstick": 0.25, // Per leg (approx)
+    "Chicken Drumstick": 0.225, // Per leg (3.6oz)
     "Chicken Breast": 0.25,  // Per wrapped breast (bacon wrapped)
     // Actually, is this per skewer? 
     // Smart Prep usually guides "How many SKEWERS" or "How many PIECES/HEADS"

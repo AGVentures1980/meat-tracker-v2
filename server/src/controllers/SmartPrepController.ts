@@ -183,7 +183,7 @@ export class SmartPrepController {
                     unitWeight = 2.4; // 12 pieces
                     unitName = 'Skewers';
                 } else if (protein === 'Chicken Drumstick') {
-                    unitWeight = 2.5; // 10 pieces
+                    unitWeight = 2.25; // 10 pieces @ 3.6oz (0.225lb)
                     unitName = 'Skewers';
                 } else if (protein.includes('Picanha')) {
                     // Beef or Picanha sub-types
