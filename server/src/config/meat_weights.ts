@@ -4,7 +4,7 @@
 
 export const MEAT_UNIT_WEIGHTS: Record<string, number> = {
     "Picanha": 3.5,
-    "Garlic Picanha": 3.5,
+    "Garlic Picanha": 2.4, // 11 pieces @ 3.5oz
     "Alcatra": 4.0,          // Whole Top Sirloin
     "Fraldinha/Flank Steak": 2.5, // Whole Flank
     "Tri-Tip": 2.5,

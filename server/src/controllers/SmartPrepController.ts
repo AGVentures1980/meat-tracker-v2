@@ -187,7 +187,13 @@ export class SmartPrepController {
                     unitName = 'Skewers';
                 } else if (protein.includes('Picanha')) {
                     // Beef or Picanha sub-types
-                    unitWeight = protein.includes('Lamb') ? 1.5 : 3.5;
+                    if (protein.includes('Garlic')) {
+                        unitWeight = 2.4; // 11 pieces @ 3.5oz
+                    } else if (protein.includes('Lamb')) {
+                        unitWeight = 1.5;
+                    } else {
+                        unitWeight = 3.5;
+                    }
                     unitName = 'Skewers';
                 } else if (protein === 'Lamb Chops') {
                     unitWeight = 1.6; // 8 pieces @ 0.2lb

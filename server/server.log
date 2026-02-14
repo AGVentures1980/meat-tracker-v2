@@ -176,3 +176,19 @@ src/engine/MeatEngine.ts(157,5): error TS1128: Declaration or statement expected
 [Startup] SUCCESS: Verified default system settings and store targets.
 🚀 BRASA INTEL v2.7.0-REPORTS-ULTIMATE running on http://localhost:3002
 📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+[INFO] 01:49:31 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/config/meat_weights.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.7.0-REPORTS-ULTIMATE running on http://localhost:3002
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+[INFO] 01:49:33 Restarting: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/src/controllers/SmartPrepController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+🚀 BRASA INTEL v2.7.0-REPORTS-ULTIMATE running on http://localhost:3002
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE
