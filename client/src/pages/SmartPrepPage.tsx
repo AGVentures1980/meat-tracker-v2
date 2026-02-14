@@ -239,7 +239,7 @@ export const SmartPrepPage = () => {
                         {prepData?.prep_list.map((item: any) => (
                             <tr key={item.protein} className="border-b border-gray-300">
                                 <td className="py-3 font-bold">{item.protein}</td>
-                                <td className="py-3 text-right font-mono text-lg">{Math.ceil(item.recommended_units)} <span className="text-xs text-gray-500">units</span></td>
+                                <td className="py-3 text-right font-mono text-lg">{Math.ceil(item.recommended_units)} <span className="text-xs text-gray-500">{item.unit_name || 'units'}</span></td>
                                 <td className="py-3 text-right font-mono">{item.recommended_lbs} lbs</td>
                                 <td className="py-3 text-center border-l border-r border-gray-200">
                                     <div className="w-6 h-6 border-2 border-black rounded mx-auto"></div>
@@ -350,7 +350,7 @@ export const SmartPrepPage = () => {
                                     <span className="text-xs text-gray-500 uppercase">{t('prep_qty')}</span>
                                     <div className="text-right">
                                         <div className="text-3xl font-black text-white leading-none">{Math.ceil(item.recommended_units)}</div>
-                                        <p className="text-[10px] text-gray-500 uppercase mt-1">{t('prep_pieces_packs')}</p>
+                                        <p className="text-[10px] text-gray-400 uppercase mt-1">{item.unit_name || t('prep_pieces_packs')}</p>
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center text-xs text-gray-400">

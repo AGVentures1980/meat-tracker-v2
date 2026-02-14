@@ -27,7 +27,7 @@ export class SmartPrepController {
             });
 
             // 3. Fetch all prep logs for this date
-            const logs = await prisma.prepLog.findMany({
+            const logs = await (prisma as any).prepLog.findMany({
                 where: { date: date },
                 select: {
                     store_id: true,
@@ -38,7 +38,7 @@ export class SmartPrepController {
 
             // 4. Map stores to their status
             const statusGrid = stores.map(store => {
-                const log = logs.find(l => l.store_id === store.id);
+                const log = logs.find((l: any) => l.store_id === store.id);
                 return {
                     id: store.id,
                     name: store.store_name,
@@ -89,7 +89,7 @@ export class SmartPrepController {
             const dayOfWeek = date.getDay(); // 0 = Sun
 
             // 2.5 Check if Locked
-            const savedLog = await prisma.prepLog.findUnique({
+            const savedLog = await (prisma as any).prepLog.findUnique({
                 where: {
                     store_id_date: {
                         store_id: storeId,
@@ -146,7 +146,7 @@ export class SmartPrepController {
                 forecast = baseForecast + (dayOfWeek * 25); // Fri/Sat will be higher
             }
 
-            // 5. Calculate Prep
+            // 5. Calculate Prep (Efficiency Target Logic v2.8)
             const totalMeatLbs = forecast * targetLbsPerGuest;
             const prepList = [];
             const proteins = Object.keys(MEAT_UNIT_WEIGHTS);
@@ -155,7 +155,8 @@ export class SmartPrepController {
                 let mixPercentage = 0;
 
                 // Check for specific protein override in DB
-                const specificOverride = store.meat_targets.find(t => t.protein === protein);
+                const meatTargets = (store as any).meat_targets || [];
+                const specificOverride = meatTargets.find((t: any) => t.protein === protein);
 
                 if (specificOverride) {
                     mixPercentage = specificOverride.target / targetLbsPerGuest;
@@ -166,16 +167,46 @@ export class SmartPrepController {
                 }
 
                 const neededLbs = totalMeatLbs * mixPercentage;
-                const unitWeight = MEAT_UNIT_WEIGHTS[protein] || 1;
+
+                // DYNAMIC SKEWER LOGIC (v2.8)
+                let unitWeight = MEAT_UNIT_WEIGHTS[protein] || 1;
+                let unitName = 'Piece/Whole';
+
+                if (protein === 'Chicken Breast') {
+                    const piecesPerSkewer = forecast > 400 ? 10 : 9;
+                    unitWeight = (piecesPerSkewer * 0.125) / 0.95;
+                    unitName = 'Skewers';
+                } else if (protein === 'Filet Mignon' || protein === 'Filet Bacon' || protein === 'Petite Fillet') {
+                    unitWeight = 2.0; // 10 pieces ~3oz each
+                    unitName = 'Skewers';
+                } else if (protein === 'Sausage') {
+                    unitWeight = 2.4; // 12 pieces
+                    unitName = 'Skewers';
+                } else if (protein === 'Chicken Drumstick') {
+                    unitWeight = 2.5; // 10 pieces
+                    unitName = 'Skewers';
+                } else if (protein === 'Picanha' || protein === 'Garlic Picanha' || protein === 'Spicy Picanha') {
+                    unitWeight = 3.5; // Matches whole piece / 1 skewer density
+                    unitName = 'Skewers';
+                } else if (protein === 'Lamb Picanha') {
+                    unitWeight = 1.5; // 4 pieces
+                    unitName = 'Skewers';
+                } else if (protein === 'Lamb Chops') {
+                    unitWeight = 1.6; // 8 pieces @ 0.2lb
+                    unitName = 'Skewers';
+                } else if (unitWeight > 1.5) {
+                    unitName = 'Skewers';
+                }
+
                 const neededUnits = neededLbs / unitWeight;
 
                 prepList.push({
                     protein,
-                    unit_name: 'Piece/Whole',
-                    avg_weight: unitWeight,
+                    unit_name: unitName,
+                    avg_weight: parseFloat(unitWeight.toFixed(2)),
                     mix_percentage: (mixPercentage * 100).toFixed(1) + '%',
                     recommended_lbs: parseFloat(neededLbs.toFixed(2)),
-                    recommended_units: Math.round(neededUnits * 10) / 10
+                    recommended_units: Math.ceil(neededUnits) // Butchers don't prep partial skewers
                 });
             }
 
@@ -220,7 +251,7 @@ export class SmartPrepController {
                 return res.status(400).json({ error: 'This day is already locked for this store.' });
             }
 
-            await prisma.prepLog.create({
+            await (prisma as any).prepLog.create({
                 data: {
                     store_id: parseInt(store_id),
                     date: new Date(date),
