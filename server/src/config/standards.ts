@@ -1,9 +1,12 @@
 
 export const MEAT_STANDARDS: Record<string, number> = {
-    "Picanha": 0.39,
+    "Picanha": 0.29,
+    "Garlic Picanha": 0.10,
     "Fraldinha/Flank Steak": 0.24,
-    "Tri-Tip": 0.15,
-    "Filet Mignon": 0.10,
+    "Tri-Tip": 0.10,
+    "Spicy Sirloin": 0.05,
+    "Filet Mignon": 0.05,
+    "Filet Bacon": 0.05,
     "Beef Ribs": 0.08,
     "Pork Ribs": 0.12,
     "Pork Loin": 0.06,

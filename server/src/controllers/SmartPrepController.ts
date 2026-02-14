@@ -202,6 +202,9 @@ export class SmartPrepController {
                 } else if (protein.includes('Fraldinha') || protein.includes('Flap')) {
                     unitWeight = 2.5; // Whole piece
                     unitName = 'Skewers';
+                } else if (protein.includes('Tri-Tip') || protein.includes('Spicy Sirloin')) {
+                    unitWeight = 2.5; // Whole piece / Skewer
+                    unitName = 'Skewers';
                 } else if (protein.includes('Leg of Lamb')) {
                     unitWeight = 4.0; // Whole leg / Large pieces
                     unitName = 'Skewers';

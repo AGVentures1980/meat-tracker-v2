@@ -3,11 +3,14 @@
 // This is used to convert "Total Lbs Needed" into "How many pieces to fire"
 
 export const MEAT_UNIT_WEIGHTS: Record<string, number> = {
-    "Picanha": 3.5,          // Whole Picanha
+    "Picanha": 3.5,
+    "Garlic Picanha": 3.5,
     "Alcatra": 4.0,          // Whole Top Sirloin
     "Fraldinha/Flank Steak": 2.5, // Whole Flank
-    "Tri-Tip": 2.5,          // Whole Tri-Tip
-    "Filet Mignon": 5.0,     // Whole Tenderloin (before trimming) -> or maybe per skewer? 
+    "Tri-Tip": 2.5,
+    "Spicy Sirloin": 2.5, // Made from Tri-Tip
+    "Filet Mignon": 5.0,
+    "Filet Bacon": 2.0, // Skewer weight
     // Usually we prep X whole tenderloins. 
     "Bone-in Ribeye": 18.0,  // Whole Ribeye Primal? Or per bone? 
     // If "Bone-in Ribeye" usually means Tomahawk or huge piece. 
