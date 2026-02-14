@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Users, ChefHat, Scale, Printer, ArrowLeft, CheckCircle2, AlertCircle, Building2 } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Users, ChefHat, Scale, Printer, ArrowLeft, CheckCircle2, AlertCircle, Building2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -15,6 +15,7 @@ export const SmartPrepPage = () => {
     const [lockLoading, setLockLoading] = useState(false);
 
     const [selectedStore, setSelectedStore] = useState<number | null>(null);
+    const [excludedProteins, setExcludedProteins] = useState<string[]>([]);
     const getCentralDate = () => {
         const now = new Date();
         const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
@@ -82,6 +83,8 @@ export const SmartPrepPage = () => {
                 setPrepData(data);
                 if (data.is_locked) {
                     setForecast(data.forecast_guests);
+                    // Reset exclusions if locked, as locked data is already filtered/calculated
+                    setExcludedProteins([]);
                 }
             } else {
                 const err = await res.json();
@@ -92,6 +95,55 @@ export const SmartPrepPage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // REDISTRIBUTION LOGIC
+    const adjustedPrepData = useMemo(() => {
+        if (!prepData) return null;
+        if (excludedProteins.length === 0) return prepData;
+
+        const activeItems = prepData.prep_list.filter((item: any) => !excludedProteins.includes(item.protein));
+        if (activeItems.length === 0) return prepData;
+
+        // Calculate total target weight to maintain (forecast * target_lbs_guest)
+        const totalTargetLbs = forecast * (prepData.target_lbs_guest || 1.76);
+
+        // Sum current mix percentages of active items
+        const rawMixSum = activeItems.reduce((sum: number, item: any) => {
+            const val = parseFloat(item.mix_percentage.replace('%', ''));
+            return sum + (isNaN(val) ? 0 : val / 100);
+        }, 0);
+
+        return {
+            ...prepData,
+            prep_list: prepData.prep_list.map((item: any) => {
+                const isExcluded = excludedProteins.includes(item.protein);
+                if (isExcluded) return { ...item, recommended_lbs: 0, recommended_units: 0, mix_percentage: '0.0% (EXCLUDED)' };
+
+                // Normalize weight
+                const itemMix = parseFloat(item.mix_percentage.replace('%', '')) / 100;
+                const normalizedMix = itemMix / rawMixSum;
+                const adjustedLbs = totalTargetLbs * normalizedMix;
+
+                // Recalculate units based on original density (unitWeight)
+                const unitWeight = item.avg_weight || 1;
+                const adjustedUnits = adjustedLbs / unitWeight;
+
+                return {
+                    ...item,
+                    recommended_lbs: parseFloat(adjustedLbs.toFixed(2)),
+                    recommended_units: adjustedUnits,
+                    mix_percentage: (normalizedMix * 100).toFixed(1) + '%'
+                };
+            })
+        };
+    }, [prepData, excludedProteins, forecast]);
+
+    const toggleProtein = (protein: string) => {
+        if (prepData?.is_locked) return;
+        setExcludedProteins((prev: string[]) =>
+            prev.includes(protein) ? prev.filter((p: string) => p !== protein) : [...prev, protein]
+        );
     };
 
     const handleLock = async () => {
@@ -114,7 +166,7 @@ export const SmartPrepPage = () => {
                     date: selectedDate,
                     forecast: forecast,
                     data: {
-                        prep_list: prepData.prep_list,
+                        prep_list: adjustedPrepData.prep_list,
                         target_lbs_guest: prepData.target_lbs_guest
                     }
                 })
@@ -237,7 +289,7 @@ export const SmartPrepPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {prepData?.prep_list.map((item: any) => (
+                        {adjustedPrepData?.prep_list.filter((item: any) => !excludedProteins.includes(item.protein)).map((item: any) => (
                             <tr key={item.protein} className="border-b border-gray-300">
                                 <td className="py-3 font-bold">{item.protein}</td>
                                 <td className="py-3 text-right font-mono text-lg">{Math.ceil(item.recommended_units)} <span className="text-xs text-gray-500">{item.unit_name || 'units'}</span></td>
@@ -338,29 +390,50 @@ export const SmartPrepPage = () => {
             </div>
 
             {/* Prep Grid */}
-            {!loading && !error && prepData && (
+            {!loading && !error && adjustedPrepData && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 print:hidden">
-                    {prepData.prep_list.map((item: any) => (
-                        <div key={item.protein} className="bg-[#121212] border border-[#333] rounded p-4 group">
-                            <div className="flex justify-between items-start mb-3">
-                                <h3 className="font-bold text-lg text-white group-hover:text-[#00FF94] transition-colors">{item.protein}</h3>
-                                <span className="text-xs bg-[#222] text-gray-400 px-2 py-1 rounded font-mono">{item.mix_percentage}</span>
-                            </div>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-end border-b border-[#333] pb-2">
-                                    <span className="text-xs text-gray-500 uppercase">{t('prep_qty')}</span>
-                                    <div className="text-right">
-                                        <div className="text-3xl font-black text-white leading-none">{Math.ceil(item.recommended_units)}</div>
-                                        <p className="text-[10px] text-gray-400 uppercase mt-1">{item.unit_name || t('prep_pieces_packs')}</p>
+                    {adjustedPrepData.prep_list.map((item: any) => {
+                        const isExcluded = excludedProteins.includes(item.protein);
+                        return (
+                            <div
+                                key={item.protein}
+                                className={`bg-[#121212] border border-[#333] rounded p-4 group transition-all ${isExcluded ? 'opacity-40 grayscale border-dashed' : ''}`}
+                            >
+                                <div className="flex justify-between items-start mb-3">
+                                    <h3 className="font-bold text-lg text-white group-hover:text-[#00FF94] transition-colors line-clamp-1">{item.protein}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => toggleProtein(item.protein)}
+                                            className={`p-1 rounded hover:bg-[#222] transition-colors ${isExcluded ? 'text-red-500' : 'text-gray-500 hover:text-[#00FF94]'}`}
+                                            title={isExcluded ? 'Enable Item' : 'Discard / Out of Stock'}
+                                        >
+                                            {isExcluded ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                        {!isExcluded && (
+                                            <span className="text-[10px] bg-[#222] text-gray-400 px-2 py-1 rounded font-mono border border-[#333]">
+                                                {item.mix_percentage}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
-                                <div className="flex justify-between items-center text-xs text-gray-400">
-                                    <span>{t('prep_total_weight')}</span>
-                                    <span className="font-mono">{item.recommended_lbs} {t('unit_lbs').toLowerCase()}</span>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-end border-b border-[#333] pb-2">
+                                        <span className="text-xs text-gray-500 uppercase">{t('prep_qty')}</span>
+                                        <div className="text-right">
+                                            <div className={`text-3xl font-black leading-none ${isExcluded ? 'text-gray-600' : 'text-white'}`}>
+                                                {isExcluded ? '--' : Math.ceil(item.recommended_units)}
+                                            </div>
+                                            <p className="text-[10px] text-gray-400 uppercase mt-1">{item.unit_name || t('prep_pieces_packs')}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs text-gray-400">
+                                        <span>{t('prep_total_weight')}</span>
+                                        <span className="font-mono">{isExcluded ? '0.00' : item.recommended_lbs} {t('unit_lbs').toLowerCase()}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
