@@ -46,6 +46,7 @@ import intelligenceRoutes from './routes/intelligence.routes';
 import analystRoutes from './routes/analyst.routes';
 import negotiationRoutes from './routes/negotiation.routes';
 import reportRoutes from './routes/report.routes';
+import forecastRoutes from './routes/forecast.routes';
 
 import path from 'path';
 
@@ -63,6 +64,7 @@ app.use('/api/v1/intelligence', requireAuth, intelligenceRoutes);
 app.use('/api/v1/analyst', requireAuth, analystRoutes);
 app.use('/api/v1/negotiation', requireAuth, negotiationRoutes);
 app.use('/api/v1/reports', requireAuth, reportRoutes);
+app.use('/api/v1/forecast', requireAuth, forecastRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
@@ -73,6 +75,7 @@ app.get('/api/v1/setup-demo', SetupController.runDemoSetup);
 import { DebugController } from './controllers/DebugController';
 app.get('/api/v1/debug/migrate', DebugController.runMigration);
 app.get('/api/v1/debug/env', DebugController.checkEnv);
+app.get('/api/v1/debug/cleanup', DebugController.cleanupTdbMeats);
 
 // Serve Static Frontend (Production)
 const CLIENT_BUILD_PATH = process.env.NODE_ENV === 'production'

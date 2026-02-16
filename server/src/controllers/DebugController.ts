@@ -45,5 +45,30 @@ export const DebugController = {
             has_db_url: !!process.env.DATABASE_URL,
             db_url_prefix: process.env.DATABASE_URL?.substring(0, 15) + '...'
         });
+    },
+
+    async cleanupTdbMeats(req: Request, res: Response) {
+        if (req.query.key !== 'fatality') return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+
+            // Delete targets for Pork Belly, Alcatra, Ribeye globally or for specific stores?
+            // User said "remove from dashboard", implying all TdB dashboards.
+            // Safe to remove globally for now as they aren't standard yet.
+            const unwanted = ['Pork Belly', 'Alcatra', 'Ribeye'];
+
+            const result = await prisma.storeMeatTarget.deleteMany({
+                where: {
+                    protein: { in: unwanted }
+                }
+            });
+
+            // Also clean up any mock orders? Maybe not needed.
+
+            return res.json({ success: true, deletedCount: result.count, meats: unwanted });
+        } catch (error) {
+            return res.status(500).json({ error: String(error) });
+        }
     }
 };

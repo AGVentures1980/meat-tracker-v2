@@ -12,6 +12,7 @@ import { SmartPrepPage } from './pages/SmartPrepPage';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
 import WastePage from './pages/WastePage';
+import { ForecastPage } from './pages/ForecastPage';
 import { Landing } from './pages/Landing';
 import { DeliveryPage } from './pages/DeliveryPage';
 import { ExecutiveAnalyst } from './pages/ExecutiveAnalyst';
@@ -55,6 +56,7 @@ function AppContent() {
                     <Route path="/smart-prep" element={<SmartPrepPage />} />
                     <Route path="/delivery" element={<DeliveryPage />} />
                     <Route path="/waste" element={<WastePage />} />
+                    <Route path="/forecast" element={<ForecastPage />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                 </Route>

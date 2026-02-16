@@ -43,6 +43,7 @@ model Store {
   dinner_price      Float             @default(58.90)
   is_lunch_enabled  Boolean           @default(false)
   exclude_lamb_from_rodizio_lbs Boolean @default(false)
+  sales_forecasts   SalesForecast[]
 
   @@unique([company_id, store_name])
 }
@@ -273,4 +274,23 @@ model ProductAlias {
   store      Store    @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, alias])
+}
+
+model SalesForecast {
+  id              String   @id @default(uuid())
+  store_id        Int
+  week_start      DateTime @db.Date // The Monday of the forecast week
+  forecast_lunch  Int      @default(0)
+  forecast_dinner Int      @default(0)
+  
+  is_locked       Boolean  @default(false)
+  locked_at       DateTime?
+  locked_by       String?  // User ID or "System"
+  
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  store           Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, week_start])
 }
