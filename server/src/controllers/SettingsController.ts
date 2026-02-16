@@ -71,7 +71,7 @@ export class SettingsController {
 
     static async createStore(req: Request, res: Response) {
         try {
-            const { store_name, target_lbs_guest, manager_email, manager_password, location } = req.body;
+            const { store_name, target_lbs_guest, manager_email, manager_password, location, lunch_price, dinner_price, is_lunch_enabled } = req.body;
             const creator = (req as any).user;
 
             if (!store_name || !target_lbs_guest) {
@@ -102,7 +102,10 @@ export class SettingsController {
                         store_name,
                         location: location || 'USA',
                         target_lbs_guest: parseFloat(target_lbs_guest),
-                        target_cost_guest: 9.94 // Default
+                        target_cost_guest: 9.94, // Default
+                        lunch_price: lunch_price ? parseFloat(lunch_price) : 34.00,
+                        dinner_price: dinner_price ? parseFloat(dinner_price) : 54.00,
+                        is_lunch_enabled: is_lunch_enabled === true
                     }
                 });
 
@@ -177,7 +180,7 @@ export class SettingsController {
     static async updateStore(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const { target_lbs_guest, lunch_price, dinner_price, exclude_lamb_from_rodizio_lbs } = req.body;
+            const { target_lbs_guest, lunch_price, dinner_price, is_lunch_enabled, exclude_lamb_from_rodizio_lbs } = req.body;
             const updater = (req as any).user;
             const storeId = Number(id);
 
@@ -188,7 +191,8 @@ export class SettingsController {
                     target_lbs_guest: parseFloat(target_lbs_guest),
                     lunch_price: parseFloat(lunch_price),
                     dinner_price: parseFloat(dinner_price),
-                    exclude_lamb_from_rodizio_lbs: exclude_lamb_from_rodizio_lbs
+                    is_lunch_enabled: is_lunch_enabled === true,
+                    exclude_lamb_from_rodizio_lbs: exclude_lamb_from_rodizio_lbs === true
                 }
             });
 

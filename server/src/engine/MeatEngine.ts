@@ -88,8 +88,19 @@ export class MeatEngine {
             theoreticalRevenue = (estLunch * lunchPrice) + (estDinner * dinnerPrice);
         }
 
-        const extraCustomers = Math.round(totalLbsMonth / STORE_LBS_TARGET);
+        // v3.2 Strategic Exclusion Logic (Lamb)
+        const EXCLUDE_LAMB = (storeData as any)?.exclude_lamb_from_rodizio_lbs || false;
+        let indicatorLbs = totalLbsMonth;
+        if (EXCLUDE_LAMB) {
+            const lambLbs = sales
+                .filter(item => (item.protein_type || item.item_name || '').toLowerCase().includes('lamb'))
+                .reduce((acc, item) => acc + item.lbs, 0);
+            indicatorLbs = totalLbsMonth - lambLbs;
+        }
 
+        const lbsPerGuestActual = totalGuests > 0 ? indicatorLbs / totalGuests : 0;
+
+        const extraCustomers = Math.round(totalLbsMonth / STORE_LBS_TARGET);
         const daysPassed = getDate(now) || 1;
         const totalDaysInMonth = getDate(end);
         const dailyAverage = totalLbsMonth / daysPassed;
@@ -103,6 +114,7 @@ export class MeatEngine {
             extraCustomers,
             projectedTotal,
             lbsPerGuest: STORE_LBS_TARGET,
+            lbsPerGuestActual, // Actual measured against target
             costPerGuest: STORE_COST_TARGET,
             theoreticalRevenue, // New metric
             actualMeatCost: totalLbsMonth * 5.85, // Estimated avg cost for quick check

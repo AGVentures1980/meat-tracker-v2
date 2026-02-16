@@ -16,7 +16,8 @@ import {
     Trash,
     Truck,
     Zap,
-    Calendar
+    Calendar,
+    Building2
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -31,7 +32,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const { logout, user } = useAuth();
     const { t } = useLanguage();
     const location = useLocation();
-    const [collapsed, setCollapsed] = useState(false);
     const [showAlerts, setShowAlerts] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
@@ -51,7 +51,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     const [alerts, setAlerts] = useState([
         { id: 1, type: 'WARNING', time: '2m ago', message: 'Inventory Variance Detected: Dallas (1.89 vs 1.76 Target). Action Required.', path: '/dashboard/1', color: '#FF9F1C' },
-        { id: 2, type: 'INFO', time: '15m ago', message: 'OLO Sync Latency > 300ms. Operations normal but monitoring.', path: '/reports', color: 'gray-400' },
+        { id: 2, type: 'INFO', time: '15m ago', message: 'OLO Sync Latency &gt; 300ms. Operations normal but monitoring.', path: '/reports', color: 'gray-400' },
         { id: 3, type: 'REMINDER', time: '1h ago', message: 'Weekly Close Pending for 3 Stores. Due by 5:00 PM EST.', path: '/dashboard', color: 'gray-400' }
     ]);
 
@@ -91,18 +91,26 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         return () => clearInterval(interval);
     }, [user]);
 
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
     return (
         <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden">
-            {/* Sidebar (Desktop Only) */}
-            <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 hidden md:flex flex-col print:hidden`}>
+            {/* Overlay for mobile/retractable mode */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            {/* Retractable Sidebar */}
+            <aside className={`fixed md:relative inset-y-0 left-0 z-[100] w-64 bg-[#1a1a1a] border-r border-[#333] transition-all duration-500 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${!isSidebarOpen && 'md:w-0 md:opacity-0 md:border-none'} flex flex-col print:hidden`}>
                 <div className="p-4 border-b border-[#333] flex items-center justify-between">
-                    {!collapsed && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold tracking-tighter text-[#C5A059]">BRASA</span>
-                            <span className="text-xs text-gray-500 uppercase tracking-widest">INTEL</span>
-                        </div>
-                    )}
-                    <button onClick={() => setCollapsed(!collapsed)} className="p-1 hover:bg-[#333] rounded">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold tracking-tighter text-[#C5A059]">BRASA</span>
+                        <span className="text-xs text-gray-500 uppercase tracking-widest">INTEL</span>
+                    </div>
+                    <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-[#333] rounded">
                         <Menu className="w-5 h-5 text-gray-400" />
                     </button>
                 </div>
@@ -120,7 +128,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     } `}
                             >
                                 <item.icon className="w-5 h-5 min-w-[20px]" />
-                                {!collapsed && <span className="text-sm font-medium tracking-wide">{item.label}</span>}
+                                <span className="text-sm font-medium tracking-wide">{item.label}</span>
                             </Link>
                         );
                     })}
@@ -137,7 +145,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     } `}
                             >
                                 <AlertTriangle className="w-5 h-5 min-w-[20px]" />
-                                {!collapsed && <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>}
+                                <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>
                             </Link>
                             <Link
                                 to="/executive-analyst"
@@ -147,7 +155,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     } `}
                             >
                                 <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
-                                {!collapsed && <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>}
+                                <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
+                            </Link>
+
+                            {/* Switch Company (Owner Only) */}
+                            <Link
+                                to="/select-company"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
+                            >
+                                <Building2 className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Switch Company</span>
                             </Link>
                         </>
                     )}
@@ -158,20 +175,18 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         className="w-full flex items-center gap-3 p-3 rounded transition-colors text-gray-400 hover:bg-[#FF2A6D]/10 hover:text-[#FF2A6D] mt-2"
                     >
                         <LogOut className="w-5 h-5 min-w-[20px]" />
-                        {!collapsed && <span className="text-sm font-medium tracking-wide">{t('logout')}</span>}
+                        <span className="text-sm font-medium tracking-wide">{t('logout')}</span>
                     </button>
                 </nav>
 
                 <div className="p-4 border-t border-[#333]">
-                    {!collapsed && (
-                        <div className="text-xs text-gray-600 font-mono">
-                            {t('system_version')} - {t('system_live')}
-                            <br />
-                            {t('conn_label')}: <span className="text-[#00FF94]">POSTGRES-CL-V3</span>
-                            <br />
-                            <span className="text-[10px] text-gray-500">Build: {new Date().toLocaleString()}</span>
-                        </div>
-                    )}
+                    <div className="text-xs text-gray-600 font-mono">
+                        {t('system_version')} - {t('system_live')}
+                        <br />
+                        {t('conn_label')}: <span className="text-[#00FF94]">POSTGRES-CL-V3</span>
+                        <br />
+                        <span className="text-[10px] text-gray-500">Build: {new Date().toLocaleString()}</span>
+                    </div>
                 </div>
             </aside>
 
@@ -179,7 +194,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <main className="flex-1 flex flex-col min-w-0 relative pb-20 md:pb-0">
                 {/* Ticker Header */}
                 <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between print:hidden">
-                    <div className="flex items-center gap-6 overflow-hidden text-xs font-mono">
+                    <div className="flex items-center gap-4 overflow-hidden text-xs font-mono">
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors border border-white/5"
+                        >
+                            <Menu className="w-5 h-5 text-[#C5A059]" />
+                        </button>
                         <div className="flex items-center gap-2 text-gray-400">
                             <span className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse"></span>
                             <span className="hidden md:inline">{t('system_online')}</span>

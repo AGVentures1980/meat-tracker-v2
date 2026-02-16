@@ -16,13 +16,25 @@ import { ForecastPage } from './pages/ForecastPage';
 import { Landing } from './pages/Landing';
 import { DeliveryPage } from './pages/DeliveryPage';
 import { ExecutiveAnalyst } from './pages/ExecutiveAnalyst';
+import { CompanySelector } from './pages/CompanySelector';
+import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
+import { OwnerTerminal } from './pages/OwnerTerminal';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     if (!user) return <Navigate to="/login" replace />;
+
+    // If director/admin but no company selected, go to selector (except for the selector itself and SaaS admin)
+    const isOwnerRole = user.role === 'director' || user.role === 'admin';
+    const path = window.location.pathname;
+
+    if (isOwnerRole && !selectedCompany && path !== '/select-company' && path !== '/saas-admin') {
+        return <Navigate to="/select-company" replace />;
+    }
+
     return (
         <DashboardLayout>
             <Outlet />
@@ -42,6 +54,15 @@ function AppContent() {
                 <Route path="/" element={<Login />} />
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/select-company" element={<ProtectedRoute />}>
+                    <Route index element={<CompanySelector />} />
+                </Route>
+                <Route path="/saas-admin" element={<ProtectedRoute />}>
+                    <Route index element={<SaaSAdminDashboard />} />
+                </Route>
+                <Route path="/owner-terminal" element={<ProtectedRoute />}>
+                    <Route index element={<OwnerTerminal />} />
+                </Route>
 
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<Dashboard />} />

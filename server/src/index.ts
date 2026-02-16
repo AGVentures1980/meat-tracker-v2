@@ -47,6 +47,7 @@ import analystRoutes from './routes/analyst.routes';
 import negotiationRoutes from './routes/negotiation.routes';
 import reportRoutes from './routes/report.routes';
 import forecastRoutes from './routes/forecast.routes';
+import ownerRoutes from './routes/owner.routes';
 
 import path from 'path';
 
@@ -65,6 +66,7 @@ app.use('/api/v1/analyst', requireAuth, analystRoutes);
 app.use('/api/v1/negotiation', requireAuth, negotiationRoutes);
 app.use('/api/v1/reports', requireAuth, reportRoutes);
 app.use('/api/v1/forecast', requireAuth, forecastRoutes);
+app.use('/api/v1/owner', ownerRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
@@ -100,7 +102,7 @@ const prisma = new PrismaClient();
 async function ensureDirectorUser() {
     try {
         const email = 'dallas@texasdebrazil.com';
-        const password = 'Dallas2026';
+        const password = 'Dallas#2024';
         const role = 'director' as any;
         const name = 'Director Dallas';
 

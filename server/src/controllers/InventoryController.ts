@@ -17,7 +17,7 @@ export class InventoryController {
      */
     static async submitWeeklyClose(req: Request, res: Response) {
         try {
-            const { store_id, date, guests, inventory, purchases } = req.body;
+            const { store_id, date, guests, lunchGuests, dinnerGuests, inventory, purchases } = req.body;
 
             if (!store_id || !date) {
                 return res.status(400).json({ error: 'Missing required fields' });
@@ -132,7 +132,12 @@ export class InventoryController {
                 let dineIn = 0;
                 let delivery = 0;
 
-                if (req.body.dineInGuests !== undefined || req.body.oloGuests !== undefined) {
+                if (req.body.lunchGuests !== undefined || req.body.dinnerGuests !== undefined) {
+                    const l = Number(req.body.lunchGuests || 0);
+                    const d = Number(req.body.dinnerGuests || 0);
+                    dineIn = l + d;
+                    totalGuests = dineIn + Number(req.body.oloGuests || 0);
+                } else if (req.body.dineInGuests !== undefined || req.body.oloGuests !== undefined) {
                     dineIn = Number(req.body.dineInGuests || 0);
                     delivery = Number(req.body.oloGuests || 0);
                     totalGuests = dineIn + delivery;
@@ -154,6 +159,8 @@ export class InventoryController {
                             extra_customers: totalGuests,
                             dine_in_guests: dineIn,
                             delivery_guests: delivery,
+                            lunch_guests_micros: Number(req.body.lunchGuests || 0),
+                            dinner_guests_micros: Number(req.body.dinnerGuests || 0),
                             total_lbs: 0
                         },
                         create: {
@@ -162,6 +169,8 @@ export class InventoryController {
                             extra_customers: totalGuests,
                             dine_in_guests: dineIn,
                             delivery_guests: delivery,
+                            lunch_guests_micros: Number(req.body.lunchGuests || 0),
+                            dinner_guests_micros: Number(req.body.dinnerGuests || 0),
                             total_lbs: 0
                         }
                     });

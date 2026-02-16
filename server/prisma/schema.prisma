@@ -12,8 +12,10 @@ model Company {
   id         String   @id @default(uuid())
   name       String
   plan       String   @default("enterprise")
+  owner_id   String?
   created_at DateTime @default(now())
   stores     Store[]
+  invoices   SysInvoice[]
 }
 
 model Store {
@@ -276,6 +278,7 @@ model ProductAlias {
   @@unique([store_id, alias])
 }
 
+
 model SalesForecast {
   id              String   @id @default(uuid())
   store_id        Int
@@ -293,4 +296,42 @@ model SalesForecast {
   store           Store    @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, week_start])
+}
+
+model Prospect {
+  id              String   @id @default(uuid())
+  company_name    String
+  industry        String
+  size            String   // Small, Medium, Large
+  potential_fit   Float    // Score 0-1
+  research_summary String   @db.Text
+  justification   String   @db.Text
+  contact_info    Json?
+  status          String   @default("lead") // lead, contacted, meeting_set, closed
+  agent_id        String?  // ID of the AI agent that found it
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model SysInvoice {
+  id            String   @id @default(uuid())
+  company_id    String
+  amount        Float
+  billing_date  DateTime @default(now())
+  due_date      DateTime
+  status        String   @default("unpaid") // unpaid, paid, overdue
+  description   String?
+  usage_stats   Json?    // Detailed usage that led to this amount
+  created_at    DateTime @default(now())
+  
+  company       Company  @relation(fields: [company_id], references: [id])
+}
+
+model SystemMetric {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Float
+  category    String   // development, performance, growth
+  description String?
+  timestamp   DateTime @default(now())
 }
