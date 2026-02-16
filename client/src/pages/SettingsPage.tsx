@@ -9,6 +9,7 @@ export const SettingsPage = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [stores, setStores] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [debugError, setDebugError] = useState<string | null>(null);
     // Access Control
     const isDirectorOrAlexandre = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre.garcia@texasdebrazil.com' || user?.email === 'alexandre@alexgarciaventures.co';
 
@@ -31,10 +32,20 @@ export const SettingsPage = () => {
             });
             if (res.ok) {
                 const data = await res.json();
-                setStores(data);
+                console.log('Stores fetched:', data);
+                if (Array.isArray(data)) {
+                    setStores(data);
+                    setDebugError(null);
+                } else {
+                    setDebugError(`Invalid data format: ${typeof data}`);
+                }
+            } else {
+                const text = await res.text();
+                setDebugError(`Fetch failed: ${res.status} ${res.statusText} - ${text.substring(0, 50)}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
+            setDebugError(`Network error: ${error.message}`);
         }
     };
 
@@ -271,7 +282,10 @@ export const SettingsPage = () => {
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="flex justify-between items-center border-b border-[#333] pb-4">
                                 <h3 className="text-xl font-bold text-white">Store Locations</h3>
-                                <span className="text-xs text-brand-gold font-mono">{stores.length} ACTIVE STORES</span>
+                                <div className="text-right">
+                                    <span className="text-xs text-brand-gold font-mono block">{stores.length} ACTIVE STORES</span>
+                                    {debugError && <span className="text-[10px] text-red-500 font-mono block">{debugError}</span>}
+                                </div>
                             </div>
 
                             {/* Add New Store Form */}
