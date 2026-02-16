@@ -96,7 +96,7 @@ export const ForecastPage = () => {
                 <Brain className="w-8 h-8 text-[#C5A059]" />
                 <div>
                     <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                        Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.5</span>
+                        Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.6</span>
                     </h1>
                     <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
                         Demand Planning & Purchasing
@@ -214,12 +214,28 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
     const [meta, setMeta] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [missingTargets, setMissingTargets] = useState(false);
+
+    const handleInitialize = async () => {
+        if (!confirm('This will reset/initialize the meat targets. Continue?')) return;
+        setLoading(true);
+        try {
+            await fetch('/api/v1/setup/seed-targets');
+            alert('System Initialized! Refreshing...');
+            window.location.reload();
+        } catch (e) {
+            alert('Failed to initialize');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (!date || !user) return;
         const fetchSuggestions = async () => {
             setLoading(true);
             setError(null);
+            setMissingTargets(false);
             try {
                 const res = await fetch(`/api/v1/intelligence/supply-suggestions?date=${date}`, {
                     headers: { 'Authorization': `Bearer ${user.token}` }
@@ -228,6 +244,7 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                 if (data.success) {
                     setSuggestions(data.suggestions);
                     setMeta({ accumulated_weight: data.accumulated_weight, day: data.day_index });
+                    if (data.missing_targets) setMissingTargets(true); // Flag from backend
                 } else {
                     setError('No suggestions returned.');
                 }
@@ -263,6 +280,17 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                 {error && (
                     <div className="mt-4 p-2 bg-[#FF2A6D]/10 border border-[#FF2A6D]/30 rounded text-[#FF2A6D] text-[10px] font-mono inline-block">
                         DEBUG: {error}
+                    </div>
+                )}
+                {missingTargets && (
+                    <div className="mt-6">
+                        <button
+                            onClick={handleInitialize}
+                            className="bg-[#C5A059] text-black font-bold uppercase text-xs px-6 py-3 rounded-sm hover:bg-white transition-colors"
+                        >
+                            ⚠ Initialize System (Seed Data)
+                        </button>
+                        <p className="text-[10px] text-gray-500 mt-2">Database appears empty. Click to load defaults.</p>
                     </div>
                 )}
             </div>

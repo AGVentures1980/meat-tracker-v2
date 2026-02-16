@@ -75,6 +75,15 @@ export class IntelligenceController {
                 where: { store_id: storeId }
             });
 
+            if (targets.length === 0) {
+                return res.json({
+                    success: true,
+                    suggestions: [],
+                    missing_targets: true, // Flag for Frontend to show "Initialize" button
+                    warning: 'No meat targets configured.'
+                });
+            }
+
             // 3. Get Current Inventory (Latest Weekly Close)
             // We need the MOST RECENT inventory record for each item.
             // This is complex in Prisma without a distinctive "CurrentInventory" table.

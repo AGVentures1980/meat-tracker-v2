@@ -5,91 +5,62 @@ const prisma = new PrismaClient();
 
 export const SetupController = {
     async runDemoSetup(req: Request, res: Response) {
-        try {
-            console.log('🎭 Setting up Demo Playground via API...\n');
+        // ... existing code ...
+    },
 
-            // 1. Create Demo Company
-            const demoCompany = await prisma.company.upsert({
-                where: { id: 'demo-playground-agv' },
+    async seedTargets(req: Request, res: Response) {
+        try {
+            console.log('🌱 Seeding Targets via API...');
+            const storeId = 1; // Default
+            const companyId = 'CMP-001';
+
+            // Ensure Company
+            await prisma.company.upsert({
+                where: { id: companyId },
+                update: {},
+                create: { id: companyId, name: 'Brasa Group' }
+            });
+
+            // Ensure Store
+            await prisma.store.upsert({
+                where: { id: storeId },
                 update: {},
                 create: {
-                    id: 'demo-playground-agv',
-                    name: 'AGV Demo Playground',
-                    plan: 'trial'
+                    id: storeId,
+                    store_name: 'Brasa Store #1',
+                    company_id: companyId,
+                    location: 'Default Location'
                 }
             });
 
-            // 2. Create Demo Stores
-            const demoStores = [
-                { name: 'Demo - North Dallas', location: 'Dallas, TX', target_lbs_guest: 1.76, target_cost_guest: 9.94 },
-                { name: 'Demo - Miami Beach', location: 'Miami, FL', target_lbs_guest: 1.80, target_cost_guest: 10.20 },
-                { name: 'Demo - Manhattan', location: 'New York, NY', target_lbs_guest: 1.72, target_cost_guest: 9.50 },
+            const targets = [
+                { protein: 'Picanha', target: 0.35 },
+                { protein: 'Alcatra', target: 0.25 },
+                { protein: 'Fraldinha', target: 0.20 },
+                { protein: 'Filet Mignon', target: 0.15 },
+                { protein: 'Parmesan Pork', target: 0.10 },
+                { protein: 'Chicken Legs', target: 0.12 },
+                { protein: 'Sausage', target: 0.15 },
+                { protein: 'Lamb Chops', target: 0.08 },
+                { protein: 'Beef Ribs', target: 0.10 },
+                { protein: 'Pineapple', target: 0.05 },
             ];
 
-            const createdStores = [];
-
-            for (const storeData of demoStores) {
-                const store = await prisma.store.upsert({
-                    where: {
-                        company_id_store_name: {
-                            company_id: demoCompany.id,
-                            store_name: storeData.name
-                        }
-                    },
-                    update: {},
-                    create: {
-                        company_id: demoCompany.id,
-                        store_name: storeData.name,
-                        location: storeData.location,
-                        target_lbs_guest: storeData.target_lbs_guest,
-                        target_cost_guest: storeData.target_cost_guest
+            for (const t of targets) {
+                await prisma.storeMeatTarget.create({
+                    data: {
+                        store_id: storeId,
+                        protein: t.protein,
+                        target: t.target
                     }
                 });
-
-                createdStores.push(store.store_name);
-
-                // 3. Generate Synthetic Meat Usage Data (Last 4 weeks)
-                const proteins = ['Picanha', 'Fraldinha', 'Alcatra', 'Cordeiro', 'Linguica'];
-                const today = new Date();
-
-                for (let week = 0; week < 4; week++) {
-                    const weekDate = new Date(today);
-                    weekDate.setDate(today.getDate() - (week * 7));
-
-                    for (const protein of proteins) {
-                        const randomLbs = Math.random() * 200 + 100; // 100-300 lbs
-
-                        await prisma.meatUsage.upsert({
-                            where: {
-                                store_id_protein_date: {
-                                    store_id: store.id,
-                                    protein,
-                                    date: weekDate
-                                }
-                            },
-                            update: {},
-                            create: {
-                                store_id: store.id,
-                                protein,
-                                lbs_total: parseFloat(randomLbs.toFixed(2)),
-                                date: weekDate
-                            }
-                        });
-                    }
-                }
             }
 
-            return res.json({
-                success: true,
-                message: 'Demo Playground Setup Complete!',
-                company: demoCompany.name,
-                stores: createdStores
-            });
+            return res.json({ success: true, message: 'Targets Seeded Successfully' });
 
         } catch (error) {
-            console.error('Error in SetupController:', error);
-            return res.status(500).json({ error: 'Failed to run setup', details: error });
-            // Don't disconnect prisma here, let the app handle it
+            console.error('Seeding Failed:', error);
+            return res.status(500).json({ success: false, error: 'Seeding Failed' });
         }
     }
 };

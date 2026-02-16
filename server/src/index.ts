@@ -70,6 +70,7 @@ app.use('/api/v1/forecast', requireAuth, forecastRoutes);
 // Temporary Setup Route (Remove in production later)
 import { SetupController } from './controllers/SetupController';
 app.get('/api/v1/setup-demo', SetupController.runDemoSetup);
+app.get('/api/v1/setup/seed-targets', SetupController.seedTargets); // Emergency Init Route
 
 // Debug / Emergency Migration Route
 import { DebugController } from './controllers/DebugController';
