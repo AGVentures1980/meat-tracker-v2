@@ -273,13 +273,22 @@ export const Dashboard = () => {
                                                 </div>
                                             </td>
 
-                                            {/* Lbs/Guest */}
+                                            {/* Lbs/Guest (Split View) */}
                                             <td className="p-4 text-right">
                                                 <div className={`font-bold ${store.lbsPerGuest > (store.target_lbs_guest || 1.76) ? 'text-[#FF9F1C]' : 'text-[#00FF94]'}`}>
                                                     {store.lbsPerGuest.toFixed(2)}
                                                 </div>
-                                                <div className="text-[10px] text-gray-500">
-                                                    / {(store.target_lbs_guest || 1.76).toFixed(2)}
+                                                <div className="text-[9px] text-gray-500 font-mono">
+                                                    Target: {(store.target_lbs_guest || 1.76).toFixed(2)}
+                                                </div>
+                                                {/* v3.2 Shift Ops Detail */}
+                                                <div className="flex justify-end gap-1 mt-1 opacity-60">
+                                                    <span className="text-[8px] bg-[#333] px-1 rounded text-white" title="Lunch Lbs/Guest">
+                                                        L: {(store as any).lbsPerGuestLunch?.toFixed(2) || '-'}
+                                                    </span>
+                                                    <span className="text-[8px] bg-[#333] px-1 rounded text-white" title="Dinner Lbs/Guest">
+                                                        D: {(store as any).lbsPerGuestDinner?.toFixed(2) || '-'}
+                                                    </span>
                                                 </div>
                                             </td>
 
