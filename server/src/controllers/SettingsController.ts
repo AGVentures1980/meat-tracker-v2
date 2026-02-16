@@ -192,14 +192,11 @@ export class SettingsController {
                 }
             });
 
-            // 2. Recalculate Meat Targets (Redistribution Logic)
+            // 2. Recalculate Meat Targets (Redistribution & Dynamic Cost Logic)
             const { MEAT_STANDARDS } = require('../config/standards');
             const totalTarget = parseFloat(target_lbs_guest);
 
             // Calculate Base Total for Normalization
-            // If Exclude Lamb: Base Total = Sum(Standards) - LambStandard
-            // If Include Lamb: Base Total = Sum(Standards)
-
             let baseTotalLbs = 0;
             const activeProteins: string[] = [];
 
@@ -211,12 +208,67 @@ export class SettingsController {
                 activeProteins.push(protein);
             }
 
+            // 2a. Fetch Historical Costs from Invoices (Last 90 Days)
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+            const invoices = await prisma.invoiceRecord.findMany({
+                where: {
+                    store_id: storeId,
+                    date: { gte: ninetyDaysAgo }
+                }
+            });
+
+            // Calculate Weighted Average Cost per Protein
+            const costMap: Record<string, { totalCost: number, totalLbs: number }> = {};
+            invoices.forEach(inv => {
+                const key = inv.item_name.toLowerCase().trim();
+                if (!costMap[key]) costMap[key] = { totalCost: 0, totalLbs: 0 };
+                costMap[key].totalCost += inv.cost_total;
+                costMap[key].totalLbs += inv.quantity;
+            });
+
+            // Use fallback costs if no invoice data is found to avoid zero targets
+            const FALLBACK_COSTS: Record<string, number> = {
+                "picanha": 6.50,
+                "garlic picanha": 6.50,
+                "fraldinha/flank steak": 8.50,
+                "tri-tip": 5.50,
+                "lamb chops": 12.00,
+                "leg of lamb": 8.00,
+                "lamb picanha": 10.00,
+                "filet mignon": 14.00,
+                "filet bacon": 14.50,
+                "beef ribs": 4.50,
+                "pork ribs": 3.50,
+                "pork loin": 2.80,
+                "sausage": 3.20,
+                "chicken drumstick": 1.50,
+                "chicken breast": 2.50,
+                "default": 3.50
+            };
+
+            const getAvgCost = (proteinName: string) => {
+                const key = proteinName.toLowerCase();
+                const stat = costMap[key];
+
+                if (stat && stat.totalLbs > 0) {
+                    return stat.totalCost / stat.totalLbs;
+                }
+                return FALLBACK_COSTS[key] || FALLBACK_COSTS['default'];
+            };
+
+            let calculatedTargetCostGuest = 0;
+
             // Distribute & Update
-            // We use upsert to ensure we handle cases where a target might be missing or new
             const transactionops = activeProteins.map(protein => {
                 const stdVal = MEAT_STANDARDS[protein];
                 const ratio = stdVal / baseTotalLbs; // Normalize to 100% of the active set
                 const newSpecificTarget = ratio * totalTarget; // Scale to new total
+
+                const avgCost = getAvgCost(protein);
+                const costContribution = newSpecificTarget * avgCost;
+                calculatedTargetCostGuest += costContribution;
 
                 return prisma.storeMeatTarget.upsert({
                     where: {
@@ -226,27 +278,36 @@ export class SettingsController {
                         }
                     },
                     update: {
-                        target: parseFloat(newSpecificTarget.toFixed(3))
+                        target: parseFloat(newSpecificTarget.toFixed(3)),
+                        cost_target: parseFloat(costContribution.toFixed(3))
                     },
                     create: {
                         store_id: storeId,
                         protein: protein,
                         target: parseFloat(newSpecificTarget.toFixed(3)),
-                        cost_target: 0
+                        cost_target: parseFloat(costContribution.toFixed(3))
                     }
                 });
             });
 
-            // If Lamb is excluded, we must ensure its target is set to 0 (if valid record exists)
+            // If Lamb is excluded, zero it out
             if (exclude_lamb_from_rodizio_lbs) {
                 transactionops.push(
                     prisma.storeMeatTarget.upsert({
                         where: { store_id_protein: { store_id: storeId, protein: 'Lamb Chops' } },
-                        update: { target: 0 },
+                        update: { target: 0, cost_target: 0 },
                         create: { store_id: storeId, protein: 'Lamb Chops', target: 0, cost_target: 0 }
                     })
                 );
             }
+
+            // Update Store Target Cost
+            transactionops.push(
+                prisma.store.update({
+                    where: { id: storeId },
+                    data: { target_cost_guest: parseFloat(calculatedTargetCostGuest.toFixed(2)) }
+                }) as any
+            );
 
             await prisma.$transaction(transactionops);
 
