@@ -217,7 +217,8 @@ export class IntelligenceController {
                     priority: totalSuggested > (requiredLbs * 0.5) ? 'High' : 'Normal',
                     status: totalSuggested > 0 ? 'Order Needed' : 'Sufficient'
                 };
-            }).filter(s => s.suggestedOrder > 0 || s.onHand < s.required); // Show items that need action or are tight
+            });
+            // .filter(s => s.suggestedOrder > 0 || s.onHand < s.required); // REMOVED: Always show all items so the table doesn't disappear
 
             return res.json({
                 success: true,
