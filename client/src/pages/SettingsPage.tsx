@@ -4,12 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export const SettingsPage = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const { language, setLanguage, t } = useLanguage();
     const [activeTab, setActiveTab] = useState('general');
     const [stores, setStores] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [debugError, setDebugError] = useState<string | null>(null);
+
     // Access Control
     const isDirectorOrAlexandre = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre.garcia@texasdebrazil.com' || user?.email === 'alexandre@alexgarciaventures.co';
 
@@ -35,17 +35,22 @@ export const SettingsPage = () => {
                 console.log('Stores fetched:', data);
                 if (Array.isArray(data)) {
                     setStores(data);
-                    setDebugError(null);
+                    // setDebugError(null);
                 } else {
-                    setDebugError(`Invalid data format: ${typeof data}`);
+                    console.error(`Invalid data format: ${typeof data}`);
                 }
             } else {
+                if (res.status === 401) {
+                    // Token expired or invalid
+                    logout();
+                    window.location.href = '/login'; // Force redirect
+                    return;
+                }
                 const text = await res.text();
-                setDebugError(`Fetch failed: ${res.status} ${res.statusText} - ${text.substring(0, 50)}`);
+                console.error(`Fetch failed: ${res.status} ${res.statusText} - ${text}`);
             }
         } catch (error: any) {
             console.error(error);
-            setDebugError(`Network error: ${error.message}`);
         }
     };
 
@@ -284,7 +289,7 @@ export const SettingsPage = () => {
                                 <h3 className="text-xl font-bold text-white">Store Locations</h3>
                                 <div className="text-right">
                                     <span className="text-xs text-brand-gold font-mono block">{stores.length} ACTIVE STORES</span>
-                                    {debugError && <span className="text-[10px] text-red-500 font-mono block">{debugError}</span>}
+                                    <span className="text-xs text-brand-gold font-mono block">{stores.length} ACTIVE STORES</span>
                                 </div>
                             </div>
 
