@@ -98,7 +98,7 @@ export const ForecastPage = () => {
                     <Brain className="w-8 h-8 text-[#C5A059]" />
                     <div>
                         <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.11</span>
+                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.12</span>
                         </h1>
                         <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
                             Demand Planning & Purchasing
@@ -350,22 +350,22 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
             {/* Print Header */}
             <div className="hidden print:block mb-8">
                 <h1 className="text-2xl font-bold text-black border-b-2 border-black pb-2">Smart Order Sheet</h1>
-                <p className="text-sm mt-2">Week of: <strong>{date}</strong> | <span className="text-xs">Dynamic Inventory Active</span></p>
-            </div >
+                <p className="text-sm mt-2">Week of: <strong>{date}</strong> | <span className="text-xs">Dynamic Inventory Active</span> | <span className="text-xs font-bold">ALL UNITS IN LBS</span></p>
+            </div>
 
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse print:text-black">
                     <thead>
                         <tr className="border-b border-[#333] print:border-black text-gray-500 print:text-black text-[10px] uppercase tracking-widest">
                             <th className="p-3">Protein</th>
-                            <th className="p-3 text-right text-gray-500">Last Ct</th>
-                            <th className="p-3 text-right text-[#00FF94]">+ Recv</th>
-                            <th className="p-3 text-right text-[#FF2A6D]">- Est. Usage</th>
-                            <th className="p-3 text-right font-bold text-white border-r border-[#333] print:text-black print:border-black">Est. On Hand</th>
+                            <th className="p-3 text-right text-gray-500">Last Ct (Lbs)</th>
+                            <th className="p-3 text-right text-[#00FF94]">+ Recv (Lbs)</th>
+                            <th className="p-3 text-right text-[#FF2A6D]">- Est. Usage (Lbs)</th>
+                            <th className="p-3 text-right font-bold text-white border-r border-[#333] print:text-black print:border-black">Est. On Hand (Lbs)</th>
 
-                            <th className="p-3 text-right text-[#C5A059] bg-[#C5A059]/5 print:bg-transparent">Mon (25%)</th>
-                            <th className="p-3 text-right text-[#00FF94] bg-[#00FF94]/5 print:bg-transparent font-bold">Wed (50%)</th>
-                            <th className="p-3 text-right text-[#C5A059] bg-[#C5A059]/5 print:bg-transparent">Sat (25%)</th>
+                            <th className="p-3 text-right text-[#C5A059] bg-[#C5A059]/5 print:bg-transparent">Mon (Lbs)</th>
+                            <th className="p-3 text-right text-[#00FF94] bg-[#00FF94]/5 print:bg-transparent font-bold">Wed (Lbs)</th>
+                            <th className="p-3 text-right text-[#C5A059] bg-[#C5A059]/5 print:bg-transparent">Sat (Lbs)</th>
                         </tr>
                     </thead>
                     <tbody className="text-sm font-mono text-gray-300 print:text-black">
