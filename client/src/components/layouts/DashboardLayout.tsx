@@ -91,7 +91,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         return () => clearInterval(interval);
     }, [user]);
 
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) setIsSidebarOpen(true);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     return (
         <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden">
@@ -104,7 +112,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             )}
 
             {/* Retractable Sidebar */}
-            <aside className={`fixed md:relative inset-y-0 left-0 z-[100] w-64 bg-[#1a1a1a] border-r border-[#333] transition-all duration-500 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${!isSidebarOpen && 'md:w-0 md:opacity-0 md:border-none'} flex flex-col print:hidden`}>
+            <aside className={`fixed md:relative inset-y-0 left-0 z-[100] w-64 bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 transform ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:w-0 md:pointer-events-none'} flex flex-col print:hidden`}>
                 <div className="p-4 border-b border-[#333] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <span className="text-xl font-bold tracking-tighter text-[#C5A059]">BRASA</span>
