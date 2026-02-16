@@ -9,6 +9,9 @@ export const SettingsPage = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [stores, setStores] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    // Access Control
+    const isDirectorOrAlexandre = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre.garcia@texasdebrazil.com';
+
     const [newStore, setNewStore] = useState({
         name: '',
         target: '1.76',
@@ -115,13 +118,20 @@ export const SettingsPage = () => {
     };
 
     const tabs = [
-        { id: 'general', label: 'General', icon: Settings },
-        { id: 'account', label: 'Account', icon: User },
-        { id: 'security', label: 'Security', icon: Shield },
-        { id: 'data', label: 'Data & Sync', icon: Database },
-        { id: 'locations', label: 'Locations', icon: MapPin },
-        { id: 'notifications', label: 'Notifications', icon: Bell },
-    ];
+        { id: 'general', label: 'General', icon: Settings, restricted: true },
+        { id: 'account', label: 'Account', icon: User, restricted: false },
+        { id: 'security', label: 'Security', icon: Shield, restricted: false },
+        { id: 'data', label: 'Data & Sync', icon: Database, restricted: true },
+        { id: 'locations', label: 'Locations', icon: MapPin, restricted: true },
+        { id: 'notifications', label: 'Notifications', icon: Bell, restricted: true },
+    ].filter(tab => !tab.restricted || isDirectorOrAlexandre);
+
+    // Redirect if trying to access restricted tab
+    useEffect(() => {
+        if (!isDirectorOrAlexandre && ['general', 'data', 'locations', 'notifications'].includes(activeTab)) {
+            setActiveTab('account');
+        }
+    }, [activeTab, isDirectorOrAlexandre]);
 
     return (
         <div className="p-6 max-w-6xl mx-auto">
