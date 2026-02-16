@@ -177,7 +177,7 @@ export class SettingsController {
     static async updateStore(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const { target_lbs_guest, lunch_price, dinner_price } = req.body;
+            const { target_lbs_guest, lunch_price, dinner_price, exclude_lamb_from_rodizio_lbs } = req.body;
             const updater = (req as any).user;
 
             const updatedStore = await prisma.store.update({
@@ -185,7 +185,8 @@ export class SettingsController {
                 data: {
                     target_lbs_guest: parseFloat(target_lbs_guest),
                     lunch_price: parseFloat(lunch_price),
-                    dinner_price: parseFloat(dinner_price)
+                    dinner_price: parseFloat(dinner_price),
+                    exclude_lamb_from_rodizio_lbs: exclude_lamb_from_rodizio_lbs
                 }
             });
 
@@ -195,7 +196,7 @@ export class SettingsController {
                     user_id: updater.id,
                     action: 'UPDATE_STORE',
                     resource: updatedStore.store_name,
-                    details: { target: target_lbs_guest, lunch: lunch_price, dinner: dinner_price },
+                    details: { target: target_lbs_guest, lunch: lunch_price, dinner: dinner_price, exclude_lamb: exclude_lamb_from_rodizio_lbs },
                     location: 'System'
                 }
             });

@@ -127,7 +127,8 @@ export const SettingsPage = () => {
                 body: JSON.stringify({
                     target_lbs_guest: editingStore.target_lbs_guest,
                     lunch_price: editingStore.lunch_price,
-                    dinner_price: editingStore.dinner_price
+                    dinner_price: editingStore.dinner_price,
+                    exclude_lamb_from_rodizio_lbs: editingStore.exclude_lamb_from_rodizio_lbs
                 })
             });
 
@@ -399,20 +400,26 @@ export const SettingsPage = () => {
                                 <h4 className="text-xs uppercase text-gray-500 font-mono mb-2">Existing Locations</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2">
                                     {stores.map(store => (
-                                        <div key={store.id} className="p-4 bg-[#121212] border border-[#333] rounded-sm hover:border-brand-gold/30 transition-colors relative group">
-                                            <button
-                                                onClick={() => setEditingStore(store)}
-                                                className="absolute top-2 right-2 text-xs text-brand-gold opacity-0 group-hover:opacity-100 transition-opacity border border-brand-gold px-2 py-1 rounded-sm hover:bg-brand-gold hover:text-black">
-                                                EDIT
-                                            </button>
+                                        <div
+                                            key={store.id}
+                                            onClick={() => setEditingStore(store)}
+                                            className="p-4 bg-[#121212] border border-[#333] rounded-sm hover:border-brand-gold/30 hover:bg-[#1a1a1a] transition-all relative group cursor-pointer"
+                                        >
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="flex items-center gap-2">
-                                                    <StoreIcon className="w-4 h-4 text-gray-600" />
-                                                    <h5 className="text-white font-bold">{store.store_name}</h5>
+                                                    <StoreIcon className="w-4 h-4 text-gray-600 group-hover:text-brand-gold transition-colors" />
+                                                    <h5 className="text-white font-bold group-hover:text-brand-gold transition-colors">{store.store_name}</h5>
                                                 </div>
                                                 <span className="text-xs font-mono text-brand-gold">{store.target_lbs_guest ? Number(store.target_lbs_guest).toFixed(2) : '1.76'} LBS</span>
                                             </div>
                                             <p className="text-xs text-gray-500 mb-2">Lat/Long Match: {store.location}</p>
+                                            {store.exclude_lamb_from_rodizio_lbs && (
+                                                <div className="mb-2">
+                                                    <span className="text-[10px] text-red-400 border border-red-900/50 bg-red-900/10 px-1 py-0.5 rounded">
+                                                        NO LAMB CHOPS
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div className="grid grid-cols-2 gap-2 mb-2 text-[10px] text-gray-400 font-mono bg-black/20 p-1 rounded">
                                                 <div>L: ${store.lunch_price || '34.00'}</div>
                                                 <div>D: ${store.dinner_price || '54.00'}</div>
@@ -456,13 +463,26 @@ export const SettingsPage = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs uppercase text-gray-500 mb-1">Dinner Price ($)</label>
                                                 <input
                                                     type="number" step="0.01"
                                                     value={editingStore.dinner_price || 54.00}
                                                     onChange={(e) => setEditingStore({ ...editingStore, dinner_price: e.target.value })}
                                                     className="w-full bg-[#121212] border border-[#333] p-2 text-white"
                                                 />
+                                            </div>
+                                            <div className="pt-2 border-t border-[#333]">
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={editingStore.exclude_lamb_from_rodizio_lbs || false}
+                                                        onChange={(e) => setEditingStore({ ...editingStore, exclude_lamb_from_rodizio_lbs: e.target.checked })}
+                                                        className="w-4 h-4 accent-brand-gold bg-[#121212] border border-[#333]"
+                                                    />
+                                                    <div>
+                                                        <span className="block text-xs uppercase text-white font-bold">Exclude Lamb Chops from Rodizio</span>
+                                                        <span className="block text-[10px] text-gray-500">Enable this if this store does not serve Lamb Chops on the rodizio.</span>
+                                                    </div>
+                                                </label>
                                             </div>
                                         </div>
                                         <div className="flex justify-end gap-2 mt-6">
