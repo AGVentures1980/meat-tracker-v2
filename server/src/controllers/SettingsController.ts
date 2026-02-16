@@ -173,4 +173,37 @@ export class SettingsController {
             return res.status(500).json({ error: error.message || 'Failed to create store' });
         }
     }
+
+    static async updateStore(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const { target_lbs_guest, lunch_price, dinner_price } = req.body;
+            const updater = (req as any).user;
+
+            const updatedStore = await prisma.store.update({
+                where: { id: Number(id) },
+                data: {
+                    target_lbs_guest: parseFloat(target_lbs_guest),
+                    lunch_price: parseFloat(lunch_price),
+                    dinner_price: parseFloat(dinner_price)
+                }
+            });
+
+            // Audit Log
+            await prisma.auditLog.create({
+                data: {
+                    user_id: updater.id,
+                    action: 'UPDATE_STORE',
+                    resource: updatedStore.store_name,
+                    details: { target: target_lbs_guest, lunch: lunch_price, dinner: dinner_price },
+                    location: 'System'
+                }
+            });
+
+            return res.json(updatedStore);
+        } catch (error) {
+            console.error('Update Store Error:', error);
+            return res.status(500).json({ error: 'Failed to update store' });
+        }
+    }
 }

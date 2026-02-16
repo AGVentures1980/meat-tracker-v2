@@ -23,6 +23,7 @@ router.post('/settings', requireAuth, SettingsController.updateSettings);
 // Store Management
 router.get('/settings/stores', requireAuth, SettingsController.getStores);
 router.post('/settings/stores', requireAuth, SettingsController.createStore);
+router.put('/settings/stores/:id', requireAuth, SettingsController.updateStore);
 
 // Smart Prep (Kitchen Intelligence)
 import { SmartPrepController } from '../controllers/SmartPrepController';

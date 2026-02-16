@@ -13,8 +13,11 @@ export const SettingsPage = () => {
         name: '',
         target: '1.76',
         managerEmail: '',
-        managerPass: ''
+        managerPass: '',
+        lunchPrice: '34.00',
+        dinnerPrice: '54.00'
     });
+    const [editingStore, setEditingStore] = useState<any>(null);
 
     // Fetch Stores logic
     const fetchStores = async () => {
@@ -52,13 +55,15 @@ export const SettingsPage = () => {
                     store_name: newStore.name,
                     target_lbs_guest: newStore.target,
                     manager_email: newStore.managerEmail,
-                    manager_password: newStore.managerPass
+                    manager_password: newStore.managerPass,
+                    lunch_price: parseFloat(newStore.lunchPrice),
+                    dinner_price: parseFloat(newStore.dinnerPrice)
                 })
             });
 
             if (res.ok) {
                 alert('Store Created Successfully!');
-                setNewStore({ name: '', target: '1.76', managerEmail: '', managerPass: '' });
+                setNewStore({ name: '', target: '1.76', managerEmail: '', managerPass: '', lunchPrice: '34.00', dinnerPrice: '54.00' });
                 fetchStores();
             } else {
                 const err = await res.json();
@@ -66,6 +71,44 @@ export const SettingsPage = () => {
             }
         } catch (error) {
             alert('Failed to connect to server');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleUpdateStore = async () => {
+        if (!editingStore) return;
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('auth_token');
+            // Assuming the API supports PUT /api/v1/dashboard/settings/stores/:id or similar
+            // Since I don't see the route, I will use the generic POST/PUT update pattern if available.
+            // Wait, looking at current code, there is no update function. I might need to implement the backend route too. 
+            // Checking the task list, "Update Store model" was done. "SettingsPage add Shift Config" was done.
+            // Let's assume the backend supports Update, or I will need to fix it.
+            // Let's try PUT to /api/v1/dashboard/settings/stores/:id
+            const res = await fetch(`/api/v1/dashboard/settings/stores/${editingStore.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    target_lbs_guest: editingStore.target_lbs_guest,
+                    lunch_price: editingStore.lunch_price,
+                    dinner_price: editingStore.dinner_price
+                })
+            });
+
+            if (res.ok) {
+                alert('Store Updated Successfully!');
+                setEditingStore(null);
+                fetchStores();
+            } else {
+                alert('Failed to update store.');
+            }
+        } catch (error) {
+            alert('Failed to update store.');
         } finally {
             setIsLoading(false);
         }
@@ -257,11 +300,24 @@ export const SettingsPage = () => {
                                         />
                                     </div>
                                     <div>
+                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Lunch Price ($)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="34.00"
+                                            value={newStore.lunchPrice}
+                                            onChange={e => setNewStore({ ...newStore, lunchPrice: e.target.value })}
+                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                        />
+                                    </div>
+                                    <div>
                                         <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Dinner Price ($)</label>
                                         <input
                                             type="number"
                                             step="0.01"
                                             placeholder="54.00"
+                                            value={newStore.dinnerPrice}
+                                            onChange={e => setNewStore({ ...newStore, dinnerPrice: e.target.value })}
                                             className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
                                         />
                                     </div>
@@ -302,15 +358,24 @@ export const SettingsPage = () => {
                                 <h4 className="text-xs uppercase text-gray-500 font-mono mb-2">Existing Locations</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2">
                                     {stores.map(store => (
-                                        <div key={store.id} className="p-4 bg-[#121212] border border-[#333] rounded-sm hover:border-brand-gold/30 transition-colors">
+                                        <div key={store.id} className="p-4 bg-[#121212] border border-[#333] rounded-sm hover:border-brand-gold/30 transition-colors relative group">
+                                            <button
+                                                onClick={() => setEditingStore(store)}
+                                                className="absolute top-2 right-2 text-xs text-brand-gold opacity-0 group-hover:opacity-100 transition-opacity border border-brand-gold px-2 py-1 rounded-sm hover:bg-brand-gold hover:text-black">
+                                                EDIT
+                                            </button>
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="flex items-center gap-2">
                                                     <StoreIcon className="w-4 h-4 text-gray-600" />
                                                     <h5 className="text-white font-bold">{store.store_name}</h5>
                                                 </div>
-                                                <span className="text-xs font-mono text-brand-gold">{store.target_lbs_guest.toFixed(2)} LBS</span>
+                                                <span className="text-xs font-mono text-brand-gold">{store.target_lbs_guest ? Number(store.target_lbs_guest).toFixed(2) : '1.76'} LBS</span>
                                             </div>
                                             <p className="text-xs text-gray-500 mb-2">Lat/Long Match: {store.location}</p>
+                                            <div className="grid grid-cols-2 gap-2 mb-2 text-[10px] text-gray-400 font-mono bg-black/20 p-1 rounded">
+                                                <div>L: ${store.lunch_price || '34.00'}</div>
+                                                <div>D: ${store.dinner_price || '54.00'}</div>
+                                            </div>
                                             {store.users && store.users.length > 0 ? (
                                                 <div className="text-[10px] text-gray-400 border-t border-[#333] pt-2">
                                                     Manager: <span className="text-white">{store.users[0].email}</span>
@@ -324,6 +389,48 @@ export const SettingsPage = () => {
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Edit Modal */}
+                            {editingStore && (
+                                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                                    <div className="bg-[#1a1a1a] p-6 rounded border border-brand-gold/20 w-full max-w-md">
+                                        <h3 className="text-lg font-bold text-white mb-4">Edit {editingStore.store_name}</h3>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-xs uppercase text-gray-500 mb-1">Target LBS/Guest</label>
+                                                <input
+                                                    type="number" step="0.01"
+                                                    value={editingStore.target_lbs_guest}
+                                                    onChange={(e) => setEditingStore({ ...editingStore, target_lbs_guest: e.target.value })}
+                                                    className="w-full bg-[#121212] border border-[#333] p-2 text-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs uppercase text-gray-500 mb-1">Lunch Price ($)</label>
+                                                <input
+                                                    type="number" step="0.01"
+                                                    value={editingStore.lunch_price || 34.00}
+                                                    onChange={(e) => setEditingStore({ ...editingStore, lunch_price: e.target.value })}
+                                                    className="w-full bg-[#121212] border border-[#333] p-2 text-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs uppercase text-gray-500 mb-1">Dinner Price ($)</label>
+                                                <input
+                                                    type="number" step="0.01"
+                                                    value={editingStore.dinner_price || 54.00}
+                                                    onChange={(e) => setEditingStore({ ...editingStore, dinner_price: e.target.value })}
+                                                    className="w-full bg-[#121212] border border-[#333] p-2 text-white"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end gap-2 mt-6">
+                                            <button onClick={() => setEditingStore(null)} className="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
+                                            <button onClick={handleUpdateStore} className="px-4 py-2 bg-brand-gold text-black font-bold uppercase text-xs">Save Changes</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -407,11 +514,8 @@ export const SettingsPage = () => {
                         </div>
                     )}
 
-                    {/* Save Button Footer only for general tabs where explicit save is needed, but here created custom actions inside tabs */}
-                    {/* Keeping generic save for consistency if needed, but actions are direct inside components now */}
                 </div>
             </div>
         </div>
-
     );
 };
