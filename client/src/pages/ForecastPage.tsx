@@ -98,7 +98,7 @@ export const ForecastPage = () => {
                     <Brain className="w-8 h-8 text-[#C5A059]" />
                     <div>
                         <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.9</span>
+                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.10</span>
                         </h1>
                         <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
                             Demand Planning & Purchasing
@@ -303,7 +303,6 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
         );
     }
 
-    return (
     return (
         <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-700 print:shadow-none print:border-none print:p-8 print:bg-white print:absolute print:top-0 print:left-0 print:w-full print:text-black print:z-50 min-h-screen">
             <div className="flex items-center justify-between mb-6 print:hidden">
