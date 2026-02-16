@@ -168,6 +168,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             {t('system_version')} - {t('system_live')}
                             <br />
                             {t('conn_label')}: <span className="text-[#00FF94]">POSTGRES-CL-V3</span>
+                            <br />
+                            <span className="text-[10px] text-gray-500">Build: {new Date().toLocaleString()}</span>
                         </div>
                     )}
                 </div>
