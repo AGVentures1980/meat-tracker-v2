@@ -98,7 +98,7 @@ export const ForecastPage = () => {
                     <Brain className="w-8 h-8 text-[#C5A059]" />
                     <div>
                         <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.10</span>
+                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.11</span>
                         </h1>
                         <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
                             Demand Planning & Purchasing
@@ -283,6 +283,18 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                 <Truck className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <h3 className="text-gray-400 font-bold uppercase tracking-widest text-sm">Waiting for Forecast</h3>
                 <p className="text-gray-500 text-xs mt-1">Fill and save the forecast above to generate the shopping list.</p>
+
+                {/* Emergency Sync Button for Empty State */}
+                <div className="mt-4">
+                    <button
+                        onClick={handleInitialize}
+                        className="bg-[#333] hover:bg-white hover:text-black text-gray-500 text-[10px] font-bold uppercase px-3 py-2 rounded inline-flex items-center gap-2 transition-colors border border-gray-700"
+                    >
+                        ⚠ Force Sync Data
+                    </button>
+                    <p className="text-[10px] text-gray-600 mt-1">Click if data appears missing in other stores.</p>
+                </div>
+
                 {error && (
                     <div className="mt-4 p-2 bg-[#FF2A6D]/10 border border-[#FF2A6D]/30 rounded text-[#FF2A6D] text-[10px] font-mono inline-block">
                         DEBUG: {error}
