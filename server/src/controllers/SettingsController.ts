@@ -179,9 +179,11 @@ export class SettingsController {
             const { id } = req.params;
             const { target_lbs_guest, lunch_price, dinner_price, exclude_lamb_from_rodizio_lbs } = req.body;
             const updater = (req as any).user;
+            const storeId = Number(id);
 
+            // 1. Update Store Model
             const updatedStore = await prisma.store.update({
-                where: { id: Number(id) },
+                where: { id: storeId },
                 data: {
                     target_lbs_guest: parseFloat(target_lbs_guest),
                     lunch_price: parseFloat(lunch_price),
@@ -189,6 +191,64 @@ export class SettingsController {
                     exclude_lamb_from_rodizio_lbs: exclude_lamb_from_rodizio_lbs
                 }
             });
+
+            // 2. Recalculate Meat Targets (Redistribution Logic)
+            const { MEAT_STANDARDS } = require('../config/standards');
+            const totalTarget = parseFloat(target_lbs_guest);
+
+            // Calculate Base Total for Normalization
+            // If Exclude Lamb: Base Total = Sum(Standards) - LambStandard
+            // If Include Lamb: Base Total = Sum(Standards)
+
+            let baseTotalLbs = 0;
+            const activeProteins: string[] = [];
+
+            for (const [protein, stdVal] of Object.entries(MEAT_STANDARDS)) {
+                if (exclude_lamb_from_rodizio_lbs && protein === 'Lamb Chops') {
+                    continue; // Skip lambda
+                }
+                baseTotalLbs += (stdVal as number);
+                activeProteins.push(protein);
+            }
+
+            // Distribute & Update
+            // We use upsert to ensure we handle cases where a target might be missing or new
+            const transactionops = activeProteins.map(protein => {
+                const stdVal = MEAT_STANDARDS[protein];
+                const ratio = stdVal / baseTotalLbs; // Normalize to 100% of the active set
+                const newSpecificTarget = ratio * totalTarget; // Scale to new total
+
+                return prisma.storeMeatTarget.upsert({
+                    where: {
+                        store_id_protein: {
+                            store_id: storeId,
+                            protein: protein
+                        }
+                    },
+                    update: {
+                        target: parseFloat(newSpecificTarget.toFixed(3))
+                    },
+                    create: {
+                        store_id: storeId,
+                        protein: protein,
+                        target: parseFloat(newSpecificTarget.toFixed(3)),
+                        cost_target: 0
+                    }
+                });
+            });
+
+            // If Lamb is excluded, we must ensure its target is set to 0 (if valid record exists)
+            if (exclude_lamb_from_rodizio_lbs) {
+                transactionops.push(
+                    prisma.storeMeatTarget.upsert({
+                        where: { store_id_protein: { store_id: storeId, protein: 'Lamb Chops' } },
+                        update: { target: 0 },
+                        create: { store_id: storeId, protein: 'Lamb Chops', target: 0, cost_target: 0 }
+                    })
+                );
+            }
+
+            await prisma.$transaction(transactionops);
 
             // Audit Log
             await prisma.auditLog.create({
