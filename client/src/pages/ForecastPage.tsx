@@ -245,13 +245,26 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
         window.print();
     };
 
-    if (!suggestions.length && !loading) {
+    if (loading && !suggestions.length) {
+        return (
+            <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-12 text-center animate-pulse">
+                <Truck className="w-12 h-12 text-[#C5A059] mx-auto mb-3 opacity-50" />
+                <h3 className="text-[#C5A059] font-bold uppercase tracking-widest text-sm">Calculating Logistics...</h3>
+            </div>
+        );
+    }
+
+    if (!suggestions.length) {
         return (
             <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 text-center animate-in fade-in">
                 <Truck className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <h3 className="text-gray-400 font-bold uppercase tracking-widest text-sm">Waiting for Forecast</h3>
                 <p className="text-gray-500 text-xs mt-1">Fill and save the forecast above to generate the shopping list.</p>
-                {error && <p className="text-[#FF2A6D] text-[10px] mt-2 font-mono">{error}</p>}
+                {error && (
+                    <div className="mt-4 p-2 bg-[#FF2A6D]/10 border border-[#FF2A6D]/30 rounded text-[#FF2A6D] text-[10px] font-mono inline-block">
+                        DEBUG: {error}
+                    </div>
+                )}
             </div>
         );
     }
