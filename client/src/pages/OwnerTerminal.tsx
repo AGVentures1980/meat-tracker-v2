@@ -8,6 +8,7 @@ import {
     Zap,
     Download
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface Metric {
     label: string;
@@ -18,32 +19,58 @@ interface Metric {
 }
 
 export const OwnerTerminal = () => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'overview' | 'billing' | 'leads' | 'dev'>('overview');
     const [finances, setFinances] = useState<any>(null);
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isScanning, setIsScanning] = useState(false);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const headers = { 'Authorization': `Bearer ${user?.token}` };
+
+            const [finRes, leadsRes] = await Promise.all([
+                fetch('/api/v1/owner/billing/finances', { headers }),
+                fetch('/api/v1/owner/prospecting/leads', { headers })
+            ]);
+
+            const finData = await finRes.json();
+            const leadsData = await leadsRes.json();
+
+            if (finData.success) setFinances(finData);
+            if (leadsData.success) setLeads(leadsData.leads);
+        } catch (err) {
+            console.error('Failed to fetch owner data', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        // Mocking data for the demonstration but structure is real
-        setTimeout(() => {
-            setFinances({
-                totalRevenue: 245000,
-                pendingRevenue: 12800,
-                activeClients: 15,
-                recentInvoices: [
-                    { id: 'INV-1001', company: 'Brasa Group', amount: 3450, status: 'paid', date: '2024-02-15' },
-                    { id: 'INV-1002', company: 'Texas Select', amount: 1200, status: 'unpaid', date: '2024-02-16' },
-                    { id: 'INV-1003', company: 'Gaucho BBQ', amount: 1800, status: 'paid', date: '2024-02-10' },
-                ]
+        if (user?.token) {
+            fetchData();
+        }
+    }, [user?.token]);
+
+    const runDiscovery = async () => {
+        try {
+            setIsScanning(true);
+            const res = await fetch('/api/v1/owner/prospecting/discover', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${user?.token}` }
             });
-            setLeads([
-                { id: 1, name: 'Steakhouse Elite Group', size: 'Large', fit: 0.95, status: 'new', why: '45 locations using manual spreadsheets. Ripe for automation.' },
-                { id: 2, name: 'Coastal Grill', size: 'Medium', fit: 0.82, status: 'contacted', why: 'Rapidly growing region. Needs centralized audit dashboard.' },
-                { id: 3, name: 'Urban BBQ Hub', size: 'Small', fit: 0.78, status: 'new', why: 'High-end protein cuts. Perfect for MeatEngine optimization.' },
-            ]);
-            setLoading(false);
-        }, 1000);
-    }, []);
+            const data = await res.json();
+            if (data.success) {
+                fetchData(); // Refresh list
+            }
+        } catch (err) {
+            console.error('Discovery failed', err);
+        } finally {
+            setIsScanning(false);
+        }
+    };
 
     const metrics: Metric[] = [
         { label: 'Total MRR', value: '$42,500', change: '+12.5%', icon: ArrowUpRight, color: 'text-[#00FF94]' },
@@ -194,8 +221,13 @@ export const OwnerTerminal = () => {
                                     <button className="px-6 py-2 bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 hover:bg-white/10 transition-all">
                                         <Download size={16} /> Export Mail List
                                     </button>
-                                    <button className="px-6 py-2 bg-[#C5A059] text-black text-xs font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 shadow-lg hover:scale-105 transition-all">
-                                        <Zap size={16} /> Run deep search
+                                    <button
+                                        onClick={runDiscovery}
+                                        disabled={isScanning}
+                                        className="px-6 py-2 bg-[#C5A059] text-black text-xs font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 shadow-lg hover:scale-105 transition-all disabled:opacity-50"
+                                    >
+                                        <Zap size={16} className={isScanning ? 'animate-spin' : ''} />
+                                        {isScanning ? 'Scanning...' : 'Run deep search'}
                                     </button>
                                 </div>
                             </div>

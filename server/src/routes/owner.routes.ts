@@ -3,7 +3,9 @@ import { OwnerController } from '../controllers/OwnerController';
 import { BillingController } from '../controllers/BillingController';
 import { ProspectingAgent } from '../services/ProspectingAgent';
 import { requireAuth } from '../middleware/auth.middleware';
+import { PrismaClient } from '@prisma/client';
 
+const prisma = new PrismaClient();
 const router = Router();
 
 // Global Setup (Developer/Admin only)
@@ -20,6 +22,17 @@ router.get('/billing/finances', requireAuth, BillingController.getOwnerFinances)
 router.post('/prospecting/discover', requireAuth, async (req, res) => {
     const result = await ProspectingAgent.discoverNewProspects();
     res.json(result);
+});
+
+router.get('/prospecting/leads', requireAuth, async (req, res) => {
+    try {
+        const leads = await prisma.prospect.findMany({
+            orderBy: { created_at: 'desc' }
+        });
+        res.json({ success: true, leads });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 export default router;

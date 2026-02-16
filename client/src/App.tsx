@@ -31,7 +31,7 @@ const ProtectedRoute = () => {
     const isOwnerRole = user.role === 'director' || user.role === 'admin';
     const path = window.location.pathname;
 
-    if (isOwnerRole && !selectedCompany && path !== '/select-company' && path !== '/saas-admin') {
+    if (isOwnerRole && !selectedCompany && path !== '/select-company' && path !== '/saas-admin' && path !== '/owner-terminal') {
         return <Navigate to="/select-company" replace />;
     }
 
