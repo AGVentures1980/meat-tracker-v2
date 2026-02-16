@@ -148,8 +148,8 @@ export const ForecastPage = () => {
                             </label>
                             <input
                                 type="number"
-                                value={lunchGuests}
-                                onChange={(e) => setLunchGuests(Number(e.target.value))}
+                                value={lunchGuests === 0 ? '' : lunchGuests}
+                                onChange={(e) => setLunchGuests(e.target.value === '' ? 0 : parseInt(e.target.value))}
                                 disabled={isLocked}
                                 className={`w-full bg-[#121212] border border-[#333] text-white text-xl font-bold p-3 rounded-sm focus:border-[#00FF94] focus:outline-none transition-colors ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 placeholder="0"
@@ -162,8 +162,8 @@ export const ForecastPage = () => {
                             </label>
                             <input
                                 type="number"
-                                value={dinnerGuests}
-                                onChange={(e) => setDinnerGuests(Number(e.target.value))}
+                                value={dinnerGuests === 0 ? '' : dinnerGuests}
+                                onChange={(e) => setDinnerGuests(e.target.value === '' ? 0 : parseInt(e.target.value))}
                                 disabled={isLocked}
                                 className={`w-full bg-[#121212] border border-[#333] text-white text-xl font-bold p-3 rounded-sm focus:border-[#00FF94] focus:outline-none transition-colors ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 placeholder="0"
@@ -213,11 +213,13 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!date || !user) return;
         const fetchSuggestions = async () => {
             setLoading(true);
+            setError(null);
             try {
                 const res = await fetch(`/api/v1/intelligence/supply-suggestions?date=${date}`, {
                     headers: { 'Authorization': `Bearer ${user.token}` }
@@ -226,9 +228,12 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                 if (data.success) {
                     setSuggestions(data.suggestions);
                     setMeta({ accumulated_weight: data.accumulated_weight, day: data.day_index });
+                } else {
+                    setError('No suggestions returned.');
                 }
             } catch (err) {
                 console.error(err);
+                setError('Failed to load suggestions.');
             } finally {
                 setLoading(false);
             }
@@ -246,6 +251,7 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                 <Truck className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <h3 className="text-gray-400 font-bold uppercase tracking-widest text-sm">Waiting for Forecast</h3>
                 <p className="text-gray-500 text-xs mt-1">Fill and save the forecast above to generate the shopping list.</p>
+                {error && <p className="text-[#FF2A6D] text-[10px] mt-2 font-mono">{error}</p>}
             </div>
         );
     }
