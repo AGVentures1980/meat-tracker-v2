@@ -14,6 +14,7 @@ export const ForecastPage = () => {
     const [isLocked, setIsLocked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0); // Dedicated trigger for table updates
 
     // Initialize with Next Week's Monday
     useEffect(() => {
@@ -38,6 +39,7 @@ export const ForecastPage = () => {
                     setLunchGuests(data.forecast.forecast_lunch);
                     setDinnerGuests(data.forecast.forecast_dinner);
                     setIsLocked(data.forecast.is_locked);
+                    setRefreshKey(prev => prev + 1); // Trigger table load if forecast exists
                 } else {
                     // Reset if no forecast found
                     setLunchGuests(0);
@@ -76,6 +78,7 @@ export const ForecastPage = () => {
             if (data.success) {
                 setMessage({ type: 'success', text: 'Forecast saved successfully!' });
                 if (data.forecast.is_locked) setIsLocked(true);
+                setRefreshKey(prev => prev + 1); // FORCE REFRESH of Smart Order Table
             } else {
                 setMessage({ type: 'error', text: data.error || 'Error saving forecast' });
             }
@@ -199,13 +202,13 @@ export const ForecastPage = () => {
             </div>
 
             {/* Smart Order Suggestions (Lazy Loaded after Save or Load) */}
-            <SmartOrderTable date={selectedDate} refreshTrigger={loading} />
+            <SmartOrderTable date={selectedDate} refreshTrigger={refreshKey} />
         </div>
     );
 };
 
 // Sub-component for Smart Order Table
-const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigger: boolean }) => {
+const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigger: number }) => {
     const { user } = useAuth();
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>(null);
