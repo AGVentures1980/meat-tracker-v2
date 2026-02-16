@@ -234,11 +234,21 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
         fetchSuggestions();
     }, [date, refreshTrigger, user]);
 
-    if (!suggestions.length && !loading) return null;
+    // if (!suggestions.length && !loading) return null; // REMOVED: Always render structure
 
     const handlePrint = () => {
         window.print();
     };
+
+    if (!suggestions.length && !loading) {
+        return (
+            <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 text-center animate-in fade-in">
+                <Truck className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <h3 className="text-gray-400 font-bold uppercase tracking-widest text-sm">Aguardando Forecast</h3>
+                <p className="text-gray-500 text-xs mt-1">Preencha e salve a previsão acima para gerar a lista de compras.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-700 print:shadow-none print:border-none print:p-0">

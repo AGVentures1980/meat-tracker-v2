@@ -40,7 +40,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const navItems = [
         { icon: LayoutDashboard, label: t('nav_dashboard'), path: '/dashboard' },
         { icon: TrendingUp, label: t('nav_projections'), path: '/projections' },
-        { icon: Calendar, label: t('nav_forecasting') || 'Forecasting', path: '/forecast' },
+        { icon: Calendar, label: t('nav_forecasting') || 'Forecast', path: '/forecast' },
         { icon: StickyNote, label: t('nav_reports'), path: '/reports' },
         { icon: ArrowUpRight, label: t('nav_meat_prices'), path: '/prices' },
         { id: 'smart-prep', label: t('nav_smart_prep'), icon: ChefHat, path: '/smart-prep' },
