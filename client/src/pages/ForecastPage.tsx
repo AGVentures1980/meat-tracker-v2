@@ -98,7 +98,7 @@ export const ForecastPage = () => {
                     <Brain className="w-8 h-8 text-[#C5A059]" />
                     <div>
                         <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.8</span>
+                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.9</span>
                         </h1>
                         <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
                             Demand Planning & Purchasing
@@ -304,11 +304,27 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
     }
 
     return (
+    return (
         <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-700 print:shadow-none print:border-none print:p-8 print:bg-white print:absolute print:top-0 print:left-0 print:w-full print:text-black print:z-50 min-h-screen">
             <div className="flex items-center justify-between mb-6 print:hidden">
+                <div>
+                    <div className="flex items-center gap-4 mb-1">
+                        <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                            <Truck className="text-[#00FF94]" /> Smart Order Sheet
+                        </h2>
+                        <button
+                            onClick={handleInitialize}
+                            className="bg-[#333] hover:bg-white hover:text-black text-gray-500 text-[10px] font-bold uppercase px-2 py-1 rounded flex items-center gap-1 transition-colors border border-gray-700"
+                            title="Fix Missing Data impacting other stores"
+                        >
+                            ⚠ Force Sync
+                        </button>
+                    </div>
+                    <p className="text-gray-500 text-[10px] font-mono uppercase tracking-wider">
                         Dynamic Suggestion (v4.0) • {meta ? `Est. Consumption: ${(meta.accumulated_weight * 100).toFixed(0)}% of week` : ''}
                     </p>
                 </div>
+
                 <div className="flex items-center gap-4">
                     {loading && <div className="text-[#C5A059] text-xs font-mono animate-pulse">CALCULATING...</div>}
                     <button
@@ -318,10 +334,10 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                         <Calendar size={14} /> Print List
                     </button>
                 </div>
-            </div >
+            </div>
 
-    {/* Print Header */ }
-    < div className = "hidden print:block mb-8" >
+            {/* Print Header */}
+            <div className="hidden print:block mb-8">
                 <h1 className="text-2xl font-bold text-black border-b-2 border-black pb-2">Smart Order Sheet</h1>
                 <p className="text-sm mt-2">Week of: <strong>{date}</strong> | <span className="text-xs">Dynamic Inventory Active</span></p>
             </div >
