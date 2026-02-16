@@ -39,6 +39,10 @@ model Store {
   invoices          InvoiceRecord[]
   waste_logs        WasteLog[]
   product_aliases   ProductAlias[]
+  lunch_price       Float             @default(29.90)
+  dinner_price      Float             @default(58.90)
+  is_lunch_enabled  Boolean           @default(false)
+  exclude_lamb_from_rodizio_lbs Boolean @default(false)
 
   @@unique([company_id, store_name])
 }
@@ -120,6 +124,8 @@ model Report {
   generated_at    DateTime @default(now())
   delivery_guests Int      @default(0)
   dine_in_guests  Int      @default(0)
+  lunch_guests_micros  Int   @default(0)
+  dinner_guests_micros Int   @default(0)
   store           Store    @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, month])

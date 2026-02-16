@@ -14,23 +14,33 @@ The database is already in sync with the Prisma schema.
 
 Running generate... (Use --skip-generate to skip the generators)
 [2K[1A[2K[GRunning generate... - Prisma Client
-[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 76ms
+[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 71ms
 
+┌─────────────────────────────────────────────────────────┐
+│  Update available 5.22.0 -> 7.4.0                       │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
 DEBUG: Ls dist
 total 16
-drwxr-xr-x@  9 alexandregarcia  staff   288 Feb 14 02:58 .
-drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 14 02:58 ..
-drwxr-xr-x@  6 alexandregarcia  staff   192 Feb 14 02:58 config
-drwxr-xr-x@ 20 alexandregarcia  staff   640 Feb 14 02:58 controllers
-drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 14 02:58 engine
--rw-r--r--@  1 alexandregarcia  staff  7244 Feb 14 02:58 index.js
-drwxr-xr-x@  3 alexandregarcia  staff    96 Feb 14 02:58 middleware
-drwxr-xr-x@ 14 alexandregarcia  staff   448 Feb 14 02:58 routes
-drwxr-xr-x@ 25 alexandregarcia  staff   800 Feb 14 02:58 scripts
+drwxr-xr-x@  9 alexandregarcia  staff   288 Feb 15 03:05 .
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 15 03:05 ..
+drwxr-xr-x@  6 alexandregarcia  staff   192 Feb 15 03:05 config
+drwxr-xr-x@ 20 alexandregarcia  staff   640 Feb 15 03:05 controllers
+drwxr-xr-x@  4 alexandregarcia  staff   128 Feb 15 03:05 engine
+-rw-r--r--@  1 alexandregarcia  staff  7255 Feb 15 03:05 index.js
+drwxr-xr-x@  3 alexandregarcia  staff    96 Feb 15 03:05 middleware
+drwxr-xr-x@ 14 alexandregarcia  staff   448 Feb 15 03:05 routes
+drwxr-xr-x@ 25 alexandregarcia  staff   800 Feb 15 03:05 scripts
 [Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
 [Startup] Ensuring user dallas@texasdebrazil.com exists...
 [Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
 [Startup] Ensuring default system settings exist...
 [Startup] SUCCESS: Verified default system settings and store targets.
-🚀 BRASA INTEL v3.0.1-FORCE running on http://localhost:3000
+🚀 BRASA INTEL v3.0.2-FINAL-GOVERNANCE running on http://localhost:3000
 📅 Business Date Sync: Central Time (UTC-6) ACTIVE

@@ -24,6 +24,8 @@ interface StorePerformance {
     target_cost_guest?: number; // Dynamic Cost Target
     costGuestVar: number; // Variance from Plan
     impactYTD: number;
+    theoreticalRevenue?: number;
+    foodCostPercentage?: number;
     status: 'Optimal' | 'Warning' | 'Critical';
 }
 
@@ -86,10 +88,11 @@ export const Dashboard = () => {
     const handleExport = () => {
         if (!performanceData.length) return;
 
-        const headers = ["Location", "Guests", "Lbs/Guest Act", "Lbs/Guest Tgt", "$/Guest Act", "$/Guest Tgt", "Variance $", "Impact YTD", "Status"];
+        const headers = ["Location", "Guests", "Food Cost %", "Lbs/Guest Act", "Lbs/Guest Tgt", "$/Guest Act", "$/Guest Tgt", "Variance $", "Impact YTD", "Status"];
         const csvRows = performanceData.map(s => [
             s.name,
             s.guests,
+            (s.foodCostPercentage || 0).toFixed(2) + '%',
             s.lbsPerGuest.toFixed(2),
             (s.target_lbs_guest || 1.76).toFixed(2),
             s.costPerGuest.toFixed(2),
@@ -240,6 +243,7 @@ export const Dashboard = () => {
                                 <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
                                     <th className="p-4 font-normal">{t('proj_col_store')}</th>
                                     <th className="p-4 font-normal text-right">{t('projected_guests')}</th>
+                                    <th className="p-4 font-normal text-right text-[#C5A059]">Food Cost %</th>
                                     <th className="p-4 font-normal text-right">Lbs/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
                                     <th className="p-4 font-normal text-right">$/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
                                     <th className="p-4 font-normal text-right">{t('price_weekly_drift')} $/Guest</th>
@@ -258,6 +262,16 @@ export const Dashboard = () => {
                                                 <span className="block text-[10px] text-gray-600 font-normal uppercase">{store.location}</span>
                                             </td>
                                             <td className="p-4 text-right text-gray-300">{store.guests.toLocaleString()}</td>
+
+                                            {/* Food Cost % (v3.2) */}
+                                            <td className="p-4 text-right">
+                                                <div className={`font-bold ${store.foodCostPercentage && store.foodCostPercentage > 35 ? 'text-[#FF2A6D]' : 'text-[#C5A059]'}`}>
+                                                    {store.foodCostPercentage ? store.foodCostPercentage.toFixed(1) : 'N/A'}%
+                                                </div>
+                                                <div className="text-[9px] text-gray-500">
+                                                    Rev: ${(store.theoreticalRevenue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                                </div>
+                                            </td>
 
                                             {/* Lbs/Guest */}
                                             <td className="p-4 text-right">

@@ -58,6 +58,36 @@ export class MeatEngine {
         const totalLbsMonth = sales.reduce((acc, item) => acc + item.lbs, 0);
 
         const STORE_LBS_TARGET = storeData?.target_lbs_guest || globalTarget;
+
+        // --- SHIFT AWARE GOVERNANCE (v3.2) ---
+        // Calculate Theoretical Revenue based on Shift Split
+        const lunchGuests = (storeData?.reports?.[0] as any)?.lunch_guests_micros || 0;
+        const dinnerGuests = (storeData?.reports?.[0] as any)?.dinner_guests_micros || 0;
+
+        // If no shift data, assume 100% is mixed (fallback)
+        // Once UI is updated, this will be accurate. 
+        // For now, if lunch/dinner guests are 0, we can fall back to totalLbs / target calculation for "Estimated Guests"
+        // But if reports has data, we use it.
+
+        let totalGuests = lunchGuests + dinnerGuests;
+        if (totalGuests === 0) {
+            totalGuests = Math.round(totalLbsMonth / STORE_LBS_TARGET);
+        }
+
+        const lunchPrice = (storeData as any)?.lunch_price || 34.00; // Default Lunch
+        const dinnerPrice = (storeData as any)?.dinner_price || 54.00; // Default Dinner
+
+        // If we have split data, calculate precise revenue
+        let theoreticalRevenue = 0;
+        if (lunchGuests > 0 || dinnerGuests > 0) {
+            theoreticalRevenue = (lunchGuests * lunchPrice) + (dinnerGuests * dinnerPrice);
+        } else {
+            // Fallback: Assume 40% Lunch / 60% Dinner split for estimation if no data
+            const estLunch = Math.round(totalGuests * 0.4);
+            const estDinner = totalGuests - estLunch;
+            theoreticalRevenue = (estLunch * lunchPrice) + (estDinner * dinnerPrice);
+        }
+
         const extraCustomers = Math.round(totalLbsMonth / STORE_LBS_TARGET);
 
         const daysPassed = getDate(now) || 1;
@@ -74,6 +104,9 @@ export class MeatEngine {
             projectedTotal,
             lbsPerGuest: STORE_LBS_TARGET,
             costPerGuest: STORE_COST_TARGET,
+            theoreticalRevenue, // New metric
+            actualMeatCost: totalLbsMonth * 5.85, // Estimated avg cost for quick check
+            foodCostPercentage: theoreticalRevenue > 0 ? ((totalLbsMonth * 5.85) / theoreticalRevenue) * 100 : 0,
             topMeats,
             weeklyChart
         };
@@ -109,16 +142,43 @@ export class MeatEngine {
 
         const totalLbs = Object.values(meatSummary).reduce((a, b) => a + b, 0);
         // We use the same guest calculation as getDashboardStats for consistency
-        const storeData = await (prisma as any).store.findUnique({ where: { id: storeId } });
+        const storeData = await (prisma as any).store.findUnique({ where: { id: storeId }, include: { reports: { take: 1, orderBy: { generated_at: 'desc' } } } });
         const globalTarget = await this.getSetting('global_target_lbs_guest', GLOBAL_TARGET_PER_GUEST);
         const STORE_LBS_TARGET = storeData?.target_lbs_guest || globalTarget;
-        const estimatedGuests = Math.round(totalLbs / STORE_LBS_TARGET);
+
+        // --- DINNER ONLY LOGIC (v3.2) ---
+        const lastReport = storeData?.reports?.[0];
+        const lunchGuests = (lastReport as any)?.lunch_guests_micros || 0;
+        const dinnerGuests = (lastReport as any)?.dinner_guests_micros || 0;
+        let totalGuests = lunchGuests + dinnerGuests;
+        if (totalGuests === 0) totalGuests = Math.round(totalLbs / STORE_LBS_TARGET);
+
+        const estimatedGuests = totalGuests;
+
+        // Define Dinner Only Meats (Premium)
+        const DINNER_ONLY_MEATS = ['lamb chops', 'beef ribs', 'filet mignon', 'filet mignon wrapped in bacon'];
+        const EXCLUDE_LAMB = (storeData as any)?.exclude_lamb_from_rodizio_lbs || false;
 
         return Object.entries(meatSummary).map(([name, actual]) => {
             // Ideal is based on (Guest Count * Protein Target)
             // Try to find target case-insensitively
             const proteinTarget = targetMap[name] || targetMap[Object.keys(targetMap).find(k => k.toLowerCase() === name.toLowerCase()) || ''] || 0;
-            const ideal = proteinTarget ? (estimatedGuests * proteinTarget) : (actual * 0.98);
+            // v3.2: Check if meat is Dinner Only
+            const isDinnerOnly = DINNER_ONLY_MEATS.includes(name.toLowerCase());
+
+            // If it is dinner only, we use DINNER guests (if available). 
+            // If no split data available (legacy), we fall back to total guests but maybe apply a heuristical factor? 
+            // For now, if dinnerGuests > 0, we use it. If not, we use totalGuests (legacy behavior).
+            const applicableGuests = (isDinnerOnly && dinnerGuests > 0) ? dinnerGuests : estimatedGuests;
+
+            // proteinTarget is already defined above
+
+            // Lamb Exclusion Logic for Lbs/Guest indicator (Visualization only, ideal calc remains for variance)
+            // Actually, if excluded, does ideal change? 
+            // "Lbs_Indicator = (TotalLbs - LambLbs) / TotalGuests" -> This is for the dashboard header, implemented in getDashboardStats if needed.
+            // Here we calculate individual meat variance.
+
+            const ideal = proteinTarget ? (applicableGuests * proteinTarget) : (actual * 0.98);
 
             return {
                 name,
@@ -247,7 +307,8 @@ export class MeatEngine {
         const stores = await prisma.store.findMany({
             where,
             include: {
-                company: true
+                company: true,
+                reports: { orderBy: { generated_at: 'desc' }, take: 1 }
             }
         });
 
@@ -275,7 +336,23 @@ export class MeatEngine {
             // Calculate Guests (Mock/Estimate if missing)
             // In a real scenario, this comes from OrderItem or POS integration
             // For Demo/Seed, we reverse engineer from ideal: Guests = Lbs / Target
-            let guests = Math.round(totalLbs / ((store as any).target_lbs_guest || 1.76));
+            // For Demo/Seed, we reverse engineer from ideal: Guests = Lbs / Target
+            // v3.2: Use Report Data if available for Lunch/Dinner split
+            const lastReport = (store as any).reports?.[0];
+            const lunchGuests = lastReport?.lunch_guests_micros || 0;
+            const dinnerGuests = lastReport?.dinner_guests_micros || 0;
+
+            let guests = lunchGuests + dinnerGuests;
+
+            if (guests === 0) {
+                // Fallback if no report data
+                guests = Math.round(totalLbs / ((store as any).target_lbs_guest || 1.76));
+                // Add some noise to make it realistic if it's exact match
+                if (guests > 0) {
+                    const noise = (Math.random() - 0.5) * 0.1; // +/- 5%
+                    guests = Math.round(guests * (1 + noise));
+                }
+            }
 
             // Add some noise to make it realistic if it's exact match
             if (guests > 0) {
@@ -309,6 +386,22 @@ export class MeatEngine {
             // Recalculate cost per guest based on actual meat usage value
             const costPerGuest = guests > 0 ? (totalCost / guests) : 0;
 
+            // v3.2: Theoretical Revenue & Food Cost %
+            const lunchPrice = (store as any).lunch_price || 34.00;
+            const dinnerPrice = (store as any).dinner_price || 54.00;
+
+            let theoreticalRevenue = 0;
+            if (lunchGuests > 0 || dinnerGuests > 0) {
+                theoreticalRevenue = (lunchGuests * lunchPrice) + (dinnerGuests * dinnerPrice);
+            } else {
+                // Est split 40/60
+                const estL = Math.round(guests * 0.4);
+                const estD = guests - estL;
+                theoreticalRevenue = (estL * lunchPrice) + (estD * dinnerPrice);
+            }
+
+            const foodCostPercentage = theoreticalRevenue > 0 ? (totalCost / theoreticalRevenue) * 100 : 0;
+
             if (store.id === 510 || store.store_name?.includes('Lexington')) {
                 console.log(`[DIAGNOSTIC] Lexington (510) - Guests: ${guests}, Lbs: ${totalLbs}, Target: ${(store as any).target_lbs_guest}, CostGuestVar: ${costPerGuest - ((store as any).target_cost_guest || 9.94)}`);
             }
@@ -328,6 +421,8 @@ export class MeatEngine {
                 target_cost_guest: (store as any).target_cost_guest || 9.94,
                 costGuestVar: costPerGuest - ((store as any).target_cost_guest || 9.94),
                 impactYTD: (costPerGuest - ((store as any).target_cost_guest || 9.94)) * guests, // Simple impact calc
+                theoreticalRevenue, // New
+                foodCostPercentage, // New
                 status: Math.abs(lbsPerGuest - ((store as any).target_lbs_guest || 1.76)) < 0.1 ? 'Optimal' : 'Warning'
             });
         }

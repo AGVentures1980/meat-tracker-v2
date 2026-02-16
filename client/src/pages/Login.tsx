@@ -156,7 +156,7 @@ export const Login = () => {
 
                     <div className="flex items-center justify-between pt-2">
                         <div className="mt-8 text-center">
-                            <p className="text-[#C5A059]/40 text-[10px] font-mono uppercase tracking-[0.2em]">v2.6.4-OCR-MOBILE System Engine</p>
+                            <p className="text-[#C5A059]/40 text-[10px] font-mono uppercase tracking-[0.2em]">v3.0.2-FINAL-GOVERNANCE System Engine</p>
                         </div>
                         <button
                             type="button"
@@ -239,7 +239,7 @@ export const Login = () => {
                             </div>
 
                             <p className="text-[9px] text-[#C5A059] font-mono text-center animate-pulse">
-                                // BRASA INTEL v2.6.2-NEGOTIATOR CONNECTED
+                                // BRASA INTEL v3.0.2-FINAL-GOVERNANCE CONNECTED
                             </p>
                         </div>
                     </div>

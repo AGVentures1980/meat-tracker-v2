@@ -321,7 +321,7 @@ export const WeeklyPriceInput = () => {
                         {t('price_title')}
                     </h1>
                     <p className="text-gray-500 font-mono uppercase tracking-widest text-xs italic">
-                        v2.6.4-OCR - {t('price_subtitle')}
+                        v3.0.2-FINAL-OCR - {t('price_subtitle')}
                     </p>
                 </div>
                 <div className="flex flex-col items-end gap-3">

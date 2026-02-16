@@ -15,7 +15,12 @@ interface WeeklyInputFormProps {
 export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormProps) => {
     const { user } = useAuth();
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [dineInGuests, setDineInGuests] = useState<number | ''>('');
+    // const [dineInGuests, setDineInGuests] = useState<number | ''>(''); // Renamed/Split below
+    const [lunchGuests, setLunchGuests] = useState<number | undefined>(undefined);
+    const [dinnerGuests, setDinnerGuests] = useState<number | undefined>(undefined);
+    // Backward compatibility helper
+    const dineInGuests = (lunchGuests || 0) + (dinnerGuests || 0);
+
     const [oloGuests, setOloGuests] = useState<number | ''>('');
 
     // Automation Loading States
@@ -141,7 +146,9 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
             const payload = {
                 store_id: storeId,
                 date,
-                dineInGuests: Number(dineInGuests),
+                dineInGuests: Number(dineInGuests), // Legacy Support
+                lunchGuests: Number(lunchGuests || 0), // New v3.2
+                dinnerGuests: Number(dinnerGuests || 0), // New v3.2
                 oloGuests: Number(oloGuests),
                 inventory: inventoryArray,
                 purchases: purchases.map(p => ({
@@ -196,7 +203,6 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
 
             {/* Section 1: Guest Counts & Automation */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {/* Date & Guests */}
                 <div className="space-y-4">
                     <div>
                         <label className="block text-xs uppercase text-gray-500 mb-1">Closing Date (Sunday)</label>
@@ -208,16 +214,36 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
                             className="w-full bg-black/50 border border-white/10 rounded p-3 text-white focus:border-brand-gold outline-none"
                         />
                     </div>
-                    <div>
-                        <label className="block text-xs uppercase text-gray-500 mb-1">Dine-In Guests (Manual)</label>
-                        <input
-                            type="number"
-                            required
-                            placeholder="e.g. 800"
-                            value={dineInGuests}
-                            onChange={(e) => setDineInGuests(Number(e.target.value))}
-                            className="w-full bg-black/50 border border-white/10 rounded p-3 text-white focus:border-brand-gold outline-none text-lg font-mono"
-                        />
+
+                    {/* Shift Split Inputs (v3.2) */}
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="block text-xs uppercase text-gray-500 mb-1">Lunch Guests</label>
+                            <input
+                                type="number"
+                                required
+                                placeholder="e.g. 300"
+                                value={lunchGuests ?? ''}
+                                // We need to manage separate states. Let's update the component state first.
+                                onChange={(e) => setLunchGuests(Number(e.target.value))}
+                                className="w-full bg-black/50 border border-white/10 rounded p-3 text-white focus:border-brand-gold outline-none text-lg font-mono"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs uppercase text-gray-500 mb-1">Dinner Guests</label>
+                            <input
+                                type="number"
+                                required
+                                placeholder="e.g. 500"
+                                value={dinnerGuests ?? ''}
+                                onChange={(e) => setDinnerGuests(Number(e.target.value))}
+                                className="w-full bg-black/50 border border-white/10 rounded p-3 text-white focus:border-brand-gold outline-none text-lg font-mono"
+                            />
+                        </div>
+                    </div>
+                    {/* Total Display */}
+                    <div className="text-right text-xs text-gray-400 font-mono">
+                        Week Total: <span className="text-white">{(lunchGuests || 0) + (dinnerGuests || 0)}</span> Dine-In
                     </div>
                 </div>
 

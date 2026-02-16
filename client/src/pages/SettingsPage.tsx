@@ -248,6 +248,24 @@ export const SettingsPage = () => {
                                         />
                                     </div>
                                     <div>
+                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Lunch Price ($)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="34.00"
+                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Dinner Price ($)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="54.00"
+                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                        />
+                                    </div>
+                                    <div>
                                         <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Manager Email</label>
                                         <input
                                             type="email"

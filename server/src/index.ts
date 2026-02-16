@@ -169,7 +169,7 @@ async function ensureDefaultSettings() {
 // Start Server after DB Check
 ensureDirectorUser().then(() => ensureDefaultSettings()).then(() => {
     app.listen(PORT, () => {
-        console.log(`🚀 BRASA INTEL v3.0.2-FINAL-GOVERNANCE running on http://localhost:${PORT}`);
+        console.log(`🚀 BRASA INTEL v3.2.0-SHIFT-AWARE running on http://localhost:${PORT}`);
         console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
     });
 });
