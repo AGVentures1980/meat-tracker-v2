@@ -1,6 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, Users, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import {
+    Users,
+    TrendingDown,
+    TrendingUp,
+    DollarSign,
+    Activity
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ExecutiveTargetEditor } from '../ExecutiveTargetEditor';
 import { NetworkHealthMatrix } from './NetworkHealthMatrix';

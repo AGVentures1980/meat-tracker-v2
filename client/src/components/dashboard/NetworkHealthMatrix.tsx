@@ -1,6 +1,6 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, AlertTriangle, CheckCircle, Info } from 'lucide-react';
-import { StorePerformanceTable } from '../StorePerformanceTable';
+import { useNavigate } from 'react-router-dom';
+import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
 interface HealthMatrixItem {
     id: number;
@@ -46,19 +46,17 @@ const StatusPill = ({ status, label, onClick }: { status: string, label?: string
 };
 
 export const NetworkHealthMatrix: React.FC<Props> = ({ data, loading }) => {
+    const navigate = useNavigate();
+
     if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Scanning Network Protocols...</div>;
 
     const handleDrillDown = (storeId: number, module: string) => {
-        // Logic to redirect or open modal
-        // For now, we can use window.location or a callback if provided
-        // Since we are adding this to existing dashboard, let's just log or alert for now until routing is passed
-        console.log(`Drilling down to ${module} for store ${storeId}`);
-
-        // Simple mock routing for MVP
         if (module === 'forecast') {
-            // In a real app, this would use React Router navigate
-            // window.location.href = `/forecast?storeId=${storeId}`; // If we support query params
-            alert(`Opening Forecast View for Store ${storeId}`);
+            navigate(`/forecast?storeId=${storeId}`);
+        } else if (module === 'waste') {
+            navigate(`/waste?storeId=${storeId}`);
+        } else if (module === 'inventory') {
+            navigate(`/dashboard/${storeId}`);
         }
     };
 

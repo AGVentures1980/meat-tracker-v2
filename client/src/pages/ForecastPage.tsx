@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Brain, Lock, Save, AlertTriangle, Calendar, Truck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Brain, Lock, Save, AlertTriangle, Calendar, Truck, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
 
 export const ForecastPage = () => {
     const { user } = useAuth();
@@ -15,6 +15,9 @@ export const ForecastPage = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [refreshKey, setRefreshKey] = useState(0); // Dedicated trigger for table updates
+    const [searchParams] = useSearchParams();
+    const externalStoreId = searchParams.get('storeId');
+    const isDrillDown = !!externalStoreId;
 
     // Initialize with Next Week's Monday
     useEffect(() => {
@@ -30,7 +33,8 @@ export const ForecastPage = () => {
         const fetchForecast = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/v1/forecast/next-week?date=${selectedDate}`, {
+                const storeParam = externalStoreId ? `&storeId=${externalStoreId}` : '';
+                const res = await fetch(`/api/v1/forecast/next-week?date=${selectedDate}${storeParam}`, {
                     headers: { 'Authorization': `Bearer ${user.token}` }
                 });
                 const data = await res.json();
@@ -99,6 +103,11 @@ export const ForecastPage = () => {
                     <div>
                         <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
                             Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.2.0</span>
+                            {isDrillDown && (
+                                <span className="text-[10px] bg-blue-900/30 text-blue-400 px-2 py-1 rounded border border-blue-900/50 flex items-center gap-1">
+                                    <Eye size={10} /> Read-Only Mode (Store ID: {externalStoreId})
+                                </span>
+                            )}
                         </h1>
                         <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
                             Demand Planning & Purchasing
@@ -152,23 +161,21 @@ export const ForecastPage = () => {
                                     type="number"
                                     value={lunchGuests === 0 ? '' : lunchGuests}
                                     onChange={(e) => setLunchGuests(e.target.value === '' ? 0 : parseInt(e.target.value))}
-                                    disabled={isLocked}
-                                    className={`w-full bg-[#121212] border border-[#333] text-white text-xl font-bold p-3 rounded-sm focus:border-[#00FF94] focus:outline-none transition-colors ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={isLocked || loading || isDrillDown}
+                                    className={`w-full bg-[#1a1a1a] border ${isLocked || isDrillDown ? 'border-gray-800 text-gray-500' : 'border-[#333] text-white hover:border-[#C5A059]'} p-4 rounded text-2xl font-mono focus:outline-none transition-colors transition-all`}
                                     placeholder="0"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-gray-400 text-xs uppercase tracking-widest mb-1">
-                                    Dinner Forecast
-                                </label>
+                                <label className="block text-gray-500 text-[10px] items-center gap-1 uppercase font-bold tracking-widest mb-2">Dinner Forecast (Theoretical)</label>
                                 <input
                                     type="number"
-                                    value={dinnerGuests === 0 ? '' : dinnerGuests}
-                                    onChange={(e) => setDinnerGuests(e.target.value === '' ? 0 : parseInt(e.target.value))}
-                                    disabled={isLocked}
-                                    className={`w-full bg-[#121212] border border-[#333] text-white text-xl font-bold p-3 rounded-sm focus:border-[#00FF94] focus:outline-none transition-colors ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    value={dinnerGuests || ''}
+                                    onChange={(e) => setDinnerGuests(Number(e.target.value))}
                                     placeholder="0"
+                                    disabled={isLocked || loading || isDrillDown}
+                                    className={`w-full bg-[#1a1a1a] border ${isLocked || isDrillDown ? 'border-gray-800 text-gray-500' : 'border-[#333] text-white hover:border-[#C5A059]'} p-4 rounded text-2xl font-mono focus:outline-none transition-colors transition-all`}
                                 />
                             </div>
 
@@ -178,18 +185,14 @@ export const ForecastPage = () => {
                                     <p className="text-2xl font-bold text-white">{lunchGuests + dinnerGuests}</p>
                                 </div>
 
-                                {!isLocked && (
+                                {/* Save Button */}
+                                {!isDrillDown && (
                                     <button
                                         onClick={handleSave}
-                                        disabled={loading}
-                                        className="bg-[#00FF94] hover:bg-[#00CC76] text-black font-bold uppercase text-xs px-6 py-3 rounded-sm flex items-center gap-2 transition-all active:scale-95"
+                                        disabled={isLocked || loading}
+                                        className={`w-full md:w-auto px-8 py-3 rounded font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${isLocked ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#C5A059] text-black hover:bg-[#D4AF37] active:scale-95'}`}
                                     >
-                                        {loading ? 'Saving...' : <><Save size={16} /> Confirm Forecast</>}
-                                    </button>
-                                )}
-                                {isLocked && (
-                                    <button disabled className="bg-[#333] text-gray-500 font-bold uppercase text-xs px-6 py-3 rounded-sm flex items-center gap-2 cursor-not-allowed">
-                                        <Lock size={16} /> Locked
+                                        {loading ? 'Processing...' : isLocked ? <><Lock className="w-4 h-4" /> Locked</> : <><Save className="w-4 h-4" /> Submit Forecast</>}
                                     </button>
                                 )}
                             </div>
@@ -205,13 +208,13 @@ export const ForecastPage = () => {
             </div>
 
             {/* Smart Order Suggestions (Lazy Loaded after Save or Load) */}
-            <SmartOrderTable date={selectedDate} refreshTrigger={refreshKey} />
+            <SmartOrderTable date={selectedDate} refreshTrigger={refreshKey} storeId={externalStoreId} />
         </div>
     );
 };
 
 // Sub-component for Smart Order Table
-const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigger: number }) => {
+const SmartOrderTable = ({ date, refreshTrigger, storeId }: { date: string, refreshTrigger: number, storeId?: string | null }) => {
     // ... existing hooks ...
     const { user } = useAuth();
     const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -242,8 +245,9 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
             setError(null);
             setMissingTargets(false);
             try {
-                const res = await fetch(`/api/v1/intelligence/supply-suggestions?date=${date}`, {
-                    headers: { 'Authorization': `Bearer ${user.token}` }
+                const storeParam = storeId ? `&storeId=${storeId}` : '';
+                const res = await fetch(`/api/v1/intelligence/supply-suggestions?date=${date}${storeParam}`, {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
                 });
                 const data = await res.json();
                 if (data.success) {

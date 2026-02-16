@@ -13,7 +13,15 @@ export class ForecastController {
      */
     static async getForecast(req: Request, res: Response) {
         try {
-            const storeId = (req as any).user?.storeId || 1;
+            const user = (req as any).user;
+            let storeId = user?.storeId || 1;
+
+            // Allow Admin/Director to override storeId for Drill-Down awareness
+            const queryStoreId = req.query.storeId ? parseInt(req.query.storeId as string) : null;
+            if (queryStoreId && (user?.role === 'admin' || user?.role === 'director')) {
+                storeId = queryStoreId;
+            }
+
             const { date } = req.query;
 
             // Logic to determine "Next Week" start date

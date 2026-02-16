@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { LayoutGrid, TrendingUp, DownloadCloud, Brain, AlertTriangle, ShoppingBag, Download } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { LayoutGrid, TrendingUp, DownloadCloud, Brain, AlertTriangle, ShoppingBag } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
 import { PerformanceChart } from '../components/dashboard/PerformanceChart';
@@ -31,6 +31,7 @@ interface StorePerformance {
 
 export const Dashboard = () => {
     const navigate = useNavigate();
+    const { storeId } = useParams();
     const [performanceData, setPerformanceData] = useState<StorePerformance[]>([]);
     const [anomalies, setAnomalies] = useState<any[]>([]);
     const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -47,11 +48,12 @@ export const Dashboard = () => {
             if (!user?.token) return;
             try {
                 setLoading(true);
+                const storeParam = storeId ? `?storeId=${storeId}` : '';
                 // Parallel fetch
                 const [perfRes, anomalyRes, suggestRes] = await Promise.all([
-                    fetch('/api/v1/dashboard/company-stats', { headers: { 'Authorization': `Bearer ${user.token}` } }),
+                    fetch(`/api/v1/dashboard/company-stats${storeParam}`, { headers: { 'Authorization': `Bearer ${user.token}` } }),
                     fetch('/api/v1/intelligence/anomalies', { headers: { 'Authorization': `Bearer ${user.token}` } }),
-                    fetch('/api/v1/intelligence/supply-suggestions', { headers: { 'Authorization': `Bearer ${user.token}` } })
+                    fetch(`/api/v1/intelligence/supply-suggestions${storeParam}`, { headers: { 'Authorization': `Bearer ${user.token}` } })
                 ]);
 
                 if (perfRes.ok) {

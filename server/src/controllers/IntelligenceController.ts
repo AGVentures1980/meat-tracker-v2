@@ -41,7 +41,15 @@ export class IntelligenceController {
      */
     static async getSupplySuggestions(req: Request, res: Response) {
         try {
-            const storeId = (req as any).user?.storeId || 1;
+            const user = (req as any).user;
+            let storeId = user?.storeId || 1;
+
+            // Allow Admin/Director to override storeId for Drill-Down awareness
+            const queryStoreId = req.query.storeId ? parseInt(req.query.storeId as string) : null;
+            if (queryStoreId && (user?.role === 'admin' || user?.role === 'director')) {
+                storeId = queryStoreId;
+            }
+
             const textDate = req.query.date as string;
 
             // Default to next week if no date provided? Or current?

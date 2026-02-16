@@ -1,11 +1,12 @@
-
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MEAT_UNIT_WEIGHTS } from '../config/meat_weights';
 import { Trash2, Lock, CheckCircle, AlertTriangle, Scale, Save } from 'lucide-react';
 
 const WastePage = () => {
     const { user } = useAuth();
+    const [searchParams] = useSearchParams();
     const [status, setStatus] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [selectedItems, setSelectedItems] = useState<any[]>([]);
@@ -25,6 +26,13 @@ const WastePage = () => {
         { id: 4, name: 'Miami' },
         { id: 5, name: 'Las Vegas' }
     ];
+
+    useEffect(() => {
+        const storeIdParam = searchParams.get('storeId');
+        if (storeIdParam) {
+            setSelectedStore(parseInt(storeIdParam));
+        }
+    }, [searchParams]);
 
     const fetchStatus = async () => {
         try {
