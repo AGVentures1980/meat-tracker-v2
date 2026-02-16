@@ -26,7 +26,9 @@ export const SettingsPage = () => {
     // Fetch Stores logic
     const fetchStores = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = user?.token;
+            if (!token) return;
+
             const res = await fetch('/api/v1/dashboard/settings/stores', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -63,7 +65,12 @@ export const SettingsPage = () => {
     const handleCreateStore = async () => {
         setIsLoading(true);
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = user?.token;
+            if (!token) {
+                alert('Session expired');
+                return;
+            }
+
             const res = await fetch('/api/v1/dashboard/settings/stores', {
                 method: 'POST',
                 headers: {
@@ -99,7 +106,12 @@ export const SettingsPage = () => {
         if (!editingStore) return;
         setIsLoading(true);
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = user?.token;
+            if (!token) {
+                alert('Session expired');
+                return;
+            }
+
             // Assuming the API supports PUT /api/v1/dashboard/settings/stores/:id or similar
             // Since I don't see the route, I will use the generic POST/PUT update pattern if available.
             // Wait, looking at current code, there is no update function. I might need to implement the backend route too. 
