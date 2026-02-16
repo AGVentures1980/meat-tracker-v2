@@ -38,15 +38,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const navigate = useNavigate();
 
     const navItems = [
-        { icon: LayoutDashboard, label: t('nav_dashboard'), path: '/dashboard' },
-        { icon: TrendingUp, label: t('nav_projections'), path: '/projections' },
-        { icon: Calendar, label: t('nav_forecasting') || 'Forecast', path: '/forecast' },
-        { icon: StickyNote, label: t('nav_reports'), path: '/reports' },
-        { icon: ArrowUpRight, label: t('nav_meat_prices'), path: '/prices' },
-        { id: 'smart-prep', label: t('nav_smart_prep'), icon: ChefHat, path: '/smart-prep' },
-        { id: 'delivery', label: t('nav_delivery'), icon: Truck, path: '/delivery' },
-        { id: 'waste', label: t('nav_waste_log'), icon: Trash, path: '/waste' },
-        { id: 'settings', label: t('nav_settings'), icon: Settings, path: '/settings' }
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+        { icon: TrendingUp, label: 'Projections', path: '/projections' },
+        { icon: Calendar, label: 'Forecast', path: '/forecast' },
+        { icon: StickyNote, label: 'Reports', path: '/reports' },
+        { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' },
+        { id: 'smart-prep', label: 'Smart Prep', icon: ChefHat, path: '/smart-prep' },
+        { id: 'delivery', label: 'Delivery (OLO)', icon: Truck, path: '/delivery' },
+        { id: 'waste', label: 'Waste Log', icon: Trash, path: '/waste' },
+        { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' }
     ];
 
     const [alerts, setAlerts] = useState([

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Brain, Lock, Save, AlertTriangle, Calendar, Truck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -6,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 export const ForecastPage = () => {
     const { user } = useAuth();
-    const { t } = useLanguage();
+    // const { t } = useLanguage(); // Deprecated for v4.1 English Unification
 
     // State
     const [selectedDate, setSelectedDate] = useState<string>('');
@@ -75,13 +74,13 @@ export const ForecastPage = () => {
             const data = await res.json();
 
             if (data.success) {
-                setMessage({ type: 'success', text: 'Previsão salva com sucesso!' });
+                setMessage({ type: 'success', text: 'Forecast saved successfully!' });
                 if (data.forecast.is_locked) setIsLocked(true);
             } else {
-                setMessage({ type: 'error', text: data.error || 'Erro ao salvar' });
+                setMessage({ type: 'error', text: data.error || 'Error saving forecast' });
             }
         } catch (err) {
-            setMessage({ type: 'error', text: 'Falha de conexão.' });
+            setMessage({ type: 'error', text: 'Connection failed.' });
         } finally {
             setLoading(false);
         }
@@ -94,10 +93,10 @@ export const ForecastPage = () => {
                 <Brain className="w-8 h-8 text-[#C5A059]" />
                 <div>
                     <h1 className="text-2xl font-bold text-white tracking-tight">
-                        {t('forecast_title') || 'Smart Forecasting'}
+                        Smart Forecasting
                     </h1>
                     <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
-                        planejamento de demanda & compras
+                        Demand Planning & Purchasing
                     </p>
                 </div>
             </div>
@@ -114,7 +113,7 @@ export const ForecastPage = () => {
                     {/* Left: Input Selection */}
                     <div>
                         <label className="block text-gray-500 text-xs font-bold uppercase tracking-widest mb-2">
-                            Semana de Referência (Segunda-Feira)
+                            Reference Week (Monday)
                         </label>
                         <div className="relative mb-6">
                             <Calendar className="absolute left-3 top-3 text-[#C5A059] w-4 h-4" />
@@ -128,12 +127,12 @@ export const ForecastPage = () => {
 
                         <div className="p-4 bg-[#252525] border border-[#333] rounded-sm mb-4">
                             <h3 className="text-gray-400 text-xs uppercase font-bold mb-2 flex items-center gap-2">
-                                <AlertTriangle size={12} className="text-[#C5A059]" /> Regra de Bloqueio
+                                <AlertTriangle size={12} className="text-[#C5A059]" /> Locking Rule
                             </h3>
                             <p className="text-[10px] text-gray-500 leading-relaxed">
-                                O forecast deve ser enviado até <strong>Quarta-Feira</strong> da semana anterior.
-                                Após esse prazo, apenas o Diretor pode liberar alterações.
-                                Isso garante que o sistema de compras (Smart Order) tenha tempo hábil para gerar os pedidos de Quinta/Sexta.
+                                Forecast must be submitted by <strong>Wednesday</strong> of the previous week.
+                                After this deadline, only the Director can unlock it.
+                                This ensures the Purchasing System (Smart Order) has enough lead time for Thu/Fri orders.
                             </p>
                         </div>
                     </div>
@@ -142,7 +141,7 @@ export const ForecastPage = () => {
                     <div className="space-y-6">
                         <div>
                             <label className="block text-gray-400 text-xs uppercase tracking-widest mb-1">
-                                Previsão de Almoço
+                                Lunch Forecast
                             </label>
                             <input
                                 type="number"
@@ -156,7 +155,7 @@ export const ForecastPage = () => {
 
                         <div>
                             <label className="block text-gray-400 text-xs uppercase tracking-widest mb-1">
-                                Previsão de Jantar
+                                Dinner Forecast
                             </label>
                             <input
                                 type="number"
@@ -180,12 +179,12 @@ export const ForecastPage = () => {
                                     disabled={loading}
                                     className="bg-[#00FF94] hover:bg-[#00CC76] text-black font-bold uppercase text-xs px-6 py-3 rounded-sm flex items-center gap-2 transition-all active:scale-95"
                                 >
-                                    {loading ? 'Salvando...' : <><Save size={16} /> Confirmar Forecast</>}
+                                    {loading ? 'Saving...' : <><Save size={16} /> Confirm Forecast</>}
                                 </button>
                             )}
                             {isLocked && (
                                 <button disabled className="bg-[#333] text-gray-500 font-bold uppercase text-xs px-6 py-3 rounded-sm flex items-center gap-2 cursor-not-allowed">
-                                    <Lock size={16} /> Bloqueado
+                                    <Lock size={16} /> Locked
                                 </button>
                             )}
                         </div>
@@ -234,8 +233,6 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
         fetchSuggestions();
     }, [date, refreshTrigger, user]);
 
-    // if (!suggestions.length && !loading) return null; // REMOVED: Always render structure
-
     const handlePrint = () => {
         window.print();
     };
@@ -244,8 +241,8 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
         return (
             <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 text-center animate-in fade-in">
                 <Truck className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <h3 className="text-gray-400 font-bold uppercase tracking-widest text-sm">Aguardando Forecast</h3>
-                <p className="text-gray-500 text-xs mt-1">Preencha e salve a previsão acima para gerar a lista de compras.</p>
+                <h3 className="text-gray-400 font-bold uppercase tracking-widest text-sm">Waiting for Forecast</h3>
+                <p className="text-gray-500 text-xs mt-1">Fill and save the forecast above to generate the shopping list.</p>
             </div>
         );
     }
@@ -258,7 +255,7 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                         <Truck className="text-[#00FF94]" /> Smart Order Sheet
                     </h2>
                     <p className="text-gray-500 text-[10px] font-mono uppercase tracking-wider">
-                        Sugestão Dinâmica (v4.0) • {meta ? `Consumo Estimado: ${(meta.accumulated_weight * 100).toFixed(0)}% da semana` : ''}
+                        Dynamic Suggestion (v4.0) • {meta ? `Est. Consumption: ${(meta.accumulated_weight * 100).toFixed(0)}% of week` : ''}
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -267,7 +264,7 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                         onClick={handlePrint}
                         className="bg-[#333] hover:bg-[#444] text-white text-xs font-bold uppercase px-4 py-2 rounded flex items-center gap-2 transition-colors"
                     >
-                        <Calendar size={14} /> Imprimir Lista
+                        <Calendar size={14} /> Print List
                     </button>
                 </div>
             </div>
@@ -331,8 +328,8 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
             <div className="mt-4 p-3 bg-[#252525] print:bg-transparent border border-[#333] print:border-gray-300 rounded-sm flex items-center gap-3">
                 <AlertTriangle size={14} className="text-[#C5A059] print:text-black" />
                 <p className="text-[10px] text-gray-400 print:text-black">
-                    <strong>Estoque Dinâmico:</strong> O sistema estimou o consumo de <strong>{(meta?.accumulated_weight * 100)?.toFixed(0)}%</strong> da semana até agora.
-                    Verifique se todas as notas fiscais recentes foram lançadas para garantir a precisão.
+                    <strong>Dynamic Inventory:</strong> System estimates <strong>{(meta?.accumulated_weight * 100)?.toFixed(0)}%</strong> consumption of the week so far.
+                    Ensure all recent invoices are entered for accuracy.
                 </p>
             </div>
         </div>
