@@ -38,12 +38,22 @@ export class NetworkHealthController {
             // 4. Alerts (Mocking for now as Alert model is missing in schema)
             const activeAlerts = 3; // Placeholder until Alert model is added
 
+            // 5. Network Health Matrix (Executive Dashboard 2.0)
+            const user = (req as any).user;
+            // Fetch matrix if user is authorized
+            let healthMatrix = [];
+            if (user?.role === 'admin' || user?.role === 'director') {
+                const { MeatEngine } = require('../engine/MeatEngine'); // Lazy load to avoid circular dep if any
+                healthMatrix = await MeatEngine.getNetworkHealthMatrix(user);
+            }
+
             return res.json({
                 status: 'ONLINE',
                 active_stores: activeStores,
                 system_sales: systemSales,
                 system_labor: systemLabor,
                 active_alerts: activeAlerts,
+                health_matrix: healthMatrix, // New Payload
                 last_updated: new Date().toISOString()
             });
 

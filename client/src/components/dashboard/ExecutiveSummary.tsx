@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, Users, Activity } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ExecutiveTargetEditor } from '../ExecutiveTargetEditor';
+import { NetworkHealthMatrix } from './NetworkHealthMatrix';
 
 interface CompanyStats {
     period: string;
@@ -33,18 +34,32 @@ export const ExecutiveSummary = () => {
     const [loading, setLoading] = useState(true);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
 
+    const [matrixData, setMatrixData] = useState<any[]>([]); // New State
+
     const fetchStats = async () => {
         try {
             setLoading(true);
+
+            // 1. Fetch Summary Stats
             const response = await fetch('/api/v1/dashboard/company-stats', {
-                headers: {
-                    'Authorization': `Bearer ${user?.token}`
-                }
+                headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             if (response.ok) {
                 const data = await response.json();
                 setStats(data);
             }
+
+            // 2. Fetch Network Health Matrix (Dashboard 2.0)
+            const matrixRes = await fetch('/api/v1/smart-prep/network-health', { // Using existing logic or new controller path
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            if (matrixRes.ok) {
+                const matrix = await matrixRes.json();
+                if (matrix.health_matrix) {
+                    setMatrixData(matrix.health_matrix);
+                }
+            }
+
         } catch (error) {
             console.error("Failed to fetch executive stats", error);
         } finally {
@@ -138,6 +153,11 @@ export const ExecutiveSummary = () => {
                         </span>
                     </div>
                 </div>
+            </div>
+
+            {/* Dashboard 2.0: Network Health Matrix */}
+            <div className="mb-8">
+                <NetworkHealthMatrix data={matrixData} loading={loading} />
             </div>
 
             {/* Top 10 Lists */}

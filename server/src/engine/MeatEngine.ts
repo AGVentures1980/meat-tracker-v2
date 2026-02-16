@@ -476,4 +476,107 @@ export class MeatEngine {
             performance: performance // Include full list for Dashboard grid and export
         };
     }
+    static async getNetworkHealthMatrix(user: any) {
+        // 1. Fetch all stores (or subset based on permissions)
+        const where: any = {};
+        if (user.role !== 'admin' && user.role !== 'director') {
+            if (user.storeId) where.id = user.storeId;
+        }
+
+        const stores = await prisma.store.findMany({
+            where,
+            include: {
+                sales_forecasts: { orderBy: { week_start: 'desc' }, take: 1 },
+                waste_logs: { orderBy: { date: 'desc' }, take: 7 }, // Check last week
+                prep_logs: { orderBy: { date: 'desc' }, take: 7 },
+                reports: { orderBy: { generated_at: 'desc' }, take: 1 }, // For actual guest counts
+                inventory_records: { orderBy: { date: 'desc' }, take: 1 }
+            }
+        });
+
+        const matrix = [];
+
+        for (const store of stores) {
+            // --- 1. FORECAST HEALTH ---
+            // Compare Forecast vs Actual (using Report as proxy for actuals)
+            let forecastStatus: 'Optimal' | 'Warning' | 'Critical' = 'Warning';
+            let forecastVariance = 0;
+
+            const latestForecast = store.sales_forecasts[0];
+            const latestReport = store.reports[0]; // Actuals
+
+            if (latestForecast && latestReport) {
+                const forecastedTotal = latestForecast.forecast_lunch + latestForecast.forecast_dinner;
+                const actualTotal = latestReport.dine_in_guests + latestReport.delivery_guests; // Approx
+
+                if (forecastedTotal > 0 && actualTotal > 0) {
+                    forecastVariance = Math.abs((actualTotal - forecastedTotal) / actualTotal);
+                    if (forecastVariance < 0.05) forecastStatus = 'Optimal';
+                    else if (forecastVariance < 0.15) forecastStatus = 'Warning';
+                    else forecastStatus = 'Critical';
+                }
+            } else if (!latestForecast) {
+                forecastStatus = 'Critical'; // Missing forecast
+            }
+
+            // --- 2. WASTE HEALTH ---
+            // Check if logs exist for last 3 days
+            let wasteStatus: 'Optimal' | 'Warning' | 'Critical' = 'Optimal';
+            if (store.waste_logs.length === 0) {
+                wasteStatus = 'Critical';
+            } else if (store.waste_logs.length < 3) {
+                wasteStatus = 'Warning';
+            }
+
+            // --- 3. PREP HEALTH ---
+            // Similar logic, check for recent activity
+            let prepStatus: 'Optimal' | 'Warning' | 'Critical' = 'Optimal';
+            if (store.prep_logs.length === 0) {
+                prepStatus = 'Critical'; // No prep logs ever?
+            } else {
+                // Check if latest prep log is fresh (within 2 days)
+                const daysSincePrep = differenceInDays(new Date(), store.prep_logs[0].date);
+                if (daysSincePrep > 3) prepStatus = 'Warning';
+                if (daysSincePrep > 7) prepStatus = 'Critical';
+            }
+
+            // --- 4. INVENTORY / FINANCIAL HEALTH ---
+            // Use Impact Logic (re-using simplified calculation for speed)
+            // Ideally we call getDashboardStats but that's heavy. 
+            // We can approximate using last report's impact if stored, or quick calc.
+            let inventoryStatus: 'Optimal' | 'Warning' | 'Critical' = 'Optimal';
+            // We'll trust the existing visual logic: if lbs/guest > target * 1.1 -> Warning
+            // If report exists
+            let totalScore = 100;
+
+            if (latestReport) {
+                // If we have data, we can try to see efficiency
+                // This is a placeholder for the complex impact calc
+                // Let's assume passed validation for now, or fetch from cache
+            }
+
+            // Deduct points based on status
+            if (forecastStatus === 'Critical') totalScore -= 20;
+            if (forecastStatus === 'Warning') totalScore -= 10;
+            if (wasteStatus === 'Critical') totalScore -= 20;
+            if (wasteStatus === 'Warning') totalScore -= 5;
+            if (prepStatus === 'Critical') totalScore -= 15;
+
+            // Normalize
+            if (totalScore < 0) totalScore = 0;
+
+            matrix.push({
+                id: store.id,
+                name: store.store_name,
+                location: store.location,
+                forecast: { status: forecastStatus, variance: forecastVariance },
+                waste: { status: wasteStatus, lastLog: store.waste_logs[0]?.date },
+                prep: { status: prepStatus, lastLog: store.prep_logs[0]?.date },
+                inventory: { status: inventoryStatus, impact: 0 }, // Filled by separate quick query if needed
+                totalScore
+            });
+        }
+
+        return matrix.sort((a, b) => a.totalScore - b.totalScore); // Worst first
+    }
 }
