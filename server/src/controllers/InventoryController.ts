@@ -66,16 +66,61 @@ export class InventoryController {
                     }
                 }
 
-                // 4. Insert Purchases
+                // 4. Insert Purchases & Invoices (Unified Data Flow)
                 if (purchases && Array.isArray(purchases)) {
+                    const { MEAT_STANDARDS } = require('../config/standards');
+                    // Simple Validation Map (Approximate High/Low limits)
+                    // Ponto de Atenção: Prevent crazy inputs
+                    const PRICE_LIMITS: Record<string, { min: number, max: number }> = {
+                        'Lamb Chops': { min: 8.0, max: 18.0 },
+                        'Picanha': { min: 4.0, max: 10.0 },
+                        'Filet Mignon': { min: 10.0, max: 25.0 },
+                        'Chicken': { min: 0.5, max: 4.0 },
+                        'Default': { min: 1.0, max: 20.0 }
+                    };
+
                     for (const p of purchases) {
+                        const qty = Number(p.qty);
+                        const cost = Number(p.cost);
+                        let pricePerLb = 0;
+
+                        if (qty > 0) {
+                            pricePerLb = cost / qty;
+
+                            // VALIDATION (Ponto de Atenção)
+                            const itemKey = Object.keys(PRICE_LIMITS).find(k => p.item.includes(k)) || 'Default';
+                            const limits = PRICE_LIMITS[itemKey];
+
+                            if (pricePerLb < limits.min || pricePerLb > limits.max) {
+                                console.warn(`[PRICE ALERT] Anomalous price detected for ${p.item}: $${pricePerLb.toFixed(2)}/lb. (Range: ${limits.min}-${limits.max})`);
+                                // In a stricter system, we would throw new Error() here to block the save.
+                                // For now, we allow it but log it, as per user request to "Implementar o Ponto de Atenção".
+                            }
+                        }
+
+                        // A. Create PurchaseRecord (Legacy/Inventory History)
                         await tx.purchaseRecord.create({
                             data: {
                                 store_id: Number(store_id),
                                 date: new Date(p.date), // Invoice date
                                 item_name: p.item,
-                                quantity: Number(p.qty),
-                                cost_total: Number(p.cost)
+                                quantity: qty,
+                                cost_total: cost
+                            }
+                        });
+
+                        // B. Create InvoiceRecord (New Source of Truth for CostTargets)
+                        // Prevents redundancy: Data entered here now feeds the "Dynamic Cost" logic automatically.
+                        await tx.invoiceRecord.create({
+                            data: {
+                                store_id: Number(store_id),
+                                date: new Date(p.date),
+                                item_name: p.item,
+                                quantity: qty,
+                                price_per_lb: pricePerLb,
+                                cost_total: cost,
+                                invoice_number: `WK-CLOSE-${weekNum}`, // Tagged specifically
+                                source: 'Manager Weekly Close'
                             }
                         });
                     }
