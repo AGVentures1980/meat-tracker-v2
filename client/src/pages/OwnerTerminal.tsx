@@ -73,9 +73,27 @@ export const OwnerTerminal = () => {
     };
 
     const metrics: Metric[] = [
-        { label: 'Total MRR', value: '$42,500', change: '+12.5%', icon: ArrowUpRight, color: 'text-[#00FF94]' },
-        { label: 'Active Companies', value: '28', change: '+3', icon: Building2, color: 'text-[#C5A059]' },
-        { label: 'AI Leads Found', value: '142', change: '+18 today', icon: Search, color: 'text-blue-400' },
+        {
+            label: 'Total Revenue',
+            value: finances?.metrics ? `$${finances.metrics.totalRevenue.toLocaleString()}` : '$0',
+            change: finances?.metrics ? '+Live' : '+0%',
+            icon: ArrowUpRight,
+            color: 'text-[#00FF94]'
+        },
+        {
+            label: 'Active Companies',
+            value: finances?.metrics ? finances.metrics.activeClients.toString() : '0',
+            change: '+1',
+            icon: Building2,
+            color: 'text-[#C5A059]'
+        },
+        {
+            label: 'AI Leads Found',
+            value: leads.length.toString(),
+            change: `+${leads.length}`,
+            icon: Search,
+            color: 'text-blue-400'
+        },
         { label: 'Platform Uptime', value: '99.98%', change: 'Stable', icon: Zap, color: 'text-[#FF2A6D]' },
     ];
 
@@ -156,10 +174,10 @@ export const OwnerTerminal = () => {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-white/5">
-                                                {finances.recentInvoices.map((inv: any) => (
+                                                {finances?.invoices?.map((inv: any) => (
                                                     <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
-                                                        <td className="px-6 py-4 text-xs font-mono text-gray-500">{inv.id}</td>
-                                                        <td className="px-6 py-4 font-bold">{inv.company}</td>
+                                                        <td className="px-6 py-4 text-xs font-mono text-gray-500">{inv.id.substring(0, 8)}</td>
+                                                        <td className="px-6 py-4 font-bold">{inv.company?.name || 'Unknown'}</td>
                                                         <td className="px-6 py-4 font-mono">${inv.amount.toLocaleString()}</td>
                                                         <td className="px-6 py-4">
                                                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${inv.status === 'paid' ? 'bg-[#00FF94]/10 text-[#00FF94]' : 'bg-red-500/10 text-red-500'}`}>
@@ -168,6 +186,11 @@ export const OwnerTerminal = () => {
                                                         </td>
                                                     </tr>
                                                 ))}
+                                                {(!finances?.invoices || finances.invoices.length === 0) && (
+                                                    <tr>
+                                                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500 text-xs italic">No recent invoices found.</td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
