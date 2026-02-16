@@ -10,30 +10,32 @@ export const SetupController = {
 
     async seedTargets(req: Request, res: Response) {
         try {
-            console.log('🌱 Seeding Targets via API...');
-            const storeId = 1; // Default
-            const companyId = 'CMP-001';
+            console.log('🌱 Seeding Targets via API for ALL stores...');
 
-            // Ensure Company
+            // 1. Ensure Default Store (if DB is empty)
+            const companyId = 'CMP-001';
             await prisma.company.upsert({
                 where: { id: companyId },
                 update: {},
                 create: { id: companyId, name: 'Brasa Group' }
             });
 
-            // Ensure Store
             await prisma.store.upsert({
-                where: { id: storeId },
+                where: { id: 1 },
                 update: {},
                 create: {
-                    id: storeId,
+                    id: 1,
                     store_name: 'Brasa Store #1',
                     company_id: companyId,
                     location: 'Default Location'
                 }
             });
 
-            const targets = [
+            // 2. Fetch ALL Stores
+            const allStores = await prisma.store.findMany();
+            console.log(`Found ${allStores.length} stores to seed.`);
+
+            const defaultTargets = [
                 { protein: 'Picanha', target: 0.35 },
                 { protein: 'Alcatra', target: 0.25 },
                 { protein: 'Fraldinha', target: 0.20 },
@@ -46,17 +48,35 @@ export const SetupController = {
                 { protein: 'Pineapple', target: 0.05 },
             ];
 
-            for (const t of targets) {
-                await prisma.storeMeatTarget.create({
-                    data: {
-                        store_id: storeId,
-                        protein: t.protein,
-                        target: t.target
+            let totalCreated = 0;
+
+            for (const store of allStores) {
+                for (const t of defaultTargets) {
+                    // Check if target exists to avoid duplicates
+                    const exists = await prisma.storeMeatTarget.findFirst({
+                        where: {
+                            store_id: store.id,
+                            protein: t.protein
+                        }
+                    });
+
+                    if (!exists) {
+                        await prisma.storeMeatTarget.create({
+                            data: {
+                                store_id: store.id,
+                                protein: t.protein,
+                                target: t.target
+                            }
+                        });
+                        totalCreated++;
                     }
-                });
+                }
             }
 
-            return res.json({ success: true, message: 'Targets Seeded Successfully' });
+            return res.json({
+                success: true,
+                message: `Seeding Complete. Added ${totalCreated} targets across ${allStores.length} stores.`
+            });
 
         } catch (error) {
             console.error('Seeding Failed:', error);
