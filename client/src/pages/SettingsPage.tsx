@@ -9,9 +9,8 @@ export const SettingsPage = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [stores, setStores] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    // Access Control (Temporarily Disabled for Debugging)
-    // const isDirectorOrAlexandre = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre.garcia@texasdebrazil.com';
-    const isDirectorOrAlexandre = true;
+    // Access Control
+    const isDirectorOrAlexandre = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre.garcia@texasdebrazil.com' || user?.email === 'alexandre@alexgarciaventures.co';
 
     const [newStore, setNewStore] = useState({
         name: '',
