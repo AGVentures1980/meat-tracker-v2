@@ -98,7 +98,7 @@ export const ForecastPage = () => {
                     <Brain className="w-8 h-8 text-[#C5A059]" />
                     <div>
                         <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.12</span>
+                            Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.1.13</span>
                         </h1>
                         <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
                             Demand Planning & Purchasing
@@ -363,9 +363,9 @@ const SmartOrderTable = ({ date, refreshTrigger }: { date: string, refreshTrigge
                             <th className="p-3 text-right text-[#FF2A6D]">- Est. Usage (Lbs)</th>
                             <th className="p-3 text-right font-bold text-white border-r border-[#333] print:text-black print:border-black">Est. On Hand (Lbs)</th>
 
-                            <th className="p-3 text-right text-[#C5A059] bg-[#C5A059]/5 print:bg-transparent">Mon (Lbs)</th>
-                            <th className="p-3 text-right text-[#00FF94] bg-[#00FF94]/5 print:bg-transparent font-bold">Wed (Lbs)</th>
-                            <th className="p-3 text-right text-[#C5A059] bg-[#C5A059]/5 print:bg-transparent">Sat (Lbs)</th>
+                            <th className="p-3 text-right text-[#C5A059] bg-[#C5A059]/5 print:bg-transparent">ORDER Mon (Lbs)</th>
+                            <th className="p-3 text-right text-[#00FF94] bg-[#00FF94]/5 print:bg-transparent font-bold">ORDER Wed (Lbs)</th>
+                            <th className="p-3 text-right text-[#C5A059] bg-[#C5A059]/5 print:bg-transparent">ORDER Sat (Lbs)</th>
                         </tr>
                     </thead>
                     <tbody className="text-sm font-mono text-gray-300 print:text-black">
