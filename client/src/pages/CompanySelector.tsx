@@ -51,28 +51,28 @@ export const CompanySelector = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#1a1a1a] via-[#0a0a0a] to-[#050505] p-8">
+        <div className="min-h-screen bg-[#0a0a0a] bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#1a1a1a] via-[#0a0a0a] to-[#050505] p-4 md:p-8">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="mb-12 text-center">
-                    <h1 className="text-5xl font-extrabold text-white mb-4 tracking-tighter">
+                <div className="mb-8 md:mb-12 text-center">
+                    <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-2 md:mb-4 tracking-tighter">
                         Command <span className="text-[#C5A059]">Center</span>
                     </h1>
-                    <p className="text-gray-500 font-mono uppercase tracking-[0.2em] text-sm">Select a company to manage</p>
+                    <p className="text-gray-500 font-mono uppercase tracking-[0.2em] text-xs md:text-sm">Select a company to manage</p>
                 </div>
 
                 {/* Owner Intelligence Center Button */}
-                <div className="mb-12 flex justify-center">
+                <div className="mb-8 md:mb-12 flex justify-center">
                     <button
                         onClick={() => navigate('/owner-terminal')}
-                        className="group bg-gradient-to-r from-[#C5A059]/20 to-[#C5A059]/10 hover:from-[#C5A059] hover:to-[#D5B069] border border-[#C5A059]/30 p-4 px-12 rounded-xl flex items-center gap-4 transition-all duration-500 shadow-[0_0_30px_rgba(197,160,89,0.1)] hover:shadow-[0_0_50px_rgba(197,160,89,0.4)] active:scale-95"
+                        className="w-full md:w-auto group bg-gradient-to-r from-[#C5A059]/20 to-[#C5A059]/10 hover:from-[#C5A059] hover:to-[#D5B069] border border-[#C5A059]/30 p-4 md:px-12 rounded-xl flex flex-col md:flex-row items-center gap-4 transition-all duration-500 shadow-[0_0_30px_rgba(197,160,89,0.1)] hover:shadow-[0_0_50px_rgba(197,160,89,0.4)] active:scale-95"
                     >
-                        <Zap className="text-[#C5A059] group-hover:text-black transition-colors" />
-                        <div className="text-left">
+                        <Zap className="text-[#C5A059] group-hover:text-black transition-colors w-6 h-6 md:w-5 md:h-5" />
+                        <div className="text-center md:text-left">
                             <h3 className="text-sm font-bold text-white group-hover:text-black tracking-widest uppercase transition-colors">Owner Intelligence Center</h3>
-                            <p className="text-[10px] text-gray-500 group-hover:text-black/70 font-mono transition-colors">AI Lead Gen • Global Finances • Dev Metrics</p>
+                            <p className="text-[10px] text-gray-500 group-hover:text-black/70 font-mono transition-colors mt-1 md:mt-0">AI Lead Gen • Global Finances • Dev Metrics</p>
                         </div>
-                        <ArrowRight className="text-[#C5A059] group-hover:text-black transition-colors" />
+                        <ArrowRight className="text-[#C5A059] group-hover:text-black transition-colors hidden md:block" />
                     </button>
                 </div>
 

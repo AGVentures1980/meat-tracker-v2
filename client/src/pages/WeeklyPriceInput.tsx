@@ -393,7 +393,7 @@ export const WeeklyPriceInput = () => {
                     </div>
 
                     <div className="divide-y divide-[#333] overflow-y-auto max-h-[500px]">
-                        <div className="grid grid-cols-12 gap-4 p-5 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-black/20">
+                        <div className="hidden md:grid grid-cols-12 gap-4 p-5 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-black/20">
                             <div className="col-span-6">{t('price_protein_desc')}</div>
                             <div className="col-span-3 text-right">{t('price_cost_history')}</div>
                             <div className="col-span-3 text-right">{t('price_market_price')}</div>
@@ -403,17 +403,27 @@ export const WeeklyPriceInput = () => {
                             const hasWeighted = weightedAverages[item.item] !== undefined;
 
                             return (
-                                <div key={item.id} className="grid grid-cols-12 gap-4 p-5 items-center hover:bg-white/5 transition-colors group">
-                                    <div className="col-span-6">
-                                        <div className="font-bold text-white group-hover:text-brand-gold transition-colors">{t(`item_${item.item.toLowerCase().replace(/ /g, '_').split('/')[0]}`)}</div>
-                                        <div className="text-[9px] text-gray-500 font-mono mt-1">{t('price_standard_calc')}: {item.unit}</div>
+                                <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 md:p-5 items-center hover:bg-white/5 transition-colors group">
+                                    <div className="col-span-1 md:col-span-6 flex justify-between md:block">
+                                        <div>
+                                            <div className="font-bold text-white group-hover:text-brand-gold transition-colors text-sm md:text-base">{t(`item_${item.item.toLowerCase().replace(/ /g, '_').split('/')[0]}`)}</div>
+                                            <div className="text-[9px] text-gray-500 font-mono mt-1">{t('price_standard_calc')}: {item.unit}</div>
+                                        </div>
+                                        {/* Mobile History View */}
+                                        <div className="md:hidden text-right">
+                                            <div className="text-gray-500 font-mono text-xs">${item.last.toFixed(2)}</div>
+                                            <div className="text-[9px] text-gray-600 uppercase">Last Wk</div>
+                                        </div>
                                     </div>
-                                    <div className="col-span-3 text-right">
+
+                                    <div className="hidden md:block col-span-3 text-right">
                                         <div className="text-gray-500 font-mono text-xs">${item.last.toFixed(2)}</div>
                                         <div className="text-[9px] text-gray-600 uppercase">{t('price_last_week')}</div>
                                     </div>
-                                    <div className="col-span-3 flex flex-col items-end">
-                                        <div className="relative mb-1">
+
+                                    <div className="col-span-1 md:col-span-3 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2">
+                                        <span className="md:hidden text-xs font-bold text-brand-gold uppercase tracking-wider">Current Price:</span>
+                                        <div className="relative w-full md:w-auto">
                                             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-600 text-[10px]">$</span>
                                             <input
                                                 type="number"
@@ -421,11 +431,11 @@ export const WeeklyPriceInput = () => {
                                                 value={item.current}
                                                 onChange={(e) => handlePriceChange(item.id, e.target.value)}
                                                 disabled={isLocked}
-                                                className={`w-28 bg-[#1a1a1a] border border-[#333] rounded-sm py-2 pl-6 pr-2 text-right text-white font-mono text-sm outline-none transition-all ${isLocked ? 'opacity-50 cursor-not-allowed' : 'focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/20'}`}
+                                                className={`w-full md:w-28 bg-[#1a1a1a] border border-[#333] rounded-sm py-2 pl-6 pr-2 text-right text-white font-mono text-sm outline-none transition-all ${isLocked ? 'opacity-50 cursor-not-allowed' : 'focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/20'}`}
                                             />
                                         </div>
                                         {hasWeighted && (
-                                            <span className="text-[8px] px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-full font-bold uppercase animate-pulse">
+                                            <span className="text-[8px] px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-full font-bold uppercase animate-pulse shrink-0">
                                                 {t('price_weighted_applied')}
                                             </span>
                                         )}
