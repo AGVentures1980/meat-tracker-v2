@@ -121,9 +121,31 @@ Av.Paulista, SP | Dallas, TX`;
         alert('Email copiado para a área de transferência!');
     };
 
-    const handleSendSimulation = () => {
-        alert(`Simulação: Email enviado com sucesso para ${ selectedLead?.company_name } via SendGrid API.`);
-        setEmailModalOpen(false);
+    const handleSendSimulation = async () => {
+        try {
+            const res = await fetch('/api/v1/owner/prospecting/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${ user?.token } `
+                },
+                body: JSON.stringify({
+                    leadId: selectedLead?.id,
+                    emailContent
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(`Email enviado com sucesso para ${ selectedLead?.company_name }.`);
+                setEmailModalOpen(false);
+            } else {
+                alert('Falha ao enviar email.');
+            }
+        } catch (error) {
+            console.error('Email send failed', error);
+            alert('Erro ao conectar com o servidor de email.');
+        }
     };
 
     const handleScheduleMeeting = (lead: any) => {
