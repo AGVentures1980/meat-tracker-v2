@@ -264,14 +264,14 @@ export const OwnerTerminal = () => {
                                             </span>
                                             <div className="text-right">
                                                 <div className="text-[10px] text-gray-500 font-mono uppercase">Match Score</div>
-                                                <div className="text-xl font-black text-[#00FF94]">{(lead.fit * 100).toFixed(0)}%</div>
+                                                <div className="text-xl font-black text-[#00FF94]">{(lead.potential_fit * 100).toFixed(0)}%</div>
                                             </div>
                                         </div>
-                                        <h3 className="text-xl font-bold mb-4">{lead.name}</h3>
+                                        <h3 className="text-xl font-bold mb-4">{lead.company_name}</h3>
                                         <div className="space-y-4 mb-8">
                                             <div>
                                                 <p className="text-[9px] text-gray-500 uppercase font-bold mb-1">Study Justification</p>
-                                                <p className="text-xs text-gray-300 leading-relaxed italic">"{lead.why}"</p>
+                                                <p className="text-xs text-gray-300 leading-relaxed italic">"{lead.justification}"</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
