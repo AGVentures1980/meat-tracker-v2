@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { ProspectingAgent } from '../services/ProspectingAgent';
 
 const prisma = new PrismaClient();
 
