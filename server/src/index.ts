@@ -49,6 +49,8 @@ import reportRoutes from './routes/report.routes';
 import forecastRoutes from './routes/forecast.routes';
 import ownerRoutes from './routes/owner.routes';
 
+import { ProspectingAgent } from './services/ProspectingAgent';
+
 import path from 'path';
 
 // Auth Routes (Public)
