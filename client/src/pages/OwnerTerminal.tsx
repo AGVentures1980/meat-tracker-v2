@@ -1,4 +1,3 @@
-```typescript
 import { useState, useEffect } from 'react';
 import {
     CreditCard,
@@ -8,8 +7,6 @@ import {
     Building2,
     Zap,
     Download,
-    Globe,
-    Server,
     Activity,
     Mail,
     Copy,
@@ -42,7 +39,7 @@ export const OwnerTerminal = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const headers = { 'Authorization': `Bearer ${ user?.token } ` };
+            const headers = { 'Authorization': `Bearer ${user?.token}` };
 
             const [finRes, leadsRes] = await Promise.all([
                 fetch('/api/v1/owner/billing/finances', { headers }),
@@ -72,7 +69,7 @@ export const OwnerTerminal = () => {
             setIsScanning(true);
             const res = await fetch('/api/v1/owner/prospecting/discover', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${ user?.token } ` }
+                headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await res.json();
             if (data.success) {
@@ -89,27 +86,27 @@ export const OwnerTerminal = () => {
      * Generates a high-conversion sales email based on the lead's data.
      */
     const handleOpenEmail = (lead: any) => {
-        const template = `ASSUNTO: Parceria Estratégica: Brasa Intel x ${ lead.company_name }
+        const template = `ASSUNTO: Parceria Estratégica: Brasa Intel x ${lead.company_name}
 
-Olá equipe ${ lead.company_name },
+Olá equipe ${lead.company_name},
 
-Nossa inteligência artificial de mercado identificou o ${ lead.company_name } como uma referência no segmento de ${ lead.industry }.
+Nossa inteligência artificial de mercado identificou o ${lead.company_name} como uma referência no segmento de ${lead.industry}.
 
-Monitoramos que empresas do seu porte(${ lead.size }) frequentemente enfrentam desafios específicos de controle, e nossa análise preliminar indicou uma oportunidade única para vocês:
+Monitoramos que empresas do seu porte (${lead.size}) frequentemente enfrentam desafios específicos de controle, e nossa análise preliminar indicou uma oportunidade única para vocês:
 
 DADO IDENTIFICADO:
 "${lead.justification}"
 
-O Brasa Intelligence(v5.2) foi desenhado exatamente para resolver esse gargalo.Não somos apenas um ERP, somos um "CFO Digital" que audita cada grama de proteína em tempo real.
+O Brasa Intelligence (v5.2) foi desenhado exatamente para resolver esse gargalo. Não somos apenas um ERP, somos um "CFO Digital" que audita cada grama de proteína em tempo real.
 
-Gostaria de agendar uma demonstração técnica de 15 minutos para mostrar como podemos aumentar sua margem em até 12 % nas primeiras semanas.
+Gostaria de agendar uma demonstração técnica de 15 minutos para mostrar como podemos aumentar sua margem em até 12% nas primeiras semanas.
 
 Aguardo seu retorno,
 
     --
     Director of Partnerships
-Brasa Meat Intelligence Systems
-Av.Paulista, SP | Dallas, TX`;
+    Brasa Meat Intelligence Systems
+    Av. Paulista, SP | Dallas, TX`;
 
         setSelectedLead(lead);
         setEmailContent(template);
@@ -127,7 +124,7 @@ Av.Paulista, SP | Dallas, TX`;
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${ user?.token } `
+                    'Authorization': `Bearer ${user?.token}`
                 },
                 body: JSON.stringify({
                     leadId: selectedLead?.id,
@@ -137,7 +134,7 @@ Av.Paulista, SP | Dallas, TX`;
 
             const data = await res.json();
             if (data.success) {
-                alert(`Email enviado com sucesso para ${ selectedLead?.company_name }.`);
+                alert(`Email enviado com sucesso para ${selectedLead?.company_name}.`);
                 setEmailModalOpen(false);
             } else {
                 alert('Falha ao enviar email.');
@@ -149,15 +146,15 @@ Av.Paulista, SP | Dallas, TX`;
     };
 
     const handleScheduleMeeting = (lead: any) => {
-        const subject = `Reunião de Apresentação - ${ lead.company_name } `;
-        const body = `Olá, gostaria de agendar um horário para apresentarmos o Brasa Intel.\n\nContexto: ${ lead.justification } `;
-        window.open(`mailto:? subject = ${ encodeURIComponent(subject) }& body=${ encodeURIComponent(body) } `);
+        const subject = `Reunião de Apresentação - ${lead.company_name}`;
+        const body = `Olá, gostaria de agendar um horário para apresentarmos o Brasa Intel.\n\nContexto: ${lead.justification}`;
+        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
     };
 
     const metrics: Metric[] = [
         {
             label: 'Total Revenue',
-            value: finances?.metrics ? `$${ finances.metrics.totalRevenue.toLocaleString() } ` : '$0',
+            value: finances?.metrics ? `$${finances.metrics.totalRevenue.toLocaleString()}` : '$0',
             change: finances?.metrics ? '+Live' : '+0%',
             icon: ArrowUpRight,
             color: 'text-[#00FF94]'
@@ -172,7 +169,7 @@ Av.Paulista, SP | Dallas, TX`;
         {
             label: 'AI Leads Found',
             value: leads.length.toString(),
-            change: `+ ${ leads.length } `,
+            change: `+${leads.length}`,
             icon: Search,
             color: 'text-blue-400'
         },
@@ -211,7 +208,7 @@ Av.Paulista, SP | Dallas, TX`;
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px - 6 py - 2 rounded - md text - xs font - bold uppercase tracking - widest transition - all ${ activeTab === tab ? 'bg-[#C5A059] text-black shadow-[0_0_20px_rgba(197,160,89,0.3)]' : 'text-gray-500 hover:text-white' } `}
+                            className={`px-6 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#C5A059] text-black shadow-[0_0_20px_rgba(197,160,89,0.3)]' : 'text-gray-500 hover:text-white'}`}
                         >
                             {tab}
                         </button>
@@ -227,10 +224,10 @@ Av.Paulista, SP | Dallas, TX`;
                                 {metrics.map((m, i) => (
                                     <div key={i} className="bg-[#111] border border-white/5 p-6 rounded-xl group hover:border-[#C5A059]/30 transition-all">
                                         <div className="flex justify-between items-start mb-4">
-                                            <div className={`p - 2 rounded - lg bg - white / 5 ${ m.color } `}>
+                                            <div className={`p-2 rounded-lg bg-white/5 ${m.color}`}>
                                                 <m.icon size={20} />
                                             </div>
-                                            <span className={`text - [10px] font - bold ${ m.color } `}>{m.change}</span>
+                                            <span className={`text-[10px] font-bold ${m.color}`}>{m.change}</span>
                                         </div>
                                         <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">{m.label}</p>
                                         <h3 className="text-2xl font-black">{m.value}</h3>
@@ -262,7 +259,7 @@ Av.Paulista, SP | Dallas, TX`;
                                                         <td className="px-6 py-4 font-bold">{inv.company?.name || 'Unknown'}</td>
                                                         <td className="px-6 py-4 font-mono">${inv.amount.toLocaleString()}</td>
                                                         <td className="px-6 py-4">
-                                                            <span className={`px - 2 py - 0.5 rounded - full text - [9px] font - bold uppercase tracking - widest ${ inv.status === 'paid' ? 'bg-[#00FF94]/10 text-[#00FF94]' : 'bg-red-500/10 text-red-500' } `}>
+                                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${inv.status === 'paid' ? 'bg-[#00FF94]/10 text-[#00FF94]' : 'bg-red-500/10 text-red-500'}`}>
                                                                 {inv.status}
                                                             </span>
                                                         </td>
@@ -357,13 +354,13 @@ Av.Paulista, SP | Dallas, TX`;
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <button 
+                                            <button
                                                 onClick={() => handleOpenEmail(lead)}
                                                 className="flex-1 py-2 bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest rounded border border-[#C5A059]/20 hover:bg-[#C5A059] hover:text-black transition-all flex items-center justify-center gap-2"
                                             >
                                                 <Mail size={14} /> Email Marketing
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => handleScheduleMeeting(lead)}
                                                 className="px-3 py-2 bg-white/5 text-white rounded border border-white/10 hover:bg-white/10"
                                                 title="Schedule Meeting"
@@ -432,7 +429,7 @@ Av.Paulista, SP | Dallas, TX`;
                                 <X size={20} />
                             </button>
                         </div>
-                        
+
                         <div className="p-6">
                             <div className="mb-4 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex gap-3 items-start">
                                 <Zap className="text-blue-400 shrink-0 mt-0.5" size={16} />
@@ -449,13 +446,13 @@ Av.Paulista, SP | Dallas, TX`;
                         </div>
 
                         <div className="p-6 border-t border-white/5 bg-[#111] flex justify-end gap-3">
-                            <button 
+                            <button
                                 onClick={handleCopyEmail}
                                 className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 border border-white/10"
                             >
                                 <Copy size={16} /> Copiar Texto
                             </button>
-                            <button 
+                            <button
                                 onClick={handleSendSimulation}
                                 className="px-6 py-3 bg-[#C5A059] hover:bg-[#D5B069] text-black text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(197,160,89,0.2)]"
                             >

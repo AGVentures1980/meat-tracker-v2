@@ -24,15 +24,16 @@ router.post('/prospecting/discover', requireAuth, async (req, res) => {
     res.json(result);
 });
 
-router.get('/prospecting/leads', requireAuth, async (req, res) => {
-    try {
-        const leads = await prisma.prospect.findMany({
-            orderBy: { created_at: 'desc' }
-        });
-        res.json({ success: true, leads });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
+try {
+    const leads = await prisma.prospect.findMany({
+        orderBy: { created_at: 'desc' }
+    });
+    res.json({ success: true, leads });
+} catch (err: any) {
+    res.status(500).json({ error: err.message });
+}
 });
+
+router.post('/prospecting/send-email', requireAuth, OwnerController.sendLeadEmail);
 
 export default router;

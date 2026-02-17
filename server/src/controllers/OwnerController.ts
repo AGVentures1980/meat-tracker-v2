@@ -112,5 +112,20 @@ export const OwnerController = {
         } catch (error: any) {
             return res.status(500).json({ error: error.message });
         }
+    },
+
+    async sendLeadEmail(req: Request, res: Response) {
+        try {
+            const { leadId, emailContent } = req.body;
+            console.log(`📧 OwnerController: Sending email to lead ${leadId}`);
+
+            // Call the agent service to handle the sending
+            const result = await ProspectingAgent.sendCampaignEmail(leadId, emailContent);
+
+            return res.json(result);
+        } catch (error: any) {
+            console.error('Email Send Error:', error);
+            return res.status(500).json({ error: error.message });
+        }
     }
 };
