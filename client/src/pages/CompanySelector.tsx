@@ -113,30 +113,6 @@ export const CompanySelector = () => {
                         </div>
                     ))}
 
-                    {/* SaaS Admin Card (Advisor View) */}
-                    <div
-                        onClick={() => navigate('/saas-admin')}
-                        className="group bg-gradient-to-br from-[#FF2A6D]/5 to-transparent border border-[#FF2A6D]/10 p-8 rounded-2xl cursor-pointer hover:border-[#FF2A6D]/30 transition-all duration-500 relative overflow-hidden"
-                    >
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Settings size={60} className="text-[#FF2A6D]" />
-                        </div>
-                        <h3 className="text-xl font-bold text-[#FF2A6D] mb-4 flex items-center gap-2">
-                            System Advisor
-                        </h3>
-                        <p className="text-gray-400 text-sm mb-8">
-                            Monitor platform growth, financial targets, and HR modules across all companies.
-                        </p>
-                        <div className="space-y-3">
-                            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                <div className="h-full bg-[#FF2A6D] w-[65%] shadow-[0_0_10px_#FF2A6D]"></div>
-                            </div>
-                            <div className="flex justify-between text-[10px] font-mono text-gray-500 uppercase">
-                                <span>Platform Health</span>
-                                <span>98.2%</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
