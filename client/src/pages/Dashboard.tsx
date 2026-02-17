@@ -43,15 +43,23 @@ export const Dashboard = () => {
     const { user } = useAuth();
     const { t } = useLanguage();
 
+    const getMonday = (d: Date) => {
+        d = new Date(d);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             if (!user?.token) return;
             try {
                 setLoading(true);
-                const storeParam = storeId ? `?storeId=${storeId}` : '';
+                const mondayDate = getMonday(new Date()).toISOString().split('T')[0];
+                const storeParam = storeId ? `?storeId=${storeId}&date=${mondayDate}` : `?date=${mondayDate}`;
                 // Parallel fetch
                 const [perfRes, anomalyRes, suggestRes] = await Promise.all([
-                    fetch(`/api/v1/dashboard/company-stats${storeParam}`, { headers: { 'Authorization': `Bearer ${user.token}` } }),
+                    fetch(`/api/v1/dashboard/company-stats${storeId ? `?storeId=${storeId}` : ''}`, { headers: { 'Authorization': `Bearer ${user.token}` } }),
                     fetch('/api/v1/intelligence/anomalies', { headers: { 'Authorization': `Bearer ${user.token}` } }),
                     fetch(`/api/v1/intelligence/supply-suggestions${storeParam}`, { headers: { 'Authorization': `Bearer ${user.token}` } })
                 ]);
