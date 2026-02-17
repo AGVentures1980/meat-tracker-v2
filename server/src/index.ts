@@ -177,5 +177,17 @@ ensureDirectorUser().then(() => ensureDefaultSettings()).then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 BRASA INTEL v4.2.0-DASHBOARD-EXEC running on http://localhost:${PORT}`);
         console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
+
+        // 🟢 24/7 AI AGENT BACKGROUND LOOP
+        console.log(`🤖 AI Prospecting Agent: ONLINE (24/7 Watch Mode)`);
+
+        // Run immediately on startup
+        ProspectingAgent.discoverNewProspects();
+
+        // Then run every 6 hours (Simulation of "24/7" work)
+        setInterval(() => {
+            console.log(`🕒 Scheduled AI Scan Triggered...`);
+            ProspectingAgent.discoverNewProspects();
+        }, 6 * 60 * 60 * 1000);
     });
 });
