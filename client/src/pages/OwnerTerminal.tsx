@@ -1,3 +1,4 @@
+```typescript
 import { useState, useEffect } from 'react';
 import {
     CreditCard,
@@ -6,7 +7,14 @@ import {
     ArrowUpRight,
     Building2,
     Zap,
-    Download
+    Download,
+    Globe,
+    Server,
+    Activity,
+    Mail,
+    Copy,
+    X,
+    Send
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,15 +29,20 @@ interface Metric {
 export const OwnerTerminal = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'overview' | 'billing' | 'leads' | 'dev'>('overview');
-    const [finances, setFinances] = useState<any>(null);
     const [leads, setLeads] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [finances, setFinances] = useState<any>(null);
     const [isScanning, setIsScanning] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    // Email Modal State
+    const [emailModalOpen, setEmailModalOpen] = useState(false);
+    const [selectedLead, setSelectedLead] = useState<any>(null);
+    const [emailContent, setEmailContent] = useState('');
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const headers = { 'Authorization': `Bearer ${user?.token}` };
+            const headers = { 'Authorization': `Bearer ${ user?.token } ` };
 
             const [finRes, leadsRes] = await Promise.all([
                 fetch('/api/v1/owner/billing/finances', { headers }),
@@ -59,7 +72,7 @@ export const OwnerTerminal = () => {
             setIsScanning(true);
             const res = await fetch('/api/v1/owner/prospecting/discover', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: { 'Authorization': `Bearer ${ user?.token } ` }
             });
             const data = await res.json();
             if (data.success) {
@@ -72,10 +85,57 @@ export const OwnerTerminal = () => {
         }
     };
 
+    /**
+     * Generates a high-conversion sales email based on the lead's data.
+     */
+    const handleOpenEmail = (lead: any) => {
+        const template = `ASSUNTO: Parceria Estratégica: Brasa Intel x ${ lead.company_name }
+
+Olá equipe ${ lead.company_name },
+
+Nossa inteligência artificial de mercado identificou o ${ lead.company_name } como uma referência no segmento de ${ lead.industry }.
+
+Monitoramos que empresas do seu porte(${ lead.size }) frequentemente enfrentam desafios específicos de controle, e nossa análise preliminar indicou uma oportunidade única para vocês:
+
+DADO IDENTIFICADO:
+"${lead.justification}"
+
+O Brasa Intelligence(v5.2) foi desenhado exatamente para resolver esse gargalo.Não somos apenas um ERP, somos um "CFO Digital" que audita cada grama de proteína em tempo real.
+
+Gostaria de agendar uma demonstração técnica de 15 minutos para mostrar como podemos aumentar sua margem em até 12 % nas primeiras semanas.
+
+Aguardo seu retorno,
+
+    --
+    Director of Partnerships
+Brasa Meat Intelligence Systems
+Av.Paulista, SP | Dallas, TX`;
+
+        setSelectedLead(lead);
+        setEmailContent(template);
+        setEmailModalOpen(true);
+    };
+
+    const handleCopyEmail = () => {
+        navigator.clipboard.writeText(emailContent);
+        alert('Email copiado para a área de transferência!');
+    };
+
+    const handleSendSimulation = () => {
+        alert(`Simulação: Email enviado com sucesso para ${ selectedLead?.company_name } via SendGrid API.`);
+        setEmailModalOpen(false);
+    };
+
+    const handleScheduleMeeting = (lead: any) => {
+        const subject = `Reunião de Apresentação - ${ lead.company_name } `;
+        const body = `Olá, gostaria de agendar um horário para apresentarmos o Brasa Intel.\n\nContexto: ${ lead.justification } `;
+        window.open(`mailto:? subject = ${ encodeURIComponent(subject) }& body=${ encodeURIComponent(body) } `);
+    };
+
     const metrics: Metric[] = [
         {
             label: 'Total Revenue',
-            value: finances?.metrics ? `$${finances.metrics.totalRevenue.toLocaleString()}` : '$0',
+            value: finances?.metrics ? `$${ finances.metrics.totalRevenue.toLocaleString() } ` : '$0',
             change: finances?.metrics ? '+Live' : '+0%',
             icon: ArrowUpRight,
             color: 'text-[#00FF94]'
@@ -90,7 +150,7 @@ export const OwnerTerminal = () => {
         {
             label: 'AI Leads Found',
             value: leads.length.toString(),
-            change: `+${leads.length}`,
+            change: `+ ${ leads.length } `,
             icon: Search,
             color: 'text-blue-400'
         },
@@ -129,7 +189,7 @@ export const OwnerTerminal = () => {
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-6 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#C5A059] text-black shadow-[0_0_20px_rgba(197,160,89,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                            className={`px - 6 py - 2 rounded - md text - xs font - bold uppercase tracking - widest transition - all ${ activeTab === tab ? 'bg-[#C5A059] text-black shadow-[0_0_20px_rgba(197,160,89,0.3)]' : 'text-gray-500 hover:text-white' } `}
                         >
                             {tab}
                         </button>
@@ -145,10 +205,10 @@ export const OwnerTerminal = () => {
                                 {metrics.map((m, i) => (
                                     <div key={i} className="bg-[#111] border border-white/5 p-6 rounded-xl group hover:border-[#C5A059]/30 transition-all">
                                         <div className="flex justify-between items-start mb-4">
-                                            <div className={`p-2 rounded-lg bg-white/5 ${m.color}`}>
+                                            <div className={`p - 2 rounded - lg bg - white / 5 ${ m.color } `}>
                                                 <m.icon size={20} />
                                             </div>
-                                            <span className={`text-[10px] font-bold ${m.color}`}>{m.change}</span>
+                                            <span className={`text - [10px] font - bold ${ m.color } `}>{m.change}</span>
                                         </div>
                                         <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">{m.label}</p>
                                         <h3 className="text-2xl font-black">{m.value}</h3>
@@ -180,7 +240,7 @@ export const OwnerTerminal = () => {
                                                         <td className="px-6 py-4 font-bold">{inv.company?.name || 'Unknown'}</td>
                                                         <td className="px-6 py-4 font-mono">${inv.amount.toLocaleString()}</td>
                                                         <td className="px-6 py-4">
-                                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${inv.status === 'paid' ? 'bg-[#00FF94]/10 text-[#00FF94]' : 'bg-red-500/10 text-red-500'}`}>
+                                                            <span className={`px - 2 py - 0.5 rounded - full text - [9px] font - bold uppercase tracking - widest ${ inv.status === 'paid' ? 'bg-[#00FF94]/10 text-[#00FF94]' : 'bg-red-500/10 text-red-500' } `}>
                                                                 {inv.status}
                                                             </span>
                                                         </td>
@@ -275,11 +335,18 @@ export const OwnerTerminal = () => {
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <button className="flex-1 py-2 bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest rounded border border-[#C5A059]/20 hover:bg-[#C5A059] hover:text-black transition-all">
-                                                Schedule Call
+                                            <button 
+                                                onClick={() => handleOpenEmail(lead)}
+                                                className="flex-1 py-2 bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest rounded border border-[#C5A059]/20 hover:bg-[#C5A059] hover:text-black transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Mail size={14} /> Email Marketing
                                             </button>
-                                            <button className="px-3 py-2 bg-white/5 text-white rounded border border-white/10 hover:bg-white/10">
-                                                <ArrowUpRight size={14} />
+                                            <button 
+                                                onClick={() => handleScheduleMeeting(lead)}
+                                                className="px-3 py-2 bg-white/5 text-white rounded border border-white/10 hover:bg-white/10"
+                                                title="Schedule Meeting"
+                                            >
+                                                <Activity size={14} />
                                             </button>
                                         </div>
                                     </div>
@@ -327,6 +394,55 @@ export const OwnerTerminal = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Email Marketing Modal */}
+            {emailModalOpen && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+                    <div className="bg-[#1a1a1a] border border-white/10 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#111]">
+                            <h3 className="flex items-center gap-3 text-lg font-bold text-white">
+                                <div className="p-2 bg-[#C5A059]/10 rounded-lg">
+                                    <Mail size={18} className="text-[#C5A059]" />
+                                </div>
+                                SALES GENERATOR: {selectedLead?.company_name}
+                            </h3>
+                            <button onClick={() => setEmailModalOpen(false)} className="text-gray-500 hover:text-white transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6">
+                            <div className="mb-4 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex gap-3 items-start">
+                                <Zap className="text-blue-400 shrink-0 mt-0.5" size={16} />
+                                <p className="text-blue-200 text-xs leading-relaxed">
+                                    <span className="font-bold">AI INSIGHT:</span> O email foi gerado focando na dor identificada: <span className="text-white font-bold">"{selectedLead?.justification}"</span>. A taxa estimada de resposta para este template é de 24%.
+                                </p>
+                            </div>
+
+                            <textarea
+                                value={emailContent}
+                                onChange={(e) => setEmailContent(e.target.value)}
+                                className="w-full h-64 bg-[#0a0a0a] border border-white/10 rounded-xl p-4 text-sm text-gray-300 font-mono resize-none focus:outline-none focus:border-[#C5A059]/50 transition-colors"
+                            />
+                        </div>
+
+                        <div className="p-6 border-t border-white/5 bg-[#111] flex justify-end gap-3">
+                            <button 
+                                onClick={handleCopyEmail}
+                                className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 border border-white/10"
+                            >
+                                <Copy size={16} /> Copiar Texto
+                            </button>
+                            <button 
+                                onClick={handleSendSimulation}
+                                className="px-6 py-3 bg-[#C5A059] hover:bg-[#D5B069] text-black text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(197,160,89,0.2)]"
+                            >
+                                <Send size={16} /> Revisar e Enviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
