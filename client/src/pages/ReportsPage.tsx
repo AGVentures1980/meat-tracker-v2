@@ -206,13 +206,13 @@ export const ReportsPage = () => {
                                                         </div>
                                                         <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-bold">Total Estimated Spend</div>
                                                         <div className="text-2xl font-bold font-mono text-white">
-                                                            ${(data.summary.total_spend || 0).toLocaleString()}
+                                                            ${(data.summary.total_spend || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </div>
                                                     </div>
                                                     <div className="p-5 bg-[#222] border border-[#333] rounded-sm relative overflow-hidden group/card hover:border-brand-gold/50 transition-all">
                                                         <div className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-bold">Net Variance Impact</div>
                                                         <div className={`text-2xl font-bold font-mono ${data.summary.net_impact_ytd <= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
-                                                            {data.summary.net_impact_ytd <= 0 ? '+' : ''}${(Math.abs(data.summary.net_impact_ytd) || 0).toLocaleString()}
+                                                            {data.summary.net_impact_ytd <= 0 ? '+' : ''}${(Math.abs(data.summary.net_impact_ytd) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </div>
                                                         <div className="text-[9px] text-gray-500 mt-1 uppercase">Below/Above Target</div>
                                                     </div>
@@ -241,7 +241,7 @@ export const ReportsPage = () => {
                                                                 <tr key={i} className="hover:bg-white/5 transition-colors">
                                                                     <td className="p-3 text-white font-bold">{row.name}</td>
                                                                     <td className="p-3 text-gray-400">{row.location}</td>
-                                                                    <td className="p-3 text-right text-brand-gold">{row.todayLbs?.toLocaleString()} lbs</td>
+                                                                    <td className="p-3 text-right text-brand-gold">{row.todayLbs?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lbs</td>
                                                                     <td className="p-3 text-right">
                                                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${row.status === 'Active' ? 'bg-green-500/20 text-green-500' : 'bg-gray-500/20 text-gray-500'}`}>
                                                                             {row.status}
@@ -273,8 +273,8 @@ export const ReportsPage = () => {
                                                             {data.variance.sort((a: any, b: any) => a.protein.localeCompare(b.protein)).map((v: any, i: number) => (
                                                                 <tr key={i} className="hover:bg-white/5 transition-colors">
                                                                     <td className="p-3 text-white font-bold uppercase">{v.protein}</td>
-                                                                    <td className="p-3 text-right text-gray-300">{v.actual.toLocaleString()} lbs</td>
-                                                                    <td className="p-3 text-right text-gray-500">{v.ideal.toLocaleString()} lbs</td>
+                                                                    <td className="p-3 text-right text-gray-300">{v.actual.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lbs</td>
+                                                                    <td className="p-3 text-right text-gray-500">{v.ideal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lbs</td>
                                                                     <td className={`p-3 text-right font-bold ${v.variance <= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
                                                                         {v.variance > 0 ? '+' : ''}{v.variance.toFixed(2)}
                                                                     </td>
@@ -301,7 +301,7 @@ export const ReportsPage = () => {
                                                                         <tr key={i} className="hover:bg-white/5">
                                                                             <td className="p-2 text-gray-500">{new Date(p.date).toLocaleDateString()}</td>
                                                                             <td className="p-2 text-white font-bold">{p.item}</td>
-                                                                            <td className="p-2 text-right text-brand-gold">{p.quantity} lbs</td>
+                                                                            <td className="p-2 text-right text-brand-gold">{p.quantity?.toFixed(2)} lbs</td>
                                                                         </tr>
                                                                     ))}
                                                                 </tbody>
@@ -317,7 +317,7 @@ export const ReportsPage = () => {
                                                                         <tr key={i} className="hover:bg-white/5">
                                                                             <td className="p-2 text-gray-500">{new Date(c.date).toLocaleDateString()}</td>
                                                                             <td className="p-2 text-white font-bold">{c.item}</td>
-                                                                            <td className="p-2 text-right text-blue-400">{c.quantity} lbs</td>
+                                                                            <td className="p-2 text-right text-blue-400">{c.quantity?.toFixed(2)} lbs</td>
                                                                         </tr>
                                                                     ))}
                                                                 </tbody>
@@ -393,6 +393,6 @@ export const ReportsPage = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
