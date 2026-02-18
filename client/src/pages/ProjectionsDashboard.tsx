@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw, Ship } from 'lucide-react';
+import { TrendingUp, DollarSign, Calculator, Lock, RefreshCw, Ship, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ProposalPreview } from '../components/ProposalPreview';
 
@@ -247,12 +247,12 @@ export const ProjectionsDashboard = () => {
                         onClick={() => setIsPasswordModalOpen(true)}
                         disabled={isPublished}
                         className={`font-bold py-2 px-6 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono ${isPublished
-                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                            : 'bg-brand-gold hover:bg-yellow-500 text-black shadow-[0_0_15px_rgba(255,184,0,0.3)]'
+                            ? 'bg-[#00FF94]/10 text-[#00FF94] border border-[#00FF94]/20 cursor-not-allowed'
+                            : 'bg-brand-gold text-black hover:bg-yellow-500 shadow-[0_0_15px_rgba(197,160,89,0.3)]'
                             }`}
                     >
-                        <Lock className="w-4 h-4 mr-2" />
-                        {isPublished ? t('proj_targets_published') : t('proj_publish_corporate')}
+                        {isPublished ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                        {isPublished ? t('proj_targets_locked') : t('proj_publish_targets')}
                     </button>
                     <button
                         onClick={() => setShowProposal(true)}
@@ -269,18 +269,28 @@ export const ProjectionsDashboard = () => {
                 {/* 1. projected Growth Input */}
                 <div className="bg-[#1a1a1a] border border-[#333] p-6 rounded-sm">
                     <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-4 font-mono">{t('proj_growth_assumption')}</h3>
-                    <div className="flex items-center">
-                        <TrendingUp className="w-8 h-8 text-[#00FF94] mr-4" />
-                        <div className="flex-1">
-                            <label className="text-xs text-gray-400 block mb-1">{t('proj_yoy_growth')}</label>
-                            <input
-                                type="number"
-                                value={growthRate}
-                                onChange={(e) => handleGrowthChange(e.target.value)}
-                                className="bg-[#222] border border-[#444] text-white text-2xl font-bold p-2 w-32 font-mono focus:border-brand-gold outline-none rounded-sm"
-                            />
-                            <span className="text-2xl font-bold text-gray-500 ml-2">%</span>
+                    <div className="bg-[#1a1a1a] p-6 border border-[#333] flex items-center justify-between">
+                        <div>
+                            <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-1">{t('proj_growth_assumption')}</h3>
+                            <div className="flex items-baseline gap-2">
+                                <TrendingUp className="w-5 h-5 text-[#00FF94]" />
+                                <input
+                                    type="number"
+                                    value={growthRate}
+                                    onChange={(e) => handleGrowthChange(e.target.value)}
+                                    disabled={isPublished}
+                                    className={`bg-transparent text-3xl font-black text-white w-24 outline-none border-b border-[#333] focus:border-[#00FF94] ${isPublished ? 'opacity-50 cursor-not-allowed border-transparent' : ''}`}
+                                />
+                                <span className="text-xl text-gray-400 font-black">%</span>
+                            </div>
+                            <p className="text-[10px] text-gray-600 mt-2 font-mono uppercase">Year-over-Year Revenue Growth</p>
                         </div>
+                        {isPublished && (
+                            <div className="flex items-center gap-2 text-[#00FF94] bg-[#00FF94]/10 px-3 py-1 rounded border border-[#00FF94]/20">
+                                <Lock size={14} />
+                                <span className="text-[10px] font-bold uppercase tracking-widest">Targets Locked</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -355,32 +365,37 @@ export const ProjectionsDashboard = () => {
 
                                     {/* Inputs */}
                                     <td className="p-2 text-right">
-                                        <input className="bg-[#111] border border-[#333] text-gray-300 w-20 text-right p-1 rounded focus:border-brand-gold outline-none"
+                                        <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             value={store.lunchGuestsLastYear}
+                                            disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'lunchGuestsLastYear', e.target.value)}
                                         />
                                     </td>
                                     <td className="p-2 text-right">
-                                        <input className="bg-[#111] border border-[#333] text-gray-300 w-20 text-right p-1 rounded focus:border-brand-gold outline-none"
+                                        <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             value={store.dinnerGuestsLastYear}
+                                            disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'dinnerGuestsLastYear', e.target.value)}
                                         />
                                     </td>
                                     <td className="p-2 text-right">
-                                        <input className="bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none"
+                                        <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             value={store.lunchPrice}
+                                            disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'lunchPrice', e.target.value)}
                                         />
                                     </td>
                                     <td className="p-2 text-right">
-                                        <input className="bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none"
+                                        <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             value={store.dinnerPrice}
+                                            disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'dinnerPrice', e.target.value)}
                                         />
                                     </td>
                                     <td className="p-2 text-right">
-                                        <input className="bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none"
+                                        <input className={`bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             value={store.target_lbs_guest}
+                                            disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', e.target.value)}
                                         />
                                     </td>
