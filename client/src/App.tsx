@@ -23,7 +23,7 @@ import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
 import { CFOReport } from './pages/CFOReport';
 import { TrainingPage } from './pages/TrainingPage';
-import { AdoptionDashboard } from './pages/AdoptionDashboard';
+import { PerformanceDashboard } from './pages/PerformanceDashboard';
 import { GovernanceGuard } from './components/GovernanceGuard';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
@@ -91,7 +91,7 @@ function AppContent() {
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />
-                    <Route path="/adoption" element={<AdoptionDashboard />} />
+                    <Route path="/audit" element={<PerformanceDashboard />} />
                 </Route>
 
                 {/* Catch all redirect to login */}

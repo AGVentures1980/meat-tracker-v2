@@ -13,6 +13,7 @@ router.get('/stats/network', requireAuth, requireRole([Role.admin, Role.director
 router.get('/stats/audit-logs', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getAuditLogAnalysis);
 router.get('/stats/villain-deep-dive', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getVillainDeepDive);
 router.get('/stats/report-card', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkReportCard);
+router.get('/performance-audit', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getPerformanceAudit);
 router.get('/bi-report-card', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkReportCard); // Alias for Stale Frontend
 router.get('/company-stats', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getCompanyStats);
 router.post('/targets', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.updateStoreTargets);

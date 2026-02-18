@@ -15,6 +15,13 @@ model Company {
   created_at         DateTime         @default(now())
   owner_id           String?
   annual_growth_rate Float            @default(5.0)
+  
+  // Baseline Metrics for ROI (The "Before" Picture)
+  baseline_loss_pct  Float            @default(15.0) // 15% loss before system
+  baseline_yield     Float            @default(65.0) // 65% yield before system
+  baseline_overproduction_pct Float   @default(8.0)
+  baseline_ruptura_pct Float          @default(5.0)
+
   stores             Store[]
   invoices           SysInvoice[]
   products           CompanyProduct[]

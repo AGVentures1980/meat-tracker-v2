@@ -353,9 +353,6 @@ export class DashboardController {
             // Aggregate waste for VILLAIN items across the network
             const VILLAINS = ['Picanha', 'Picanha with Garlic', 'Lamb Picanha', 'Beef Ribs', 'Lamb Chops', 'Filet Mignon', 'Filet Mignon with Bacon', 'Fraldinha', 'Flap Steak'];
 
-            // This is a simplified query. In production, we'd sum from WasteLog items JSON.
-            // For now, we'll fetch recent waste logs and process in memory (prototype scale).
-
             const today = new Date();
             const lastWeek = new Date(today);
             lastWeek.setDate(today.getDate() - 7);
@@ -388,6 +385,123 @@ export class DashboardController {
         } catch (error) {
             console.error('Villain Deep Dive Error:', error);
             return res.json({ rankedVillains: [] });
+        }
+    }
+
+    // --- PHASE 14: CORPORATE PERFORMANCE & ROI ---
+
+    static async getPerformanceAudit(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+
+            // 1. Get Company Baseline
+            const company = await prisma.company.findUnique({
+                where: { id: user.companyId }
+            });
+
+            const baselineLoss = company?.baseline_loss_pct || 15.0; // Default 15% if not set
+            const baselineYield = company?.baseline_yield || 65.0;
+
+            // 2. Fetch Stores with relevant data
+            const stores = await prisma.store.findMany({
+                where: { company_id: user.companyId },
+                include: {
+                    users: {
+                        include: { training_progress: true }
+                    },
+                    // Fetch recent waste logs (last 30 days) to calculate Current Loss
+                    waste_logs: {
+                        where: {
+                            date: {
+                                gte: new Date(new Date().setDate(new Date().getDate() - 30))
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Process Metrics
+            let totalSavingsAnnualized = 0;
+
+            const audit = stores.map(store => {
+                // A. Certification Agility
+                const totalStaff = store.users.length;
+                const certifiedUsers = store.users.filter(u =>
+                    u.training_progress.some(p => p.module_id === 'exam' && p.score >= 80)
+                );
+                const certifiedPct = totalStaff > 0 ? Math.round((certifiedUsers.length / totalStaff) * 100) : 0;
+                const avgScore = totalStaff > 0
+                    ? Math.round(store.users.reduce((acc, u) => {
+                        const exam = u.training_progress.find(p => p.module_id === 'exam');
+                        return acc + (exam?.score || 0);
+                    }, 0) / totalStaff)
+                    : 0;
+
+                // B. Waste Performance (Current Month)
+                let totalWasteLbs = 0;
+                store.waste_logs.forEach(l => {
+                    const items = l.items as any[];
+                    items.forEach(i => totalWasteLbs += i.weight);
+                });
+
+                // Mock Projection for now (Consistent with WasteController)
+                // 30 days * 150 guests * target
+                const daysReported = new Set(store.waste_logs.map(l => new Date(l.date).toISOString().split('T')[0])).size || 1;
+                // Use daysReported to avoid diluting waste if they only logged 2 days
+                // Projected Usage for the DAYS REPORTED
+                const projectedUsage = daysReported * 150 * (store.target_lbs_guest || 1.76);
+
+                const wastePct = projectedUsage > 0 ? (totalWasteLbs / projectedUsage) * 100 : 0;
+                const wastePctFixed = parseFloat(wastePct.toFixed(1));
+
+                // C. Status Determinism
+                let status = 'CRITICAL';
+                if (certifiedPct >= 80 && wastePctFixed <= 5.0) status = 'HEALTHY';
+                else if (certifiedPct >= 80 && wastePctFixed > 5.0) status = 'RISK'; // Trained but failing execution
+                else if (certifiedPct < 80 && wastePctFixed <= 5.0) status = 'RISK'; // Results good but training bad (Luck/Risk)
+
+                // D. ROI Calculator (Savings vs Baseline)
+                // Savings = (BaselineLoss - CurrentLoss) * Usage * AvgMeatPrice($10)
+                // Annualized
+                const lossDiff = Math.max(0, baselineLoss - wastePctFixed); // % Saved
+                const monthlyUsage = 30 * 150 * (store.target_lbs_guest || 1.76);
+                const monthlySavings = (lossDiff / 100) * monthlyUsage * 10; // $10/lb avg cost
+                const annualSavings = monthlySavings * 12;
+
+                if (status === 'HEALTHY' || status === 'RISK') {
+                    totalSavingsAnnualized += annualSavings;
+                }
+
+                return {
+                    id: store.id,
+                    name: store.store_name,
+                    certifiedPct,
+                    avgScore,
+                    wastePct: wastePctFixed,
+                    baselineLoss,
+                    savings: Math.round(annualSavings),
+                    status
+                };
+            });
+
+            // Sort by Status Priority (Critical first)
+            const statusOrder: Record<string, number> = { 'CRITICAL': 0, 'RISK': 1, 'HEALTHY': 2 };
+            audit.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
+            return res.json({
+                baseline: {
+                    loss: baselineLoss,
+                    yield: baselineYield
+                },
+                network: {
+                    totalLikelySavings: Math.round(totalSavingsAnnualized),
+                    stores: audit
+                }
+            });
+
+        } catch (error) {
+            console.error('Performance Audit Error:', error);
+            return res.status(500).json({ error: 'Failed to generate performance audit' });
         }
     }
 }

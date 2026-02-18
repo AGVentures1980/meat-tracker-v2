@@ -66,7 +66,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     if (user?.role === 'director' || user?.role === 'admin') {
         navItems.push({
             section: 'MANAGE (Company)', items: [
-                { icon: Users, label: 'Adoption Dashboard', path: '/adoption' },
+                { icon: Users, label: 'Performance Audit', path: '/audit' },
                 { icon: Building2, label: 'Company Settings', path: '/settings/company' }
             ]
         });
@@ -203,7 +203,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-white hover:bg-white/5"
                         >
                             <LogOut className="w-5 h-5 flex-shrink-0" />
-                            <span>{t('nav_logout')}</span>
+                            <span>{t('nav_logout') || 'Sign Out'}</span>
                         </button>
                         <div className="mt-6 px-3">
                             <div className="text-[10px] text-gray-600 font-mono">v4.2.0-DASHBOARD-EXEC - LIVE</div>
