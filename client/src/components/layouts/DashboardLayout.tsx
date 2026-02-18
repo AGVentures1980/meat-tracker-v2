@@ -15,7 +15,8 @@ import {
     Truck,
     Zap,
     Building2,
-    PlayCircle
+    PlayCircle,
+    GraduationCap
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -52,6 +53,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
                 { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
                 { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
+            ]
+        },
+        {
+            section: 'LEARN (Training)', items: [
+                { icon: GraduationCap, label: 'Training Center', path: '/training' },
             ]
         }
     ];
