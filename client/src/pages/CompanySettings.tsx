@@ -4,13 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import {
     Plus,
     Trash2,
-    ShoppingBag,
     Store as StoreIcon,
-    Check,
     X,
     Truck,
-    UtensilsCrossed,
-    Flame
+    UtensilsCrossed
 } from 'lucide-react';
 
 export const CompanySettings = () => {
@@ -30,6 +27,7 @@ export const CompanySettings = () => {
     const [isVillain, setIsVillain] = useState(false);
     const [isDinnerOnly, setIsDinnerOnly] = useState(false);
     const [includeInDelivery, setIncludeInDelivery] = useState(false);
+    const [newProteinGroup, setNewProteinGroup] = useState('');
 
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
 
@@ -65,6 +63,7 @@ export const CompanySettings = () => {
             const endpoint = activeTab === 'products' ? '/company/products' : '/company/stores';
             const body = activeTab === 'products' ? {
                 name: newItemName,
+                protein_group: newProteinGroup || null,
                 category: newItemCategory,
                 is_villain: isVillain,
                 is_dinner_only: isDinnerOnly,
@@ -87,6 +86,7 @@ export const CompanySettings = () => {
                 setIsAdding(false);
                 setNewItemName('');
                 setNewItemLocation('');
+                setNewProteinGroup('');
                 fetchData();
             } else {
                 alert('Failed to add item');
@@ -203,6 +203,16 @@ export const CompanySettings = () => {
                                             <option value="Other">Other</option>
                                         </select>
                                     </div>
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Protein Group <span className="text-gray-600 normal-case">(for reporting aggregation)</span></label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
+                                            placeholder="e.g., Filet Mignon, Picanha, Fraldinha..."
+                                            value={newProteinGroup}
+                                            onChange={(e) => setNewProteinGroup(e.target.value)}
+                                        />
+                                    </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <label className="flex items-center gap-3 p-3 bg-black border border-white/10 rounded cursor-pointer hover:border-white/30 transition-colors">
                                             <input type="checkbox" checked={isVillain} onChange={(e) => setIsVillain(e.target.checked)} className="accent-[#C5A059]" />
@@ -241,6 +251,7 @@ export const CompanySettings = () => {
                         <thead className="bg-black text-[10px] text-gray-500 uppercase tracking-widest font-bold">
                             <tr>
                                 <th className="p-4 text-left">Name</th>
+                                <th className="p-4 text-left">Group</th>
                                 <th className="p-4 text-left">Category</th>
                                 <th className="p-4 text-center">Attributes</th>
                                 <th className="p-4 text-center">Automation</th>
@@ -251,6 +262,15 @@ export const CompanySettings = () => {
                             {products.map((p: any) => (
                                 <tr key={p.id} className="hover:bg-white/5 transition-colors group">
                                     <td className="p-4 font-bold text-white">{p.name}</td>
+                                    <td className="p-4">
+                                        {p.protein_group ? (
+                                            <span className="px-2 py-1 bg-[#C5A059]/10 text-[#C5A059] text-[9px] font-bold uppercase rounded border border-[#C5A059]/30">
+                                                {p.protein_group}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-700 text-[10px]">—</span>
+                                        )}
+                                    </td>
                                     <td className="p-4 text-gray-400 text-xs">{p.category || '-'}</td>
                                     <td className="p-4 flex gap-2 justify-center">
                                         {p.is_villain && <span className="px-2 py-1 bg-red-500/20 text-red-500 text-[9px] font-bold uppercase rounded border border-red-500/30">Villain</span>}

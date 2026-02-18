@@ -26,7 +26,7 @@ export class CompanyController {
     static async addProduct(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const { name, is_villain, is_dinner_only, include_in_delivery, category } = req.body;
+            const { name, protein_group, is_villain, is_dinner_only, include_in_delivery, category } = req.body;
 
             if (user.role !== 'admin' && user.role !== 'director') {
                 return res.status(403).json({ error: 'Access Denied' });
@@ -36,6 +36,7 @@ export class CompanyController {
                 data: {
                     company_id: user.companyId,
                     name,
+                    protein_group: protein_group || null,
                     category: category || 'General',
                     is_villain: is_villain || false,
                     is_dinner_only: is_dinner_only || false,
@@ -47,7 +48,7 @@ export class CompanyController {
                 user.id,
                 'CREATE',
                 'Product',
-                `Added product: ${name} (Delivery: ${include_in_delivery})`,
+                `Added product: ${name} (Group: ${protein_group || 'none'}, Delivery: ${include_in_delivery})`,
                 0 // Company Level
             );
 

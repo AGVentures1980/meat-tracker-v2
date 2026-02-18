@@ -182,23 +182,55 @@ export class MeatEngine {
             }
         });
 
-        // Standardize sorting: Alphabetical by Name
-        return Object.entries(meatSummary).map(([name, actual]) => {
-            // Priority: Store Override > Company Standard
-            const proteinTarget = storeTargetMap[name] || productTargetMap[name] || 0;
-            const isDinnerOnly = DINNER_ONLY_MEATS.includes(name.toLowerCase());
-            const applicableGuests = (isDinnerOnly && dinnerGuests > 0) ? dinnerGuests : totalGuests;
+        // --- PROTEIN GROUP AGGREGATION ---
+        // Build a map: protein_group → { lbs, ideal, isVillain, isDinnerOnly, displayName }
+        // Variants sharing the same protein_group are summed together.
+        const groupMap: Record<string, {
+            lbs: number;
+            idealLbs: number;
+            isVillain: boolean;
+            isDinnerOnly: boolean;
+            displayName: string;
+        }> = {};
 
+        Object.entries(meatSummary).forEach(([name, actual]) => {
+            const product = products.find((p: any) => p.name.toLowerCase() === name);
+            // Use protein_group if set, otherwise fall back to the product name itself
+            const groupKey = (product?.protein_group || product?.name || name).toLowerCase();
+            const displayName = product?.protein_group || product?.name || name;
+
+            const proteinTarget = storeTargetMap[name] || productTargetMap[name] || 0;
+            const isDinnerOnly = DINNER_ONLY_MEATS.includes(name);
+            const applicableGuests = (isDinnerOnly && dinnerGuests > 0) ? dinnerGuests : totalGuests;
             const ideal = proteinTarget ? (applicableGuests * proteinTarget) : 0;
 
-            return {
-                name: products.find((p: any) => p.name.toLowerCase() === name)?.name || name,
-                actual,
-                ideal: Math.round(ideal),
-                trend: actual > ideal ? 'up' : 'down',
-                isVillain: VILLAINS.includes(name.toLowerCase())
-            };
-        }).sort((a, b) => a.name.localeCompare(b.name));
+            if (!groupMap[groupKey]) {
+                groupMap[groupKey] = {
+                    lbs: 0,
+                    idealLbs: 0,
+                    isVillain: false,
+                    isDinnerOnly: false,
+                    displayName
+                };
+            }
+
+            groupMap[groupKey].lbs += actual;
+            groupMap[groupKey].idealLbs += ideal;
+            // Group is villain if ANY variant is a villain
+            if (VILLAINS.includes(name)) groupMap[groupKey].isVillain = true;
+            // Group is dinner-only only if ALL variants are dinner-only
+            if (!isDinnerOnly) groupMap[groupKey].isDinnerOnly = false;
+            else if (groupMap[groupKey].lbs === actual) groupMap[groupKey].isDinnerOnly = true; // first variant
+        });
+
+        // Convert grouped map to the expected array format
+        return Object.entries(groupMap).map(([, group]) => ({
+            name: group.displayName,
+            actual: group.lbs,
+            ideal: Math.round(group.idealLbs),
+            trend: group.lbs > group.idealLbs ? 'up' : 'down',
+            isVillain: group.isVillain
+        })).sort((a, b) => a.name.localeCompare(b.name));
 
     }
 
