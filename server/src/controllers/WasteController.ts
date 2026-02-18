@@ -32,13 +32,14 @@ export class WasteController {
             }
 
             // --- ACCOUNTABILITY GATE (OZ PRINCIPLE) ---
-            const hasAccountability = await WasteController.checkAccountabilityGate(storeId, dateStr);
+            const accountability = await WasteController.checkAccountabilityGateDetails(storeId, dateStr);
 
-            if (!hasAccountability) {
+            if (!accountability.has_accountability) {
                 return res.json({
                     gate_locked: true,
                     message: "Accountability Gate Locked: Invoice input or 'No Delivery Today' flag required for today's shift.",
-                    required_action: "/prices"
+                    required_action: "/prices",
+                    source: accountability.source
                 });
             }
 
@@ -552,7 +553,59 @@ export class WasteController {
             return res.status(500).json({ error: 'Failed to fetch network waste status' });
         }
     }
+    static async getNetworkAccountabilityStatus(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const companyId = user.companyId || user.company_id;
+
+            if (user.role !== 'admin' && user.role !== 'director') {
+                return res.status(403).json({ error: 'Access Denied: Network-wide monitoring is for directors only.' });
+            }
+
+            const today = new Date();
+            const centralDate = WasteController.getCentralDateTime(today);
+            const dateStr = centralDate.toISOString().split('T')[0];
+
+            // 1. Fetch all stores for the company
+            const stores = await prisma.store.findMany({
+                where: { company_id: companyId },
+                select: { id: true, store_name: true, location: true }
+            });
+
+            const statusGrid = await Promise.all(stores.map(async (store) => {
+                const accountability = await WasteController.checkAccountabilityGateDetails(store.id, dateStr);
+
+                return {
+                    id: store.id,
+                    name: store.store_name,
+                    location: store.location,
+                    is_pushed: accountability.has_accountability,
+                    source: accountability.source, // '365', 'Manual', 'None'
+                    is_critical: !accountability.has_accountability
+                };
+            }));
+
+            const criticalCount = statusGrid.filter(s => s.is_critical).length;
+
+            return res.json({
+                date: dateStr,
+                total_stores: stores.length,
+                critical_cases: criticalCount,
+                stores: statusGrid
+            });
+
+        } catch (error) {
+            console.error('Network Accountability Status Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch network accountability status' });
+        }
+    }
+
     private static async checkAccountabilityGate(storeId: number, dateStr: string): Promise<boolean> {
+        const details = await WasteController.checkAccountabilityGateDetails(storeId, dateStr);
+        return details.has_accountability;
+    }
+
+    private static async checkAccountabilityGateDetails(storeId: number, dateStr: string): Promise<{ has_accountability: boolean, source: string }> {
         // 1. Check if any invoice was logged today for this store
         const invoices = await prisma.invoiceRecord.findMany({
             where: {
@@ -564,7 +617,14 @@ export class WasteController {
             }
         });
 
-        if (invoices.length > 0) return true;
+        if (invoices.length > 0) {
+            // Determine source based on invoice records
+            const has365 = invoices.some(inv => inv.source === '365' || inv.source === 'OLO');
+            return {
+                has_accountability: true,
+                source: has365 ? '365' : 'Manual'
+            };
+        }
 
         // 2. Check for manual "No Delivery" flag in AuditLog
         const noDeliveryFlag = await prisma.auditLog.findFirst({
@@ -578,6 +638,10 @@ export class WasteController {
             }
         });
 
-        return !!noDeliveryFlag;
+        if (noDeliveryFlag) {
+            return { has_accountability: true, source: 'Override' };
+        }
+
+        return { has_accountability: false, source: 'None' };
     }
 }

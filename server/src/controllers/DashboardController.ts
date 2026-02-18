@@ -106,10 +106,18 @@ export class DashboardController {
 
     static async updateStoreTargets(req: Request, res: Response) {
         try {
-            const { targets } = req.body; // Expects { storeId: number, target_lbs_guest?: number, target_cost_guest?: number }[]
+            const { targets, annual_growth_rate } = req.body;
+            const user = (req as any).user;
 
-            if (!Array.isArray(targets)) {
-                return res.status(400).json({ error: 'Invalid format. Expected array of targets.' });
+            if (annual_growth_rate !== undefined && (user.role === 'admin' || user.role === 'director')) {
+                await prisma.company.update({
+                    where: { id: user.companyId },
+                    data: { annual_growth_rate: parseFloat(annual_growth_rate) }
+                });
+            }
+
+            if (!targets || !Array.isArray(targets)) {
+                return res.json({ success: true, message: 'Growth rate updated' });
             }
 
             const updated = [];
@@ -130,7 +138,6 @@ export class DashboardController {
             }
 
             // Audit Log
-            const user = (req as any).user;
             await AuditService.logAction(
                 user.userId,
                 'UPDATE_STORE_TARGETS',
@@ -176,9 +183,13 @@ export class DashboardController {
             const DEFAULT_LUNCH_GUESTS = 15000;
             const DEFAULT_DINNER_GUESTS = 45000;
 
-            const data = stores.map(s => {
-                const latestReport = s.reports[0] as any;
-                const store = s as any;
+            const company = await prisma.company.findUnique({
+                where: { id: user.companyId },
+                select: { annual_growth_rate: true }
+            });
+
+            const data = stores.map(store => {
+                const latestReport = store.reports[0];
                 return {
                     id: store.id,
                     name: store.store_name,
@@ -191,7 +202,10 @@ export class DashboardController {
                 };
             });
 
-            return res.json(data);
+            return res.json({
+                stores: data,
+                annualGrowthRate: company?.annual_growth_rate || 5.0
+            });
         } catch (error) {
             console.error('Projections Data Error:', error);
             return res.status(500).json({ error: 'Failed to fetch projections data' });

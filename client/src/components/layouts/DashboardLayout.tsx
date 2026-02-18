@@ -38,23 +38,32 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const navItems = [
         {
             section: 'GATE (Accountability)', items: [
-                { icon: ArrowUpRight, label: 'Meat Prices / Invoices', path: '/prices' },
+                { icon: ArrowUpRight, label: t('nav.invoices') || 'Meat Prices / Invoices', path: '/prices' },
             ]
         },
         {
             section: 'RUN (Shift Command)', items: [
-                { icon: PlayCircle, label: 'Shift Command Center', path: '/command-center' },
+                { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
                 { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
             ]
         },
         {
             section: 'VIEW (Performance)', items: [
-                { icon: LayoutDashboard, label: 'Performance Hub', path: '/dashboard' },
-                { icon: TrendingUp, label: 'Projections', path: '/projections' },
-                { icon: StickyNote, label: 'Executive Reports', path: '/reports' },
+                { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
+                { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
+                { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
             ]
         }
     ];
+
+    // Add Company Settings for Directors/Admins
+    if (user?.role === 'director' || user?.role === 'admin') {
+        navItems.push({
+            section: 'MANAGE (Company)', items: [
+                { icon: Building2, label: 'Company Settings', path: '/settings/company' }
+            ]
+        });
+    }
 
     const [alerts, setAlerts] = useState([
         { id: 1, type: 'WARNING', time: '2m ago', message: 'Inventory Variance Detected: Dallas (1.89 vs 1.76 Target). Action Required.', path: '/dashboard/1', color: '#FF9F1C' },

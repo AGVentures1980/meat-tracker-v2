@@ -17,17 +17,39 @@ export const WeeklyPriceInput = () => {
     // Batch Scan Result State (Duplicate/Success Summary)
     const [scanResult, setScanResult] = useState<{ total: number; successful: number; duplicates: number } | null>(null);
 
-    // Mock Data State - In real app, fetch from DB based on selectedDate
-    const [prices, setPrices] = useState([
-        { id: 1, item: 'Picanha', current: 9.14, last: 9.00, unit: 'lb' },
-        { id: 2, item: 'Fraldinha/Flank Steak', current: 8.24, last: 8.00, unit: 'lb' },
-        { id: 3, item: 'Tri-Tip', current: 5.26, last: 5.20, unit: 'lb' },
-        { id: 4, item: 'Filet Mignon', current: 9.50, last: 9.30, unit: 'lb' },
-        { id: 5, item: 'Beef Ribs', current: 8.36, last: 8.20, unit: 'lb' },
-        { id: 6, item: 'Lamb Chops', current: 13.91, last: 13.50, unit: 'lb' },
-        { id: 13, item: 'Sausage', current: 3.16, last: 3.10, unit: 'lb' },
-        { id: 14, item: 'Bacon', current: 2.50, last: 2.45, unit: 'lb' }
-    ]);
+    const [prices, setPrices] = useState<any[]>([]);
+    const [systemItems, setSystemItems] = useState<string[]>([]);
+    const [productsLoading, setProductsLoading] = useState(true);
+
+    const fetchProducts = async () => {
+        try {
+            const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                const standardized = data.map(p => ({
+                    id: p.id,
+                    item: p.name,
+                    current: 0,
+                    last: 0,
+                    unit: 'lb'
+                }));
+                setPrices(standardized);
+                setSystemItems(data.map(p => p.name));
+            }
+        } catch (error) {
+            console.error('Failed to fetch company products', error);
+        } finally {
+            setProductsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (user?.token) {
+            fetchProducts();
+        }
+    }, [user?.token]);
 
     const handlePriceChange = (id: number, newVal: string) => {
         setPrices(prices.map(p => p.id === id ? { ...p, current: parseFloat(newVal) || 0 } : p));
@@ -81,12 +103,6 @@ export const WeeklyPriceInput = () => {
     const [isDuplicate, setIsDuplicate] = useState(false);
     const [mapping, setMapping] = useState<Record<string, string>>({});
 
-    // System Item Options for Mapping
-    const SYSTEM_ITEMS = [
-        'Picanha', 'Fraldinha/Flank Steak', 'Tri-Tip', 'Filet Mignon', 'Beef Ribs',
-        'Lamb Chops', 'Leg of Lamb', 'Lamb Picanha', 'Sausage', 'Chicken Drumstick',
-        'Chicken Breast', 'Pork Ribs', 'Pork Loin', 'Shrimp', 'Bacon'
-    ];
 
     const handleInvoiceOCR = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -133,8 +149,8 @@ export const WeeklyPriceInput = () => {
                     // Pre-fill mapping for known items
                     const initialMap: Record<string, string> = {};
                     allResults.forEach((inv: any) => {
-                        const match = SYSTEM_ITEMS.find(sys => sys.toLowerCase() === inv.detected_item.toLowerCase())
-                            || SYSTEM_ITEMS.find(sys => inv.raw_text.toLowerCase().includes(sys.toLowerCase()));
+                        const match = systemItems.find(sys => sys.toLowerCase() === inv.detected_item.toLowerCase())
+                            || systemItems.find(sys => inv.raw_text.toLowerCase().includes(sys.toLowerCase()));
                         if (match) initialMap[inv.id] = match;
                         else if (inv.detected_item === 'Beef Sirloin Flap') initialMap[inv.id] = 'Fraldinha/Flank Steak';
                     });
@@ -252,8 +268,8 @@ export const WeeklyPriceInput = () => {
                                             className="w-full bg-[#111] border border-[#444] text-white text-xs p-2 rounded-sm outline-none focus:border-brand-gold"
                                         >
                                             <option value="">-- Select Item --</option>
-                                            {SYSTEM_ITEMS.map(item => (
-                                                <option key={item} value={item}>{item}</option>
+                                            {systemItems.map(sys => (
+                                                <option key={sys} value={sys}>{sys}</option>
                                             ))}
                                         </select>
                                     </div>

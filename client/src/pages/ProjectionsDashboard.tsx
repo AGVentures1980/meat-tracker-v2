@@ -77,8 +77,9 @@ export const ProjectionsDashboard = () => {
                     }
                 });
                 if (res.ok) {
-                    const data = await res.json();
-                    const calculated = data.map((d: any) => calculateRow(d as StoreProjectionData, growthRate));
+                    const { stores, annualGrowthRate } = await res.json();
+                    setGrowthRate(annualGrowthRate);
+                    const calculated = stores.map((d: any) => calculateRow(d as StoreProjectionData, annualGrowthRate));
                     setStoreData(calculated);
                 }
             } catch (err) {
@@ -218,9 +219,12 @@ export const ProjectionsDashboard = () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user?.token || ''}` // Ensure auth if needed
+                        'Authorization': `Bearer ${user?.token || ''}`
                     },
-                    body: JSON.stringify({ targets: targetsPayload })
+                    body: JSON.stringify({
+                        targets: targetsPayload,
+                        annual_growth_rate: growthRate
+                    })
                 });
 
                 if (!response.ok) {
@@ -314,8 +318,8 @@ export const ProjectionsDashboard = () => {
                                     type="number"
                                     value={growthRate}
                                     onChange={(e) => handleGrowthChange(e.target.value)}
-                                    disabled={isPublished}
-                                    className={`bg-transparent text-3xl font-black text-white w-24 outline-none border-b border-[#333] focus:border-[#00FF94] ${isPublished ? 'opacity-50 cursor-not-allowed border-transparent' : ''}`}
+                                    disabled={isPublished || user?.role === 'manager'}
+                                    className={`bg-transparent text-3xl font-black text-white w-24 outline-none border-b border-[#333] focus:border-[#00FF94] ${isPublished || user?.role === 'manager' ? 'opacity-50 cursor-not-allowed border-transparent' : ''}`}
                                 />
                                 <span className="text-xl text-gray-400 font-black">%</span>
                             </div>

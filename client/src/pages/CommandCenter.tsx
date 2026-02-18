@@ -27,16 +27,12 @@ export const CommandCenter = () => {
     const [forecast, setForecast] = useState<number>(150);
     const [wasteItems, setWasteItems] = useState<any[]>([]);
     const [isSubmittingWaste, setIsSubmittingWaste] = useState(false);
+    const [networkAccountability, setNetworkAccountability] = useState<any>(null);
 
     // --- REASON LIST FOR WASTE ---
     const WASTE_REASONS = ['Floor Drop', 'Over-Prep', 'Quality Check', 'Burnt/Cook Error', 'End of Shift'];
-    const PROTEINS = [
-        'Picanha', 'Picanha with Garlic', 'Leg of Lamb', 'Lamb Chops', 'Lamb Picanha',
-        'Filet Mignon', 'Filet Mignon with Bacon', 'Beef Ribs', 'Pork Ribs',
-        'Pork Loin', 'Sausage', 'Chicken Drumstick', 'Chicken Breast', 'Fraldinha', 'Flap Steak'
-    ];
-
-    const VILLAINS = ['Picanha', 'Picanha with Garlic', 'Lamb Picanha', 'Beef Ribs', 'Lamb Chops', 'Filet Mignon', 'Filet Mignon with Bacon', 'Fraldinha', 'Flap Steak'];
+    const [proteins, setProteins] = useState<string[]>([]);
+    const [villains, setVillains] = useState<string[]>([]);
 
     const getCentralDate = () => {
         const now = new Date();
@@ -67,6 +63,28 @@ export const CommandCenter = () => {
                     const pData = await prepRes.json();
                     setPrepData(pData);
                     if (pData.is_locked) setForecast(pData.forecast_guests);
+                }
+            }
+
+            // 3. Fetch Network Accountability if Director/Admin
+            if (user?.role === 'director' || user?.role === 'admin') {
+                const networkRes = await fetch('/api/v1/dashboard/waste/network-accountability', {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                if (networkRes.ok) {
+                    setNetworkAccountability(await networkRes.json());
+                }
+            }
+
+            // 4. Fetch Products
+            const productRes = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            if (productRes.ok) {
+                const pData = await productRes.json();
+                if (Array.isArray(pData)) {
+                    setProteins(pData.map((p: any) => p.name));
+                    setVillains(pData.filter((p: any) => p.is_villain).map((p: any) => p.name));
                 }
             }
         } catch (err) {
@@ -102,7 +120,7 @@ export const CommandCenter = () => {
     };
 
     const addWasteItem = () => {
-        setWasteItems([...wasteItems, { protein: PROTEINS[0], weight: 0, reason: WASTE_REASONS[0] }]);
+        setWasteItems([...wasteItems, { protein: proteins[0] || '', weight: 0, reason: WASTE_REASONS[0] }]);
     };
 
     const removeWasteItem = (index: number) => {
@@ -173,6 +191,17 @@ export const CommandCenter = () => {
     if (gateStatus?.gate_locked) {
         return (
             <div className="max-w-4xl mx-auto mt-12 px-6">
+                {/* Director Alert Header */}
+                {(user?.role === 'director' || user?.role === 'admin') && networkAccountability?.critical_cases > 0 && (
+                    <div className="mb-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-4 animate-pulse">
+                        <AlertTriangle className="w-6 h-6 text-red-500" />
+                        <div>
+                            <span className="block text-red-500 font-bold uppercase text-xs tracking-wider">Network Integrity Alert</span>
+                            <p className="text-red-200/80 text-sm">{networkAccountability.critical_cases} critical cases detected across the network.</p>
+                        </div>
+                    </div>
+                )}
+
                 <div className="bg-[#1a1214] border border-[#FF2A6D]/20 rounded-xl p-10 text-center relative overflow-hidden shadow-2xl">
                     <div className="absolute top-0 left-0 w-full h-1 bg-[#FF2A6D]"></div>
                     <div className="flex justify-center mb-8">
@@ -181,7 +210,13 @@ export const CommandCenter = () => {
                         </div>
                     </div>
 
-                    <h1 className="text-4xl font-black text-white mb-4 tracking-tight uppercase">Accountability Gate</h1>
+                    <h1 className="text-4xl font-black text-white mb-2 tracking-tight uppercase">Accountability Gate</h1>
+                    <div className="flex justify-center mb-6">
+                        <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] text-gray-400 font-mono uppercase tracking-widest">
+                            Context: {user?.role === 'manager' ? 'Store Level' : 'Executive View'} | Source: {gateStatus?.source || 'Detecting...'}
+                        </span>
+                    </div>
+
                     <p className="text-gray-400 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
                         To maintain financial integrity, you must either log today's <span className="text-white font-bold italic underline decoration-[#FF2A6D]">Meat Invoices</span> or flag that <span className="text-white font-bold italic underline decoration-[#FF2A6D]">No Delivery</span> was received before opening the Shift Command Center.
                     </p>
@@ -231,31 +266,47 @@ export const CommandCenter = () => {
                         <PlayCircle className="w-8 h-8 text-[#C5A059]" />
                         <h1 className="text-3xl font-black text-white tracking-tight uppercase">Shift Command Center</h1>
                     </div>
-                    <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">Store {gateStatus?.storeId || '...'} | Shift: {gateStatus?.today?.can_input_lunch ? 'LUNCH' : (gateStatus?.today?.can_input_dinner ? 'DINNER' : 'ALL DAY')}</p>
+                    <div className="flex items-center gap-3 mt-1">
+                        <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">Store {gateStatus?.storeId || '...'} | Shift: {gateStatus?.today?.can_input_lunch ? 'LUNCH' : (gateStatus?.today?.can_input_dinner ? 'DINNER' : 'ALL DAY')}</p>
+                        <span className="px-2 py-0.5 bg-white/5 rounded text-[8px] text-gray-600 font-bold uppercase tracking-tighter border border-white/5">Source: {gateStatus?.source || '365'}</span>
+                    </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-6 bg-[#121212] p-4 rounded-lg border border-white/5">
-                    <div className="text-center px-4 border-r border-white/5">
-                        <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Forecast Guests</span>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                value={forecast}
-                                onChange={(e) => setForecast(parseInt(e.target.value) || 0)}
-                                className="w-16 bg-transparent text-xl font-black text-white outline-none border-b border-[#333] focus:border-[#C5A059]"
-                            />
-                            <Users className="w-4 h-4 text-gray-600" />
+                <div className="flex flex-wrap items-center gap-4">
+                    {(user?.role === 'director' || user?.role === 'admin') && (
+                        <div className="flex items-center gap-3 px-4 py-2 bg-black/40 rounded-lg border border-white/5">
+                            <div className="text-right">
+                                <span className="block text-[8px] text-gray-600 uppercase tracking-widest leading-none">Network Intake</span>
+                                <span className={`text-xs font-black ${networkAccountability?.critical_cases > 0 ? 'text-red-500' : 'text-[#00FF94]'}`}>
+                                    {networkAccountability?.total_stores - networkAccountability?.critical_cases}/{networkAccountability?.total_stores} Ready
+                                </span>
+                            </div>
+                            <ShieldCheck className={`w-4 h-4 ${networkAccountability?.critical_cases > 0 ? 'text-red-500' : 'text-[#00FF94]'}`} />
                         </div>
-                    </div>
-                    <div className="text-center px-4 border-r border-white/5">
-                        <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Projected Cost/G</span>
-                        <div className={`text-xl font-black ${prepData?.predicted_cost_guest > (prepData?.target_cost_guest || 9.94) ? 'text-red-500' : 'text-[#00FF94]'}`}>
-                            ${prepData?.predicted_cost_guest || '0.00'}
+                    )}
+                    <div className="flex flex-wrap items-center gap-6 bg-[#121212] p-4 rounded-lg border border-white/5">
+                        <div className="text-center px-4 border-r border-white/5">
+                            <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Forecast Guests</span>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={forecast}
+                                    onChange={(e) => setForecast(parseInt(e.target.value) || 0)}
+                                    className="w-16 bg-transparent text-xl font-black text-white outline-none border-b border-[#333] focus:border-[#C5A059]"
+                                />
+                                <Users className="w-4 h-4 text-gray-600" />
+                            </div>
                         </div>
-                    </div>
-                    <div className="text-center px-4">
-                        <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Status</span>
-                        <span className="text-xs font-bold text-[#00FF94] animate-pulse">● LIVE OPS</span>
+                        <div className="text-center px-4 border-r border-white/5">
+                            <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Projected Cost/G</span>
+                            <div className={`text-xl font-black ${prepData?.predicted_cost_guest > (prepData?.target_cost_guest || 9.94) ? 'text-red-500' : 'text-[#00FF94]'}`}>
+                                ${prepData?.predicted_cost_guest || '0.00'}
+                            </div>
+                        </div>
+                        <div className="text-center px-4">
+                            <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Status</span>
+                            <span className="text-xs font-bold text-[#00FF94] animate-pulse">● LIVE OPS</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -292,7 +343,7 @@ export const CommandCenter = () => {
                         </div>
                         <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">
                             {prepData?.prep_list?.map((item: any) => {
-                                const isVillain = VILLAINS.some(v => item.protein.includes(v));
+                                const isVillain = villains.some(v => item.protein.includes(v));
                                 return (
                                     <div key={item.protein} className={`grid grid-cols-12 p-3 items-center group hover:bg-white/5 transition-colors ${isVillain ? 'bg-[#C5A059]/[0.02]' : ''}`}>
                                         <div className="col-span-6 flex items-center gap-3">
@@ -343,7 +394,7 @@ export const CommandCenter = () => {
                         ) : (
                             <div className="flex-1 space-y-3 mb-6">
                                 {wasteItems.map((item, idx) => {
-                                    const isVillain = VILLAINS.some(v => item.protein.includes(v));
+                                    const isVillain = villains.some(v => item.protein.includes(v));
                                     return (
                                         <div key={idx} className={`flex flex-col md:flex-row gap-4 p-4 rounded-lg bg-[#222] border transition-all ${isVillain ? 'border-[#C5A059]/30 border-l-4 border-l-[#C5A059]' : 'border-white/5'}`}>
                                             <div className="flex-1">
@@ -353,7 +404,9 @@ export const CommandCenter = () => {
                                                     onChange={(e) => updateWasteItem(idx, 'protein', e.target.value)}
                                                     className="w-full bg-[#111] text-white border border-white/10 rounded p-2 text-sm outline-none focus:border-[#C5A059]"
                                                 >
-                                                    {PROTEINS.map(p => <option key={p} value={p}>{p}</option>)}
+                                                    {proteins.map(p => (
+                                                        <option key={p} value={p}>{p}</option>
+                                                    ))}
                                                 </select>
                                                 {isVillain && (
                                                     <div className="mt-1 flex items-center gap-1 text-[9px] text-[#C5A059] font-bold uppercase tracking-wider">

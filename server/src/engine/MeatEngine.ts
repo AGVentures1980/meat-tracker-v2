@@ -106,7 +106,7 @@ export class MeatEngine {
         const dailyAverage = totalLbsMonth / daysPassed;
         const projectedTotal = dailyAverage * totalDaysInMonth;
 
-        const topMeats = await this.getTopMeats(storeId, start, end, companyId);
+        const topMeats = await this.getTopMeats(storeId, start, end, companyId, totalGuests, dinnerGuests);
         const weeklyChart = await this.getWeeklyHistory(storeId, topMeats.map(m => m.name));
 
         return {
@@ -124,26 +124,38 @@ export class MeatEngine {
         };
     }
 
-    private static async getTopMeats(storeId: number, start: Date, end: Date, companyId?: string) {
-        const standards = await this.getSetting('meat_standards', MEAT_STANDARDS);
-
+    private static async getTopMeats(storeId: number, start: Date, end: Date, companyId?: string, totalGuests: number = 0, dinnerGuests: number = 0) {
         const whereStore: any = { id: storeId };
         if (companyId) {
             whereStore.company_id = companyId;
         }
 
-        // Verify store access first
+        // Verify store access and get company_id
         const storeCheck = await prisma.store.findFirst({ where: whereStore });
-        if (!storeCheck && companyId) {
-            return []; // Or throw, but returning empty for safety
+        if (!storeCheck) {
+            return [];
         }
 
-        // Fetch specific targets for this store
+        // Fetch Company Product Ledger
+        const products = await (prisma as any).companyProduct.findMany({
+            where: { company_id: storeCheck.company_id }
+        });
+
+        const DINNER_ONLY_MEATS = products.filter((p: any) => p.is_dinner_only).map((p: any) => p.name.toLowerCase());
+        const VILLAINS = products.filter((p: any) => p.is_villain).map((p: any) => p.name.toLowerCase());
+
+        // Product targets from ledger
+        const productTargetMap: Record<string, number> = {};
+        products.forEach((p: any) => {
+            if (p.standard_target) productTargetMap[p.name.toLowerCase()] = p.standard_target;
+        });
+
+        // Store-specific target overrides
         const storeTargets = await (prisma as any).storeMeatTarget.findMany({
             where: { store_id: storeId }
         });
-        const targetMap: Record<string, number> = {};
-        storeTargets.forEach((t: any) => { targetMap[t.protein] = t.target; });
+        const storeTargetMap: Record<string, number> = {};
+        storeTargets.forEach((t: any) => { storeTargetMap[t.protein.toLowerCase()] = t.target; });
 
         const sales = await prisma.orderItem.findMany({
             where: {
@@ -161,59 +173,32 @@ export class MeatEngine {
             meatSummary[protein] = (meatSummary[protein] || 0) + item.lbs;
         });
 
-        const totalLbs = Object.values(meatSummary).reduce((a, b) => a + b, 0);
-
-        // Use the storeCheck we did above
-        const storeData = storeCheck as any;
-        const globalTarget = await this.getSetting('global_target_lbs_guest', GLOBAL_TARGET_PER_GUEST);
-        const STORE_LBS_TARGET = storeData?.target_lbs_guest || globalTarget;
-
-        const lastReport = await (prisma as any).report.findFirst({
-            where: { store_id: storeId },
-            orderBy: { generated_at: 'desc' }
+        // Ensure all products from the ledger are included in the summary, even with 0 lbs
+        products.forEach((p: any) => {
+            const name = p.name.toLowerCase();
+            if (meatSummary[name] === undefined) {
+                meatSummary[name] = 0;
+            }
         });
 
-        const lunchGuests = (lastReport as any)?.lunch_guests_micros || 0;
-        const dinnerGuests = (lastReport as any)?.dinner_guests_micros || 0;
-        let totalGuests = lunchGuests + dinnerGuests;
-        if (totalGuests === 0) totalGuests = Math.round(totalLbs / STORE_LBS_TARGET);
-
-        const estimatedGuests = totalGuests;
-
-        // Define Dinner Only Meats (Premium)
-        const DINNER_ONLY_MEATS = ['lamb chops', 'beef ribs', 'filet mignon', 'filet mignon wrapped in bacon'];
-        const VILLAINS = ['picanha', 'picanha with garlic', 'lamb picanha', 'beef ribs', 'lamb chops', 'filet mignon', 'filet mignon with bacon', 'fraldinha', 'flap steak'];
-        const EXCLUDE_LAMB = (storeData as any)?.exclude_lamb_from_rodizio_lbs || false;
-
+        // Standardize sorting: Alphabetical by Name
         return Object.entries(meatSummary).map(([name, actual]) => {
-            // Ideal is based on (Guest Count * Protein Target)
-            // Try to find target case-insensitively
-            const proteinTarget = targetMap[name] || targetMap[Object.keys(targetMap).find(k => k.toLowerCase() === name.toLowerCase()) || ''] || 0;
-            // v3.2: Check if meat is Dinner Only
+            // Priority: Store Override > Company Standard
+            const proteinTarget = storeTargetMap[name] || productTargetMap[name] || 0;
             const isDinnerOnly = DINNER_ONLY_MEATS.includes(name.toLowerCase());
+            const applicableGuests = (isDinnerOnly && dinnerGuests > 0) ? dinnerGuests : totalGuests;
 
-            // If it is dinner only, we use DINNER guests (if available). 
-            // If no split data available (legacy), we fall back to total guests but maybe apply a heuristical factor? 
-            // For now, if dinnerGuests > 0, we use it. If not, we use totalGuests (legacy behavior).
-            const applicableGuests = (isDinnerOnly && dinnerGuests > 0) ? dinnerGuests : estimatedGuests;
-
-            // proteinTarget is already defined above
-
-            // Lamb Exclusion Logic for Lbs/Guest indicator (Visualization only, ideal calc remains for variance)
-            // Actually, if excluded, does ideal change? 
-            // "Lbs_Indicator = (TotalLbs - LambLbs) / TotalGuests" -> This is for the dashboard header, implemented in getDashboardStats if needed.
-            // Here we calculate individual meat variance.
-
-            const ideal = proteinTarget ? (applicableGuests * proteinTarget) : (actual * 0.98);
+            const ideal = proteinTarget ? (applicableGuests * proteinTarget) : 0;
 
             return {
-                name,
+                name: products.find((p: any) => p.name.toLowerCase() === name)?.name || name,
                 actual,
                 ideal: Math.round(ideal),
                 trend: actual > ideal ? 'up' : 'down',
                 isVillain: VILLAINS.includes(name.toLowerCase())
             };
-        }).sort((a, b) => b.actual - a.actual).slice(0, 10); // Expanded to 10 for reports
+        }).sort((a, b) => a.name.localeCompare(b.name));
+
     }
 
     static async getInventoryHistory(storeId: number, start: Date, end: Date) {

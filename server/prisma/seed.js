@@ -71,6 +71,46 @@ async function main() {
         create: { id: 'tdb-main', name: 'Texas de Brazil', plan: 'enterprise' }
     });
 
+    console.log('📦 Establishing Company Product Ledger (Alphabetized)...');
+
+    const MASTER_PRODUCTS = [
+        { name: 'Beef Ribs', is_villain: true, is_dinner_only: true, target: 0.12 },
+        { name: 'Chicken Breast', target: 0.08 },
+        { name: 'Chicken Drumstick', target: 0.06 },
+        { name: 'Filet Mignon', is_villain: true, is_dinner_only: true, target: 0.15 },
+        { name: 'Filet Mignon with Bacon', is_villain: true, is_dinner_only: true, target: 0.10 },
+        { name: 'Flap Steak', is_villain: true, target: 0.10 },
+        { name: 'Fraldinha/Flank Steak', is_villain: true, target: 0.18 },
+        { name: 'Lamb Chops', is_villain: true, is_dinner_only: true, target: 0.14 },
+        { name: 'Lamb Picanha', is_villain: true, target: 0.08 },
+        { name: 'Lamb Sirloin', is_villain: true, target: 0.07 },
+        { name: 'Leg of Lamb', target: 0.09 },
+        { name: 'Picanha', is_villain: true, target: 0.35 },
+        { name: 'Picanha with Garlic', is_villain: true, target: 0.10 },
+        { name: 'Pork Loin', target: 0.08 },
+        { name: 'Pork Ribs', target: 0.10 },
+        { name: 'Sausage', target: 0.10 },
+        { name: 'Tri-Tip', target: 0.05 }
+    ].sort((a, b) => a.name.localeCompare(b.name));
+
+    for (const p of MASTER_PRODUCTS) {
+        await prisma.companyProduct.upsert({
+            where: { company_id_name: { company_id: tdb.id, name: p.name } },
+            update: {
+                is_villain: p.is_villain || false,
+                is_dinner_only: p.is_dinner_only || false,
+                standard_target: p.target
+            },
+            create: {
+                company_id: tdb.id,
+                name: p.name,
+                is_villain: p.is_villain || false,
+                is_dinner_only: p.is_dinner_only || false,
+                standard_target: p.target
+            }
+        });
+    }
+
     // Specific Targets defined by User (Phase 12 - Derived from Batch 2-8 Raw Data Sums)
     const TARGET_OVERRIDES = {
         // Direct Matches & Primary Proxies
@@ -166,7 +206,7 @@ async function main() {
         });
 
         const now = new Date();
-        const PROTEINS = ["Picanha", "Fraldinha/Flank Steak", "Tri-Tip", "Filet Mignon", "Beef Ribs", "Pork Ribs", "Pork Loin", "Chicken Drumstick", "Chicken Breast", "Lamb Chops", "Leg of Lamb", "Lamb Picanha", "Sausage"];
+        const PROTEINS = ["Beef Ribs", "Chicken Breast", "Chicken Drumstick", "Filet Mignon", "Filet Mignon with Bacon", "Flap Steak", "Fraldinha/Flank Steak", "Lamb Chops", "Lamb Picanha", "Lamb Sirloin", "Leg of Lamb", "Picanha", "Picanha with Garlic", "Pork Loin", "Pork Ribs", "Sausage", "Tri-Tip"];
         const lastWeek = new Date(now);
         lastWeek.setDate(now.getDate() - 7);
 

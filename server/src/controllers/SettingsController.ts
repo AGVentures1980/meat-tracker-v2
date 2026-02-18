@@ -346,24 +346,44 @@ export class SettingsController {
 
     static async setNoDeliveryFlag(req: Request, res: Response) {
         try {
+            const { storeId, enabled } = req.body;
             const user = (req as any).user;
-            const storeId = user.storeId || user.store_id || 1;
-            const dateStr = new Date().toISOString().split('T')[0];
 
+            // Log action
             await prisma.auditLog.create({
                 data: {
                     user_id: user.id,
-                    action: 'NO_DELIVERY_FLAG',
-                    resource: 'Gate Override',
-                    details: { date: dateStr, reason: 'Manual Skip - No Delivery Received' },
+                    action: enabled ? 'NO_DELIVERY_FLAG_SET' : 'NO_DELIVERY_FLAG_REMOVED',
+                    resource: `Store:${storeId}`,
                     location: storeId.toString()
                 }
             });
 
-            return res.json({ success: true, message: 'No Delivery flag set for today.' });
+            return res.json({ message: 'Success' });
         } catch (error) {
             console.error('Set No Delivery Flag Error:', error);
-            return res.status(500).json({ error: 'Failed to set flag' });
+            return res.status(500).json({ error: 'Failed to update flag' });
+        }
+    }
+
+    static async getCompanyProducts(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const companyId = user.companyId || user.company_id;
+
+            if (!companyId) {
+                return res.status(400).json({ error: 'Company ID not found in user context' });
+            }
+
+            const products = await (prisma as any).companyProduct.findMany({
+                where: { company_id: companyId },
+                orderBy: { name: 'asc' }
+            });
+
+            return res.json(products);
+        } catch (error) {
+            console.error('Fetch Company Products Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch company products' });
         }
     }
 }

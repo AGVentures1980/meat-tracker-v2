@@ -22,9 +22,26 @@ export class DeliveryController {
     /**
      * Helper to decompose weight into specific proteins
      */
-    private static decomposeMeat(itemName: string, totalWeight: number): any[] {
+    private static async decomposeMeat(itemName: string, totalWeight: number, companyId?: string): Promise<any[]> {
         const lowerName = itemName.toLowerCase();
         let breakdown: any[] = [];
+
+        // 1. Fetch Dynamic Delivery Proteins if Company Context Exists
+        let dynamicProteins: string[] = [];
+        if (companyId) {
+            try {
+                // Use raw query or cast to any until Prisma types regenerate
+                const products = await (prisma as any).companyProduct.findMany({
+                    where: {
+                        company_id: companyId,
+                        include_in_delivery: true
+                    }
+                });
+                dynamicProteins = products.map((p: any) => p.name.toLowerCase());
+            } catch (err) {
+                console.warn('Failed to fetch dynamic delivery proteins', err);
+            }
+        }
 
         if (lowerName.includes('feast')) {
             breakdown = MEAT_DECOMPOSITION.feast.map(p => ({
@@ -39,7 +56,15 @@ export class DeliveryController {
         } else {
             // Precise logic for all Delivery Proteins provided by Alex
             let detected = "Other";
-            if (lowerName.includes('garlic picanha')) detected = "Garlic Picanha";
+
+            // Check dynamic list first
+            const dynamicMatch = dynamicProteins.find(p => lowerName.includes(p));
+            if (dynamicMatch) {
+                // Capitalize for display
+                detected = dynamicMatch.charAt(0).toUpperCase() + dynamicMatch.slice(1);
+            }
+            // Fallback to hardcoded rules
+            else if (lowerName.includes('garlic picanha')) detected = "Garlic Picanha";
             else if (lowerName.includes('spicy sirloin')) detected = "Spicy Sirloin";
             else if (lowerName.includes('picanha')) detected = "Picanha";
             else if (lowerName.includes('flank') || lowerName.includes('fraldinha')) detected = "Flank Steak";
@@ -89,7 +114,7 @@ export class DeliveryController {
             let totalGuests = 0;
             let totalAmount = 0;
 
-            oloRawData.forEach(order => {
+            for (const order of oloRawData) {
                 let weight = 0;
                 let guests = 0;
 
@@ -109,11 +134,11 @@ export class DeliveryController {
                 totalAmount += order.price * order.qty;
 
                 // Decompose into proteins
-                const breakdown = DeliveryController.decomposeMeat(order.item, weight);
+                const breakdown = await DeliveryController.decomposeMeat(order.item, weight, user.companyId);
                 breakdown.forEach(b => {
                     proteinAggregation[b.protein] = (proteinAggregation[b.protein] || 0) + b.weight;
                 });
-            });
+            }
 
             const proteinBreakdownArray = Object.entries(proteinAggregation).map(([name, lbs]) => ({
                 protein: name,

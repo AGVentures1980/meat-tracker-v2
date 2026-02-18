@@ -23,11 +23,24 @@ router.post('/targets/sync', requireAuth, requireRole([Role.admin, Role.director
 router.get('/settings', requireAuth, SettingsController.getSettings);
 router.post('/settings', requireAuth, SettingsController.updateSettings);
 
+// Company Management (Phase 10)
+import { CompanyController } from '../controllers/CompanyController';
+
+router.get('/company/products', requireAuth, CompanyController.getProducts);
+router.post('/company/products', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.addProduct);
+router.delete('/company/products/:id', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.deleteProduct);
+
+router.get('/company/stores', requireAuth, CompanyController.getStores);
+router.post('/company/stores', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.addStore);
+router.delete('/company/stores/:id', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.deleteStore);
+
+
 // Store Management
 router.get('/settings/stores', requireAuth, SettingsController.getStores);
 router.post('/settings/stores', requireAuth, SettingsController.createStore);
 router.put('/settings/stores/:id', requireAuth, SettingsController.updateStore);
 router.post('/settings/no-delivery', requireAuth, SettingsController.setNoDeliveryFlag);
+router.get('/settings/company-products', requireAuth, SettingsController.getCompanyProducts);
 
 // Smart Prep (Kitchen Intelligence)
 import { SmartPrepController } from '../controllers/SmartPrepController';
@@ -42,6 +55,7 @@ router.get('/network-health', requireAuth, NetworkHealthController.getNetworkSta
 // Waste Management (The Garcia Rule)
 router.get('/waste/status', requireAuth, WasteController.getStatus);
 router.get('/waste/network-status', requireAuth, WasteController.getNetworkWasteStatus);
+router.get('/waste/network-accountability', requireAuth, requireRole([Role.admin, Role.director]), WasteController.getNetworkAccountabilityStatus);
 router.get('/waste/history', requireAuth, WasteController.getHistory);
 router.get('/waste/history/details', requireAuth, WasteController.getDetailedHistory);
 router.post('/waste/log', requireAuth, WasteController.logWaste);

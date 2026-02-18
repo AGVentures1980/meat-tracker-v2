@@ -20,6 +20,7 @@ import { CompanySelector } from './pages/CompanySelector';
 import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
+import { CompanySettings } from './pages/CompanySettings';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -74,6 +75,7 @@ function AppContent() {
                     <Route path="/prices" element={<WeeklyPriceInput />} />
                     <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/settings/company" element={<CompanySettings />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
                     <Route path="/smart-prep" element={<SmartPrepPage />} />
                     <Route path="/delivery" element={<DeliveryPage />} />

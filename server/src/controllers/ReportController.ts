@@ -173,22 +173,24 @@ export class ReportController {
             const { range } = req.query;
             const { start, end } = getDateRange(range as string);
 
-            // Fetch all Purchase Records across network
-            const purchases = await prisma.purchaseRecord.findMany({
-                where: {
-                    date: { gte: start, lte: end }
-                },
+            // Fetch ALL Purchase Records across company to calculate benchmark averages
+            const companyWhere: any = {
+                date: { gte: start, lte: end },
+                store: { company_id: user.companyId || user.company_id }
+            };
+
+            const allPurchases = await prisma.purchaseRecord.findMany({
+                where: companyWhere,
                 include: { store: true }
             });
 
-            if (purchases.length === 0) {
-                // If no purchase records, try Invoice Records
-                // TODO: Combine both tables in future
+            if (allPurchases.length === 0) {
+                return res.json([]);
             }
 
-            // 1. Calculate Network Average per Protein
+            // 1. Calculate Network Average per Protein (across all company stores)
             const networkTotals: Record<string, { totalCost: number, totalQty: number }> = {};
-            purchases.forEach(p => {
+            allPurchases.forEach(p => {
                 if (!networkTotals[p.item_name]) networkTotals[p.item_name] = { totalCost: 0, totalQty: 0 };
                 networkTotals[p.item_name].totalCost += p.cost_total;
                 networkTotals[p.item_name].totalQty += p.quantity;
@@ -199,6 +201,11 @@ export class ReportController {
                 const t = networkTotals[protein];
                 networkAverages[protein] = t.totalQty > 0 ? t.totalCost / t.totalQty : 0;
             });
+
+            // 2. Filter data for the specific report (Scope by Store if Manager)
+            const purchases = (user.role === 'manager' && user.storeId)
+                ? allPurchases.filter(p => p.store_id === user.storeId)
+                : allPurchases;
 
             // 2. Group by Store -> Protein -> Latest Price (or Avg Price for period)
             // User requested "what each store pays". If multiple purchases, Weighted Avg is best.

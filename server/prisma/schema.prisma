@@ -9,13 +9,30 @@ datasource db {
 }
 
 model Company {
-  id         String       @id @default(uuid())
-  name       String
-  plan       String       @default("enterprise")
-  created_at DateTime     @default(now())
-  owner_id   String?
-  stores     Store[]
-  invoices   SysInvoice[]
+  id                 String           @id @default(uuid())
+  name               String
+  plan               String           @default("enterprise")
+  created_at         DateTime         @default(now())
+  owner_id           String?
+  annual_growth_rate Float            @default(5.0)
+  stores             Store[]
+  invoices           SysInvoice[]
+  products           CompanyProduct[]
+}
+
+model CompanyProduct {
+  id              String   @id @default(uuid())
+  company_id      String
+  name            String
+  category        String?
+  is_villain      Boolean  @default(false)
+  is_dinner_only  Boolean  @default(false)
+  include_in_delivery Boolean @default(false)
+  standard_target Float?
+  created_at      DateTime @default(now())
+  company         Company  @relation(fields: [company_id], references: [id])
+
+  @@unique([company_id, name])
 }
 
 model Store {
@@ -240,9 +257,9 @@ model DeliverySale {
   order_external_id String?
   total_lbs         Float
   guests            Int
-  amount            Float       @default(0)
   protein_breakdown Json
   created_at        DateTime    @default(now())
+  amount            Float       @default(0)
   store             Store       @relation(fields: [store_id], references: [id])
 
   @@index([store_id, date])
