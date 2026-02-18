@@ -416,7 +416,7 @@ export class WasteController {
     static async getNetworkWasteStatus(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const companyId = user.company_id || user.companyId || 1;
+            const companyId = user.companyId || user.company_id || 'tdb-main';
 
             const today = new Date();
             const centralDate = WasteController.getCentralDateTime(today);

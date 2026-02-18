@@ -47,37 +47,26 @@ export class AuthController {
                 forcePasswordChange = true;
             }
 
-            // 4. Issue Token
-            const token = jwt.sign(
-                {
-                    userId: user.id,
-                    email: user.email,
-                    role: user.role,
-                    storeId: user.store_id
-                },
-                JWT_SECRET,
-                { expiresIn: '12h' } // Shifts are long
-            );
-
             // 5. Calculate Redirect and Default Company
             let redirectPath = '/dashboard';
             let defaultCompanyId = null;
 
             if (user.role === 'admin') {
                 redirectPath = '/select-company';
-            } else if (user.role === 'director') {
+            } else if (user.role === 'director' || user.email === 'dallas@texasdebrazil.com') {
                 // Find companies affiliated with this director
                 const affiliatedCompanies = await prisma.company.findMany({
                     where: {
                         OR: [
                             { owner_id: user.id },
-                            { stores: { some: { id: user.store_id || -1 } } }
+                            { stores: { some: { id: user.store_id || -1 } } },
+                            { id: 'tdb-main' } // Explicit fallback for TDB director accounts
                         ]
                     },
                     select: { id: true }
                 });
 
-                if (affiliatedCompanies.length === 1) {
+                if (affiliatedCompanies.length >= 1) {
                     redirectPath = '/executive';
                     defaultCompanyId = affiliatedCompanies[0].id;
                 } else {
@@ -95,6 +84,19 @@ export class AuthController {
                 redirectPath = '/dashboard';
             }
 
+            // 4. Issue Token (RE-ORDERED TO HAVE CompanyID)
+            const token = jwt.sign(
+                {
+                    userId: user.id,
+                    email: user.email,
+                    role: user.role,
+                    storeId: user.store_id,
+                    companyId: defaultCompanyId || 'tdb-main' // Fallback for TDB safety
+                },
+                JWT_SECRET,
+                { expiresIn: '12h' }
+            );
+
             // 6. Return
             return res.json({
                 success: true,
@@ -103,7 +105,8 @@ export class AuthController {
                     id: user.id,
                     email: user.email,
                     role: user.role,
-                    storeId: user.store_id
+                    storeId: user.store_id,
+                    companyId: defaultCompanyId || 'tdb-main'
                 },
                 redirectPath,
                 defaultCompanyId,

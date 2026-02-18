@@ -167,6 +167,7 @@ const WasteLogHistory = ({ storeId }: { storeId?: number | null }) => {
 const WastePage = () => {
     const { user } = useAuth();
     const [searchParams] = useSearchParams();
+    const [selectedStore, setSelectedStore] = useState<number | null>(null);
     const [status, setStatus] = useState<any>(null);
     const [networkStatus, setNetworkStatus] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -177,7 +178,6 @@ const WastePage = () => {
     const [protein, setProtein] = useState('');
     const [weight, setWeight] = useState('');
     const [reason, setReason] = useState('Trimmed Fat');
-    const [selectedStore, setSelectedStore] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -338,6 +338,7 @@ const WastePage = () => {
 
     // --- RENDER EXECUTIVE NETWORK GRID ---
     if (isExecutive && !selectedStore) {
+        if (networkLoading) return <div className="p-8 text-[#C5A059] font-mono animate-pulse">Scanning Network Nodes...</div>;
         return (
             <div className="max-w-6xl mx-auto p-6 space-y-8">
                 <div className="flex justify-between items-center mb-8">
