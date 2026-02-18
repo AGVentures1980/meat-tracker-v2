@@ -183,6 +183,12 @@
         "item_filet": "Filet Mignon",
         "item_ribs": "Beef Ribs",
         "item_lamb": "Lamb Chops",
+        "item_fraldinha": "Flank Steak",
+        "item_tri-tip": "Tri-Tip",
+        "item_beef_ribs": "Beef Ribs",
+        "item_filet_mignon": "Filet Mignon",
+        "item_lamb_chops": "Lamb Chops",
+        "item_bacon": "Bacon",
         "procurement_intel_btn": "Procurement Intelligence",
         "charts": "Charts"
     },
@@ -370,6 +376,12 @@
         "item_filet": "Filet Mignon",
         "item_ribs": "Costela",
         "item_lamb": "Costeletas de Cordeiro",
+        "item_fraldinha": "Fraldinha",
+        "item_tri-tip": "Maminha",
+        "item_beef_ribs": "Costela",
+        "item_filet_mignon": "Filet Mignon",
+        "item_lamb_chops": "Costeletas de Cordeiro",
+        "item_bacon": "Bacon",
         "procurement_intel_btn": "Inteligência de Suprimentos",
         "charts": "Gráficos"
     }

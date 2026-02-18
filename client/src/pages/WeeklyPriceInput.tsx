@@ -406,7 +406,7 @@ export const WeeklyPriceInput = () => {
                                 <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 md:p-5 items-center hover:bg-white/5 transition-colors group">
                                     <div className="col-span-1 md:col-span-6 flex justify-between md:block">
                                         <div>
-                                            <div className="font-bold text-white group-hover:text-brand-gold transition-colors text-sm md:text-base">{t(`item_${item.item.toLowerCase().replace(/ /g, '_').split('/')[0]}`)}</div>
+                                            <div className="font-bold text-white group-hover:text-brand-gold transition-colors text-sm md:text-base">{t(`item_${item.item.toLowerCase().replace(/ /g, '_').split('/')[0]}`).toUpperCase()}</div>
                                             <div className="text-[9px] text-gray-500 font-mono mt-1">{t('price_standard_calc')}: {item.unit}</div>
                                         </div>
                                         {/* Mobile History View */}
