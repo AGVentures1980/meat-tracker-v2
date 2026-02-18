@@ -134,7 +134,10 @@ export class SmartPrepController {
             const totalMeatLbs = (forecast * bufferMultiplier) * targetLbsPerGuest;
 
             const prepList = [];
-            const proteins = Object.keys(MEAT_UNIT_WEIGHTS);
+
+            // FILTER: Remove discontinued items (Alcatra, Bone-in Ribeye) as per Texas de Brazil standards
+            const DISCONTINUED = ['Alcatra', 'Bone-in Ribeye'];
+            const proteins = Object.keys(MEAT_UNIT_WEIGHTS).filter(p => !DISCONTINUED.includes(p));
 
             let totalPredictedCost = 0;
 
