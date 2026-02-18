@@ -439,7 +439,7 @@ const SmartOrderTable = ({ date, refreshTrigger, storeId }: { date: string, refr
     }
 
     return (
-        <div className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-700 print:shadow-none print:border-none print:p-8 print:bg-white print:absolute print:top-0 print:left-0 print:w-full print:text-black print:z-50 min-h-screen">
+        <div id="smart-order-table-container" className="mt-8 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-700 print:shadow-none print:border-none print:p-0 print:bg-white print:text-black print:block print:w-full">
             <div className="flex items-center justify-between mb-6 print:hidden">
                 <div>
                     <div className="flex items-center gap-4 mb-1">
@@ -535,6 +535,41 @@ const SmartOrderTable = ({ date, refreshTrigger, storeId }: { date: string, refr
                     Ensure all recent invoices are entered for accuracy.
                 </p>
             </div>
+            <style>{printStyles}</style>
         </div >
     );
 };
+
+// Global print styles to isolate the table
+const printStyles = `
+@media print {
+  body > * {
+    display: none !important;
+  }
+  body {
+    visibility: hidden; 
+    overflow: visible !important;
+  }
+  #smart-order-table-container, #smart-order-table-container * {
+    visibility: visible;
+    display: block;
+  }
+  #smart-order-table-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white !important;
+    color: black !important;
+    z-index: 9999;
+  }
+  .print\\:hidden { 
+    display: none !important;
+  }
+}
+`;
+
+
+

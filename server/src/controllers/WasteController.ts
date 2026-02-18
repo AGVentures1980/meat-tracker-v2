@@ -32,6 +32,19 @@ export class WasteController {
             if (day !== 1) startOfWeek.setDate(startOfWeek.getDate() - (day - 1)); // Set to Monday
             startOfWeek.setHours(0, 0, 0, 0);
 
+            // 0. Validate Store Exists (Prevent Crash on "Las Vegas" etc)
+            const storeExists = await prisma.store.findUnique({ where: { id: storeId } });
+            if (!storeExists) {
+                return res.json({
+                    error: "Store Connection Pending",
+                    details: "This store has not been provisioned in the database yet.",
+                    week_start: startOfWeek,
+                    compliance: { lunch_count: 0, dinner_count: 0, is_locked: true }, // Lock it safe
+                    today: { has_lunch: false, has_dinner: false, can_input_lunch: false, can_input_dinner: false, message: "Store Offline" },
+                    analysis: null
+                });
+            }
+
 
             // 1. Check Compliance Status (Lockout)
             let compliance = await prisma.wasteCompliance.findUnique({
@@ -370,6 +383,33 @@ export class WasteController {
         } catch (error) {
             console.error('Failed to fetch waste history', error);
             res.status(500).json({ error: 'Failed to fetch history' });
+        }
+    }
+
+    static async getDetailedHistory(req: Request, res: Response) {
+        try {
+            // @ts-ignore
+            const userStoreId = req.user?.storeId || req.user?.store_id || 1;
+            let storeId = userStoreId;
+
+            // @ts-ignore
+            if (((req as any).user?.role === 'admin' || (req as any).user?.role === 'director') && req.query.store_id) {
+                storeId = parseInt(req.query.store_id as string);
+            }
+
+            const limit = parseInt(req.query.limit as string) || 20;
+
+            const logs = await prisma.wasteLog.findMany({
+                where: { store_id: storeId },
+                orderBy: { date: 'desc' },
+                take: limit
+            });
+
+            // Return raw logs, frontend will group
+            res.json(logs);
+        } catch (error) {
+            console.error('Failed to fetch detailed history', error);
+            res.status(500).json({ error: 'Failed to fetch detailed history' });
         }
     }
 }

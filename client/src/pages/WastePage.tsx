@@ -2,22 +2,28 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MEAT_UNIT_WEIGHTS } from '../config/meat_weights';
-import { Trash2, Lock, CheckCircle, AlertTriangle, Scale, Save } from 'lucide-react';
+import { Trash2, Lock, CheckCircle, AlertTriangle, Scale, Save, FileText, ChevronDown, ChevronRight, Calendar } from 'lucide-react';
 
-const WasteHistoryChart = ({ storeId }: { storeId?: number | null }) => {
+const WasteLogHistory = ({ storeId }: { storeId?: number | null }) => {
     const { user } = useAuth();
-    const [history, setHistory] = useState<any[]>([]);
+    const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [expandedDate, setExpandedDate] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                let url = '/api/v1/dashboard/waste/history?range=this-month';
+                let url = '/api/v1/dashboard/waste/history/details?limit=50';
                 if (storeId) url += `&store_id=${storeId}`;
                 const res = await fetch(url, { headers: { 'Authorization': `Bearer ${user?.token}` } });
                 if (res.ok) {
                     const data = await res.json();
-                    setHistory(data);
+                    setLogs(data);
+                    // Open first date by default
+                    if (data.length > 0) {
+                        const firstDate = new Date(data[0].date).toISOString().split('T')[0];
+                        setExpandedDate(firstDate);
+                    }
                 }
             } catch (e) {
                 console.error(e);
@@ -28,26 +34,77 @@ const WasteHistoryChart = ({ storeId }: { storeId?: number | null }) => {
         fetchHistory();
     }, [storeId, user?.token]);
 
-    if (loading) return <div className="h-20 flex items-center justify-center text-xs text-gray-600 animate-pulse">Loading Trends...</div>;
+    if (loading) return <div className="p-4 text-xs text-gray-500 animate-pulse">Loading Records...</div>;
+    if (logs.length === 0) return <div className="p-4 text-xs text-gray-500">No waste logs found.</div>;
 
-    if (history.length === 0) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No recent data</div>;
+    // Group logs by Date
+    const grouped: Record<string, any[]> = {};
+    logs.forEach(log => {
+        const dateStr = new Date(log.date).toISOString().split('T')[0];
+        if (!grouped[dateStr]) grouped[dateStr] = [];
+        grouped[dateStr].push(log);
+    });
 
-    // Simple Bar Chart
-    const maxVal = Math.max(...history.map(h => h.pounds), 1);
+    const dates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
     return (
-        <div className="flex items-end gap-1 h-20 pt-2">
-            {history.map((h, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center group relative">
-                    <div
-                        className={`w-full rounded-t-sm transition-all hover:bg-opacity-80 ${h.pounds > 20 ? 'bg-red-500' : 'bg-[#C5A059]'}`}
-                        style={{ height: `${(h.pounds / maxVal) * 100}%` }}
-                    ></div>
-                    <div className="absolute bottom-full mb-1 bg-black text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                        {new Date(h.date).toLocaleDateString()}: {h.pounds.toFixed(1)} lbs
+        <div className="mt-4 space-y-2">
+            {dates.map(date => {
+                const dayLogs = grouped[date];
+                const totalWeight = dayLogs.reduce((sum: number, log: any) => {
+                    return sum + (log.items as any[]).reduce((s: number, i: any) => s + (i.weight || 0), 0);
+                }, 0);
+                const isExpanded = expandedDate === date;
+
+                return (
+                    <div key={date} className="border border-[#333] rounded-sm bg-[#1a1a1a] overflow-hidden">
+                        <button
+                            onClick={() => setExpandedDate(isExpanded ? null : date)}
+                            className="w-full flex items-center justify-between p-3 hover:bg-[#222] transition-colors"
+                        >
+                            <div className="flex items-center gap-3">
+                                {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+                                <div className="flex items-center gap-2">
+                                    <Calendar className="w-4 h-4 text-brand-gold" />
+                                    <span className="text-sm font-bold text-white font-mono">{new Date(date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="text-[10px] uppercase text-gray-500 tracking-wider">{dayLogs.length} Shifts Logged</span>
+                                <span className={`font-mono font-bold text-sm ${totalWeight > 20 ? 'text-red-500' : 'text-[#C5A059]'}`}>
+                                    {totalWeight.toFixed(1)} lbs
+                                </span>
+                            </div>
+                        </button>
+
+                        {isExpanded && (
+                            <div className="border-t border-[#333] bg-black/20">
+                                {dayLogs.map((log: any) => (
+                                    <div key={log.id} className="p-3 border-b border-[#333] last:border-0 pl-10">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className={`text-[10px] px-2 py-0.5 rounded border ${log.shift === 'LUNCH' ? 'bg-blue-900/20 border-blue-500 text-blue-400' : 'bg-purple-900/20 border-purple-500 text-purple-400'}`}>
+                                                {log.shift}
+                                            </span>
+                                            <span className="text-gray-600 text-[10px] uppercase tracking-widest">Logged by Manager</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            {(log.items as any[]).map((item: any, idx: number) => (
+                                                <div key={idx} className="flex justify-between text-xs items-center hover:bg-white/5 p-1 rounded">
+                                                    <span className="text-gray-300">{item.protein}</span>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-gray-500 italic text-[10px]">{item.reason}</span>
+                                                        <span className="font-mono text-[#C5A059]">{item.weight} lbs</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 };
@@ -268,10 +325,13 @@ const WastePage = () => {
                             </div>
                         </div>
 
-                        {/* Waste Trend/History - New Addition */}
-                        <div className="pl-4 border-t border-[#333] pt-4">
-                            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-2">Waste History (This Month)</h3>
-                            <WasteHistoryChart storeId={selectedStore} />
+                        {/* Waste History List */}
+                        <div className="pl-4 border-t border-[#333] pt-4 mt-6">
+                            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                <FileText className="w-3 h-3" />
+                                Recent Waste Logs
+                            </h3>
+                            <WasteLogHistory storeId={selectedStore} />
                         </div>
                     </div>
 
