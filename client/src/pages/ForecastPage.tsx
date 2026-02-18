@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Brain, Lock, Save, AlertTriangle, Calendar, Truck, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,6 +16,7 @@ export const ForecastPage = () => {
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [refreshKey, setRefreshKey] = useState(0); // Dedicated trigger for table updates
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const externalStoreId = searchParams.get('storeId');
 
     // Initialize with Next Week's Monday
@@ -174,7 +175,7 @@ export const ForecastPage = () => {
                                     </td>
                                     <td className="p-4 text-right">
                                         <button
-                                            onClick={() => window.location.href = `/forecast?storeId=${store.id}`}
+                                            onClick={() => navigate(`/forecast?storeId=${store.id}`)}
                                             className="text-gray-500 hover:text-[#C5A059] flex items-center gap-1 ml-auto text-xs uppercase font-bold"
                                         >
                                             <Eye size={14} /> View

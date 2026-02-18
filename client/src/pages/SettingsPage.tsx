@@ -22,8 +22,35 @@ export const SettingsPage = () => {
         dinnerPrice: '54.00'
     });
     const [editingStore, setEditingStore] = useState<any>(null);
+    const [systemStatus, setSystemStatus] = useState<{ online: boolean, lastSync: Date | null }>({ online: false, lastSync: null });
+    const [notificationPrefs, setNotificationPrefs] = useState([
+        { title: 'Daily Flash Report', desc: 'Receive the daily executive summary via email at 8:00 AM EST.', model: true },
+        { title: 'Variance Alerts', desc: 'Instant notification when a store exceeds 5% variance on any protein.', model: true },
+        { title: 'Weekly Recap', desc: 'End of week performance analysis sent every Monday.', model: true },
+        { title: 'System Updates', desc: 'Changelogs and maintenance windows.', model: false },
+    ]);
 
-    // Fetch Stores logic
+    useEffect(() => {
+        const checkHealth = async () => {
+            try {
+                const res = await fetch('/health');
+                if (res.ok) {
+                    setSystemStatus({ online: true, lastSync: new Date() });
+                } else {
+                    setSystemStatus({ online: false, lastSync: null });
+                }
+            } catch (e) {
+                setSystemStatus({ online: false, lastSync: null });
+            }
+        };
+        if (activeTab === 'data') checkHealth();
+    }, [activeTab]);
+
+    const toggleNotification = (index: number) => {
+        const newPrefs = [...notificationPrefs];
+        newPrefs[index].model = !newPrefs[index].model;
+        setNotificationPrefs(newPrefs);
+    };
     const fetchStores = async () => {
         try {
             const token = user?.token;
@@ -546,16 +573,20 @@ export const SettingsPage = () => {
                                 </>
                             ) : (
                                 <div className="p-8 bg-[#121212] border border-[#333] rounded-sm flex flex-col items-center justify-center text-center">
-                                    <div className="w-16 h-16 bg-[#00FF94]/10 rounded-full flex items-center justify-center mb-4">
-                                        <div className="w-3 h-3 bg-[#00FF94] rounded-full animate-pulse shadow-[0_0_10px_rgba(0,255,148,0.5)]"></div>
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${systemStatus.online ? 'bg-[#00FF94]/10' : 'bg-red-500/10'}`}>
+                                        <div className={`w-3 h-3 rounded-full animate-pulse ${systemStatus.online ? 'bg-[#00FF94] shadow-[0_0_10px_rgba(0,255,148,0.5)]' : 'bg-red-500'}`}></div>
                                     </div>
-                                    <h4 className="text-white text-lg font-bold uppercase tracking-widest mb-2">System Online</h4>
+                                    <h4 className="text-white text-lg font-bold uppercase tracking-widest mb-2">{systemStatus.online ? 'System Online' : 'System Offline'}</h4>
                                     <p className="text-gray-500 text-sm max-w-md">
-                                        All systems are operational. Data synchronization is active and up to date.
+                                        {systemStatus.online
+                                            ? 'All systems are operational. Data synchronization is active and up to date.'
+                                            : 'Unable to connect to the main server. Please check your internet connection.'}
                                     </p>
-                                    <div className="mt-6 text-xs font-mono text-gray-600">
-                                        Last Sync: {new Date().toLocaleTimeString()}
-                                    </div>
+                                    {systemStatus.lastSync && (
+                                        <div className="mt-6 text-xs font-mono text-gray-600">
+                                            Last Heartbeat: {systemStatus.lastSync.toLocaleTimeString()}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -566,18 +597,16 @@ export const SettingsPage = () => {
                             <h3 className="text-xl font-bold text-white border-b border-[#333] pb-4">Notification Preferences</h3>
 
                             <div className="space-y-4">
-                                {[
-                                    { title: 'Daily Flash Report', desc: 'Receive the daily executive summary via email at 8:00 AM EST.', model: true },
-                                    { title: 'Variance Alerts', desc: 'Instant notification when a store exceeds 5% variance on any protein.', model: true },
-                                    { title: 'Weekly Recap', desc: 'End of week performance analysis sent every Monday.', model: true },
-                                    { title: 'System Updates', desc: 'Changelogs and maintenance windows.', model: false },
-                                ].map((pref, i) => (
+                                {notificationPrefs.map((pref, i) => (
                                     <div key={i} className="flex items-center justify-between p-4 border border-[#333] rounded-sm bg-[#121212]">
                                         <div>
                                             <h4 className="text-sm text-white font-bold">{pref.title}</h4>
                                             <p className="text-xs text-gray-500">{pref.desc}</p>
                                         </div>
-                                        <button className={`w-10 h-5 rounded-full relative transition-colors ${pref.model ? 'bg-brand-gold' : 'bg-[#333]'}`}>
+                                        <button
+                                            onClick={() => toggleNotification(i)}
+                                            className={`w-10 h-5 rounded-full relative transition-colors ${pref.model ? 'bg-brand-gold' : 'bg-[#333]'}`}
+                                        >
                                             <span className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${pref.model ? 'right-1' : 'left-1'}`}></span>
                                         </button>
                                     </div>

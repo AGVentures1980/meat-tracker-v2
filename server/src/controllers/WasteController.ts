@@ -317,4 +317,59 @@ export class WasteController {
         const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
         return new Date(utc + (3600000 * -6));
     }
+    static async getHistory(req: Request, res: Response) {
+        try {
+            // @ts-ignore
+            const userStoreId = req.user?.storeId || req.user?.store_id || 1;
+            let storeId = userStoreId;
+
+            // @ts-ignore
+            if (((req as any).user?.role === 'admin' || (req as any).user?.role === 'director') && req.query.store_id) {
+                storeId = parseInt(req.query.store_id as string);
+            }
+
+            const range = req.query.range as string || 'this-month';
+            // Simple date filtering
+            const now = new Date();
+            let startDate = new Date();
+            startDate.setDate(1); // Start of month default
+
+            if (range === 'this-week') {
+                const day = now.getDay() || 7;
+                startDate = new Date(now);
+                startDate.setDate(now.getDate() - day + 1);
+            } else if (range === 'last-month') {
+                startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            } else if (range === 'ytd') {
+                startDate = new Date(now.getFullYear(), 0, 1);
+            }
+
+            const logs = await prisma.wasteLog.findMany({
+                where: {
+                    store_id: storeId,
+                    date: { gte: startDate }
+                },
+                orderBy: { date: 'asc' }
+            });
+
+            // Group by date
+            const history: Record<string, number> = {};
+            logs.forEach(log => {
+                const dateStr = new Date(log.date).toISOString().split('T')[0];
+                const items = log.items as any[];
+                const total = items.reduce((sum, item) => sum + (item.weight || 0), 0);
+                history[dateStr] = (history[dateStr] || 0) + total;
+            });
+
+            const chartData = Object.entries(history).map(([date, pounds]) => ({
+                date,
+                pounds
+            }));
+
+            res.json(chartData);
+        } catch (error) {
+            console.error('Failed to fetch waste history', error);
+            res.status(500).json({ error: 'Failed to fetch history' });
+        }
+    }
 }

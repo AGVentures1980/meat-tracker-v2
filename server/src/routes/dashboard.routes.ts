@@ -37,6 +37,7 @@ router.get('/network-health', requireAuth, NetworkHealthController.getNetworkSta
 
 // Waste Management (The Garcia Rule)
 router.get('/waste/status', requireAuth, WasteController.getStatus);
+router.get('/waste/history', requireAuth, WasteController.getHistory);
 router.post('/waste/log', requireAuth, WasteController.logWaste);
 
 export default router;

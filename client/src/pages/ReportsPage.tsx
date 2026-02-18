@@ -16,6 +16,7 @@ export const ReportsPage = () => {
         { id: 'flash', name: t('report_flash'), description: t('report_flash_desc'), icon: Activity, color: 'text-[#00FF94]', endpoint: '/api/v1/reports/flash' },
         { id: 'variance', name: t('report_variance'), description: t('report_variance_desc'), icon: Filter, color: 'text-[#FF2A6D]', endpoint: '/api/v1/reports/variance' },
         { id: 'inventory', name: t('report_inventory'), description: t('report_inventory_desc'), icon: Calendar, color: 'text-blue-400', endpoint: '/api/v1/reports/inventory' },
+        { id: 'meat-prices', name: 'Meat Prices', description: 'Price analysis per store with variance alerts', icon: DollarSign, color: 'text-brand-gold', endpoint: '/api/v1/reports/meat-prices' },
     ];
 
     const fetchReport = useCallback(async () => {
@@ -83,6 +84,11 @@ export const ReportsPage = () => {
             csvContent += "Protein,Actual,Ideal,Variance\n";
             data.variance.forEach((v: any) => {
                 csvContent += `${v.protein},${v.actual.toFixed(2)},${v.ideal.toFixed(2)},${v.variance.toFixed(2)}\n`;
+            });
+        } else if (selectedReport === 'meat-prices' && Array.isArray(data)) {
+            csvContent += "PROTEIN,STORE,PRICE PAID,NETWORK AVG,VARIANCE,STATUS\n";
+            data.forEach((row: any) => {
+                csvContent += `${row.protein.toUpperCase()},${row.store.toUpperCase()},${row.avgPrice.toFixed(2)},${row.networkAvg.toFixed(2)},${row.variance.toFixed(2)},${row.status.toUpperCase()}\n`;
             });
         }
 
@@ -318,6 +324,45 @@ export const ReportsPage = () => {
                                                             </table>
                                                         </div>
                                                     </div>
+                                                </div>
+                                            )}
+
+                                            {selectedReport === 'meat-prices' && Array.isArray(data) && (
+                                                <div className="border border-[#333] rounded-sm overflow-hidden">
+                                                    <table className="w-full text-left text-xs font-mono">
+                                                        <thead>
+                                                            <tr className="bg-[#1a1a1a] text-gray-500 uppercase tracking-widest border-b border-[#333]">
+                                                                <th className="p-3">Protein</th>
+                                                                <th className="p-3">Store</th>
+                                                                <th className="p-3 text-right">Paid ($)</th>
+                                                                <th className="p-3 text-right">Network Avg ($)</th>
+                                                                <th className="p-3 text-right">Variance</th>
+                                                                <th className="p-3 text-right">Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-[#333]">
+                                                            {data.length === 0 ? (
+                                                                <tr><td colSpan={6} className="p-4 text-center text-gray-500">No price data available for this period.</td></tr>
+                                                            ) : (
+                                                                data.map((row: any, i: number) => (
+                                                                    <tr key={i} className="hover:bg-white/5 transition-colors">
+                                                                        <td className="p-3 text-white font-bold uppercase">{row.protein}</td>
+                                                                        <td className="p-3 text-gray-300">{row.store} <span className="text-[9px] text-gray-600">({row.location})</span></td>
+                                                                        <td className="p-3 text-right text-white">${row.avgPrice.toFixed(2)}</td>
+                                                                        <td className="p-3 text-right text-gray-500">${row.networkAvg.toFixed(2)}</td>
+                                                                        <td className={`p-3 text-right font-bold ${row.variance <= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
+                                                                            {row.variance > 0 ? '+' : ''}{row.variance.toFixed(2)}
+                                                                        </td>
+                                                                        <td className="p-3 text-right">
+                                                                            <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold ${row.status === 'Low' || row.status === 'Normal' ? 'bg-[#00FF94]/10 text-[#00FF94]' : 'bg-[#FF2A6D]/10 text-[#FF2A6D]'}`}>
+                                                                                {row.status}
+                                                                            </span>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))
+                                                            )}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             )}
                                         </div>

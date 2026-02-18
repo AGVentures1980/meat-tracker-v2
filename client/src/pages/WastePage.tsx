@@ -4,6 +4,54 @@ import { useAuth } from '../context/AuthContext';
 import { MEAT_UNIT_WEIGHTS } from '../config/meat_weights';
 import { Trash2, Lock, CheckCircle, AlertTriangle, Scale, Save } from 'lucide-react';
 
+const WasteHistoryChart = ({ storeId }: { storeId?: number | null }) => {
+    const { user } = useAuth();
+    const [history, setHistory] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                let url = '/api/v1/dashboard/waste/history?range=this-month';
+                if (storeId) url += `&store_id=${storeId}`;
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${user?.token}` } });
+                if (res.ok) {
+                    const data = await res.json();
+                    setHistory(data);
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHistory();
+    }, [storeId, user?.token]);
+
+    if (loading) return <div className="h-20 flex items-center justify-center text-xs text-gray-600 animate-pulse">Loading Trends...</div>;
+
+    if (history.length === 0) return <div className="h-20 flex items-center justify-center text-xs text-gray-600">No recent data</div>;
+
+    // Simple Bar Chart
+    const maxVal = Math.max(...history.map(h => h.pounds), 1);
+
+    return (
+        <div className="flex items-end gap-1 h-20 pt-2">
+            {history.map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center group relative">
+                    <div
+                        className={`w-full rounded-t-sm transition-all hover:bg-opacity-80 ${h.pounds > 20 ? 'bg-red-500' : 'bg-[#C5A059]'}`}
+                        style={{ height: `${(h.pounds / maxVal) * 100}%` }}
+                    ></div>
+                    <div className="absolute bottom-full mb-1 bg-black text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        {new Date(h.date).toLocaleDateString()}: {h.pounds.toFixed(1)} lbs
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
 const WastePage = () => {
     const { user } = useAuth();
     const [searchParams] = useSearchParams();
@@ -187,39 +235,43 @@ const WastePage = () => {
             {status?.analysis && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     {/* Main Gauge Card */}
-                    <div className={`col-span-1 md:col-span-2 p-6 rounded-lg border flex items-center justify-between relative overflow-hidden ${status.analysis.is_critical ? 'bg-red-950/40 border-red-500/50' : 'bg-[#1a1a1a] border-[#333]'}`}>
+                    <div className={`col-span-1 md:col-span-2 p-6 rounded-lg border flex flex-col justify-center relative overflow-hidden ${status.analysis.is_critical ? 'bg-red-950/40 border-red-500/50' : 'bg-[#1a1a1a] border-[#333]'}`}>
 
                         {/* Status Indicator Bar */}
                         <div className={`absolute left-0 top-0 bottom-0 w-2 ${status.analysis.is_critical ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
 
-                        <div className="pl-4">
-                            <h2 className="text-gray-400 text-sm uppercase tracking-widest mb-1">Total Store Waste</h2>
-                            <div className="flex items-baseline gap-2">
-                                <span className={`text-5xl font-black ${status.analysis.is_critical ? 'text-red-500' : 'text-white'}`}>
-                                    {status.analysis.global_percent}%
-                                </span>
-                                <span className="text-sm text-gray-500 font-mono">
-                                    of Usage ({status.analysis.total_waste_lbs} lbs)
-                                </span>
+                        <div className="flex justify-between items-center mb-6 pl-4">
+                            <div>
+                                <h2 className="text-gray-400 text-sm uppercase tracking-widest mb-1">Total Store Waste</h2>
+                                <div className="flex items-baseline gap-2">
+                                    <span className={`text-5xl font-black ${status.analysis.is_critical ? 'text-red-500' : 'text-white'}`}>
+                                        {status.analysis.global_percent}%
+                                    </span>
+                                    <span className="text-sm text-gray-500 font-mono">
+                                        of Usage ({status.analysis.total_waste_lbs} lbs)
+                                    </span>
+                                </div>
                             </div>
-                            <div className="mt-2 text-xs text-gray-400">
-                                Target: <span className="text-[#C5A059]">{status.analysis.store_target} lbs/guest</span>
+                            {/* Visual Meter */}
+                            <div className="hidden sm:block text-right">
+                                {status.analysis.is_critical ? (
+                                    <div className="flex items-center gap-2 text-red-500">
+                                        <AlertTriangle className="w-10 h-10" />
+                                        <span className="text-xl font-bold uppercase">Critical</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-green-500">
+                                        <CheckCircle className="w-10 h-10" />
+                                        <span className="text-xl font-bold uppercase">Good</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Visual Meter */}
-                        <div className="hidden sm:block text-right">
-                            {status.analysis.is_critical ? (
-                                <div className="flex items-center gap-2 text-red-500">
-                                    <AlertTriangle className="w-10 h-10" />
-                                    <span className="text-xl font-bold uppercase">Critical</span>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-2 text-green-500">
-                                    <CheckCircle className="w-10 h-10" />
-                                    <span className="text-xl font-bold uppercase">Good</span>
-                                </div>
-                            )}
+                        {/* Waste Trend/History - New Addition */}
+                        <div className="pl-4 border-t border-[#333] pt-4">
+                            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-2">Waste History (This Month)</h3>
+                            <WasteHistoryChart storeId={selectedStore} />
                         </div>
                     </div>
 

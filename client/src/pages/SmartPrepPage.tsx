@@ -339,12 +339,12 @@ export const SmartPrepPage = () => {
                             <th className="py-2 font-bold uppercase text-sm w-48">Notes</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="print:text-black text-black">
                         {adjustedPrepData?.prep_list.filter((item: any) => !excludedProteins.includes(item.protein)).map((item: any) => (
-                            <tr key={item.protein} className="border-b border-gray-300">
-                                <td className="py-3 font-bold">{item.protein}</td>
-                                <td className="py-3 text-right font-mono text-lg">{Math.ceil(item.recommended_units)} <span className="text-xs text-gray-500">{item.unit_name || 'units'}</span></td>
-                                <td className="py-3 text-right font-mono">{item.recommended_lbs} lbs</td>
+                            <tr key={item.protein} className="border-b border-gray-300 print:text-black">
+                                <td className="py-3 font-bold print:text-black">{item.protein}</td>
+                                <td className="py-3 text-right font-mono text-lg print:text-black">{Math.ceil(item.recommended_units)} <span className="text-xs text-gray-500 print:text-gray-600">{item.unit_name || 'units'}</span></td>
+                                <td className="py-3 text-right font-mono print:text-black">{item.recommended_lbs} lbs</td>
                                 <td className="py-3 text-center border-l border-r border-gray-200">
                                     <div className="w-6 h-6 border-2 border-black rounded mx-auto"></div>
                                 </td>

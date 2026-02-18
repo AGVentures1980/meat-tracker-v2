@@ -97,12 +97,12 @@ export const ExecutiveSummary = () => {
                     <p className="text-gray-400 text-sm">Company-wide Performance & Financial Impact</p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button
+                    {/* <button
                         onClick={() => setIsEditorOpen(true)}
                         className="text-sm bg-[#333] hover:bg-[#444] text-white px-3 py-2 rounded border border-[#555] transition-colors"
                     >
                         Edit Targets
-                    </button>
+                    </button> */}
                     <div className="flex items-center gap-2 bg-[#1a1a1a] px-4 py-2 rounded border border-[#333]">
                         <span className="text-sm text-gray-400">Period:</span>
                         <span className="text-[#C5A059] font-mono font-bold">{stats.period}</span>

@@ -164,4 +164,98 @@ export class ReportController {
             return res.status(500).json({ error: 'Failed to generate inventory report' });
         }
     }
+    /**
+     * Meat Prices Report: Purchase analysis and variance alerts.
+     */
+    static async getMeatPrices(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const { range } = req.query;
+            const { start, end } = getDateRange(range as string);
+
+            // Fetch all Purchase Records across network
+            const purchases = await prisma.purchaseRecord.findMany({
+                where: {
+                    date: { gte: start, lte: end }
+                },
+                include: { store: true }
+            });
+
+            if (purchases.length === 0) {
+                // If no purchase records, try Invoice Records
+                // TODO: Combine both tables in future
+            }
+
+            // 1. Calculate Network Average per Protein
+            const networkTotals: Record<string, { totalCost: number, totalQty: number }> = {};
+            purchases.forEach(p => {
+                if (!networkTotals[p.item_name]) networkTotals[p.item_name] = { totalCost: 0, totalQty: 0 };
+                networkTotals[p.item_name].totalCost += p.cost_total;
+                networkTotals[p.item_name].totalQty += p.quantity;
+            });
+
+            const networkAverages: Record<string, number> = {};
+            Object.keys(networkTotals).forEach(protein => {
+                const t = networkTotals[protein];
+                networkAverages[protein] = t.totalQty > 0 ? t.totalCost / t.totalQty : 0;
+            });
+
+            // 2. Group by Store -> Protein -> Latest Price (or Avg Price for period)
+            // User requested "what each store pays". If multiple purchases, Weighted Avg is best.
+            const storeStats: Record<string, Record<string, { totalCost: number, totalQty: number, storeName: string, location: string }>> = {};
+
+            purchases.forEach(p => {
+                const storeKey = p.store_id.toString();
+                if (!storeStats[storeKey]) storeStats[storeKey] = {};
+                if (!storeStats[storeKey][p.item_name]) {
+                    storeStats[storeKey][p.item_name] = {
+                        totalCost: 0,
+                        totalQty: 0,
+                        storeName: p.store.store_name,
+                        location: p.store.location
+                    };
+                }
+                storeStats[storeKey][p.item_name].totalCost += p.cost_total;
+                storeStats[storeKey][p.item_name].totalQty += p.quantity;
+            });
+
+            // 3. Format Response
+            const reportData: any[] = [];
+
+            Object.keys(storeStats).forEach(storeId => {
+                const proteins = storeStats[storeId];
+                Object.keys(proteins).forEach(protein => {
+                    const data = proteins[protein];
+                    const avgPrice = data.totalQty > 0 ? data.totalCost / data.totalQty : 0;
+                    const networkAvg = networkAverages[protein] || 0;
+                    const variance = avgPrice - networkAvg;
+                    const variancePercent = networkAvg > 0 ? (variance / networkAvg) * 100 : 0;
+
+                    reportData.push({
+                        store: data.storeName,
+                        location: data.location,
+                        protein: protein,
+                        avgPrice: avgPrice,
+                        networkAvg: networkAvg,
+                        variance: variance,
+                        variancePercent: variancePercent,
+                        status: variancePercent > 5 ? 'High' : (variancePercent < -5 ? 'Low' : 'Normal')
+                    });
+                });
+            });
+
+            // Sort Alphabetically by Protein then Store
+            reportData.sort((a, b) => {
+                const pDiff = a.protein.localeCompare(b.protein);
+                if (pDiff !== 0) return pDiff;
+                return a.store.localeCompare(b.store);
+            });
+
+            return res.json(reportData);
+
+        } catch (error) {
+            console.error('Report Error (Meat Prices):', error);
+            return res.status(500).json({ error: 'Failed to generate meat prices report' });
+        }
+    }
 }

@@ -8,5 +8,6 @@ router.get('/executive-summary', requireAuth, ReportController.getExecutiveSumma
 router.get('/flash', requireAuth, ReportController.getFlashReport);
 router.get('/variance', requireAuth, ReportController.getVarianceAnalysis);
 router.get('/inventory', requireAuth, ReportController.getInventoryReport);
+router.get('/meat-prices', requireAuth, ReportController.getMeatPrices);
 
 export default router;
