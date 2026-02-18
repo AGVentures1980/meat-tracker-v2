@@ -75,6 +75,7 @@ export class DeliveryController {
             const proteinAggregation: Record<string, number> = {};
             let totalLbs = 0;
             let totalGuests = 0;
+            let totalAmount = 0;
 
             oloRawData.forEach(order => {
                 let weight = 0;
@@ -93,9 +94,10 @@ export class DeliveryController {
 
                 totalLbs += weight;
                 totalGuests += guests;
+                totalAmount += order.price * order.qty;
 
                 // Decompose into proteins
-                const breakdown = this.decomposeMeat(order.item, weight);
+                const breakdown = DeliveryController.decomposeMeat(order.item, weight);
                 breakdown.forEach(b => {
                     proteinAggregation[b.protein] = (proteinAggregation[b.protein] || 0) + b.weight;
                 });
@@ -113,6 +115,7 @@ export class DeliveryController {
                     source: 'OLO',
                     total_lbs: totalLbs,
                     guests: totalGuests,
+                    amount: totalAmount,
                     protein_breakdown: proteinBreakdownArray as any,
                     date: new Date(date)
                 }
@@ -120,7 +123,7 @@ export class DeliveryController {
 
             return res.json({
                 success: true,
-                metrics: { totalLbs, calculatedGuests: totalGuests },
+                metrics: { totalLbs, calculatedGuests: totalGuests, amount: totalAmount },
                 proteinBreakdown: proteinBreakdownArray
             });
         } catch (error) {
@@ -167,6 +170,7 @@ export class DeliveryController {
                     order_external_id: "41331939074703368",
                     total_lbs: 1.0,
                     guests: 4,
+                    amount: 29.58,
                     protein_breakdown: proteinBreakdownArray as any
                 }
             });
@@ -174,7 +178,7 @@ export class DeliveryController {
             return res.json({
                 success: true,
                 message: "Ticket parsed and SAVED successfully",
-                metrics: { totalLbs: 1.0, calculatedGuests: 4 },
+                metrics: { totalLbs: 1.0, calculatedGuests: 4, amount: 29.58 },
                 proteinBreakdown: proteinBreakdownArray,
                 items: scannedItems
             });
@@ -206,20 +210,41 @@ export class DeliveryController {
      * GET /api/v1/delivery/network-status
      */
     static async getNetworkStatus(req: Request, res: Response) {
-        // Mocking Network Status for 10 key stores
-        const stores = [
-            { id: 1, name: "Dallas (Main)", status: "online", lastSync: "2 mins ago", totalLbs: 1240.5, deliveryCount: 45 },
-            { id: 2, name: "Fort Worth", status: "online", lastSync: "5 mins ago", totalLbs: 890.2, deliveryCount: 32 },
-            { id: 3, name: "Addison", status: "online", lastSync: "12 mins ago", totalLbs: 650.0, deliveryCount: 28 },
-            { id: 4, name: "Austin", status: "offline", lastSync: "4 hours ago", totalLbs: 0, deliveryCount: 0 },
-            { id: 5, name: "Houston", status: "online", lastSync: "1 min ago", totalLbs: 1540.8, deliveryCount: 62 },
-            { id: 6, name: "San Antonio", status: "online", lastSync: "3 mins ago", totalLbs: 920.4, deliveryCount: 38 },
-            { id: 7, name: "Denver", status: "online", lastSync: "8 mins ago", totalLbs: 780.1, deliveryCount: 30 },
-            { id: 8, name: "Miami", status: "offline", lastSync: "2 days ago", totalLbs: 0, deliveryCount: 0 },
-            { id: 9, name: "Chicago", status: "online", lastSync: "10 mins ago", totalLbs: 1100.3, deliveryCount: 42 },
-            { id: 10, name: "Las Vegas", status: "online", lastSync: "15 mins ago", totalLbs: 2100.9, deliveryCount: 85 },
-        ];
+        try {
+            const stores = await prisma.store.findMany({
+                where: {
+                    delivery_sales: {
+                        some: {}
+                    }
+                },
+                include: {
+                    delivery_sales: {
+                        take: 1,
+                        orderBy: { date: 'desc' }
+                    }
+                }
+            });
 
-        return res.json({ success: true, stores });
+            // Aggregate metrics per store
+            const networkStatus = stores.map(store => {
+                const lastSale = store.delivery_sales[0];
+                return {
+                    id: store.id,
+                    name: store.store_name,
+                    // Use a slightly more lenient online check for the demo: 2 hours
+                    status: (lastSale && new Date().getTime() - new Date(lastSale.date).getTime() < 2 * 3600000) ? "online" : "offline",
+                    lastSync: lastSale ? `${Math.floor((new Date().getTime() - new Date(lastSale.date).getTime()) / 60000)} mins ago` : "Never",
+                    totalLbs: lastSale?.total_lbs || 0,
+                    deliveryCount: lastSale?.guests || 0,
+                    salesValue: lastSale?.amount || 0,
+                    salesTarget: store.olo_sales_target || 10000
+                };
+            }).sort((a, b) => b.deliveryCount - a.deliveryCount); // Sort by delivery count for parity
+
+            return res.json({ success: true, stores: networkStatus });
+        } catch (error) {
+            console.error('Failed to fetch network status:', error);
+            return res.status(500).json({ success: false, error: 'Failed to fetch network status' });
+        }
     }
 }

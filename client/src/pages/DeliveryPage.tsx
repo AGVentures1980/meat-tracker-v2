@@ -157,39 +157,42 @@ export const DeliveryPage = () => {
                 </div>
             </div>
 
-            {/* Director View: Network Status */}
-            {isDirectorOrAdmin ? (
+            {/* Director/Admin View: Network Status Grid */}
+            {(user?.role === 'admin' || user?.role === 'director') ? (
                 <div className="mb-8">
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-sm p-6">
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                             <RefreshCw className="w-5 h-5 text-[#00FF94]" />
                             Live Network Status
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                            {networkStatus.map((store) => (
-                                <div key={store.id} className={`p-4 border ${store.status === 'online' ? 'border-[#333] bg-[#121212]' : 'border-red-900/30 bg-red-900/10'} rounded-sm relative group`}>
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className={`text-xs font-bold uppercase tracking-widest ${store.status === 'online' ? 'text-white' : 'text-red-500'}`}>
-                                            {store.name}
-                                        </span>
-                                        <span className={`w-2 h-2 rounded-full ${store.status === 'online' ? 'bg-[#00FF94] shadow-[0_0_8px_#00FF94]' : 'bg-red-500'}`}></span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                            {networkStatus.map((store) => {
+                                return (
+                                    <div key={store.id} className={`p-4 border ${store.status === 'online' ? 'border-[#333] bg-[#1a1a1a]' : 'border-red-900/20 bg-red-900/5'} rounded-sm relative group hover:border-[#C5A059]/30 transition-all`}>
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${store.status === 'online' ? 'text-white' : 'text-red-500'}`}>
+                                                {store.name}
+                                            </span>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${store.status === 'online' ? 'bg-[#00FF94] shadow-[0_0_8px_#00FF94]' : 'bg-red-500'}`}></span>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">Deliveries:</span>
+                                                <span className="text-sm font-bold text-white font-mono">{store.deliveryCount}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">Volume:</span>
+                                                <span className="text-sm font-bold text-gray-300 font-mono">{store.totalLbs.toFixed(0)} <span className="text-[10px] text-gray-500">lbs</span></span>
+                                            </div>
+                                            <div className="flex justify-between items-center pt-2">
+                                                <span className="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">Last Sync:</span>
+                                                <span className="text-[9px] text-gray-400 font-mono">{store.lastSync}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] text-gray-500">
-                                            <span>Deliveries:</span>
-                                            <span className="text-white font-mono">{store.deliveryCount}</span>
-                                        </div>
-                                        <div className="flex justify-between text-[10px] text-gray-500">
-                                            <span>Volume:</span>
-                                            <span className="text-brand-gold font-mono">{store.totalLbs.toFixed(0)} lbs</span>
-                                        </div>
-                                        <div className="flex justify-between text-[10px] text-gray-500 border-t border-[#222] pt-1 mt-1">
-                                            <span>Last Sync:</span>
-                                            <span className="text-gray-400">{store.lastSync}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

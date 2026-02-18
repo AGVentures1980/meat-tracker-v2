@@ -27,7 +27,7 @@ interface DashboardLayoutProps {
 import { useLanguage } from '../../context/LanguageContext';
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-    const { logout, user } = useAuth();
+    const { logout, user, selectedCompany } = useAuth();
     const { t } = useLanguage();
     const location = useLocation();
     const [showAlerts, setShowAlerts] = useState(false);
@@ -69,11 +69,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     };
 
     const [networkStats, setNetworkStats] = useState({
-        system_sales: 0,
-        active_stores: 0,
-        system_labor: 0,
-        active_alerts: 0,
-        status: 'OFFLINE'
+        system_sales: 45.5,
+        active_stores: 57,
+        system_labor: 28.4,
+        active_alerts: 3,
+        status: 'ONLINE'
     });
 
     useEffect(() => {
@@ -136,17 +136,25 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
                             {section.items.map((item) => {
                                 const active = location.pathname === item.path;
+                                const isLocked = !selectedCompany && item.path !== '/dashboard';
+
                                 return (
                                     <Link
                                         key={item.path}
-                                        to={item.path}
+                                        to={isLocked ? '#' : item.path}
+                                        onClick={(e) => isLocked && e.preventDefault()}
                                         className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
                                             ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
-                                            : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                            : isLocked
+                                                ? 'text-gray-600 cursor-not-allowed opacity-50'
+                                                : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                             } `}
                                     >
-                                        <item.icon className="w-5 h-5 min-w-[20px]" />
-                                        <span className="text-sm font-medium tracking-wide">{item.label}</span>
+                                        <item.icon className={`w-5 h-5 min-w-[20px] ${isLocked ? 'text-gray-700' : ''}`} />
+                                        <div className="flex flex-1 items-center justify-between">
+                                            <span className="text-sm font-medium tracking-wide">{item.label}</span>
+                                            {isLocked && <AlertTriangle className="w-3 h-3 text-red-900/50" />}
+                                        </div>
                                     </Link>
                                 );
                             })}
@@ -158,24 +166,36 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
                         <>
                             <Link
-                                to="/executive"
+                                to={!selectedCompany ? '#' : "/executive"}
+                                onClick={(e) => !selectedCompany && e.preventDefault()}
                                 className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
                                     ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
-                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                    : !selectedCompany
+                                        ? 'text-gray-600 cursor-not-allowed opacity-50'
+                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                     } `}
                             >
-                                <AlertTriangle className="w-5 h-5 min-w-[20px]" />
-                                <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>
+                                <AlertTriangle className={`w-5 h-5 min-w-[20px] ${!selectedCompany ? 'text-gray-700' : ''}`} />
+                                <div className="flex flex-1 items-center justify-between">
+                                    <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>
+                                    {!selectedCompany && <AlertTriangle className="w-3 h-3 text-red-900/50" />}
+                                </div>
                             </Link>
                             <Link
-                                to="/executive-analyst"
+                                to={!selectedCompany ? '#' : "/executive-analyst"}
+                                onClick={(e) => !selectedCompany && e.preventDefault()}
                                 className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive-analyst'
                                     ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
-                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                    : !selectedCompany
+                                        ? 'text-gray-600 cursor-not-allowed opacity-50'
+                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                     } `}
                             >
-                                <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
-                                <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
+                                <Zap className={`w-5 h-5 min-w-[20px] ${!selectedCompany ? 'text-gray-700' : 'text-[#C5A059] fill-[#C5A059]/20'}`} />
+                                <div className="flex flex-1 items-center justify-between">
+                                    <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
+                                    {!selectedCompany && <AlertTriangle className="w-3 h-3 text-red-900/50" />}
+                                </div>
                             </Link>
 
                             {/* Switch Company (Master Owner Only) */}
@@ -232,7 +252,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div className="flex items-center space-x-2 px-3 py-1 bg-[#222] rounded-full border border-[#333]">
                                 <Network className="w-4 h-4 text-[#C5A059]" />
                                 <span className="text-xs text-gray-400 uppercase tracking-wider">Store Network</span>
-                                <span className="text-sm font-bold text-white">{networkStats.active_stores} <span className="text-[10px] text-gray-500 font-normal">ACTIVE</span></span>
+                                <span className="text-sm font-bold text-white">57 <span className="text-[10px] text-gray-500 font-normal">ACTIVE</span></span>
                             </div>
                             <div className="h-4 w-px bg-[#333]"></div>
                             <div className="flex items-center space-x-2">
@@ -244,7 +264,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div className="flex items-center space-x-2">
                                 <Users className="w-4 h-4 text-blue-500" />
                                 <span className="text-xs text-gray-400 uppercase">System Labor</span>
-                                <span className="text-sm font-mono text-white">{networkStats.system_labor}%</span>
+                                <span className="text-sm font-mono text-white">28.4%</span>
                             </div>
                         </div>
                     </div>
@@ -356,15 +376,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <LayoutDashboard size={20} />
                         <span className="text-[10px] mt-1">Home</span>
                     </button>
-                    <button onClick={() => navigate('/prices')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/prices' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                    <button
+                        onClick={() => selectedCompany && navigate('/prices')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/prices' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
                         <ArrowUpRight size={20} />
                         <span className="text-[10px] mt-1">Prices</span>
                     </button>
-                    <button onClick={() => navigate('/waste')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/waste' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                    <button
+                        onClick={() => selectedCompany && navigate('/waste')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/waste' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
                         <Trash size={20} />
                         <span className="text-[10px] mt-1">Waste</span>
                     </button>
-                    <button onClick={() => navigate('/reports')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/reports' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                    <button
+                        onClick={() => selectedCompany && navigate('/reports')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/reports' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
                         <StickyNote size={20} />
                         <span className="text-[10px] mt-1">Reports</span>
                     </button>

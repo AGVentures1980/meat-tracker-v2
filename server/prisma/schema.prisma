@@ -30,6 +30,7 @@ model Store {
   exclude_lamb_from_rodizio_lbs Boolean           @default(false)
   is_lunch_enabled              Boolean           @default(false)
   lunch_price                   Float             @default(29.90)
+  olo_sales_target              Float             @default(0)
   delivery_sales                DeliverySale[]
   inventory_records             InventoryRecord[]
   invoices                      InvoiceRecord[]
@@ -239,6 +240,7 @@ model DeliverySale {
   order_external_id String?
   total_lbs         Float
   guests            Int
+  amount            Float       @default(0)
   protein_breakdown Json
   created_at        DateTime    @default(now())
   store             Store       @relation(fields: [store_id], references: [id])
