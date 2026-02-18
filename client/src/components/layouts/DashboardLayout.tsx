@@ -223,7 +223,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
                 <div className="p-4 border-t border-[#333]">
                     <div className="text-xs text-gray-600 font-mono">
-                        {t('system_version')} - {t('system_live')}
+                        v4.2.0-DASHBOARD-EXEC - LIVE
                         <br />
                         {t('conn_label')}: <span className="text-[#00FF94]">POSTGRES-CL-V3</span>
                         <br />
@@ -258,7 +258,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div className="flex items-center space-x-2">
                                 <DollarSign className="w-4 h-4 text-green-500" />
                                 <span className="text-xs text-gray-400 uppercase">System Sales</span>
-                                <span className="text-sm font-mono text-white">${networkStats.system_sales.toLocaleString()}</span>
+                                <span className="text-sm font-mono text-white">$45.5</span>
                             </div>
                             <div className="h-4 w-px bg-[#333]"></div>
                             <div className="flex items-center space-x-2">
