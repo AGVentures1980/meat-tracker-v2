@@ -185,7 +185,7 @@ export const ProjectionsDashboard = () => {
         setStoreData(updated);
     };
 
-    const handlePublish = () => {
+    const handlePublish = async () => {
         // Validation: Allow common variants and the user's login password for convenience
         const cleanPass = publishPassword.trim().toLowerCase();
 
@@ -196,11 +196,35 @@ export const ProjectionsDashboard = () => {
         // 4. '1234' (Simple fallback for demo)
 
         if (cleanPass === 'admin' || cleanPass === 'admin_master_2026' || cleanPass === 'ag2113@9' || cleanPass === '1234') {
-            setIsPasswordModalOpen(false);
-            setIsPublished(true);
-            setPublishError('');
-            alert(t('proj_targets_published') + ' successfully!'); // Immediate feedback
-            // Here we would call an API to persist targets
+            try {
+                // Persist Targets to Backend
+                const targetsPayload = storeData.map(s => ({
+                    storeId: s.id,
+                    target_lbs_guest: s.target_lbs_guest,
+                    // We could also save projected guests if we had a column for it, but for now we focus on the efficiency driver
+                }));
+
+                const response = await fetch('/api/v1/dashboard/targets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user?.token || ''}` // Ensure auth if needed
+                    },
+                    body: JSON.stringify({ targets: targetsPayload })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save targets');
+                }
+
+                setIsPasswordModalOpen(false);
+                setIsPublished(true);
+                setPublishError('');
+                alert(t('proj_targets_published') + ' successfully!');
+            } catch (err) {
+                console.error("Publish Error:", err);
+                setPublishError('Failed to save targets to server. Please try again.');
+            }
         } else {
             setPublishError(t('exec_invalid_password') || 'Invalid Password');
         }
