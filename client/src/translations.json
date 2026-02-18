@@ -1,6 +1,11 @@
 {
     "en": {
         "nav_dashboard": "Dashboard",
+        "nav.invoices": "Meat Prices / Invoices",
+        "nav.commandCenter": "Shift Command Center",
+        "nav.performanceHub": "Performance Hub",
+        "nav.projections": "Projections",
+        "nav.reports": "Executive Reports",
         "nav_smart_prep": "Smart Prep",
         "nav_waste_log": "Waste Log",
         "nav_settings": "Settings",
@@ -196,6 +201,11 @@
     },
     "pt": {
         "nav_dashboard": "Painel",
+        "nav.invoices": "Preços de Carne / Faturas",
+        "nav.commandCenter": "Central de Comando",
+        "nav.performanceHub": "Hub de Performance",
+        "nav.projections": "Projeções",
+        "nav.reports": "Relatórios Executivos",
         "nav_smart_prep": "Smart Prep",
         "nav_waste_log": "Desperdício",
         "nav_settings": "Configurações",
