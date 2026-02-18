@@ -54,7 +54,7 @@ export class TemplateController {
                     is_system: false
                 }
             });
-            await AuditService.logAction(user.id, 'CREATE', 'StoreTemplate', `Created template: ${name}`, 0);
+            await AuditService.logAction(user.userId, 'CREATE', 'StoreTemplate', `Created template: ${name}`, 0);
             return res.json(template);
         } catch (error) {
             console.error('Create Template Error:', error);
@@ -117,7 +117,7 @@ export class TemplateController {
 
             // 3. Audit log
             await AuditService.logAction(
-                user.id,
+                user.userId,
                 'APPLY_TEMPLATE',
                 'Store',
                 `Applied template "${template.name}" to store ${storeId}`,

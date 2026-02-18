@@ -30,6 +30,13 @@ export const CompanySettings = () => {
     const [includeInDelivery, setIncludeInDelivery] = useState(false);
     const [newProteinGroup, setNewProteinGroup] = useState('');
 
+    // Template Form State
+    const [tplLbs, setTplLbs] = useState('1.76');
+    const [tplCost, setTplCost] = useState('9.94');
+    const [tplDinner, setTplDinner] = useState('58.90');
+    const [tplLunch, setTplLunch] = useState('29.90');
+    const [tplLamb, setTplLamb] = useState(false);
+
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
 
     const fetchData = async () => {
@@ -58,6 +65,28 @@ export const CompanySettings = () => {
         }
     };
 
+    const handleApplyTemplate = async (storeId: number, templateId: string) => {
+        if (!window.confirm('Apply this template? This will overwrite store targets and prices.')) return;
+        try {
+            const res = await fetch(`${API_URL}/api/v1/dashboard/company/stores/${storeId}/apply-template`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user?.token}`
+                },
+                body: JSON.stringify({ template_id: templateId })
+            });
+            if (res.ok) {
+                alert('Template applied successfully!');
+                fetchData();
+            } else {
+                alert('Failed to apply template');
+            }
+        } catch (error) {
+            console.error('Apply Template Error:', error);
+        }
+    };
+
     useEffect(() => {
         if (user?.token) fetchData();
     }, [user?.token, activeTab]);
@@ -66,7 +95,7 @@ export const CompanySettings = () => {
         if (!newItemName) return;
 
         try {
-            const endpoint = activeTab === 'products' ? '/company/products' : '/company/stores';
+            const endpointBase = activeTab === 'products' ? '/company/products' : '/company/stores';
             const body = activeTab === 'products' ? {
                 name: newItemName,
                 protein_group: newProteinGroup || null,
@@ -74,10 +103,23 @@ export const CompanySettings = () => {
                 is_villain: isVillain,
                 is_dinner_only: isDinnerOnly,
                 include_in_delivery: includeInDelivery
-            } : {
+            } : activeTab === 'stores' ? {
                 store_name: newItemName,
                 location: newItemLocation || newItemName
+            } : {
+                name: newItemName,
+                description: newItemLocation, // Reuse location field for desc
+                config: {
+                    target_lbs_guest: parseFloat(tplLbs),
+                    target_cost_guest: parseFloat(tplCost),
+                    dinner_price: parseFloat(tplDinner),
+                    lunch_price: parseFloat(tplLunch),
+                    serves_lamb_chops_rodizio: tplLamb,
+                    protein_targets: {} // Default empty for now, or copy from constraints?
+                }
             };
+
+            const endpoint = activeTab === 'templates' ? '/company/templates' : endpointBase;
 
             const res = await fetch(`${API_URL}/api/v1/dashboard${endpoint}`, {
                 method: 'POST',
@@ -245,6 +287,43 @@ export const CompanySettings = () => {
                                 </>
                             )}
 
+                            {activeTab === 'templates' && (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Description</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
+                                            placeholder="e.g., Standard 2024 Operation Model"
+                                            value={newItemLocation}
+                                            onChange={(e) => setNewItemLocation(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Target LBS/Guest</label>
+                                            <input type="number" step="0.01" value={tplLbs} onChange={(e) => setTplLbs(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Target Cost/Guest</label>
+                                            <input type="number" step="0.01" value={tplCost} onChange={(e) => setTplCost(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Dinner Price</label>
+                                            <input type="number" step="0.01" value={tplDinner} onChange={(e) => setTplDinner(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Lunch Price</label>
+                                            <input type="number" step="0.01" value={tplLunch} onChange={(e) => setTplLunch(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
+                                        </div>
+                                    </div>
+                                    <label className="flex items-center gap-3 p-3 bg-black border border-white/10 rounded cursor-pointer hover:border-white/30 transition-colors">
+                                        <input type="checkbox" checked={tplLamb} onChange={(e) => setTplLamb(e.target.checked)} className="accent-[#C5A059]" />
+                                        <span className="text-xs font-bold text-gray-300">Serves Lamb Chops in Rodizio?</span>
+                                    </label>
+                                </div>
+                            )}
+
                             <button
                                 onClick={handleAdd}
                                 className="w-full py-4 bg-[#C5A059] text-black font-black uppercase tracking-widest rounded hover:bg-[#d6b579] transition-all mt-4"
@@ -320,7 +399,19 @@ export const CompanySettings = () => {
                                 <tr key={s.id} className="hover:bg-white/5 transition-colors group">
                                     <td className="p-4 font-bold text-white">{s.store_name}</td>
                                     <td className="p-4 text-gray-400 text-xs">{s.location}</td>
-                                    <td className="p-4 text-right">
+                                    <td className="p-4 text-right flex items-center justify-end gap-2">
+                                        <select
+                                            className="bg-[#111] border border-white/10 text-white text-[10px] p-1 rounded outline-none w-24"
+                                            onChange={(e) => {
+                                                if (e.target.value) handleApplyTemplate(s.id, e.target.value);
+                                                e.target.value = ''; // Reset
+                                            }}
+                                        >
+                                            <option value="">Apply Template...</option>
+                                            {templates.map(t => (
+                                                <option key={t.id} value={t.id}>{t.name}</option>
+                                            ))}
+                                        </select>
                                         <button onClick={() => handleDelete(s.id)} className="text-gray-600 hover:text-red-500 transition-colors p-2">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -335,7 +426,7 @@ export const CompanySettings = () => {
                         <div className="flex justify-between items-center mb-2">
                             <p className="text-gray-500 text-xs">Templates de operação pré-configurados. Aplique a qualquer loja via Settings → Lojas.</p>
                             {(user?.role === 'admin' || user?.role === 'director') && (
-                                <button className="px-4 py-2 bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded hover:bg-[#C5A059] hover:text-black transition-all flex items-center gap-2">
+                                <button onClick={() => setIsAdding(true)} className="px-4 py-2 bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded hover:bg-[#C5A059] hover:text-black transition-all flex items-center gap-2">
                                     <Plus className="w-3 h-3" /> Começar do Zero
                                 </button>
                             )}

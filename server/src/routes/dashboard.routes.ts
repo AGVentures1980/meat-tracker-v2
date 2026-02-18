@@ -59,6 +59,15 @@ router.get('/smart-prep/network-status', requireAuth, SmartPrepController.getNet
 router.post('/smart-prep/lock', requireAuth, SmartPrepController.lockPrepPlan);
 router.get('/network-health', requireAuth, NetworkHealthController.getNetworkStats);
 
+// Training & Governance (Phase 13)
+import { TrainingController } from '../controllers/TrainingController';
+
+router.get('/training/status', requireAuth, TrainingController.getStatus);
+router.post('/training/progress', requireAuth, TrainingController.saveProgress);
+router.post('/training/exam-attempt', requireAuth, TrainingController.submitExam);
+router.get('/training/audit', requireAuth, requireRole([Role.admin, Role.director]), TrainingController.getAudit);
+router.post('/training/reset', requireAuth, requireRole([Role.admin, Role.director]), TrainingController.resetProgress);
+
 // Waste Management (The Garcia Rule)
 router.get('/waste/status', requireAuth, WasteController.getStatus);
 router.get('/waste/network-status', requireAuth, WasteController.getNetworkWasteStatus);

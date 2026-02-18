@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { CheckCircle, ChevronRight, ChevronLeft, Award, BookOpen, BarChart2, Bell, FileText, Layers } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { CheckCircle, ChevronRight, ChevronLeft, Award, BookOpen, BarChart2, Bell, FileText, Layers, Lock, AlertTriangle, Download } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // ─── Image imports (generated training screenshots) ───────────────────────────
-// We reference them as public URLs since they live in the artifacts dir.
-// In production, copy these to /public/training/ and update paths.
 const IMG = {
     m1: '/training/module1_dashboard.png',
     m2: '/training/module2_alerts.png',
@@ -50,9 +51,9 @@ const MODULES: Module[] = [
             {
                 title: 'Your 4 Core KPIs',
                 body: [
-                    '① LBS/GUEST — How many pounds of meat were served per person. Green means you\'re under target (good). Red means over target (investigate).',
-                    '② COST/GUEST — The dollar cost of meat per guest. Your target is set by your store template (typically $9.94 for Rodízio Padrão).',
-                    '③ VILLAIN ALERT — The percentage of high-cost proteins (Beef Ribs, Filet Mignon) in your mix. Keep this below 5%.',
+                    '① LBS/GUEST — How many pounds of meat were served per person. Green means under target (good). Red means over target (investigate).',
+                    '② COST/GUEST — The dollar cost of meat per guest. Target is set by your store template (e.g. $9.94).',
+                    '③ VILLAIN ALERT — The percentage of high-cost proteins (Beef Ribs, Filet Mignon) in your mix. Keep below 5%.',
                     '④ GUESTS TODAY — Total guests served. This drives all other calculations.',
                 ],
                 highlight: 'Rule of thumb: if LBS/Guest is green and Cost/Guest is green, your store is performing well.',
@@ -61,8 +62,8 @@ const MODULES: Module[] = [
                 title: 'The Protein Bar Chart',
                 body: [
                     'The bar chart shows consumption by protein category for the current period.',
-                    'Taller bars on villain proteins (Beef Ribs, Filet Mignon) relative to others is a warning sign.',
-                    'A healthy mix has Picanha and Fraldinha as the dominant proteins, with villains as a small fraction.',
+                    'Taller bars on villain proteins (Beef Ribs, Filet Mignon) is a warning sign.',
+                    'A healthy mix has Picanha and Fraldinha as dominant proteins.',
                     'Use this chart in your morning briefing with the kitchen team.',
                 ],
                 highlight: 'Pro tip: screenshot this chart on Fridays to compare week-over-week trends.',
@@ -71,36 +72,21 @@ const MODULES: Module[] = [
         quiz: [
             {
                 q: 'What does a GREEN LBS/Guest card mean?',
-                options: [
-                    'The store is losing money',
-                    'Meat consumption per guest is under the target — this is good',
-                    'The villain percentage is too high',
-                    'Data has not been entered yet',
-                ],
+                options: ['Use-Linked Enablement', 'Meat consumption per guest is under target (good)', 'Villain percentage is too high', 'Data not entered'],
                 correct: 1,
-                explanation: 'Green LBS/Guest means you\'re serving less meat per person than the target, which reduces cost. This is the desired state.',
+                explanation: 'Green LBS/Guest means you\'re serving less meat per person than the target, reducing cost.',
             },
             {
-                q: 'What is the "Villain Alert" tracking?',
-                options: [
-                    'Employee performance issues',
-                    'Customer complaints',
-                    'The percentage of high-cost proteins (Beef Ribs, Filet Mignon) in the mix',
-                    'Inventory shortages',
-                ],
+                q: 'What represents a Villain Alert?',
+                options: ['Customer complaints', 'Staff turnover', 'High % of expensive cuts (Ribs, Filet)', 'Inventory shortage'],
                 correct: 2,
-                explanation: 'Villain proteins are high-cost cuts. When they exceed ~5% of the total mix, costs spike. The Villain Alert keeps this in check.',
+                explanation: 'Villain proteins are high-cost cuts. Exceeding ~5% triggers an alert.',
             },
             {
                 q: 'Which proteins should dominate a healthy mix?',
-                options: [
-                    'Beef Ribs and Filet Mignon',
-                    'Picanha and Fraldinha',
-                    'Lamb Chops and Filet Mignon',
-                    'Chicken and Pork only',
-                ],
+                options: ['Beef Ribs & Filet', 'Picanha & Fraldinha', 'Lamb Chops', 'Chicken only'],
                 correct: 1,
-                explanation: 'Picanha and Fraldinha are the core proteins — flavorful, guest-favorite, and cost-effective. Villains should be a small fraction.',
+                explanation: 'Picanha and Fraldinha are core proteins — flavorful and cost-effective.',
             },
         ],
     },
@@ -108,64 +94,49 @@ const MODULES: Module[] = [
         id: 2,
         icon: <Bell className="w-5 h-5" />,
         title: 'Responding to Alerts',
-        subtitle: 'How to read and act on nuclear problems',
+        subtitle: 'How to act on "Nuclear" problems',
         duration: '6 min',
         img: IMG.m2,
         slides: [
             {
                 title: 'What is a Nuclear Problem?',
                 body: [
-                    'A "Nuclear Problem" fires when a store has been above target for multiple consecutive weeks — it\'s not a one-time blip, it\'s a pattern.',
-                    'The system identifies two main nuclear types: VILLAIN OVERUSE (too many expensive cuts) and COST OVERRUN (overall cost per guest too high).',
-                    'Each alert shows: which stores are affected, the severity badge (SEVERE / MODERATE), and a recommended solution.',
-                    'Nuclear alerts are visible to Directors and Admins in the Analyst Scan page.',
+                    'Fires when a store is above target for multiple consecutive weeks.',
+                    'Two main types: VILLAIN OVERUSE (expensive cuts) and COST OVERRUN (high cost/guest).',
+                    'Shows severity badge (SEVERE / MODERATE) and recommended solution.',
+                    'Visible to Directors and Admins in the Analyst Scan page.',
                 ],
                 highlight: 'Never dismiss a SEVERE alert without implementing the solution first.',
             },
             {
                 title: 'How to Respond',
                 body: [
-                    'VILLAIN OVERUSE → Talk to the kitchen team. Reduce how often Beef Ribs and Filet Mignon are offered in the rotation. Increase Fraldinha and Chicken frequency.',
-                    'COST OVERRUN → Check if weekly prices are up to date. Review the protein mix. Consider applying a lower-cost template temporarily.',
-                    'After taking action, monitor the dashboard for 2–3 days. The alert will clear automatically when the store returns to target.',
-                    'If the alert persists after 1 week of action → escalate to Regional Director.',
+                    'VILLAIN OVERUSE → Reduce Beef Ribs/Filet rotation. Increase Fraldinha/Chicken.',
+                    'COST OVERRUN → Check weekly prices. Review protein mix. Apply lower-cost template.',
+                    'Monitor for 2–3 days. Alert clears automatically when targets are met.',
+                    'If alert persists > 1 week → escalate to Regional Director.',
                 ],
-                highlight: 'The system gives you the solution — your job is to execute it with the kitchen team.',
+                highlight: 'The system gives you the solution — execute it with the kitchen team.',
             },
         ],
         quiz: [
             {
-                q: 'When does a "Nuclear Problem" alert fire?',
-                options: [
-                    'After a single bad day',
-                    'When a guest complains',
-                    'After multiple consecutive weeks above target',
-                    'When inventory runs out',
-                ],
+                q: 'When does a "Nuclear Problem" fire?',
+                options: ['Single bad day', 'Guest complaint', 'Multiple consecutive weeks above target', 'Inventory error'],
                 correct: 2,
-                explanation: 'Nuclear alerts indicate a persistent pattern, not a one-time event. They require a structured response, not just a quick fix.',
+                explanation: 'Nuclear alerts indicate a persistent pattern requiring structured response.',
             },
             {
-                q: 'What is the correct response to a VILLAIN OVERUSE alert?',
-                options: [
-                    'Order more Beef Ribs to meet demand',
-                    'Reduce villain protein frequency in the rotation and increase Fraldinha/Chicken',
-                    'Close the restaurant for a day',
-                    'Ignore it — it will resolve itself',
-                ],
+                q: 'Response to VILLAIN OVERUSE?',
+                options: ['Order more Ribs', 'Reduce villain frequency, increase Fraldinha', 'Close store', 'Ignore'],
                 correct: 1,
-                explanation: 'Villain overuse is fixed by adjusting the rotation — less Beef Ribs and Filet Mignon, more cost-effective proteins like Fraldinha and Chicken.',
+                explanation: 'Fix by adjusting rotation: less Ribs/Filet, more cost-effective proteins.',
             },
             {
-                q: 'How long should you wait before escalating a persistent alert to the Director?',
-                options: [
-                    'Same day',
-                    '1 month',
-                    '1 week after taking corrective action',
-                    'Never — GMs handle all alerts independently',
-                ],
+                q: 'When to escalate to Director?',
+                options: ['Immediately', 'After 1 month', 'If alert persists > 1 week after action', 'Never'],
                 correct: 2,
-                explanation: 'Give your corrective action 1 week to show results. If the alert persists after that, escalate to the Regional Director.',
+                explanation: 'Give corrective action 1 week to work. If it fails, escalate.',
             },
         ],
     },
@@ -173,64 +144,49 @@ const MODULES: Module[] = [
         id: 3,
         icon: <FileText className="w-5 h-5" />,
         title: 'Weekly Data Entry',
-        subtitle: 'Keeping the system accurate and up to date',
+        subtitle: 'Keeping the system accurate',
         duration: '4 min',
         img: IMG.m3,
         slides: [
             {
                 title: 'The Weekly Report',
                 body: [
-                    '① GUESTS — Enter Lunch Guests and Dinner Guests separately. This is critical for shift-aware cost calculations.',
-                    'Total LBS Used is calculated from your inventory counts — enter the actual weight used, not an estimate.',
-                    'The week selector defaults to the current week. Always verify you\'re entering data for the correct week.',
-                    'Save the report by Monday morning so the Director\'s weekly review has fresh data.',
+                    '① GUESTS — Enter Lunch/Dinner guests separately for shift-aware calcs.',
+                    'Total LBS Used calculated from inventory counts — enter actual weight used.',
+                    'Verify week selector. Default is current week.',
+                    'Save by Monday morning for Director\'s review.',
                 ],
-                highlight: 'Accurate guest counts are the foundation of every metric in the system.',
+                highlight: 'Accurate guest counts are the foundation of every metric.',
             },
             {
                 title: 'Weekly Prices',
                 body: [
-                    '② PRICES — Enter the cost per pound for each protein every Monday. Prices fluctuate weekly with market conditions.',
-                    'If you don\'t update prices, the system will use last week\'s prices — this can cause inaccurate cost calculations.',
-                    'You only need to update proteins that changed in price. Stable proteins can be left as-is.',
-                    'Your Regional Director can see if prices haven\'t been updated — it shows as a data quality warning.',
+                    '② PRICES — Enter cost/lb every Monday. Prices fluctuate.',
+                    'Stale prices = inaccurate cost calcs (system uses last week\'s).',
+                    'Only update proteins that changed price.',
+                    'Director sees "Data Quality Warning" if prices are old.',
                 ],
-                highlight: 'Monday morning routine: enter last week\'s guests → update this week\'s prices → done.',
+                highlight: 'Monday routine: Enter last week\'s guests → Update this week\'s prices.',
             },
         ],
         quiz: [
             {
-                q: 'Why do you enter Lunch and Dinner guests separately?',
-                options: [
-                    'It\'s just for record-keeping',
-                    'Because lunch and dinner have different prices, so the system calculates costs per shift',
-                    'The system requires it for legal compliance',
-                    'It doesn\'t matter — total guests is enough',
-                ],
+                q: 'Why enter Lunch & Dinner guests separately?',
+                options: ['Record keeping', 'Different price points per shift', 'Compliance', 'Doesn\'t matter'],
                 correct: 1,
-                explanation: 'Lunch and dinner have different price points. The system uses shift-aware calculations to accurately determine cost per guest for each period.',
+                explanation: 'Lunch/Dinner have different prices. Shift-aware logic requires split counts.',
             },
             {
-                q: 'What happens if you don\'t update weekly prices?',
-                options: [
-                    'The system shuts down',
-                    'Nothing — prices are fixed',
-                    'The system uses last week\'s prices, which may cause inaccurate cost calculations',
-                    'The Director is automatically notified',
-                ],
+                q: 'Effect of not updating prices?',
+                options: ['System shutdown', 'Prices fixed', 'Inaccurate cost calculations', 'Director notified immediately'],
                 correct: 2,
-                explanation: 'Stale prices lead to inaccurate cost/guest calculations. Always update prices on Monday to keep the system accurate.',
+                explanation: 'Stale prices lead to wrong cost/guest metrics. Update weekly.',
             },
             {
-                q: 'By when should the weekly report be submitted?',
-                options: [
-                    'Friday evening',
-                    'Monday morning',
-                    'The last day of the month',
-                    'Whenever you have time',
-                ],
+                q: 'Deadline for weekly report?',
+                options: ['Friday', 'Monday Morning', 'End of month', 'Anytime'],
                 correct: 1,
-                explanation: 'Monday morning is the deadline so the Director\'s weekly review has fresh data from all stores.',
+                explanation: 'Monday morning deadline ensures fresh data for weekly reviews.',
             },
         ],
     },
@@ -238,64 +194,49 @@ const MODULES: Module[] = [
         id: 4,
         icon: <Layers className="w-5 h-5" />,
         title: 'Applying Templates',
-        subtitle: 'Configuring your store for any occasion',
+        subtitle: 'Configuring your store',
         duration: '5 min',
         img: IMG.m4,
         slides: [
             {
                 title: 'What is a Template?',
                 body: [
-                    'A template is a pre-configured set of operational parameters: LBS/guest target, cost/guest target, protein mix percentages, and pricing.',
-                    'There are 6 system templates: Branco (blank), Rodízio Padrão, Volume Alto, Ribs-Heavy, Premium Mix, and Evento Especial.',
-                    'Your store has a default template set by your Regional Director. You can request a temporary change for special events.',
-                    'Templates are applied in Settings → Company → Templates → Apply to Store.',
+                    'Pre-configured set of targets: LBS/guest, cost/guest, protein mix.',
+                    '6 System Templates: Rodízio Padrão, Volume Alto, Premium Mix, Evento Especial, etc.',
+                    'Default set by Director. Request temp change for special events.',
+                    'Applied in Settings → Company → Templates.',
                 ],
-                highlight: 'Think of templates as "modes" — you switch modes based on what kind of week you\'re having.',
+                highlight: 'Templates are "modes" — switch based on the week\'s needs.',
             },
             {
-                title: 'When to Use Each Template',
+                title: 'Template Use Cases',
                 body: [
-                    'RODÍZIO PADRÃO — Your everyday template. Standard targets, balanced mix.',
-                    'VOLUME ALTO — High-traffic weeks (Super Bowl, holidays). Higher LBS target, more forgiving cost threshold.',
-                    'PREMIUM MIX — When Lamb Chops are included in the rodízio. Higher cost targets reflect the premium offering.',
-                    'EVENTO ESPECIAL — Valentine\'s Day, New Year\'s Eve, private events. Highest cost tolerance, premium mix with Lamb Chops.',
+                    'RODÍZIO PADRÃO — Everyday standard.',
+                    'VOLUME ALTO — High traffic (Holidays). Higher LBS target.',
+                    'PREMIUM MIX — Includes Lamb Chops. Higher cost target.',
+                    'EVENTO ESPECIAL — Valentine\'s/NYE. Highest cost tolerance.',
                 ],
-                highlight: 'Always revert to Rodízio Padrão after the special event ends. Don\'t leave a premium template active on a normal week.',
+                highlight: 'Always revert to Rodízio Padrão after special events.',
             },
         ],
         quiz: [
             {
-                q: 'Which template should you use for Valentine\'s Day dinner service?',
-                options: [
-                    'Rodízio Padrão',
-                    'Volume Alto',
-                    'Evento Especial',
-                    'Template em Branco',
-                ],
+                q: 'Template for Valentine\'s Day?',
+                options: ['Rodízio Padrão', 'Volume Alto', 'Evento Especial', 'Branco'],
                 correct: 2,
-                explanation: 'Evento Especial is designed for premium occasions like Valentine\'s Day — it includes Lamb Chops and has higher cost tolerances.',
+                explanation: 'Evento Especial is for premium occasions with high cost tolerance.',
             },
             {
-                q: 'What should you do after a special event ends?',
-                options: [
-                    'Keep the premium template active — it\'s better',
-                    'Revert to Rodízio Padrão',
-                    'Apply the Volume Alto template',
-                    'Delete the special template',
-                ],
+                q: 'After special event ends?',
+                options: ['Keep premium active', 'Revert to Rodízio Padrão', 'Apply Volume Alto', 'Delete template'],
                 correct: 1,
-                explanation: 'Premium templates have higher cost tolerances. Leaving them active on normal weeks will mask real cost problems.',
+                explanation: 'Leaving premium templates active masks real cost problems on normal weeks.',
             },
             {
-                q: 'Who can create new custom templates?',
-                options: [
-                    'Any GM',
-                    'Kitchen staff',
-                    'Directors and Admins only',
-                    'Anyone with a login',
-                ],
+                q: 'Who creates custom templates?',
+                options: ['GMs', 'Kitchen', 'Directors/Admins', 'Anyone'],
                 correct: 2,
-                explanation: 'Template creation is restricted to Directors and Admins to maintain consistency and prevent unauthorized changes to operational targets.',
+                explanation: 'Restricted to Directors/Admins to maintain consistency.',
             },
         ],
     },
@@ -303,64 +244,49 @@ const MODULES: Module[] = [
         id: 5,
         icon: <BookOpen className="w-5 h-5" />,
         title: 'The CFO Report',
-        subtitle: 'Understanding the executive monthly report',
+        subtitle: 'The executive summary',
         duration: '4 min',
         img: IMG.m5,
         slides: [
             {
-                title: 'What the CFO Report Shows',
+                title: 'What the Report Shows',
                 body: [
-                    'The CFO Report is a monthly executive summary generated automatically from all store data.',
-                    'It shows 4 network-wide KPIs: Net Impact (total savings vs. losses), Estimated Savings, Current Loss, and Average Variance.',
-                    'The Top 5 Stores table shows the most efficient stores — these are your benchmarks.',
-                    'The Bottom 5 Stores table shows where the biggest opportunities for improvement are.',
+                    'Monthly executive summary of all store data.',
+                    'Network KPIs: Net Impact, Savings, Current Loss, Variance.',
+                    'Top 5 (Benchmarks) and Bottom 5 (Opportunities) stores.',
+                    'Seen by CFO and Board.',
                 ],
-                highlight: 'This report is what the CFO and Board see. Your store\'s data feeds directly into it.',
+                highlight: 'Your store\'s data feeds directly into this report.',
             },
             {
                 title: 'The Action Plan',
                 body: [
-                    'Below the tables, the system auto-generates an Action Plan based on the bottom stores and nuclear problems.',
-                    'Each action item names the store, the issue, and a specific recommendation.',
-                    'Directors use this plan in their monthly review meetings with GMs.',
-                    'To print or save as PDF: click the "Print / Save PDF" button in the top right → use your browser\'s print dialog.',
+                    'Auto-generated based on bottom stores/nuclear problems.',
+                    'Specific recommendations for each issue.',
+                    'Directors use this in monthly reviews with GMs.',
+                    'Printable to PDF.',
                 ],
-                highlight: 'If your store appears in the Bottom 5, expect a call from your Regional Director that week.',
+                highlight: 'If in Bottom 5, expect a call from your Director.',
             },
         ],
         quiz: [
             {
-                q: 'Who has access to the CFO Report?',
-                options: [
-                    'All GMs',
-                    'Kitchen staff',
-                    'Admins and Directors only',
-                    'Everyone with a login',
-                ],
+                q: 'Who accesses the CFO Report?',
+                options: ['All GMs', 'Kitchen', 'Admins/Directors', 'Everyone'],
                 correct: 2,
-                explanation: 'The CFO Report contains sensitive network-wide financial data. Access is restricted to Admin and Director roles.',
+                explanation: 'Contains sensitive financial data. Restricted to Admin/Director.',
             },
             {
-                q: 'What does "Net Impact" represent in the CFO Report?',
-                options: [
-                    'Total revenue from all stores',
-                    'The difference between total savings and total losses across the network',
-                    'Number of guests served this month',
-                    'Average LBS/guest across all stores',
-                ],
+                q: 'What is "Net Impact"?',
+                options: ['Revenue', 'Savings minus Losses', 'Guest count', 'Avg LBS'],
                 correct: 1,
-                explanation: 'Net Impact = Savings - Losses. A positive number means the network is saving money overall vs. targets.',
+                explanation: 'Net Impact = Total Savings - Total Losses vs targets.',
             },
             {
-                q: 'How do you save the CFO Report as a PDF?',
-                options: [
-                    'Export → CSV',
-                    'Email it to yourself',
-                    'Click "Print / Save PDF" → use browser print dialog → Save as PDF',
-                    'It auto-emails to the CFO every month',
-                ],
+                q: 'How to save as PDF?',
+                options: ['Export CSV', 'Email', 'Print / Save PDF button', 'Auto-email'],
                 correct: 2,
-                explanation: 'The report is designed for browser printing. Use Cmd+P (Mac) or Ctrl+P (Windows) and select "Save as PDF" as the destination.',
+                explanation: 'Use the print button and select "Save as PDF".',
             },
         ],
     },
@@ -416,11 +342,7 @@ const Quiz = ({ questions, onComplete }: { questions: QuizQuestion[]; onComplete
                         else cls = 'border border-white/5 bg-white/2 text-gray-600 cursor-default';
                     }
                     return (
-                        <button
-                            key={i}
-                            onClick={() => handleSelect(i)}
-                            className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all ${cls}`}
-                        >
+                        <button key={i} onClick={() => handleSelect(i)} className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all ${cls}`}>
                             <span className="font-mono text-[10px] mr-3 opacity-60">{String.fromCharCode(65 + i)}</span>
                             {opt}
                         </button>
@@ -436,10 +358,7 @@ const Quiz = ({ questions, onComplete }: { questions: QuizQuestion[]; onComplete
             )}
 
             {selected !== null && (
-                <button
-                    onClick={handleNext}
-                    className="w-full py-3 bg-[#C5A059] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all flex items-center justify-center gap-2"
-                >
+                <button onClick={handleNext} className="w-full py-3 bg-[#C5A059] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all flex items-center justify-center gap-2">
                     {isLast ? 'See Results' : 'Next Question'} <ChevronRight className="w-4 h-4" />
                 </button>
             )}
@@ -447,89 +366,242 @@ const Quiz = ({ questions, onComplete }: { questions: QuizQuestion[]; onComplete
     );
 };
 
+// ─── Certification Exam Component ─────────────────────────────────────────────
+const CertificationExam = ({ onComplete }: { onComplete: (score: number) => void }) => {
+    // Flatten all questions from all modules
+    const allQuestions = MODULES.flatMap(m => m.quiz);
+    // Shuffle and pick 10
+    const [examQuestions] = useState(() => [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, 10));
+
+    return (
+        <div className="max-w-xl mx-auto">
+            <div className="mb-8 text-center bg-[#C5A059]/10 border border-[#C5A059]/30 p-6 rounded-xl">
+                <p className="text-[10px] text-[#C5A059] uppercase tracking-widest font-bold mb-2">Final Step</p>
+                <h2 className="text-2xl font-black text-white mb-2">Certification Exam</h2>
+                <p className="text-gray-300 text-sm">10 Questions · 80% to Pass · 2 Attempts Max</p>
+            </div>
+            <Quiz questions={examQuestions} onComplete={onComplete} />
+        </div>
+    );
+};
+
 // ─── Main Training Page ───────────────────────────────────────────────────────
 export const TrainingPage = () => {
+    const { user } = useAuth();
     const [activeModule, setActiveModule] = useState<number | null>(null);
     const [slideIndex, setSlideIndex] = useState(0);
-    const [phase, setPhase] = useState<'slides' | 'quiz' | 'result'>('slides');
+    const [phase, setPhase] = useState<'slides' | 'quiz' | 'result' | 'exam' | 'exam_result' | 'resources'>('slides');
     const [quizScore, setQuizScore] = useState(0);
-    const [completed, setCompleted] = useState<Record<number, number>>({}); // moduleId → score
+    const [completed, setCompleted] = useState<Record<string, number>>({}); // moduleId (string) → score
+    const [examAttempts, setExamAttempts] = useState(0);
+    const [locked, setLocked] = useState(false);
+    const [isCertified, setIsCertified] = useState(false);
+    const certRef = useRef<HTMLDivElement>(null);
+
+    // Fetch Status
+    const fetchStatus = async () => {
+        try {
+            const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/training/status`, {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                const comp: Record<string, number> = {};
+                data.progress.forEach((p: any) => comp[p.module_id] = p.score);
+                setCompleted(comp);
+                setExamAttempts(data.examAttempts || 0);
+                setIsCertified(data.isCertified);
+                if (data.examAttempts >= 2 && !data.isCertified) setLocked(true);
+            }
+        } catch (err) { console.error('Failed to fetch training status', err); }
+    };
+
+    useEffect(() => { if (user?.token) fetchStatus(); }, [user?.token]);
+
+    // Save Progress
+    const saveProgress = async (moduleId: string, score: number) => {
+        try {
+            await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/training/progress`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user?.token}` },
+                body: JSON.stringify({ moduleId, score })
+            });
+            fetchStatus();
+        } catch (err) { console.error('Failed to save progress', err); }
+    };
+
+    // Submit Exam
+    const submitExam = async (score: number) => {
+        // Score is number of correct answers (0-10). Convert to percentage (0-100)
+        const pct = (score / 10) * 100;
+        try {
+            const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/training/exam-attempt`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user?.token}` },
+                body: JSON.stringify({ score: pct })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setQuizScore(score); // Raw score for display
+                setExamAttempts(data.attempts);
+                setIsCertified(data.passed);
+                setLocked(data.locked);
+                setPhase('exam_result');
+            }
+        } catch (err) { console.error('Failed to submit exam', err); }
+    };
 
     const mod = activeModule !== null ? MODULES[activeModule] : null;
 
-    const openModule = (idx: number) => {
-        setActiveModule(idx);
-        setSlideIndex(0);
-        setPhase('slides');
-    };
-
-    const closeModule = () => {
-        setActiveModule(null);
-        setSlideIndex(0);
-        setPhase('slides');
-    };
+    const openModule = (idx: number) => { setActiveModule(idx); setSlideIndex(0); setPhase('slides'); };
+    const closeModule = () => { setActiveModule(null); setSlideIndex(0); setPhase('slides'); };
 
     const handleQuizComplete = (score: number) => {
         setQuizScore(score);
         setPhase('result');
-        if (mod) {
-            setCompleted(prev => ({ ...prev, [mod.id]: score }));
-        }
+        if (mod) saveProgress(String(mod.id), score);
     };
 
-    const totalCompleted = Object.keys(completed).length;
-    const allDone = totalCompleted === MODULES.length;
+    const generateCertificate = async () => {
+        if (!certRef.current) return;
+        try {
+            const canvas = await html2canvas(certRef.current, { scale: 2, backgroundColor: '#111' });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`Brasa_Certificate_${user?.name?.replace(/ /g, '_') || 'User'}.pdf`);
+        } catch (err) { console.error('Cert Gen Failed', err); }
+    };
 
-    // ── Module List View ──────────────────────────────────────────────────────
-    if (activeModule === null) {
+    // Derived State
+    const allModulesDone = MODULES.every(m => completed[String(m.id)] !== undefined);
+
+    // ─── VIEW: LOCKED ─────────────────────────────────────────────────────────────
+    if (locked) {
+        return (
+            <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
+                <div className="max-w-md text-center space-y-6 p-8 bg-red-900/10 border border-red-500/30 rounded-2xl">
+                    <Lock className="w-16 h-16 text-red-500 mx-auto" />
+                    <h1 className="text-3xl font-black text-white">Account Locked</h1>
+                    <p className="text-gray-400">
+                        You have failed the certification exam 2 times. Your access to advanced features has been restricted.
+                    </p>
+                    <div className="bg-black/30 p-4 rounded-lg text-sm text-gray-300">
+                        Please contact your Regional Director to request an exam reset and additional coaching.
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ─── VIEW: RESOURCES ──────────────────────────────────────────────────────────
+    if (phase === 'resources') {
+        const RESOURCES = [
+            { title: 'SLA Agreement', file: '/resources/sla.html', desc: 'System availability & support tiers' },
+            { title: 'Onboarding SOP', file: '/resources/onboarding-sop.html', desc: 'Standard Operating Procedures' },
+            { title: 'Operational Manual', file: '/resources/manual-operacional.html', desc: 'Daily/Weekly routines & troubleshooting' },
+            { title: 'Store Ready Checklist', file: '/resources/checklist-loja-pronta.html', desc: 'Pre-launch validation guide' },
+            { title: 'Rollout Plan', file: '/resources/plano-de-ondas.html', desc: 'Implementation strategy & timeline' },
+        ];
+
         return (
             <div className="min-h-screen bg-[#0a0a0a] text-white p-6 md:p-10">
                 <div className="max-w-4xl mx-auto">
-                    {/* Header */}
+                    <button onClick={() => setPhase('slides')} className="mb-8 flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm">
+                        <ChevronLeft className="w-4 h-4" /> Back to Training Center
+                    </button>
+
+                    <h1 className="text-3xl font-black uppercase mb-2">Training Resources</h1>
+                    <p className="text-gray-400 mb-8">Official documentation and guides for Brasa Meat Intelligence.</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {RESOURCES.map((res, i) => (
+                            <a
+                                key={i}
+                                href={res.file}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-[#111] border border-white/10 rounded-xl p-5 hover:bg-[#161616] hover:border-[#C5A059]/40 transition-all group flex items-start gap-4"
+                            >
+                                <div className="p-3 bg-white/5 rounded-lg group-hover:bg-[#C5A059]/10 transition-colors">
+                                    <FileText className="w-6 h-6 text-[#C5A059]" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-white group-hover:text-[#C5A059] transition-colors">{res.title}</h3>
+                                    <p className="text-xs text-gray-500 mt-1">{res.desc}</p>
+                                    <span className="text-[10px] text-[#C5A059] uppercase tracking-widest mt-3 block font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
+                                        Download <Download className="w-3 h-3" />
+                                    </span>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ─── VIEW: MODULE LIST ────────────────────────────────────────────────────────
+    if (activeModule === null && phase !== 'exam' && phase !== 'exam_result') {
+        const totalCompleted = MODULES.filter(m => completed[String(m.id)]).length;
+
+        return (
+            <div className="min-h-screen bg-[#0a0a0a] text-white p-6 md:p-10">
+                <div className="max-w-4xl mx-auto">
                     <div className="mb-10">
                         <p className="text-[10px] text-[#C5A059] uppercase tracking-[4px] font-bold mb-2">Brasa Prophet Analytics</p>
                         <h1 className="text-4xl font-black uppercase tracking-tight">Training Center</h1>
-                        <p className="text-gray-500 mt-2 text-sm">Complete all 5 modules to become certified in Brasa Prophet Analytics.</p>
+                        <p className="text-gray-500 mt-2 text-sm">Complete all 5 modules to unlock the Certification Exam.</p>
 
-                        {/* Progress bar */}
+                        <div className="flex gap-4 mt-4">
+                            <button onClick={() => setPhase('resources')} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all">
+                                <FileText className="w-4 h-4 text-[#C5A059]" /> View Documentation
+                            </button>
+                        </div>
+
                         <div className="mt-6 flex items-center gap-4">
                             <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-[#C5A059] rounded-full transition-all duration-700"
-                                    style={{ width: `${(totalCompleted / MODULES.length) * 100}%` }}
-                                />
+                                <div className="h-full bg-[#C5A059] rounded-full transition-all duration-700" style={{ width: `${(totalCompleted / MODULES.length) * 100}%` }} />
                             </div>
                             <span className="text-xs font-bold text-[#C5A059] font-mono">{totalCompleted}/{MODULES.length}</span>
                         </div>
 
-                        {allDone && (
-                            <div className="mt-4 flex items-center gap-3 bg-[#C5A059]/10 border border-[#C5A059]/30 rounded-xl p-4">
-                                <Award className="w-8 h-8 text-[#C5A059]" />
+                        {allModulesDone && !isCertified && (
+                            <div className="mt-8 p-6 bg-gradient-to-r from-[#C5A059]/10 to-transparent border border-[#C5A059]/30 rounded-xl flex items-center justify-between gap-6">
                                 <div>
-                                    <p className="text-[#C5A059] font-bold text-sm">Training Complete — Certified Operator</p>
-                                    <p className="text-gray-500 text-xs">You have completed all 5 modules. Well done!</p>
+                                    <h3 className="text-xl font-bold text-white mb-1">Ready for Certification?</h3>
+                                    <p className="text-sm text-gray-400">Pass the 10-question exam (80%+) to become a Certified Operator.</p>
+                                    <p className="text-xs text-[#C5A059] mt-2 font-mono uppercase tracking-wider">Attempts Remaining: {2 - examAttempts}</p>
+                                </div>
+                                <button onClick={() => setPhase('exam')} className="px-6 py-3 bg-[#C5A059] hover:bg-[#d4b06a] text-black font-bold uppercase tracking-widest rounded-lg shadow-lg shadow-[#C5A059]/20 transition-all transform hover:scale-105">
+                                    Start Exam
+                                </button>
+                            </div>
+                        )}
+
+                        {isCertified && (
+                            <div className="mt-8 p-6 bg-green-900/10 border border-green-500/30 rounded-xl flex items-center gap-6">
+                                <Award className="w-12 h-12 text-green-500" />
+                                <div>
+                                    <h3 className="text-xl font-bold text-white">Certified Operator</h3>
+                                    <p className="text-sm text-gray-400">You are fully certified. All system features are unlocked.</p>
+                                    <button onClick={() => setPhase('exam_result')} className="mt-2 text-green-400 text-xs font-bold uppercase tracking-widest hover:underline flex items-center gap-1">
+                                        View Certificate <ChevronRight className="w-3 h-3" />
+                                    </button>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Module Cards */}
                     <div className="space-y-3">
                         {MODULES.map((m, idx) => {
-                            const score = completed[m.id];
+                            const score = completed[String(m.id)];
                             const isDone = score !== undefined;
                             const pct = isDone ? Math.round((score / m.quiz.length) * 100) : null;
                             return (
-                                <button
-                                    key={m.id}
-                                    onClick={() => openModule(idx)}
-                                    className="w-full text-left bg-[#111] border border-white/10 rounded-xl p-5 hover:border-[#C5A059]/40 hover:bg-[#161616] transition-all group flex items-center gap-5"
-                                >
+                                <button key={m.id} onClick={() => openModule(idx)} className="w-full text-left bg-[#111] border border-white/10 rounded-xl p-5 hover:border-[#C5A059]/40 hover:bg-[#161616] transition-all group flex items-center gap-5">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${isDone ? 'bg-[#C5A059]' : 'bg-white/5 group-hover:bg-[#C5A059]/10'}`}>
-                                        {isDone
-                                            ? <CheckCircle className="w-6 h-6 text-black" />
-                                            : <span className={isDone ? 'text-black' : 'text-[#C5A059]'}>{m.icon}</span>
-                                        }
+                                        {isDone ? <CheckCircle className="w-6 h-6 text-black" /> : <span className={isDone ? 'text-black' : 'text-[#C5A059]'}>{m.icon}</span>}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-0.5">
@@ -558,13 +630,103 @@ export const TrainingPage = () => {
         );
     }
 
-    // ── Module Detail View ────────────────────────────────────────────────────
+    // ─── VIEW: EXAM ───────────────────────────────────────────────────────────────
+    if (phase === 'exam') {
+        return (
+            <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+                <div className="max-w-xl mx-auto">
+                    <button onClick={() => setPhase('slides')} className="mb-8 flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm">
+                        <ChevronLeft className="w-4 h-4" /> Cancel Exam
+                    </button>
+                    <CertificationExam onComplete={submitExam} />
+                </div>
+            </div>
+        );
+    }
+
+    // ─── VIEW: EXAM RESULT (CERTIFICATE) ──────────────────────────────────────────
+    if (phase === 'exam_result') {
+        const passed = isCertified;
+        const pct = Math.round((quizScore / 10) * 100);
+
+        return (
+            <div className="min-h-screen bg-[#0a0a0a] text-white p-6 flex flex-col items-center justify-center">
+                <div className="max-w-2xl w-full text-center space-y-8">
+                    {passed ? (
+                        <>
+                            <div className="space-y-4">
+                                <Award className="w-20 h-20 text-[#C5A059] mx-auto" />
+                                <h1 className="text-4xl font-black uppercase text-white">Congratulations!</h1>
+                                <p className="text-gray-400 text-lg">You passed the exam with {pct}%.</p>
+                                <button onClick={generateCertificate} className="inline-flex items-center gap-2 px-6 py-3 bg-[#C5A059] text-black font-bold uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all">
+                                    <Download className="w-4 h-4" /> Download Certificate
+                                </button>
+                                <button onClick={() => setPhase('slides')} className="block mx-auto text-gray-500 hover:text-white text-sm mt-4">Return to Training Center</button>
+                            </div>
+
+                            {/* Hidden Certificate Application for Capture */}
+                            <div className="flex justify-center mt-8">
+                                <div ref={certRef} className="w-[800px] h-[500px] bg-[#111] border-4 border-[#C5A059] p-10 relative flex flex-col items-center justify-center text-center shadow-2xl">
+                                    <div className="absolute top-4 left-4 text-[#C5A059] opacity-20"><BarChart2 className="w-16 h-16" /></div>
+                                    <div className="absolute bottom-4 right-4 text-[#C5A059] opacity-20"><Award className="w-16 h-16" /></div>
+
+                                    <h1 className="text-5xl font-serif text-[#C5A059] uppercase tracking-widest mb-4">Brasa</h1>
+                                    <p className="text-white font-mono text-sm uppercase tracking-[0.3em] mb-12">Meat Intelligence System</p>
+
+                                    <h2 className="text-4xl font-bold text-white mb-6">Certificate of Competence</h2>
+                                    <p className="text-gray-400 text-lg mb-2">This certifies that</p>
+                                    <p className="text-3xl text-[#C5A059] font-bold border-b border-[#333] pb-2 px-8 mb-8">{user?.name || user?.email}</p>
+                                    <p className="text-gray-400 text-lg mb-8">Has successfully completed the Prophet Analytics Operator Training</p>
+
+                                    <div className="flex gap-16 mt-8">
+                                        <div className="text-center">
+                                            <p className="text-white font-bold">{new Date().toLocaleDateString()}</p>
+                                            <div className="w-32 h-px bg-[#333] mt-1"></div>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Date</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-white font-bold">System Admin</p>
+                                            <div className="w-32 h-px bg-[#333] mt-1"></div>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Authorized By</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="space-y-6">
+                            <AlertTriangle className="w-20 h-20 text-red-500 mx-auto" />
+                            <h1 className="text-4xl font-black uppercase text-white">Exam Failed</h1>
+                            <p className="text-gray-400 text-lg">You scored {pct}%. You need 80% to pass.</p>
+                            <div className="bg-red-900/10 border border-red-500/30 p-4 rounded-lg inline-block text-red-400">
+                                Attempts Remaining: {2 - examAttempts}
+                            </div>
+                            <div className="flex gap-4 justify-center">
+                                <button onClick={() => setPhase('slides')} className="px-6 py-3 border border-white/10 hover:bg-white/5 text-white font-bold uppercase tracking-widest rounded-lg transition-all">
+                                    Review Material
+                                </button>
+                                {examAttempts < 2 ? (
+                                    <button onClick={() => setPhase('exam')} className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold uppercase tracking-widest rounded-lg transition-all">
+                                        Retry Exam
+                                    </button>
+                                ) : (
+                                    <div className="text-red-500 font-bold block mt-4">Locked - Contact Admin</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // ─── VIEW: MODULE DETAIL ──────────────────────────────────────────────────────
+    // (Same as before but uses API to save progress)
     const slide = mod!.slides[slideIndex];
     const isLastSlide = slideIndex === mod!.slides.length - 1;
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-white">
-            {/* Top bar */}
             <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
                 <button onClick={closeModule} className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm">
                     <ChevronLeft className="w-4 h-4" /> Back to Modules
@@ -583,66 +745,38 @@ export const TrainingPage = () => {
             <div className="max-w-5xl mx-auto p-6 md:p-10">
                 {phase === 'slides' && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                        {/* Screenshot */}
                         <div className="relative">
-                            <img
-                                src={mod!.img}
-                                alt={`Module ${mod!.id} screenshot`}
-                                className="w-full rounded-xl border border-white/10 shadow-2xl"
-                                onError={(e) => {
-                                    // Fallback if image not found
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                            />
+                            <img src={mod!.img} alt={`Module ${mod!.id} screenshot`} className="w-full rounded-xl border border-white/10 shadow-2xl" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                             <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm border border-white/10 rounded px-2 py-1">
                                 <p className="text-[9px] text-[#C5A059] uppercase tracking-widest font-bold">Live Screenshot</p>
                             </div>
                         </div>
-
-                        {/* Slide content */}
                         <div className="space-y-5">
                             <div>
-                                <p className="text-[9px] text-gray-600 uppercase tracking-widest font-bold mb-1">
-                                    Slide {slideIndex + 1} of {mod!.slides.length}
-                                </p>
+                                <p className="text-[9px] text-gray-600 uppercase tracking-widest font-bold mb-1">Slide {slideIndex + 1} of {mod!.slides.length}</p>
                                 <h2 className="text-2xl font-black">{slide.title}</h2>
                             </div>
-
                             <div className="space-y-3">
                                 {slide.body.map((line, i) => (
                                     <div key={i} className="flex gap-3 text-sm text-gray-300 leading-relaxed">
-                                        <span className="text-[#C5A059] font-bold flex-shrink-0 font-mono text-xs mt-0.5">
-                                            {line.startsWith('①') || line.startsWith('②') || line.startsWith('③') || line.startsWith('④') ? '' : '→'}
-                                        </span>
+                                        <span className="text-[#C5A059] font-bold flex-shrink-0 font-mono text-xs mt-0.5">{line.startsWith('①') || line.startsWith('②') || line.startsWith('③') || line.startsWith('④') ? '' : '→'}</span>
                                         <span>{line}</span>
                                     </div>
                                 ))}
                             </div>
-
                             {slide.highlight && (
                                 <div className="bg-[#C5A059]/10 border border-[#C5A059]/30 rounded-xl p-4">
                                     <p className="text-[9px] text-[#C5A059] uppercase tracking-widest font-bold mb-1">Key Takeaway</p>
                                     <p className="text-[#C5A059] text-sm font-medium leading-relaxed">{slide.highlight}</p>
                                 </div>
                             )}
-
-                            {/* Navigation */}
                             <div className="flex gap-3 pt-2">
                                 {slideIndex > 0 && (
-                                    <button
-                                        onClick={() => setSlideIndex(s => s - 1)}
-                                        className="px-4 py-2.5 border border-white/10 text-gray-400 text-sm rounded-lg hover:border-white/30 hover:text-white transition-all flex items-center gap-2"
-                                    >
+                                    <button onClick={() => setSlideIndex(s => s - 1)} className="px-4 py-2.5 border border-white/10 text-gray-400 text-sm rounded-lg hover:border-white/30 hover:text-white transition-all flex items-center gap-2">
                                         <ChevronLeft className="w-4 h-4" /> Previous
                                     </button>
                                 )}
-                                <button
-                                    onClick={() => {
-                                        if (isLastSlide) setPhase('quiz');
-                                        else setSlideIndex(s => s + 1);
-                                    }}
-                                    className="flex-1 py-2.5 bg-[#C5A059] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all flex items-center justify-center gap-2"
-                                >
+                                <button onClick={() => { if (isLastSlide) setPhase('quiz'); else setSlideIndex(s => s + 1); }} className="flex-1 py-2.5 bg-[#C5A059] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all flex items-center justify-center gap-2">
                                     {isLastSlide ? 'Take the Quiz' : 'Next Slide'} <ChevronRight className="w-4 h-4" />
                                 </button>
                             </div>
@@ -655,7 +789,6 @@ export const TrainingPage = () => {
                         <div className="mb-8 text-center">
                             <p className="text-[9px] text-[#C5A059] uppercase tracking-widest font-bold mb-2">Module {mod!.id} Quiz</p>
                             <h2 className="text-2xl font-black">Test Your Knowledge</h2>
-                            <p className="text-gray-500 text-sm mt-1">{mod!.quiz.length} questions · Select the best answer</p>
                         </div>
                         <Quiz questions={mod!.quiz} onComplete={handleQuizComplete} />
                     </div>
@@ -663,46 +796,17 @@ export const TrainingPage = () => {
 
                 {phase === 'result' && (
                     <div className="max-w-md mx-auto text-center space-y-6">
-                        <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto text-4xl font-black border-4 ${quizScore === mod!.quiz.length ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059]' : quizScore >= Math.ceil(mod!.quiz.length * 0.67) ? 'border-green-500 bg-green-500/10 text-green-400' : 'border-red-500 bg-red-500/10 text-red-400'}`}>
-                            {Math.round((quizScore / mod!.quiz.length) * 100)}%
-                        </div>
-
+                        <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto text-4xl font-black border-4 ${quizScore === mod!.quiz.length ? 'border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059]' : quizScore >= Math.ceil(mod!.quiz.length * 0.67) ? 'border-green-500 bg-green-500/10 text-green-400' : 'border-red-500 bg-red-500/10 text-red-400'}`}>{Math.round((quizScore / mod!.quiz.length) * 100)}%</div>
                         <div>
-                            <h2 className="text-2xl font-black">
-                                {quizScore === mod!.quiz.length ? 'Perfect Score!' : quizScore >= Math.ceil(mod!.quiz.length * 0.67) ? 'Module Passed!' : 'Keep Practicing'}
-                            </h2>
-                            <p className="text-gray-500 text-sm mt-1">
-                                You got {quizScore} out of {mod!.quiz.length} questions correct.
-                            </p>
+                            <h2 className="text-2xl font-black">{quizScore >= Math.ceil(mod!.quiz.length * 0.67) ? 'Module Passed!' : 'Keep Practicing'}</h2>
+                            <p className="text-gray-500 text-sm mt-1">You got {quizScore} out of {mod!.quiz.length} questions correct.</p>
                         </div>
-
-                        {quizScore < Math.ceil(mod!.quiz.length * 0.67) && (
-                            <p className="text-yellow-400 text-sm bg-yellow-400/10 border border-yellow-400/20 rounded-xl p-3">
-                                We recommend reviewing the slides again before moving on.
-                            </p>
-                        )}
-
                         <div className="flex gap-3">
-                            <button
-                                onClick={() => { setPhase('slides'); setSlideIndex(0); }}
-                                className="flex-1 py-3 border border-white/10 text-gray-400 text-sm rounded-lg hover:border-white/30 hover:text-white transition-all"
-                            >
-                                Review Slides
-                            </button>
+                            <button onClick={() => { setPhase('slides'); setSlideIndex(0); }} className="flex-1 py-3 border border-white/10 text-gray-400 text-sm rounded-lg hover:border-white/30 hover:text-white transition-all">Review Slides</button>
                             {activeModule! < MODULES.length - 1 ? (
-                                <button
-                                    onClick={() => openModule(activeModule! + 1)}
-                                    className="flex-1 py-3 bg-[#C5A059] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all flex items-center justify-center gap-2"
-                                >
-                                    Next Module <ChevronRight className="w-4 h-4" />
-                                </button>
+                                <button onClick={() => openModule(activeModule! + 1)} className="flex-1 py-3 bg-[#C5A059] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all flex items-center justify-center gap-2">Next Module <ChevronRight className="w-4 h-4" /></button>
                             ) : (
-                                <button
-                                    onClick={closeModule}
-                                    className="flex-1 py-3 bg-[#C5A059] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Award className="w-4 h-4" /> Finish Training
-                                </button>
+                                <button onClick={closeModule} className="flex-1 py-3 bg-[#C5A059] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#d4b06a] transition-all flex items-center justify-center gap-2"><Award className="w-4 h-4" /> Complete</button>
                             )}
                         </div>
                     </div>

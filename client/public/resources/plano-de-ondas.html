@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Plano de Ondas — Texas de Brazil · Brasa Prophet Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: white;
+            color: #111;
+            padding: 40px;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        @media print {
+            body {
+                padding: 20px;
+            }
+
+            @page {
+                margin: 1.5cm;
+                size: A4;
+            }
+        }
+
+        .header {
+            border-bottom: 3px solid #111;
+            padding-bottom: 16px;
+            margin-bottom: 28px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #111;
+            color: white;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 3px 8px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #888;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+            margin-bottom: 14px;
+        }
+
+        .wave {
+            margin-bottom: 28px;
+            border: 1px solid #eee;
+        }
+
+        .wave-header {
+            background: #111;
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wave-title {
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .wave-period {
+            font-size: 10px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .wave-body {
+            padding: 18px;
+        }
+
+        .wave-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .wave-section h3 {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .wave-item {
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px solid #fafafa;
+            display: flex;
+            gap: 8px;
+        }
+
+        .wave-item::before {
+            content: "→";
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .stores-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .store-tag {
+            background: #f5f5f5;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 2px;
+            font-family: monospace;
+        }
+
+        .criteria-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+
+        .criteria-table th {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+        }
+
+        .criteria-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .green {
+            color: #166534;
+            font-weight: 700;
+        }
+
+        .status-done {
+            background: #dcfce7;
+            color: #166534;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 2px;
+        }
+
+        .status-active {
+            background: #fef9c3;
+            color: #854d0e;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 2px;
+        }
+
+        .status-planned {
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 2px;
+        }
+
+        .timeline-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            border: 1px solid #eee;
+            margin-bottom: 24px;
+        }
+
+        .tbar-item {
+            padding: 12px 16px;
+            border-right: 1px solid #eee;
+        }
+
+        .tbar-item:last-child {
+            border-right: none;
+        }
+
+        .tbar-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .tbar-title {
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .tbar-sub {
+            font-size: 10px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .tbar-active {
+            background: #111;
+        }
+
+        .tbar-active .tbar-label {
+            color: #aaa;
+        }
+
+        .tbar-active .tbar-title {
+            color: white;
+        }
+
+        .tbar-active .tbar-sub {
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="badge">Estratégia de Rollout · v1.0</div>
+        <h1>Plano de Ondas</h1>
+        <p style="font-size:12px;color:#666;margin-top:4px;">Texas de Brazil · Brasa Prophet Analytics · Implantação em
+            3 ondas</p>
+    </div>
+
+    <!-- Summary Bar -->
+    <div class="timeline-bar">
+        <div class="tbar-item tbar-active">
+            <div class="tbar-label">Onda 1 · Concluída</div>
+            <div class="tbar-title">Piloto</div>
+            <div class="tbar-sub">5 lojas · Q4 2025</div>
+        </div>
+        <div class="tbar-item">
+            <div class="tbar-label">Onda 2 · Em andamento</div>
+            <div class="tbar-title">Expansão</div>
+            <div class="tbar-sub">20 lojas · Q1 2026</div>
+        </div>
+        <div class="tbar-item">
+            <div class="tbar-label">Onda 3 · Planejada</div>
+            <div class="tbar-title">Rede Completa</div>
+            <div class="tbar-sub">Todas as lojas · Q2 2026</div>
+        </div>
+    </div>
+
+    <!-- Wave 1 -->
+    <div class="wave">
+        <div class="wave-header">
+            <div>
+                <div class="wave-title">Onda 1 — Piloto</div>
+                <div class="wave-period">Q4 2025 · 5 lojas selecionadas</div>
+            </div>
+            <span class="status-done">✓ Concluída</span>
+        </div>
+        <div class="wave-body">
+            <div class="wave-grid">
+                <div class="wave-section">
+                    <h3>Objetivo</h3>
+                    <div class="wave-item">Validar o sistema com lojas de perfis diferentes</div>
+                    <div class="wave-item">Identificar gaps no produto antes da escala</div>
+                    <div class="wave-item">Treinar primeiros GMs e coletar feedback</div>
+                    <div class="wave-item">Calibrar templates com dados reais</div>
+                </div>
+                <div class="wave-section">
+                    <h3>Critérios de Entrada</h3>
+                    <div class="wave-item">GM com disponibilidade para treinamento intensivo</div>
+                    <div class="wave-item">Dados históricos disponíveis (mínimo 4 semanas)</div>
+                    <div class="wave-item">Aprovação do Regional Director</div>
+                </div>
+            </div>
+            <div style="margin-top:14px;">
+                <h3
+                    style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:8px;">
+                    Lojas Piloto</h3>
+                <div class="stores-list">
+                    <span class="store-tag">Dallas</span>
+                    <span class="store-tag">Orlando</span>
+                    <span class="store-tag">Houston</span>
+                    <span class="store-tag">Las Vegas</span>
+                    <span class="store-tag">San Antonio</span>
+                </div>
+            </div>
+            <div style="margin-top:14px;">
+                <h3
+                    style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:6px;">
+                    Resultado</h3>
+                <p style="font-size:12px;color:#166534;font-weight:700;">Sistema validado. 5 templates calibrados. 3
+                    bugs críticos corrigidos. Pronto para Onda 2.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wave 2 -->
+    <div class="wave">
+        <div class="wave-header">
+            <div>
+                <div class="wave-title">Onda 2 — Expansão Regional</div>
+                <div class="wave-period">Q1 2026 · 20 lojas · Jan–Mar 2026</div>
+            </div>
+            <span class="status-active">⚡ Em andamento</span>
+        </div>
+        <div class="wave-body">
+            <div class="wave-grid">
+                <div class="wave-section">
+                    <h3>Objetivo</h3>
+                    <div class="wave-item">Escalar para todas as lojas de maior volume</div>
+                    <div class="wave-item">Testar o modelo de suporte em escala</div>
+                    <div class="wave-item">Validar o Executive Summary com 20+ lojas</div>
+                    <div class="wave-item">Identificar lojas que precisam de template customizado</div>
+                </div>
+                <div class="wave-section">
+                    <h3>Critérios de Entrada (Onda 2)</h3>
+                    <div class="wave-item">Onda 1 concluída e aprovada pela Diretoria</div>
+                    <div class="wave-item">GM treinado (Módulos 1 e 2 completos)</div>
+                    <div class="wave-item">Template selecionado pelo Regional Director</div>
+                    <div class="wave-item">Checklist Loja Pronta assinado</div>
+                </div>
+            </div>
+            <div style="margin-top:14px;">
+                <h3
+                    style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:8px;">
+                    Lojas Onda 2 (prioridade por volume)</h3>
+                <div class="stores-list">
+                    <span class="store-tag">Lexington</span><span class="store-tag">Tampa</span><span
+                        class="store-tag">Detroit</span>
+                    <span class="store-tag">Denver</span><span class="store-tag">Memphis</span><span
+                        class="store-tag">Irvine</span>
+                    <span class="store-tag">Albany</span><span class="store-tag">Fort Worth</span><span
+                        class="store-tag">Addison</span>
+                    <span class="store-tag">Sawgrass</span><span class="store-tag">Fairfax</span><span
+                        class="store-tag">Jacksonville</span>
+                    <span class="store-tag">Omaha</span><span class="store-tag">Richmond</span><span
+                        class="store-tag">Rochester</span>
+                    <span class="store-tag">Rogers</span><span class="store-tag">Syracuse</span><span
+                        class="store-tag">Tacoma</span>
+                    <span class="store-tag">Tyler</span><span class="store-tag">Yonkers</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wave 3 -->
+    <div class="wave">
+        <div class="wave-header">
+            <div>
+                <div class="wave-title">Onda 3 — Rede Completa</div>
+                <div class="wave-period">Q2 2026 · Todas as lojas restantes · Abr–Jun 2026</div>
+            </div>
+            <span class="status-planned">Planejada</span>
+        </div>
+        <div class="wave-body">
+            <div class="wave-grid">
+                <div class="wave-section">
+                    <h3>Objetivo</h3>
+                    <div class="wave-item">100% da rede no sistema</div>
+                    <div class="wave-item">CFO Report ativo para toda a rede</div>
+                    <div class="wave-item">Relatório mensal automatizado</div>
+                    <div class="wave-item">Revisão de SLA e renovação de contrato</div>
+                </div>
+                <div class="wave-section">
+                    <h3>Critérios de Entrada (Onda 3)</h3>
+                    <div class="wave-item">Onda 2: ≥ 90% das lojas com dados consistentes</div>
+                    <div class="wave-item">Suporte P1/P2: tempo médio de resolução ≤ SLA</div>
+                    <div class="wave-item">Executive Summary validado pela Diretoria</div>
+                    <div class="wave-item">Aprovação formal do CFO</div>
+                </div>
+            </div>
+            <div style="margin-top:14px;">
+                <h3
+                    style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:6px;">
+                    Meta Final</h3>
+                <p style="font-size:12px;font-weight:700;">55 lojas ativas · Relatório CFO mensal automático · Savings
+                    estimado: $1M+ anuais</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Governance -->
+    <div class="section">
+        <h2>Governança do Rollout</h2>
+        <table class="criteria-table">
+            <tr>
+                <th>Decisão</th>
+                <th>Responsável</th>
+                <th>Frequência</th>
+            </tr>
+            <tr>
+                <td>Aprovação de entrada de loja na onda</td>
+                <td>Regional Director</td>
+                <td>Por loja</td>
+            </tr>
+            <tr>
+                <td>Aprovação de avanço entre ondas</td>
+                <td>CFO / Diretoria</td>
+                <td>Por onda</td>
+            </tr>
+            <tr>
+                <td>Seleção de template por loja</td>
+                <td>Regional Director</td>
+                <td>Na entrada</td>
+            </tr>
+            <tr>
+                <td>Revisão de SLA</td>
+                <td>CFO + Suporte Técnico</td>
+                <td>Trimestral</td>
+            </tr>
+            <tr>
+                <td>Relatório de progresso do rollout</td>
+                <td>Suporte Técnico</td>
+                <td>Mensal</td>
+            </tr>
+        </table>
+    </div>
+
+    <p style="font-size:9px;color:#ccc;text-align:center;margin-top:20px;">Brasa Prophet Analytics v3.1 · Texas de
+        Brazil · Plano de Ondas v1.0 · Documento Confidencial</p>
+
+</body>
+
+</html>

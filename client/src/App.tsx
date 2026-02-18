@@ -23,6 +23,8 @@ import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
 import { CFOReport } from './pages/CFOReport';
 import { TrainingPage } from './pages/TrainingPage';
+import { AdoptionDashboard } from './pages/AdoptionDashboard';
+import { GovernanceGuard } from './components/GovernanceGuard';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -61,33 +63,35 @@ function AppContent() {
                 <Route path="/select-company" element={<ProtectedRoute />}>
                     <Route index element={<CompanySelector />} />
                 </Route>
-                <Route path="/saas-admin" element={<ProtectedRoute />}>
-                    <Route index element={<SaaSAdminDashboard />} />
-                </Route>
+
                 <Route path="/owner-terminal" element={<ProtectedRoute />}>
                     <Route index element={<OwnerTerminal />} />
                 </Route>
 
+                <Route path="/saas-admin" element={<ProtectedRoute />}>
+                    <Route index element={<SaaSAdminDashboard />} />
+                </Route>
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/:storeId" element={<Dashboard />} />
-                    <Route path="/projections" element={<ProjectionsDashboard />} />
+                    <Route path="/projections" element={<GovernanceGuard><ProjectionsDashboard /></GovernanceGuard>} />
                     <Route path="/inventory" element={<PlaceholderPage title="Inventory Management" />} />
-                    <Route path="/reports" element={<ReportsPage />} />
+                    <Route path="/reports" element={<GovernanceGuard><ReportsPage /></GovernanceGuard>} />
                     <Route path="/prices" element={<WeeklyPriceInput />} />
                     <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/settings/company" element={<CompanySettings />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
-                    <Route path="/smart-prep" element={<SmartPrepPage />} />
+                    <Route path="/smart-prep" element={<GovernanceGuard><SmartPrepPage /></GovernanceGuard>} />
                     <Route path="/delivery" element={<DeliveryPage />} />
                     <Route path="/waste" element={<WastePage />} />
-                    <Route path="/forecast" element={<ForecastPage />} />
+                    <Route path="/forecast" element={<GovernanceGuard><ForecastPage /></GovernanceGuard>} />
                     <Route path="/command-center" element={<CommandCenter />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />
+                    <Route path="/adoption" element={<AdoptionDashboard />} />
                 </Route>
 
                 {/* Catch all redirect to login */}

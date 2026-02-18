@@ -66,6 +66,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     if (user?.role === 'director' || user?.role === 'admin') {
         navItems.push({
             section: 'MANAGE (Company)', items: [
+                { icon: Users, label: 'Adoption Dashboard', path: '/adoption' },
                 { icon: Building2, label: 'Company Settings', path: '/settings/company' }
             ]
         });
@@ -82,36 +83,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         setShowAlerts(false);
         navigate(path);
     };
-
-    const [networkStats, setNetworkStats] = useState({
-        system_sales: 45.5,
-        active_stores: 57,
-        system_labor: 28.4,
-        active_alerts: 3,
-        status: 'ONLINE'
-    });
-
-    useEffect(() => {
-        const fetchHealth = async () => {
-            if (!user?.token) return;
-            try {
-                const res = await fetch('/api/v1/dashboard/network-health', {
-                    headers: { 'Authorization': `Bearer ${user.token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setNetworkStats(data);
-                }
-            } catch (err) {
-                console.error("Failed to fetch network health", err);
-            }
-        };
-
-        fetchHealth();
-        // Poll every 60 seconds
-        const interval = setInterval(fetchHealth, 60000);
-        return () => clearInterval(interval);
-    }, [user]);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
 
@@ -226,25 +197,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         </>
                     )}
 
-                    {/* Logout Button */}
-                    <button
-                        onClick={logout}
-                        className="w-full flex items-center gap-3 p-3 rounded transition-colors text-gray-400 hover:bg-[#FF2A6D]/10 hover:text-[#FF2A6D] mt-2"
-                    >
-                        <LogOut className="w-5 h-5 min-w-[20px]" />
-                        <span className="text-sm font-medium tracking-wide">{t('logout')}</span>
-                    </button>
-                </nav>
-
-                <div className="p-4 border-t border-[#333]">
-                    <div className="text-xs text-gray-600 font-mono">
-                        v4.2.0-DASHBOARD-EXEC - LIVE
-                        <br />
-                        {t('conn_label')}: <span className="text-[#00FF94]">POSTGRES-CL-V3</span>
-                        <br />
-                        <span className="text-[10px] text-gray-500">Build: {new Date().toLocaleString()}</span>
+                    <div className="pt-4 mt-4 border-t border-white/10">
+                        <button
+                            onClick={logout}
+                            className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-white hover:bg-white/5"
+                        >
+                            <LogOut className="w-5 h-5 flex-shrink-0" />
+                            <span>{t('nav_logout')}</span>
+                        </button>
+                        <div className="mt-6 px-3">
+                            <div className="text-[10px] text-gray-600 font-mono">v4.2.0-DASHBOARD-EXEC - LIVE</div>
+                            <div className="text-[10px] text-brand-gold font-mono mb-2">CONN: POSTGRES-CL-V3</div>
+                            <div className="text-[9px] text-gray-700 font-mono">Build: {new Date().toLocaleDateString()}, {new Date().toLocaleTimeString()}</div>
+                            <div className="mt-4 flex items-center gap-2 opacity-30 hover:opacity-100 transition-opacity">
+                                <span className="text-[10px] font-serif text-white uppercase tracking-widest">Powered by AGV</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </nav>
             </aside>
 
             {/* Main Content */}

@@ -109,6 +109,19 @@ model User {
   is_trial             Boolean   @default(false)
   trial_expires_at     DateTime?
   store                Store?    @relation(fields: [store_id], references: [id])
+  training_progress    TrainingProgress[]
+}
+
+model TrainingProgress {
+  id           String   @id @default(uuid())
+  user_id      String
+  module_id    String   // '1', '2', '3', '4', '5' or 'exam'
+  score        Int      // 0-100
+  attempts     Int      @default(1)
+  completed_at DateTime @default(now())
+  user         User     @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, module_id])
 }
 
 model Order {
