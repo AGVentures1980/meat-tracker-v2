@@ -344,13 +344,14 @@ export const ProjectionsDashboard = () => {
                         <thead>
                             <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
                                 <th className="p-4 font-normal sticky left-0 bg-[#121212] z-10">{t('proj_col_store')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_lunch_ly')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_dinner_ly')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_lunch_ly')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_dinner_ly')}</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_lunch_price')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_dinner_price')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_dinner_price')}</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">{t('proj_col_target_lbs')}</th>
-                                <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_proj_guests')}</th>
-                                <th className="p-4 font-normal text-right">{t('proj_col_proj_rev')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_lunch')}</th>
+                                <th className="p-4 font-normal text-right bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_dinner')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_proj_rev')}</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_meat_vol')}</th>
                                 <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
                             </tr>
@@ -364,14 +365,14 @@ export const ProjectionsDashboard = () => {
                                     </td>
 
                                     {/* Inputs */}
-                                    <td className="p-2 text-right">
+                                    <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             value={store.lunchGuestsLastYear}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'lunchGuestsLastYear', e.target.value)}
                                         />
                                     </td>
-                                    <td className="p-2 text-right">
+                                    <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             value={store.dinnerGuestsLastYear}
                                             disabled={isPublished}
@@ -385,7 +386,7 @@ export const ProjectionsDashboard = () => {
                                             onChange={(e) => handleStoreChange(store.id, 'lunchPrice', e.target.value)}
                                         />
                                     </td>
-                                    <td className="p-2 text-right">
+                                    <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             value={store.dinnerPrice}
                                             disabled={isPublished}
@@ -401,10 +402,13 @@ export const ProjectionsDashboard = () => {
                                     </td>
 
                                     {/* Outputs */}
-                                    <td className="p-4 text-right border-l border-[#333] text-gray-300">
-                                        {fmtNum(store.projectedLunchGuests + store.projectedDinnerGuests)}
+                                    <td className="p-4 text-right border-l border-[#333] text-brand-gold font-bold bg-brand-gold/5">
+                                        {fmtNum(store.projectedLunchGuests)}
                                     </td>
-                                    <td className="p-4 text-right font-bold text-white">
+                                    <td className="p-4 text-right text-brand-gold font-bold bg-brand-gold/5">
+                                        {fmtNum(store.projectedDinnerGuests)}
+                                    </td>
+                                    <td className="p-4 text-right border-l border-[#333] font-bold text-white">
                                         {fmtCurrency(store.projectedRevenue)}
                                     </td>
                                     <td className="p-4 text-right border-l border-[#333] font-bold">
@@ -419,13 +423,16 @@ export const ProjectionsDashboard = () => {
                         <tfoot className="bg-[#222] font-mono font-bold text-white">
                             <tr>
                                 <td className="p-4 sticky left-0 bg-[#222] z-10 border-r border-[#333]">{t('proj_totals')}</td>
-                                <td colSpan={4} className="p-4 text-center text-gray-500 text-xs font-normal uppercase tracking-widest">
+                                <td colSpan={5} className="p-4 text-center text-gray-500 text-xs font-normal uppercase tracking-widest border-r border-[#333]">
                                     {t('proj_network_cons')}
                                 </td>
-                                <td className="p-4 text-right border-l border-[#333]">
-                                    {fmtNum(storeData.reduce((a, b) => a + b.projectedLunchGuests + b.projectedDinnerGuests, 0))}
+                                <td className="p-4 text-right border-l border-[#333] text-brand-gold">
+                                    {fmtNum(storeData.reduce((a, b) => a + b.projectedLunchGuests, 0))}
                                 </td>
                                 <td className="p-4 text-right text-brand-gold">
+                                    {fmtNum(storeData.reduce((a, b) => a + b.projectedDinnerGuests, 0))}
+                                </td>
+                                <td className="p-4 text-right border-l border-[#333] text-white">
                                     {fmtCurrency(totalRevenue)}
                                 </td>
                                 <td className="p-4 text-right border-l border-[#333]">
