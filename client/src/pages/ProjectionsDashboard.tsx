@@ -110,6 +110,21 @@ export const ProjectionsDashboard = () => {
         // Let's solve for Guests assuming the ratio of Lunch/Dinner stays same as LY.
 
         const lyTotalGuests = data.lunchGuestsLastYear + data.dinnerGuestsLastYear;
+
+        // Guard against division by zero (New Stores / No History)
+        if (lyTotalGuests === 0) {
+            return {
+                ...data,
+                projectedLunchGuests: 0,
+                projectedDinnerGuests: 0,
+                projectedRevenue: 0,
+                projectedMeatLbs: 0,
+                statusQuoMeatLbs: 0,
+                savingsLbs: 0,
+                savingsDollars: 0
+            };
+        }
+
         const lunchRatio = data.lunchGuestsLastYear / lyTotalGuests;
         const dinnerRatio = data.dinnerGuestsLastYear / lyTotalGuests;
 
@@ -119,11 +134,13 @@ export const ProjectionsDashboard = () => {
 
         // 3. Derive Required Guests to hit Target Revenue
         // TargetRev = Guests * NewPPA  =>  Guests = TargetRev / NewPPA
-        const requiredTotalGuests = Math.round(targetRevenue / weightedNewPPA);
+
+        // Guard against zero price (unlikely but safe)
+        const requiredTotalGuests = weightedNewPPA > 0 ? Math.round(targetRevenue / weightedNewPPA) : 0;
 
         // Split back into Lunch/Dinner for display
         const projLunch = Math.round(requiredTotalGuests * lunchRatio);
-        const projDinner = Math.round(requiredTotalGuests * dinnerRatio);
+        const projDinner = requiredTotalGuests - projLunch; // Ensure total matches (rounding diffs)
 
         // 4. Meat Volume (Target)
         const targetLbs = requiredTotalGuests * (data.target_lbs_guest || GLOBAL_TARGET_LBS);
