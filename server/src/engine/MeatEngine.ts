@@ -27,19 +27,28 @@ export class MeatEngine {
     /**
      * Calculates the dashboard statistics for a given store and month.
      */
-    static async getDashboardStats(storeId: number, startProp?: Date, endProp?: Date) {
+    static async getDashboardStats(storeId: number, startProp?: Date, endProp?: Date, companyId?: string) {
         // Fetch dynamic standards & targets
         const standards = await this.getSetting('meat_standards', MEAT_STANDARDS);
         const globalTarget = await this.getSetting('global_target_lbs_guest', GLOBAL_TARGET_PER_GUEST);
 
-        const storeData = await (prisma as any).store.findUnique({
-            where: { id: storeId },
+        const whereStore: any = { id: storeId };
+        if (companyId) {
+            whereStore.company_id = companyId;
+        }
+
+        const storeData = await (prisma as any).store.findFirst({
+            where: whereStore,
             include: {
                 inventory_records: { orderBy: { date: 'desc' }, take: 2 },
                 purchase_records: true,
                 reports: { orderBy: { generated_at: 'desc' }, take: 1 }
             }
         });
+
+        if (!storeData && companyId) {
+            throw new Error('Access Denied: Store not found in this company context.');
+        }
 
         const now = new Date();
         const start = startProp || startOfMonth(now);
@@ -60,35 +69,26 @@ export class MeatEngine {
         const STORE_LBS_TARGET = storeData?.target_lbs_guest || globalTarget;
 
         // --- SHIFT AWARE GOVERNANCE (v3.2) ---
-        // Calculate Theoretical Revenue based on Shift Split
         const lunchGuests = (storeData?.reports?.[0] as any)?.lunch_guests_micros || 0;
         const dinnerGuests = (storeData?.reports?.[0] as any)?.dinner_guests_micros || 0;
-
-        // If no shift data, assume 100% is mixed (fallback)
-        // Once UI is updated, this will be accurate. 
-        // For now, if lunch/dinner guests are 0, we can fall back to totalLbs / target calculation for "Estimated Guests"
-        // But if reports has data, we use it.
 
         let totalGuests = lunchGuests + dinnerGuests;
         if (totalGuests === 0) {
             totalGuests = Math.round(totalLbsMonth / STORE_LBS_TARGET);
         }
 
-        const lunchPrice = (storeData as any)?.lunch_price || 34.00; // Default Lunch
-        const dinnerPrice = (storeData as any)?.dinner_price || 54.00; // Default Dinner
+        const lunchPrice = (storeData as any)?.lunch_price || 34.00;
+        const dinnerPrice = (storeData as any)?.dinner_price || 54.00;
 
-        // If we have split data, calculate precise revenue
         let theoreticalRevenue = 0;
         if (lunchGuests > 0 || dinnerGuests > 0) {
             theoreticalRevenue = (lunchGuests * lunchPrice) + (dinnerGuests * dinnerPrice);
         } else {
-            // Fallback: Assume 40% Lunch / 60% Dinner split for estimation if no data
             const estLunch = Math.round(totalGuests * 0.4);
             const estDinner = totalGuests - estLunch;
             theoreticalRevenue = (estLunch * lunchPrice) + (estDinner * dinnerPrice);
         }
 
-        // v3.2 Strategic Exclusion Logic (Lamb)
         const EXCLUDE_LAMB = (storeData as any)?.exclude_lamb_from_rodizio_lbs || false;
         let indicatorLbs = totalLbsMonth;
         if (EXCLUDE_LAMB) {
@@ -106,7 +106,7 @@ export class MeatEngine {
         const dailyAverage = totalLbsMonth / daysPassed;
         const projectedTotal = dailyAverage * totalDaysInMonth;
 
-        const topMeats = await this.getTopMeats(storeId, start, end);
+        const topMeats = await this.getTopMeats(storeId, start, end, companyId);
         const weeklyChart = await this.getWeeklyHistory(storeId, topMeats.map(m => m.name));
 
         return {
@@ -114,18 +114,29 @@ export class MeatEngine {
             extraCustomers,
             projectedTotal,
             lbsPerGuest: STORE_LBS_TARGET,
-            lbsPerGuestActual, // Actual measured against target
+            lbsPerGuestActual,
             costPerGuest: STORE_COST_TARGET,
-            theoreticalRevenue, // New metric
-            actualMeatCost: totalLbsMonth * 5.85, // Estimated avg cost for quick check
+            theoreticalRevenue,
+            actualMeatCost: totalLbsMonth * 5.85,
             foodCostPercentage: theoreticalRevenue > 0 ? ((totalLbsMonth * 5.85) / theoreticalRevenue) * 100 : 0,
             topMeats,
             weeklyChart
         };
     }
 
-    private static async getTopMeats(storeId: number, start: Date, end: Date) {
+    private static async getTopMeats(storeId: number, start: Date, end: Date, companyId?: string) {
         const standards = await this.getSetting('meat_standards', MEAT_STANDARDS);
+
+        const whereStore: any = { id: storeId };
+        if (companyId) {
+            whereStore.company_id = companyId;
+        }
+
+        // Verify store access first
+        const storeCheck = await prisma.store.findFirst({ where: whereStore });
+        if (!storeCheck && companyId) {
+            return []; // Or throw, but returning empty for safety
+        }
 
         // Fetch specific targets for this store
         const storeTargets = await (prisma as any).storeMeatTarget.findMany({
@@ -150,16 +161,18 @@ export class MeatEngine {
             meatSummary[protein] = (meatSummary[protein] || 0) + item.lbs;
         });
 
-        console.log(`[MeatEngine] Found ${sales.length} sales items for store ${storeId}. Summary keys: ${Object.keys(meatSummary).join(', ')}`);
-
         const totalLbs = Object.values(meatSummary).reduce((a, b) => a + b, 0);
-        // We use the same guest calculation as getDashboardStats for consistency
-        const storeData = await (prisma as any).store.findUnique({ where: { id: storeId }, include: { reports: { take: 1, orderBy: { generated_at: 'desc' } } } });
+
+        // Use the storeCheck we did above
+        const storeData = storeCheck as any;
         const globalTarget = await this.getSetting('global_target_lbs_guest', GLOBAL_TARGET_PER_GUEST);
         const STORE_LBS_TARGET = storeData?.target_lbs_guest || globalTarget;
 
-        // --- DINNER ONLY LOGIC (v3.2) ---
-        const lastReport = storeData?.reports?.[0];
+        const lastReport = await (prisma as any).report.findFirst({
+            where: { store_id: storeId },
+            orderBy: { generated_at: 'desc' }
+        });
+
         const lunchGuests = (lastReport as any)?.lunch_guests_micros || 0;
         const dinnerGuests = (lastReport as any)?.dinner_guests_micros || 0;
         let totalGuests = lunchGuests + dinnerGuests;
@@ -242,8 +255,13 @@ export class MeatEngine {
         ];
     }
 
-    static async getNetworkBiStats(year?: number, week?: number) {
-        const stores = await prisma.store.findMany();
+    static async getNetworkBiStats(year?: number, week?: number, companyId?: string) {
+        const where: any = {};
+        if (companyId) {
+            where.company_id = companyId;
+        }
+
+        const stores = await prisma.store.findMany({ where });
         const storeIds = stores.map(s => s.id);
 
         const y = year || 2026;
@@ -252,11 +270,6 @@ export class MeatEngine {
 
         const reports = await prisma.report.findMany({
             where: { store_id: { in: storeIds }, month: periodKey }
-        });
-
-        const allInvRecords = await (prisma as any).inventoryRecord.findMany({
-            where: { store_id: { in: storeIds } },
-            orderBy: [{ store_id: 'asc' }, { date: 'asc' }]
         });
 
         return {

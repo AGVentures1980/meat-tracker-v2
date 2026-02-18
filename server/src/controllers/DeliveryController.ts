@@ -63,9 +63,21 @@ export class DeliveryController {
      */
     static async syncOlo(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
             const { storeId, date } = req.body;
-            console.log(`[OLO] Syncing store ${storeId} for date ${date}`);
 
+            // Verify store belongs to company
+            const targetStoreId = storeId || user.storeId;
+            const store = await prisma.store.findFirst({
+                where: { id: targetStoreId, company_id: user.companyId }
+            });
+
+            if (!store) {
+                return res.status(403).json({ error: 'Access Denied: Store not found or belongs to another company.' });
+            }
+
+            console.log(`[OLO] Syncing store ${targetStoreId} for date ${date}`);
+            // ... (rest of logic)
             const oloRawData = [
                 { item: "Feast for 4", qty: 2, price: 95.00 },
                 { item: "Picanha (1 lb)", qty: 3, price: 24.50 },
@@ -111,7 +123,7 @@ export class DeliveryController {
             // PERSIST TO DATABASE
             await prisma.deliverySale.create({
                 data: {
-                    store_id: storeId || 1,
+                    store_id: targetStoreId,
                     source: 'OLO',
                     total_lbs: totalLbs,
                     guests: totalGuests,
@@ -137,22 +149,29 @@ export class DeliveryController {
      */
     static async processTicket(req: Request, res: Response) {
         const requestId = Math.random().toString(36).substring(7);
-        const storeId = (req as any).user?.storeId || 1;
+        const user = (req as any).user;
+        const storeId = user.storeId;
 
         try {
+            // Verify store belongs to company (even if from JWT, safe to check)
+            const store = await prisma.store.findFirst({
+                where: { id: storeId, company_id: user.companyId }
+            });
+
+            if (!store) {
+                return res.status(403).json({ error: 'Access Denied: Store not found or belongs to another company.' });
+            }
+
             if (req.file) {
                 console.log(`[OCR DEBUG ${requestId}] File received: ${req.file.originalname}`);
             } else {
                 console.warn(`[OCR DEBUG ${requestId}] NO FILE RECEIVED in request`);
             }
-
-            // Mocking OCR "Detection" based on Alex's real ticket image
-            // Ticket shows: 2 x Picanha ($29.58) -> 1 x 1/2 lb ($14.79)
+            // ... (rest of logic)
             const scannedItems = [
                 { id: "41331939074703368", item: "Picanha", qty: 2, weightStr: "1/2 lb", price: 29.58 }
             ];
 
-            // Real-world logic: 2 orders of Picanha where each is 1/2 lb = 1.0 lb total
             const proteinAggregation: Record<string, number> = {
                 "Picanha": 1.0 // 2 * 0.5 lbs
             };
@@ -193,9 +212,22 @@ export class DeliveryController {
      */
     static async getHistory(req: Request, res: Response) {
         try {
-            const storeId = (req as any).user?.storeId || 1;
+            const user = (req as any).user;
+            const { storeId } = req.query;
+
+            const targetStoreId = storeId ? parseInt(storeId as string) : user.storeId;
+
+            // Verify store belongs to company
+            const store = await prisma.store.findFirst({
+                where: { id: targetStoreId, company_id: user.companyId }
+            });
+
+            if (!store) {
+                return res.status(403).json({ error: 'Access Denied: Store not found or belongs to another company.' });
+            }
+
             const history = await prisma.deliverySale.findMany({
-                where: { store_id: storeId },
+                where: { store_id: targetStoreId },
                 orderBy: { date: 'asc' },
                 take: 50
             });
@@ -211,8 +243,10 @@ export class DeliveryController {
      */
     static async getNetworkStatus(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
             const stores = await prisma.store.findMany({
                 where: {
+                    company_id: user.companyId,
                     delivery_sales: {
                         some: {}
                     }

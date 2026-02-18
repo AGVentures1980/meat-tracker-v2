@@ -2,21 +2,22 @@
 import { Router } from 'express';
 import { DashboardController } from '../controllers/DashboardController';
 import { SettingsController } from '../controllers/SettingsController';
-import { requireAuth } from '../middleware/auth.middleware';
+import { requireAuth, requireRole } from '../middleware/auth.middleware';
+import { Role } from '@prisma/client';
 
 const router = Router();
 
 // Dashboard Stats
-router.get('/stats/:storeId', DashboardController.getStats);
-router.get('/stats/network', requireAuth, DashboardController.getNetworkStats);
-router.get('/stats/audit-logs', requireAuth, DashboardController.getAuditLogAnalysis);
-router.get('/stats/villain-deep-dive', requireAuth, DashboardController.getVillainDeepDive);
-router.get('/stats/report-card', requireAuth, DashboardController.getNetworkReportCard);
-router.get('/bi-report-card', DashboardController.getNetworkReportCard); // Alias for Stale Frontend
-router.get('/company-stats', DashboardController.getCompanyStats);
-router.post('/targets', DashboardController.updateStoreTargets);
-router.get('/projections-data', DashboardController.getProjectionsData);
-router.post('/targets/sync', requireAuth, DashboardController.syncStoreTargets);
+router.get('/stats/:storeId', requireAuth, DashboardController.getStats);
+router.get('/stats/network', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkStats);
+router.get('/stats/audit-logs', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getAuditLogAnalysis);
+router.get('/stats/villain-deep-dive', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getVillainDeepDive);
+router.get('/stats/report-card', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkReportCard);
+router.get('/bi-report-card', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkReportCard); // Alias for Stale Frontend
+router.get('/company-stats', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getCompanyStats);
+router.post('/targets', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.updateStoreTargets);
+router.get('/projections-data', requireAuth, DashboardController.getProjectionsData);
+router.post('/targets/sync', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.syncStoreTargets);
 
 // System Settings
 router.get('/settings', requireAuth, SettingsController.getSettings);

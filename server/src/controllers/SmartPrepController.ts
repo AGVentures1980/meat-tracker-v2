@@ -13,12 +13,14 @@ export class SmartPrepController {
 
     static async getNetworkPrepStatus(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
             const today = new Date();
             const centralNow = SmartPrepController.getCentralDateTime(today);
             const dateStr = req.query.date as string || centralNow.toISOString().split('T')[0];
             const date = new Date(dateStr);
 
             const stores = await prisma.store.findMany({
+                where: { company_id: user.companyId },
                 select: { id: true, store_name: true, location: true },
                 orderBy: { store_name: 'asc' }
             });
@@ -70,20 +72,23 @@ export class SmartPrepController {
 
     static async getDailyPrep(req: Request, res: Response) {
         try {
-            // @ts-ignore
-            const userId = req.user.userId;
-            // @ts-ignore
-            const userRole = req.user.role;
-            // @ts-ignore
-            const userStoreId = req.user.store_id || 1;
+            const user = (req as any).user;
+            const userId = user.userId;
+            const userRole = user.role;
+            const userStoreId = user.store_id || 1;
 
             let storeId = userStoreId;
-            if ((userRole === 'admin' || userRole === 'director')) {
-                if (req.query.store_id) {
-                    storeId = parseInt(req.query.store_id as string);
-                } else {
-                    storeId = 1;
-                }
+            if ((userRole === 'admin' || userRole === 'director') && req.query.store_id) {
+                storeId = parseInt(req.query.store_id as string);
+            }
+
+            // Verify store belongs to company
+            const storeLookup = await prisma.store.findFirst({
+                where: { id: storeId, company_id: user.companyId }
+            });
+
+            if (!storeLookup) {
+                return res.status(403).json({ error: 'Access Denied: Store not found or belongs to another company.' });
             }
 
             const today = new Date();
@@ -97,9 +102,8 @@ export class SmartPrepController {
             });
 
             if (savedLog) {
-                const store = await prisma.store.findUnique({ where: { id: storeId } });
                 return res.json({
-                    store_name: store?.store_name || 'Store',
+                    store_name: storeLookup.store_name,
                     date: dateStr,
                     forecast_guests: savedLog.forecast,
                     ...(savedLog.data as any),
@@ -254,16 +258,27 @@ export class SmartPrepController {
 
     static async lockPrepPlan(req: Request, res: Response) {
         try {
-            // @ts-ignore
-            const userId = req.user.userId;
+            const user = (req as any).user;
+            const userId = user.userId;
             const { store_id, date, forecast, data } = req.body;
 
             if (!store_id || !date || !forecast || !data) {
                 return res.status(400).json({ error: 'Missing required fields' });
             }
 
+            const targetStoreId = parseInt(store_id);
+
+            // Verify store belongs to company
+            const store = await prisma.store.findFirst({
+                where: { id: targetStoreId, company_id: user.companyId }
+            });
+
+            if (!store) {
+                return res.status(403).json({ error: 'Access Denied: Store not found or belongs to another company.' });
+            }
+
             const existing = await (prisma as any).prepLog.findUnique({
-                where: { store_id_date: { store_id: parseInt(store_id), date: new Date(date) } }
+                where: { store_id_date: { store_id: targetStoreId, date: new Date(date) } }
             });
 
             if (existing) {

@@ -1,6 +1,7 @@
 
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { AuditService } from '../services/AuditService';
 
 const prisma = new PrismaClient();
 
@@ -10,13 +11,25 @@ export class WasteController {
 
     static async getStatus(req: Request, res: Response) {
         try {
-            // @ts-ignore
-            const userStoreId = req.user?.storeId || req.user?.store_id || 1;
-            let storeId = userStoreId;
+            const user = (req as any).user;
+            const companyId = user.companyId;
+            let storeId = user.storeId || 1;
 
             const today = new Date();
             const centralNow = WasteController.getCentralDateTime(today);
             const dateStr = centralNow.toISOString().split('T')[0];
+
+            // 0. Security Check: Ensure Store belongs to User's Company
+            const storeCheck = await prisma.store.findFirst({
+                where: {
+                    id: storeId,
+                    company_id: companyId
+                }
+            });
+
+            if (!storeCheck) {
+                return res.status(403).json({ error: 'Access Denied: Store not found in your company context.' });
+            }
 
             // --- ACCOUNTABILITY GATE (OZ PRINCIPLE) ---
             const hasAccountability = await WasteController.checkAccountabilityGate(storeId, dateStr);
@@ -204,18 +217,26 @@ export class WasteController {
 
     static async logWaste(req: Request, res: Response) {
         try {
-            // @ts-ignore
-            const userId = req.user?.userId;
-            // @ts-ignore
-            const userRole = req.user?.role;
-            // @ts-ignore
-            let userStoreId = req.user?.storeId || req.user?.store_id || 1;
+            const user = (req as any).user;
+            const userId = user.userId;
+            const userRole = user.role;
+            const companyId = user.companyId;
+            let userStoreId = user.storeId || 1;
 
-            const { shift, items, date, store_id } = req.body; // items: [{protein, weight, reason}]
+            const { shift, items, date, store_id } = req.body;
 
-            // Admin Override
+            // Admin Override (within same company if not SuperAdmin, but here we assume multi-tenant admin)
             if ((userRole === 'admin' || userRole === 'director') && store_id) {
                 userStoreId = parseInt(store_id);
+            }
+
+            // High-stakes Multi-tenant check
+            const storeCheck = await prisma.store.findFirst({
+                where: { id: userStoreId, company_id: companyId }
+            });
+
+            if (!storeCheck) {
+                return res.status(403).json({ error: 'Access Denied: Cannot log waste for unauthorized store.' });
             }
             const centralNow = WasteController.getCentralDateTime(new Date());
             const logDate = new Date(date || centralNow.toISOString().split('T')[0]);
@@ -239,7 +260,7 @@ export class WasteController {
             }));
 
             // 3. Create Log
-            await prisma.wasteLog.create({
+            const log = await prisma.wasteLog.create({
                 data: {
                     store_id: userStoreId,
                     date: logDate,
@@ -249,6 +270,15 @@ export class WasteController {
                     items: taggedItems
                 }
             });
+
+            // 3.5 AUDIT LOG (Watchtower)
+            await AuditService.logAction(
+                userId,
+                'LOG_WASTE',
+                'WasteLog',
+                { shift, itemCount: taggedItems.length, logId: log.id },
+                userStoreId
+            );
 
             // 3. Update Compliance Counters
             // Find current week compliance
@@ -339,13 +369,21 @@ export class WasteController {
     }
     static async getHistory(req: Request, res: Response) {
         try {
-            // @ts-ignore
-            const userStoreId = req.user?.storeId || req.user?.store_id || 1;
-            let storeId = userStoreId;
+            const user = (req as any).user;
+            const companyId = user.companyId;
+            let storeId = user.storeId || 1;
 
-            // @ts-ignore
-            if (((req as any).user?.role === 'admin' || (req as any).user?.role === 'director') && req.query.store_id) {
+            if ((user.role === 'admin' || user.role === 'director') && req.query.store_id) {
                 storeId = parseInt(req.query.store_id as string);
+            }
+
+            // Tenant Check
+            const storeCheck = await prisma.store.findFirst({
+                where: { id: storeId, company_id: companyId }
+            });
+
+            if (!storeCheck) {
+                return res.status(403).json({ error: 'Access Denied: History unavailable for this store.' });
             }
 
             const range = req.query.range as string || 'this-month';
@@ -395,13 +433,21 @@ export class WasteController {
 
     static async getDetailedHistory(req: Request, res: Response) {
         try {
-            // @ts-ignore
-            const userStoreId = req.user?.storeId || req.user?.store_id || 1;
-            let storeId = userStoreId;
+            const user = (req as any).user;
+            const companyId = user.companyId;
+            let storeId = user.storeId || 1;
 
-            // @ts-ignore
-            if (((req as any).user?.role === 'admin' || (req as any).user?.role === 'director') && req.query.store_id) {
+            if ((user.role === 'admin' || user.role === 'director') && req.query.store_id) {
                 storeId = parseInt(req.query.store_id as string);
+            }
+
+            // Tenant Check
+            const storeCheck = await prisma.store.findFirst({
+                where: { id: storeId, company_id: companyId }
+            });
+
+            if (!storeCheck) {
+                return res.status(403).json({ error: 'Access Denied: Detailed history unavailable.' });
             }
 
             const limit = parseInt(req.query.limit as string) || 20;

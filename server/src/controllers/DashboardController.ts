@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { MeatEngine } from '../engine/MeatEngine';
 import { PrismaClient } from '@prisma/client';
+import { AuditService } from '../services/AuditService';
 
 const prisma = new PrismaClient();
 
@@ -9,21 +10,32 @@ export class DashboardController {
     static async getStats(req: Request, res: Response) {
         try {
             const { storeId } = req.params;
-            const user = (req as any).user; // Populated by requireAuth
+            const user = (req as any).user;
 
             if (!storeId) {
                 return res.status(400).json({ error: 'Store ID is required' });
             }
 
-            // Convert to number
             const id = parseInt(storeId);
             if (isNaN(id)) {
                 return res.status(400).json({ error: 'Invalid Store ID' });
             }
 
-            // Security Check: Ensure user belongs to this store (or is admin/director)
+            // 1. Verify Store exists and belongs to User's Company
+            const store = await prisma.store.findFirst({
+                where: {
+                    id,
+                    company_id: user.companyId
+                }
+            });
+
+            if (!store) {
+                return res.status(403).json({ error: 'Access Denied: Store not found or belongs to another company.' });
+            }
+
+            // 2. Role Check: Managers/Viewers can only see their assigned store
             if (user.role !== 'admin' && user.role !== 'director' && user.storeId !== id) {
-                return res.status(403).json({ error: 'Access Denied: You do not have permission to view this store.' });
+                return res.status(403).json({ error: 'Access Denied: You do not have permission to view this specific store.' });
             }
 
             const stats = await MeatEngine.getDashboardStats(id);
@@ -41,19 +53,10 @@ export class DashboardController {
             const y = year ? parseInt(year as string) : undefined;
             const w = week ? parseInt(week as string) : undefined;
 
-            const stats = await MeatEngine.getNetworkBiStats(y, w);
+            // Enforcement: Network stats must be filtered by companyId
+            const stats = await MeatEngine.getNetworkBiStats(y, w, user.companyId);
 
-            // Security: 
-            // If Admin: Return all.
-            // If Manager: Return ONLY their store.
-
-            if (user.role === 'admin' || user.role === 'director') {
-                return res.json(stats);
-            } else {
-                // Return dummy stats for the user's specific access if needed, 
-                // or just the generic object since it's already a summary.
-                return res.json(stats);
-            }
+            return res.json(stats);
         } catch (error) {
             console.error('Network BI Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network stats' });
@@ -126,6 +129,15 @@ export class DashboardController {
                 }
             }
 
+            // Audit Log
+            const user = (req as any).user;
+            await AuditService.logAction(
+                user.userId,
+                'UPDATE_STORE_TARGETS',
+                'Store',
+                { count: updated.length, storeIds: targets.map(t => t.storeId) }
+            );
+
             return res.json({ message: `Updated ${updated.length} stores`, updated });
         } catch (error) {
             console.error('Update Targets Error:', error);
@@ -135,7 +147,23 @@ export class DashboardController {
 
     static async getProjectionsData(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
+            const { storeId } = req.query;
+
+            const where: any = {
+                company_id: user.companyId
+            };
+
+            // Scoping: Managers only see their own store
+            // Admin/Director can see all stores in their company, or a specific one if provided
+            if (user.role === 'manager') {
+                where.id = user.storeId;
+            } else if (storeId) {
+                where.id = parseInt(storeId as string);
+            }
+
             const stores = await prisma.store.findMany({
+                where,
                 include: {
                     reports: {
                         orderBy: { generated_at: 'desc' },
@@ -157,8 +185,8 @@ export class DashboardController {
                     location: store.location,
                     lunchGuestsLastYear: latestReport ? Math.round(latestReport.dine_in_guests) : DEFAULT_LUNCH_GUESTS,
                     dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : DEFAULT_DINNER_GUESTS,
-                    lunchPrice: store.location.includes('Texas') ? 33.99 : 37.99,
-                    dinnerPrice: store.location.includes('Texas') ? 59.99 : 63.99,
+                    lunchPrice: store.lunch_price || 34.00,
+                    dinnerPrice: store.dinner_price || 59.00,
                     target_lbs_guest: store.target_lbs_guest || 1.76
                 };
             });
@@ -251,6 +279,15 @@ export class DashboardController {
                     updatedCount++;
                 }
             }
+
+            // Audit Log
+            const user = (req as any).user;
+            await AuditService.logAction(
+                user.userId,
+                'SYNC_STORE_TARGETS',
+                'Store',
+                { updatedCount }
+            );
 
             return res.json({ message: `Synced targets for ${updatedCount} stores.` });
         } catch (error) {
