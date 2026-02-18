@@ -7,7 +7,9 @@ export const SmartPrepPage = () => {
     const { user } = useAuth();
     const { t } = useLanguage();
     const [loading, setLoading] = useState(true);
-    const [forecast, setForecast] = useState<number>(150);
+    const [lunchForecast, setLunchForecast] = useState<number>(75);
+    const [dinnerForecast, setDinnerForecast] = useState<number>(125);
+    const forecast = lunchForecast + dinnerForecast;
     const [prepData, setPrepData] = useState<any>(null);
     const [networkStatus, setNetworkStatus] = useState<any>(null);
 
@@ -82,7 +84,9 @@ export const SmartPrepPage = () => {
                 const data = await res.json();
                 setPrepData(data);
                 if (data.is_locked) {
-                    setForecast(data.forecast_guests);
+                    const total = data.forecast_guests;
+                    setLunchForecast(Math.round(total * 0.4));
+                    setDinnerForecast(total - Math.round(total * 0.4));
                     // Reset exclusions if locked, as locked data is already filtered/calculated
                     setExcludedProteins([]);
                 }
@@ -415,21 +419,43 @@ export const SmartPrepPage = () => {
                         </div>
                     </div>
 
-                    <div className="flex-1 w-full space-y-2">
-                        <label className="text-sm text-gray-400 flex justify-between">
-                            <span>{t('adjust_projection')}</span>
-                            {prepData?.is_locked && <span className="text-[#00FF94] text-xs font-bold uppercase tracking-widest">{t('plan_locked')}</span>}
-                        </label>
-                        <input
-                            type="range"
-                            min="50"
-                            max="1000"
-                            step="10"
-                            value={forecast}
-                            disabled={prepData?.is_locked || (isExecutive && selectedStore !== null)}
-                            onChange={(e) => setForecast(parseInt(e.target.value))}
-                            className={`w-full h-2 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#00FF94] ${prepData?.is_locked || (isExecutive && selectedStore !== null) ? 'opacity-30 cursor-not-allowed' : ''}`}
-                        />
+                    <div className="flex-1 w-full space-y-6">
+                        {/* Lunch Slider */}
+                        <div className="space-y-2">
+                            <label className="text-sm text-gray-400 flex justify-between">
+                                <span>{t('lunch_projection') || 'Estimated Lunch Covers'}</span>
+                                <span className="text-[#C5A059] font-bold">{lunchForecast}</span>
+                            </label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="500"
+                                step="5"
+                                value={lunchForecast}
+                                disabled={prepData?.is_locked || (isExecutive && selectedStore !== null)}
+                                onChange={(e) => setLunchForecast(parseInt(e.target.value))}
+                                className={`w-full h-2 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#C5A059] ${prepData?.is_locked || (isExecutive && selectedStore !== null) ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            />
+                        </div>
+
+                        {/* Dinner Slider */}
+                        <div className="space-y-2">
+                            <label className="text-sm text-gray-400 flex justify-between">
+                                <span>{t('dinner_projection') || 'Estimated Dinner Covers'}</span>
+                                <span className="text-[#C5A059] font-bold">{dinnerForecast}</span>
+                            </label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="800"
+                                step="5"
+                                value={dinnerForecast}
+                                disabled={prepData?.is_locked || (isExecutive && selectedStore !== null)}
+                                onChange={(e) => setDinnerForecast(parseInt(e.target.value))}
+                                className={`w-full h-2 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#C5A059] ${prepData?.is_locked || (isExecutive && selectedStore !== null) ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            />
+                            {prepData?.is_locked && <div className="text-center text-[#00FF94] text-xs font-bold uppercase tracking-widest mt-1">{t('plan_locked')}</div>}
+                        </div>
                     </div>
 
                     <div className="bg-[#252525] p-4 rounded w-full md:w-auto text-center min-w-[200px] border border-[#333]">
