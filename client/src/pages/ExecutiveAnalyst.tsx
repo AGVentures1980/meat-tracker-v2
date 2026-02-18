@@ -9,6 +9,8 @@ export const ExecutiveAnalyst = () => {
     const [timeframe, setTimeframe] = useState<'W' | 'M' | 'Q' | 'Y'>('M');
     const [isScanning, setIsScanning] = useState(false);
     const [data, setData] = useState<any>(null);
+    const [auditData, setAuditData] = useState<any>(null);
+    const [villainData, setVillainData] = useState<any>(null);
 
     const runScan = async () => {
         setIsScanning(true);
@@ -26,6 +28,28 @@ export const ExecutiveAnalyst = () => {
             setIsScanning(false);
         }
     };
+
+
+
+    const fetchAiAudit = async () => {
+        try {
+            const auditRes = await fetch('/api/v1/dashboard/stats/audit-logs', {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            const villainRes = await fetch('/api/v1/dashboard/stats/villain-deep-dive', {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+
+            if (auditRes.ok) setAuditData(await auditRes.json());
+            if (villainRes.ok) setVillainData(await villainRes.json());
+        } catch (err) {
+            console.error('AI Audit Failed', err);
+        }
+    };
+
+    useEffect(() => {
+        fetchAiAudit();
+    }, []);
 
     useEffect(() => {
         runScan();
@@ -80,6 +104,69 @@ export const ExecutiveAnalyst = () => {
 
             {data ? (
                 <div className="space-y-12">
+                    {/* NEW: AI EXECUTIVE AUDIT SECTION */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* 1. GATEKEEPER AUDIT */}
+                        <div className="bg-[#111] border border-[#333] p-6 relative overflow-hidden">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h3 className="text-[#FF2A6D] font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                                        <AlertCircle size={14} /> Gatekeeper Audit
+                                    </h3>
+                                    <p className="text-gray-500 text-[10px] mt-1">Detecting Unauthorized Bypass of Accountability Gate</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-2xl font-black text-white">{auditData?.suspicious?.length || 0}</span>
+                                    <span className="block text-[8px] text-gray-600 uppercase">High Risk Alerts</span>
+                                </div>
+                            </div>
+
+                            {auditData?.suspicious?.length > 0 ? (
+                                <div className="space-y-3">
+                                    {auditData.suspicious.map((s: any, i: number) => (
+                                        <div key={i} className="flex justify-between items-center bg-[#FF2A6D]/10 border border-[#FF2A6D]/20 p-3 rounded-sm">
+                                            <span className="text-white font-bold text-xs">{s.store}</span>
+                                            <div className="text-right">
+                                                <span className="block text-[#FF2A6D] font-black text-sm">{s.count} OVERRIDES</span>
+                                                <span className="text-[9px] text-gray-500 uppercase">This Week</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center h-24 border border-dashed border-[#333]">
+                                    <p className="text-[#00FF94] text-[10px] font-mono uppercase">● All Systems Secure</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 2. VILLAIN GALLERY */}
+                        <div className="bg-[#111] border border-[#333] p-6 relative overflow-hidden">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h3 className="text-[#C5A059] font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                                        <Zap size={14} /> Villain Waste Gallery
+                                    </h3>
+                                    <p className="text-gray-500 text-[10px] mt-1">Top Class A Waste Sources (Pareto 80/20)</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {villainData?.rankedVillains?.slice(0, 4).map((v: any, i: number) => (
+                                    <div key={i} className="bg-[#1a1a1a] p-3 border border-white/5 flex justify-between items-end">
+                                        <div>
+                                            <span className="text-[9px] text-gray-500 uppercase block mb-1">Rank #{i + 1}</span>
+                                            <span className="text-white font-bold text-xs block">{v.name}</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-[#C5A059] font-mono font-bold text-lg">{v.weight.toFixed(1)}</span>
+                                            <span className="text-[8px] text-gray-600 block">LBS WASTED</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
                     {/* TOP SUMMARY (Print Ready) */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 print:grid-cols-4">
                         <div className="bg-[#111] p-6 border-b-2 border-brand-gold shadow-2xl">

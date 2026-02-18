@@ -178,7 +178,7 @@ export const ProposalPreview = ({ onClose }: { onClose: () => void }) => {
                             <tbody className="divide-y divide-gray-100">
                                 {data?.requirements.map((req, i) => (
                                     <tr key={i} className="text-sm">
-                                        <td className="py-4 font-bold">{req.item}</td>
+                                        <td className="py-4 font-bold" style={{ textTransform: 'uppercase' }}>{req.item}</td>
                                         <td className="py-4 text-right font-mono">{req.volume.toLocaleString()}</td>
                                         <td className="py-4 pl-8 font-bold text-xs">{req.unit}</td>
                                         <td className="py-4 text-xs text-gray-600 italic">{req.notes}</td>

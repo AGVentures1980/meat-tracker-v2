@@ -258,5 +258,86 @@ export class DashboardController {
             return res.status(500).json({ error: 'Failed to sync targets' });
         }
     }
+
+    // --- GOVERNO 3.1: THE AI EXECUTIVE ---
+
+    static async getAuditLogAnalysis(req: Request, res: Response) {
+        try {
+            // Find recent gate overrides ('No Delivery' flags)
+            const today = new Date();
+            const lastWeek = new Date(today);
+            lastWeek.setDate(today.getDate() - 7);
+
+            const logs = await prisma.auditLog.findMany({
+                where: {
+                    action: 'NO_DELIVERY_FLAG',
+                    created_at: {
+                        gte: lastWeek
+                    }
+                },
+                orderBy: { created_at: 'desc' }
+            });
+
+            // Group by Store/User to find repeat offenders
+            const analysis: Record<string, number> = {};
+            logs.forEach(log => {
+                const key = log.location || 'Unknown Store';
+                analysis[key] = (analysis[key] || 0) + 1;
+            });
+
+            const suspicious = Object.entries(analysis)
+                .filter(([_, count]) => count >= 2) // 2+ overrides in a week is suspicious
+                .map(([store, count]) => ({ store, count, status: 'HIGH RISK' }));
+
+            return res.json({ logs, suspicious });
+        } catch (error) {
+            console.error('Audit Analysis Error:', error);
+            // Return empty if auditLog table not ready
+            return res.json({ logs: [], suspicious: [] });
+        }
+    }
+
+    static async getVillainDeepDive(req: Request, res: Response) {
+        try {
+            // Aggregate waste for VILLAIN items across the network
+            const VILLAINS = ['Picanha', 'Picanha with Garlic', 'Lamb Picanha', 'Beef Ribs', 'Lamb Chops', 'Filet Mignon', 'Filet Mignon with Bacon', 'Fraldinha', 'Flap Steak'];
+
+            // This is a simplified query. In production, we'd sum from WasteLog items JSON.
+            // For now, we'll fetch recent waste logs and process in memory (prototype scale).
+
+            const today = new Date();
+            const lastWeek = new Date(today);
+            lastWeek.setDate(today.getDate() - 7);
+
+            const wasteLogs = await prisma.wasteLog.findMany({
+                where: { date: { gte: lastWeek.toISOString().split('T')[0] } },
+                include: { store: true }
+            });
+
+            const villainStats: Record<string, { weight: number, instances: number }> = {};
+
+            wasteLogs.forEach(log => {
+                const items = log.items as any[];
+                items.forEach(item => {
+                    if (VILLAINS.some(v => item.protein.includes(v))) {
+                        if (!villainStats[item.protein]) {
+                            villainStats[item.protein] = { weight: 0, instances: 0 };
+                        }
+                        villainStats[item.protein].weight += (item.weight || 0);
+                        villainStats[item.protein].instances += 1;
+                    }
+                });
+            });
+
+            const rankedVillains = Object.entries(villainStats)
+                .map(([name, stats]) => ({ name, ...stats }))
+                .sort((a, b) => b.weight - a.weight);
+
+            return res.json({ rankedVillains });
+        } catch (error) {
+            console.error('Villain Deep Dive Error:', error);
+            return res.json({ rankedVillains: [] });
+        }
+    }
 }
 

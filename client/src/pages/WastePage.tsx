@@ -439,7 +439,7 @@ const WastePage = () => {
     const activeShift = status?.today?.can_input_lunch ? 'LUNCH' : (status?.today?.can_input_dinner ? 'DINNER' : 'NONE');
 
     return (
-        <div className="max-w-4xl mx-auto p-6 space-y-8">
+        <div className="max-w-4xl mx-auto p-6 space-y-8 pb-24">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     {isExecutive && selectedStore && (

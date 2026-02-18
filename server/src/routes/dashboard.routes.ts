@@ -8,8 +8,10 @@ const router = Router();
 
 // Dashboard Stats
 router.get('/stats/:storeId', DashboardController.getStats);
-router.get('/network', DashboardController.getNetworkStats);
-router.get('/report-card', DashboardController.getNetworkReportCard);
+router.get('/stats/network', requireAuth, DashboardController.getNetworkStats);
+router.get('/stats/audit-logs', requireAuth, DashboardController.getAuditLogAnalysis);
+router.get('/stats/villain-deep-dive', requireAuth, DashboardController.getVillainDeepDive);
+router.get('/stats/report-card', requireAuth, DashboardController.getNetworkReportCard);
 router.get('/bi-report-card', DashboardController.getNetworkReportCard); // Alias for Stale Frontend
 router.get('/company-stats', DashboardController.getCompanyStats);
 router.post('/targets', DashboardController.updateStoreTargets);

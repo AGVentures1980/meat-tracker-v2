@@ -36,7 +36,6 @@ const AVG_PRICE_PER_LB = 6.50;  // Blended average cost
 
 const MEAT_STANDARDS: Record<string, number> = {
     "Picanha": 0.39,
-    "Alcatra": 0.22,
     "Fraldinha/Flank Steak": 0.24,
     "Tri-Tip": 0.15,
     "Filet Mignon": 0.10,
@@ -44,7 +43,6 @@ const MEAT_STANDARDS: Record<string, number> = {
     "Beef Ribs": 0.08,
     "Pork Ribs": 0.12,
     "Pork Loin": 0.06,
-    "Pork Belly": 0.04,
     "Chicken Drumstick": 0.13,
     "Chicken Breast": 0.14,
     "Lamb Chops": 0.07,
@@ -89,24 +87,49 @@ export const ProjectionsDashboard = () => {
         fetchProjections();
     }, [growthRate, user?.token]);
 
-    // Logic: Calculate a single row
-    // Logic: Calculate a single row
+    // Logic: Calculate a single row based on FINANCIAL TARGET
     const calculateRow = (data: StoreProjectionData, growth: number): StoreProjectionData => {
-        const factor = 1 + (growth / 100);
+        // 1. Calculate Financial Target (Revenue)
+        // We need Last Year's Revenue to apply the growth. 
+        // derived from: (LY_Guests_Lunch * LY_Price_Lunch) + (LY_Guests_Dinner * LY_Price_Dinner)
+        // Note: Ideally backend provides LY_Total_Rev including upsell, but here we estimate based on provided fields.
+        // Let's assume the "Prices" in data are the Rodizio Prices.
+        // User Logic: "PPA is $78, Rodizio is $63, Upsell is $15".
+        // We need an "Average Upsell" constant or input. Let's assume $15.00 for now as a baseline or derive if possible.
+        const AVG_UPSELL = 15.00;
 
-        const projLunch = Math.round(data.lunchGuestsLastYear * factor);
-        const projDinner = Math.round(data.dinnerGuestsLastYear * factor);
-        const totalGuests = projLunch + projDinner;
+        const lyRevenueLunch = data.lunchGuestsLastYear * (data.lunchPrice + AVG_UPSELL);
+        const lyRevenueDinner = data.dinnerGuestsLastYear * (data.dinnerPrice + AVG_UPSELL);
+        const lyTotalRevenue = lyRevenueLunch + lyRevenueDinner;
 
-        // Revenue
-        const rev = (projLunch * data.lunchPrice) + (projDinner * data.dinnerPrice);
+        const targetRevenue = lyTotalRevenue * (1 + (growth / 100));
 
-        // Meat Volume (Target)
-        // Use store specific target (or fallback if somehow missing, though interface says required)
-        const targetLbs = totalGuests * (data.target_lbs_guest || GLOBAL_TARGET_LBS);
+        // 2. Calculate New PPA (Projected)
+        // We use the INPUT prices (which user might have raised) + same upsell
+        // Weighted average PPA based on LY mix? Or just sum guests?
+        // Let's solve for Guests assuming the ratio of Lunch/Dinner stays same as LY.
+
+        const lyTotalGuests = data.lunchGuestsLastYear + data.dinnerGuestsLastYear;
+        const lunchRatio = data.lunchGuestsLastYear / lyTotalGuests;
+        const dinnerRatio = data.dinnerGuestsLastYear / lyTotalGuests;
+
+        const projectedPPA_Lunch = data.lunchPrice + AVG_UPSELL;
+        const projectedPPA_Dinner = data.dinnerPrice + AVG_UPSELL;
+        const weightedNewPPA = (projectedPPA_Lunch * lunchRatio) + (projectedPPA_Dinner * dinnerRatio);
+
+        // 3. Derive Required Guests to hit Target Revenue
+        // TargetRev = Guests * NewPPA  =>  Guests = TargetRev / NewPPA
+        const requiredTotalGuests = Math.round(targetRevenue / weightedNewPPA);
+
+        // Split back into Lunch/Dinner for display
+        const projLunch = Math.round(requiredTotalGuests * lunchRatio);
+        const projDinner = Math.round(requiredTotalGuests * dinnerRatio);
+
+        // 4. Meat Volume (Target)
+        const targetLbs = requiredTotalGuests * (data.target_lbs_guest || GLOBAL_TARGET_LBS);
 
         // Status Quo (Inefficiency)
-        const statusQuoLbs = totalGuests * GLOBAL_ACTUAL_LBS;
+        const statusQuoLbs = requiredTotalGuests * GLOBAL_ACTUAL_LBS;
 
         // Savings
         const savingsLbs = statusQuoLbs - targetLbs;
@@ -116,7 +139,7 @@ export const ProjectionsDashboard = () => {
             ...data,
             projectedLunchGuests: projLunch,
             projectedDinnerGuests: projDinner,
-            projectedRevenue: rev,
+            projectedRevenue: targetRevenue, // This is now the DRIVER
             projectedMeatLbs: targetLbs,
             statusQuoMeatLbs: statusQuoLbs,
             savingsLbs,
@@ -134,6 +157,7 @@ export const ProjectionsDashboard = () => {
 
     const handleStoreChange = (id: number, field: keyof StoreProjectionData, val: string) => {
         const num = parseFloat(val) || 0;
+        // If they change price, it changes the PPA -> changes Guest Count (Inverse)
         const updated = storeData.map(d => {
             if (d.id === id) {
                 const newData = { ...d, [field]: num };
@@ -150,6 +174,7 @@ export const ProjectionsDashboard = () => {
             setIsPasswordModalOpen(false);
             setIsPublished(true);
             setPublishError('');
+            alert(t('proj_targets_published') + ' successfully!'); // Immediate feedback
             // Here we would call an API to persist targets
         } else {
             setPublishError(t('exec_invalid_password'));

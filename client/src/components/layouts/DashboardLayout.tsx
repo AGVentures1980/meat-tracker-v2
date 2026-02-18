@@ -351,7 +351,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 </div >
 
                 {/* Mobile Bottom Navigation */}
-                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex justify-around p-2 z-50 pb-safe">
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex justify-around p-2 z-[9999] pb-safe">
                     <button onClick={() => navigate('/dashboard')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/dashboard' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
                         <LayoutDashboard size={20} />
                         <span className="text-[10px] mt-1">Home</span>
