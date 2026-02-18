@@ -48,8 +48,8 @@ export const OwnerController = {
                         store_name: s.name,
                         location: s.location,
                         company_id: burgerCompanyId,
-                        target_cost_guest: 5.50,
-                        target_lbs_guest: 0.85
+                        target_cost_guest: 4.80,
+                        target_lbs_guest: 0.72
                     }
                 });
 
@@ -100,8 +100,30 @@ export const OwnerController = {
             const user = (req as any).user;
             if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
+            const userId = user.userId;
+            const role = user.role;
+
+            let whereClause: any = {};
+
+            if (role !== 'admin') {
+                // Return companies where user is owner OR companies associated with their assigned store
+                const conditions: any[] = [{ owner_id: userId }];
+
+                if (user.storeId) {
+                    const userStore = await prisma.store.findUnique({
+                        where: { id: user.storeId },
+                        select: { company_id: true }
+                    });
+                    if (userStore?.company_id) {
+                        conditions.push({ id: userStore.company_id });
+                    }
+                }
+
+                whereClause = { OR: conditions };
+            }
+
             const companies = await prisma.company.findMany({
-                where: { owner_id: user.id },
+                where: whereClause,
                 include: {
                     _count: {
                         select: { stores: true }

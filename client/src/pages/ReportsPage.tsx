@@ -16,7 +16,7 @@ export const ReportsPage = () => {
         { id: 'flash', name: t('report_flash'), description: t('report_flash_desc'), icon: Activity, color: 'text-[#00FF94]', endpoint: '/api/v1/reports/flash' },
         { id: 'variance', name: t('report_variance'), description: t('report_variance_desc'), icon: Filter, color: 'text-[#FF2A6D]', endpoint: '/api/v1/reports/variance' },
         { id: 'inventory', name: t('report_inventory'), description: t('report_inventory_desc'), icon: Calendar, color: 'text-blue-400', endpoint: '/api/v1/reports/inventory' },
-        { id: 'meat-prices', name: 'Meat Prices', description: 'Price analysis per store with variance alerts', icon: DollarSign, color: 'text-brand-gold', endpoint: '/api/v1/reports/meat-prices' },
+        { id: 'meat-prices', name: t('report_meat_prices'), description: t('report_meat_prices_desc'), icon: DollarSign, color: 'text-brand-gold', endpoint: '/api/v1/reports/meat-prices' },
     ];
 
     const fetchReport = useCallback(async () => {

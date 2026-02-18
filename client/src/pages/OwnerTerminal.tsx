@@ -82,31 +82,56 @@ export const OwnerTerminal = () => {
         }
     };
 
+    const handleExportLeads = () => {
+        if (leads.length === 0) return;
+
+        const headers = ["Company Name", "Industry", "Size", "Match Score", "Justification"];
+        const rows = leads.map(l => [
+            l.company_name,
+            l.industry,
+            l.size,
+            `${(l.potential_fit * 100).toFixed(0)}%`,
+            l.justification
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + headers.join(",") + "\n"
+            + rows.map(r => r.join(",")).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `brasa_leads_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     /**
      * Generates a high-conversion sales email based on the lead's data.
      */
     const handleOpenEmail = (lead: any) => {
-        const template = `ASSUNTO: Parceria Estratégica: Brasa Intel x ${lead.company_name}
+        const template = `SUBJECT: Strategic Partnership: Brasa Intel x ${lead.company_name}
 
-Olá equipe ${lead.company_name},
+Hello ${lead.company_name} team,
 
-Nossa inteligência artificial de mercado identificou o ${lead.company_name} como uma referência no segmento de ${lead.industry}.
+Our market AI identified ${lead.company_name} as a reference in the ${lead.industry} segment.
 
-Monitoramos que empresas do seu porte (${lead.size}) frequentemente enfrentam desafios específicos de controle, e nossa análise preliminar indicou uma oportunidade única para vocês:
+We've observed that companies of your size (${lead.size}) frequently face specific control challenges, and our preliminary analysis indicated a unique opportunity for you:
 
-DADO IDENTIFICADO:
+IDENTIFIED INSIGHT:
 "${lead.justification}"
 
-O Brasa Intelligence (v5.2) foi desenhado exatamente para resolver esse gargalo. Não somos apenas um ERP, somos um "CFO Digital" que audita cada grama de proteína em tempo real.
+Brasa Intelligence (v5.2) was designed exactly to solve this bottleneck. We are not just an ERP, we are a "Digital CFO" that audits every gram of protein in real-time.
 
-Gostaria de agendar uma demonstração técnica de 15 minutos para mostrar como podemos aumentar sua margem em até 12% nas primeiras semanas.
+I would like to schedule a 15-minute technical demo to show how we can increase your margin by up to 12% in the first few weeks.
 
-Aguardo seu retorno,
+Best regards,
 
     --
     Director of Partnerships
     Brasa Meat Intelligence Systems
-    Av. Paulista, SP | Dallas, TX`;
+    Dallas, TX | São Paulo, BR`;
 
         setSelectedLead(lead);
         setEmailContent(template);
@@ -115,7 +140,7 @@ Aguardo seu retorno,
 
     const handleCopyEmail = () => {
         navigator.clipboard.writeText(emailContent);
-        alert('Email copiado para a área de transferência!');
+        alert('Email copied to clipboard!');
     };
 
     const handleSendSimulation = async () => {
@@ -134,20 +159,20 @@ Aguardo seu retorno,
 
             const data = await res.json();
             if (data.success) {
-                alert(`Email enviado com sucesso para ${selectedLead?.company_name}.`);
+                alert(`Email successfully sent to ${selectedLead?.company_name}.`);
                 setEmailModalOpen(false);
             } else {
-                alert('Falha ao enviar email.');
+                alert('Failed to send email.');
             }
         } catch (error) {
             console.error('Email send failed', error);
-            alert('Erro ao conectar com o servidor de email.');
+            alert('Error connecting to the email server.');
         }
     };
 
     const handleScheduleMeeting = (lead: any) => {
-        const subject = `Reunião de Apresentação - ${lead.company_name}`;
-        const body = `Olá, gostaria de agendar um horário para apresentarmos o Brasa Intel.\n\nContexto: ${lead.justification}`;
+        const subject = `Intro Meeting - ${lead.company_name}`;
+        const body = `Hello, I'd like to schedule a time to present Brasa Intel.\n\nContext: ${lead.justification}`;
         window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
     };
 
@@ -320,8 +345,11 @@ Aguardo seu retorno,
                                     <p className="text-gray-500 text-sm">Working full-time discovery. Found {leads.length} high-fit companies today.</p>
                                 </div>
                                 <div className="flex gap-4">
-                                    <button className="px-6 py-2 bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 hover:bg-white/10 transition-all">
-                                        <Download size={16} /> Export Mail List
+                                    <button
+                                        onClick={handleExportLeads}
+                                        className="px-6 py-2 bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 hover:bg-white/10 transition-all"
+                                    >
+                                        <Download size={16} /> Export MAIL List
                                     </button>
                                     <button
                                         onClick={runDiscovery}
@@ -329,7 +357,7 @@ Aguardo seu retorno,
                                         className="px-6 py-2 bg-[#C5A059] text-black text-xs font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 shadow-lg hover:scale-105 transition-all disabled:opacity-50"
                                     >
                                         <Zap size={16} className={isScanning ? 'animate-spin' : ''} />
-                                        {isScanning ? 'Scanning...' : 'Run deep search'}
+                                        {isScanning ? 'Searching...' : 'RUN DEEP SEARCH'}
                                     </button>
                                 </div>
                             </div>
@@ -374,12 +402,104 @@ Aguardo seu retorno,
                         </div>
                     )}
 
+                    {activeTab === 'billing' && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="bg-[#111] border border-white/5 p-6 rounded-xl">
+                                    <p className="text-gray-500 text-[10px] uppercase font-mono mb-1">Total Life Cycle Revenue</p>
+                                    <h3 className="text-3xl font-black text-[#00FF94]">${finances?.metrics?.totalRevenue.toLocaleString() || '0'}</h3>
+                                </div>
+                                <div className="bg-[#111] border border-white/5 p-6 rounded-xl">
+                                    <p className="text-gray-500 text-[10px] uppercase font-mono mb-1">Pending Receivables</p>
+                                    <h3 className="text-3xl font-black text-[#FF2A6D]">${finances?.metrics?.pendingRevenue.toLocaleString() || '0'}</h3>
+                                </div>
+                                <div className="bg-[#111] border border-white/5 p-6 rounded-xl">
+                                    <p className="text-gray-500 text-[10px] uppercase font-mono mb-1">Average Revenue / Client</p>
+                                    <h3 className="text-3xl font-black text-[#C5A059]">${finances?.metrics?.activeClients ? (finances.metrics.totalRevenue / finances.metrics.activeClients).toFixed(2) : '0'}</h3>
+                                </div>
+                            </div>
+
+                            <div className="bg-[#111] border border-white/5 rounded-xl overflow-hidden">
+                                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                                    <h3 className="font-bold flex items-center gap-2 uppercase tracking-widest text-xs"><CreditCard size={16} className="text-[#C5A059]" /> Master Billing Ledger</h3>
+                                    <div className="flex gap-2">
+                                        <button className="px-4 py-1 bg-white/5 border border-white/10 text-[9px] font-bold uppercase tracking-widest rounded-md hover:bg-white/10 transition-all text-gray-400">Download All Reports</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <table className="w-full text-left">
+                                        <thead className="bg-[#0A0A0A] text-[9px] uppercase font-mono text-gray-500 border-b border-white/5">
+                                            <tr>
+                                                <th className="px-6 py-4">Invoice ID</th>
+                                                <th className="px-6 py-4">Issuance Date</th>
+                                                <th className="px-6 py-4">Due Date</th>
+                                                <th className="px-6 py-4">Target Company</th>
+                                                <th className="px-6 py-4">Total Amount</th>
+                                                <th className="px-6 py-4">Status</th>
+                                                <th className="px-6 py-4 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {finances?.invoices?.map((inv: any) => (
+                                                <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors group">
+                                                    <td className="px-6 py-4 text-xs font-mono text-[#C5A059]">{inv.id.substring(0, 12)}</td>
+                                                    <td className="px-6 py-4 text-xs text-gray-400">{new Date(inv.billing_date).toLocaleDateString()}</td>
+                                                    <td className="px-6 py-4 text-xs text-gray-400">{new Date(inv.due_date).toLocaleDateString()}</td>
+                                                    <td className="px-6 py-4 font-bold">{inv.company?.name}</td>
+                                                    <td className="px-6 py-4 font-mono font-bold text-[#00FF94]">${inv.amount.toLocaleString()}</td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border ${inv.status === 'paid' ? 'bg-[#00FF94]/10 text-[#00FF94] border-[#00FF94]/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}>
+                                                            {inv.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <button className="text-[10px] text-gray-500 hover:text-white uppercase tracking-widest font-bold font-mono">Archive</button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {(!finances?.invoices || finances.invoices.length === 0) && (
+                                                <tr>
+                                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500 text-xs italic">No financial records found in the centralized ledger.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'dev' && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div className="bg-[#111] border border-white/5 p-8 rounded-xl h-[400px] flex flex-col justify-center items-center">
-                                <ChartIcon size={48} className="text-gray-700 mb-4" />
-                                <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">Platform Development Milestones Graph</p>
-                                <p className="text-[10px] text-gray-600 mt-2">Active Deployments: 14 | Version: 5.2.0-STABLE</p>
+                            <div className="bg-[#111] border border-white/5 p-8 rounded-xl flex flex-col">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h3 className="font-bold flex items-center gap-2"><Activity size={18} className="text-[#00FF94]" /> Performance Roadmap</h3>
+                                    <span className="text-[10px] font-mono bg-[#00FF94]/10 text-[#00FF94] px-2 py-1 rounded">v5.2-STABLE</span>
+                                </div>
+                                <div className="space-y-6">
+                                    {[
+                                        { phase: 'Phase 1', title: 'Global Multi-Tenant Expansion', status: 'Completed', progress: 100 },
+                                        { phase: 'Phase 2', title: 'AI-Driven Unit Governance', status: 'Operational', progress: 100 },
+                                        { phase: 'Phase 3', title: 'Executive Data Shield (Read-Only)', status: 'Active', progress: 100 },
+                                        { phase: 'Phase 4', title: 'International Language Standardization', status: 'Verifying', progress: 95 },
+                                        { phase: 'Phase 5', title: 'Predictive Meat Logic v6.0', status: 'Next Sprint', progress: 15 },
+                                    ].map((m, i) => (
+                                        <div key={i} className="space-y-2">
+                                            <div className="flex justify-between items-end">
+                                                <div>
+                                                    <p className="text-[9px] text-gray-500 uppercase font-mono">{m.phase}</p>
+                                                    <p className="text-sm font-bold">{m.title}</p>
+                                                </div>
+                                                <span className={`text-[9px] font-bold uppercase tracking-widest ${m.status === 'Completed' || m.status === 'Operational' || m.status === 'Active' ? 'text-[#00FF94]' : 'text-gray-500'}`}>
+                                                    {m.status}
+                                                </span>
+                                            </div>
+                                            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                                <div className={`h-full transition-all duration-1000 ${m.progress === 100 ? 'bg-[#00FF94]' : 'bg-[#C5A059]'}`} style={{ width: `${m.progress}%` }}></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                             <div className="bg-[#111] border border-white/5 p-8 rounded-xl">
                                 <h3 className="font-bold mb-6 flex items-center gap-2"><Zap size={18} className="text-yellow-400" /> System Health Log</h3>
@@ -387,10 +507,12 @@ Aguardo seu retorno,
                                     {[
                                         { time: '13:58:12', msg: 'MeatEngine Logic Verified: Dallas TX', status: 'OK' },
                                         { time: '13:55:04', msg: 'Automatic Sync: UberEats Integration', status: 'OK' },
-                                        { time: '13:48:33', msg: 'Process Recovery successful: Port 3000', status: 'OK' },
+                                        { time: '13:48:33', msg: 'Process Recovery successful: Port 3002', status: 'OK' },
                                         { time: '13:02:19', msg: 'Global Lead Gen: 3 new prospects found', status: 'INFO' },
+                                        { time: '12:45:01', msg: 'Multi-Tenant Isolation Guard active', status: 'OK' },
+                                        { time: '12:30:44', msg: 'Language Policy update: EN forced', status: 'OK' },
                                     ].map((log, i) => (
-                                        <div key={i} className="flex justify-between items-center py-2 border-b border-white/5">
+                                        <div key={i} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
                                             <div className="flex gap-4">
                                                 <span className="text-gray-600">{log.time}</span>
                                                 <span className="text-gray-400">{log.msg}</span>
@@ -434,7 +556,7 @@ Aguardo seu retorno,
                             <div className="mb-4 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex gap-3 items-start">
                                 <Zap className="text-blue-400 shrink-0 mt-0.5" size={16} />
                                 <p className="text-blue-200 text-xs leading-relaxed">
-                                    <span className="font-bold">AI INSIGHT:</span> O email foi gerado focando na dor identificada: <span className="text-white font-bold">"{selectedLead?.justification}"</span>. A taxa estimada de resposta para este template é de 24%.
+                                    <span className="font-bold">AI INSIGHT:</span> The email was generated focusing on the identified pain point: <span className="text-white font-bold">"{selectedLead?.justification}"</span>. The estimated response rate for this template is 24%.
                                 </p>
                             </div>
 
@@ -450,13 +572,13 @@ Aguardo seu retorno,
                                 onClick={handleCopyEmail}
                                 className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 border border-white/10"
                             >
-                                <Copy size={16} /> Copiar Texto
+                                <Copy size={16} /> Copy Text
                             </button>
                             <button
                                 onClick={handleSendSimulation}
                                 className="px-6 py-3 bg-[#C5A059] hover:bg-[#D5B069] text-black text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(197,160,89,0.2)]"
                             >
-                                <Send size={16} /> Revisar e Enviar
+                                <Send size={16} /> Review and Send
                             </button>
                         </div>
                     </div>

@@ -59,7 +59,43 @@ export class AuthController {
                 { expiresIn: '12h' } // Shifts are long
             );
 
-            // 5. Return
+            // 5. Calculate Redirect and Default Company
+            let redirectPath = '/dashboard';
+            let defaultCompanyId = null;
+
+            if (user.role === 'admin') {
+                redirectPath = '/select-company';
+            } else if (user.role === 'director') {
+                // Find companies affiliated with this director
+                const affiliatedCompanies = await prisma.company.findMany({
+                    where: {
+                        OR: [
+                            { owner_id: user.id },
+                            { stores: { some: { id: user.store_id || -1 } } }
+                        ]
+                    },
+                    select: { id: true }
+                });
+
+                if (affiliatedCompanies.length === 1) {
+                    redirectPath = '/executive';
+                    defaultCompanyId = affiliatedCompanies[0].id;
+                } else {
+                    redirectPath = '/select-company';
+                }
+            } else {
+                // Manager/Viewer
+                if (user.store_id) {
+                    const store = await prisma.store.findUnique({
+                        where: { id: user.store_id },
+                        select: { company_id: true }
+                    });
+                    defaultCompanyId = store?.company_id || null;
+                }
+                redirectPath = '/dashboard';
+            }
+
+            // 6. Return
             return res.json({
                 success: true,
                 token,
@@ -69,6 +105,8 @@ export class AuthController {
                     role: user.role,
                     storeId: user.store_id
                 },
+                redirectPath,
+                defaultCompanyId,
                 forcePasswordChange
             });
 

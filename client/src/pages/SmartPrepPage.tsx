@@ -156,9 +156,9 @@ export const SmartPrepPage = () => {
         let localBriefing = prepData.tactical_briefing;
         if (isExclusionActive) {
             if (predictedCostGuest > toleranceThreshold) {
-                localBriefing = `Risco Financeiro Identificado: O ajuste de mix elevou o custo para $${predictedCostGuest.toFixed(2)}. Meta de $${targetCostPerGuest.toFixed(2)} em risco.`;
+                localBriefing = `Financial Risk Identified: The mix adjustment raised the cost to $${predictedCostGuest.toFixed(2)}. Target of $${targetCostPerGuest.toFixed(2)} at risk.`;
             } else {
-                localBriefing = `Ajuste de Mix OK: Custo projetado de $${predictedCostGuest.toFixed(2)} por cliente.`;
+                localBriefing = `Mix Adjustment OK: Projected cost of $${predictedCostGuest.toFixed(2)} per guest.`;
             }
         }
 
@@ -386,7 +386,7 @@ export const SmartPrepPage = () => {
                             <CheckCircle2 className="w-4 h-4" /> {t('plan_locked')}
                         </div>
                     ) : (
-                        (user?.role !== 'director' && !user?.email?.includes('director')) && (
+                        (user?.role !== 'director' && user?.role !== 'admin' && !user?.email?.includes('director') && !user?.email?.includes('admin')) && (
                             <button
                                 onClick={handleLock}
                                 disabled={lockLoading || loading}
@@ -447,7 +447,7 @@ export const SmartPrepPage = () => {
                             ? 'bg-yellow-500/10 border-yellow-500/50'
                             : 'bg-[#00FF94]/10 border-[#00FF94]/50'
                         }`}>
-                        <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">$/GUEST (PREVISTO)</h3>
+                        <h3 className="text-gray-400 text-xs uppercase tracking-widest mb-1">$/GUEST (PROJECTED)</h3>
                         <div className={`text-3xl font-black flex items-center justify-center gap-2 ${(adjustedPrepData?.predicted_cost_guest || 0) > (adjustedPrepData?.target_cost_guest || 9.94) + 0.05
                             ? 'text-red-500'
                             : (adjustedPrepData?.predicted_cost_guest || 0) > (adjustedPrepData?.target_cost_guest || 9.94)
@@ -469,7 +469,7 @@ export const SmartPrepPage = () => {
                     }`}>
                     <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
                     <div>
-                        <h4 className="font-bold uppercase text-xs tracking-widest mb-1">Guia Tático do Gerente (Briefing)</h4>
+                        <h4 className="font-bold uppercase text-xs tracking-widest mb-1">Tactical Manager Briefing</h4>
                         <p className="text-sm leading-relaxed">{adjustedPrepData.tactical_briefing}</p>
                     </div>
                 </div>

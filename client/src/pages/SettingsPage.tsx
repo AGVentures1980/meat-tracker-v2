@@ -11,7 +11,8 @@ export const SettingsPage = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     // Access Control
-    const isDirectorOrAlexandre = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre.garcia@texasdebrazil.com' || user?.email === 'alexandre@alexgarciaventures.co';
+    const isMasterAdmin = user?.email === 'alexandre@alexgarciaventures.co' || user?.role === 'admin';
+    const isDirectorOrAdmin = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co';
 
     const [newStore, setNewStore] = useState({
         name: '',
@@ -180,14 +181,14 @@ export const SettingsPage = () => {
         { id: 'data', label: 'Data & Sync', icon: Database, restricted: true },
         { id: 'locations', label: 'Locations', icon: MapPin, restricted: true },
         { id: 'notifications', label: 'Notifications', icon: Bell, restricted: true },
-    ].filter(tab => !tab.restricted || isDirectorOrAlexandre);
+    ].filter(tab => !tab.restricted || isDirectorOrAdmin);
 
     // Redirect if trying to access restricted tab
     useEffect(() => {
-        if (!isDirectorOrAlexandre && ['general', 'data', 'locations', 'notifications'].includes(activeTab)) {
+        if (!isDirectorOrAdmin && ['general', 'data', 'locations', 'notifications'].includes(activeTab)) {
             setActiveTab('account');
         }
-    }, [activeTab, isDirectorOrAlexandre]);
+    }, [activeTab, isDirectorOrAdmin]);
 
     return (
         <div className="p-6 max-w-6xl mx-auto">
@@ -329,98 +330,90 @@ export const SettingsPage = () => {
                                 <h3 className="text-xl font-bold text-white">Store Locations</h3>
                                 <div className="text-right">
                                     <span className="text-xs text-brand-gold font-mono block">{stores.length} ACTIVE STORES</span>
-                                    <span className="text-xs text-brand-gold font-mono block">{stores.length} ACTIVE STORES</span>
                                 </div>
                             </div>
 
                             {/* Add New Store Form */}
-                            <div className="p-6 bg-[#252525] border border-brand-gold/20 rounded-sm">
-                                <h4 className="text-sm text-white font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    <Plus className="w-4 h-4 text-brand-gold" /> Add New Location
-                                </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Store Name</label>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Miami Downtown"
-                                            value={newStore.name}
-                                            onChange={e => setNewStore({ ...newStore, name: e.target.value })}
-                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
-                                        />
+                            {isMasterAdmin && (
+                                <div className="p-6 bg-[#252525] border border-brand-gold/20 rounded-sm">
+                                    <h4 className="text-sm text-white font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <Plus className="w-4 h-4 text-brand-gold" /> Add New Location
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Store Name</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Miami Downtown"
+                                                value={newStore.name}
+                                                onChange={e => setNewStore({ ...newStore, name: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Target LBS/Guest</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={newStore.target}
+                                                onChange={e => setNewStore({ ...newStore, target: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Lunch Price ($)</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="34.00"
+                                                value={newStore.lunchPrice}
+                                                onChange={e => setNewStore({ ...newStore, lunchPrice: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Dinner Price ($)</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="54.00"
+                                                value={newStore.dinnerPrice}
+                                                onChange={e => setNewStore({ ...newStore, dinnerPrice: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Manager Email</label>
+                                            <input
+                                                type="email"
+                                                placeholder="manager@company.com"
+                                                value={newStore.managerEmail}
+                                                onChange={e => setNewStore({ ...newStore, managerEmail: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Manager Password</label>
+                                            <input
+                                                type="password"
+                                                placeholder="Initial Password"
+                                                value={newStore.managerPass}
+                                                onChange={e => setNewStore({ ...newStore, managerPass: e.target.value })}
+                                                className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
+                                            />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Target LBS/Guest</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={newStore.target}
-                                            onChange={e => setNewStore({ ...newStore, target: e.target.value })}
-                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Lunch Price ($)</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="34.00"
-                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Lunch Price ($)</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="34.00"
-                                            value={newStore.lunchPrice}
-                                            onChange={e => setNewStore({ ...newStore, lunchPrice: e.target.value })}
-                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Dinner Price ($)</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="54.00"
-                                            value={newStore.dinnerPrice}
-                                            onChange={e => setNewStore({ ...newStore, dinnerPrice: e.target.value })}
-                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Manager Email</label>
-                                        <input
-                                            type="email"
-                                            placeholder="manager@texasdebrazil.com"
-                                            value={newStore.managerEmail}
-                                            onChange={e => setNewStore({ ...newStore, managerEmail: e.target.value })}
-                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-2 font-mono">Manager Password</label>
-                                        <input
-                                            type="password"
-                                            placeholder="Initial Password"
-                                            value={newStore.managerPass}
-                                            onChange={e => setNewStore({ ...newStore, managerPass: e.target.value })}
-                                            className="w-full bg-[#121212] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none"
-                                        />
+                                    <div className="mt-4 flex justify-end">
+                                        <button
+                                            onClick={handleCreateStore}
+                                            disabled={isLoading}
+                                            className="bg-brand-gold hover:bg-yellow-500 text-black px-6 py-2 rounded-sm font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
+                                        >
+                                            {isLoading ? 'Creating...' : 'Create Store'}
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="mt-4 flex justify-end">
-                                    <button
-                                        onClick={handleCreateStore}
-                                        disabled={isLoading}
-                                        className="bg-brand-gold hover:bg-yellow-500 text-black px-6 py-2 rounded-sm font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
-                                    >
-                                        {isLoading ? 'Creating...' : 'Create Store'}
-                                    </button>
-                                </div>
-                            </div>
+                            )}
 
                             {/* Stores List */}
                             <div className="space-y-2">
@@ -623,6 +616,6 @@ export const SettingsPage = () => {
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

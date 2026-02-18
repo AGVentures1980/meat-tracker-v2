@@ -53,7 +53,47 @@ export class SettingsController {
 
     static async getStores(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
+            let whereClause: any = {};
+
+            // Multi-tenancy: Filter by Company
+            if (user.role === 'admin' || user.role === 'director' || user.email?.includes('admin')) {
+                // Find companies affiliated with this user
+                const affiliatedCompanies = await prisma.company.findMany({
+                    where: {
+                        OR: [
+                            { owner_id: user.id },
+                            { stores: { some: { id: user.storeId || -1 } } }
+                        ]
+                    },
+                    select: { id: true }
+                });
+
+                if (affiliatedCompanies.length > 0) {
+                    whereClause.company_id = { in: affiliatedCompanies.map(c => c.id) };
+                } else if (!user.email?.includes('admin')) {
+                    // If not the master admin and no affiliation, show nothing
+                    return res.json([]);
+                }
+            } else {
+                if (user.storeId) {
+                    const userStore = await prisma.store.findUnique({
+                        where: { id: user.storeId },
+                        select: { company_id: true }
+                    });
+
+                    if (userStore) {
+                        whereClause.company_id = userStore.company_id;
+                    } else {
+                        return res.json([]); // Orphaned user
+                    }
+                } else {
+                    return res.json([]);
+                }
+            }
+
             const stores = await prisma.store.findMany({
+                where: whereClause,
                 orderBy: { store_name: 'asc' },
                 include: {
                     users: {

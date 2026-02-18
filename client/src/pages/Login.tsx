@@ -29,28 +29,11 @@ export const Login = () => {
         setLoading(true);
 
         try {
-            const success = await login(email, password);
-            if (success) {
-                // Check role via localStorage or another call, but simple way is to check the user object if available.
-                // Since login() updates state asynchronously, we might need to rely on the logic inside useAuth or just manual check here?
-                // Actually Login component doesn't have the user object yet in this scope...
-                // But wait, the `login` function returns success boolean.
-                // Let's modify useAuth to return the user object or check it via context after a small delay?
-                // Better: Decode the token or just check the user state in useEffect.
-
-                // Simpler: Just redirect to dashboard, and let Dashboard redirect? 
-                // No, let's look at how we can get the role.
-                // The useAuth 'login' function does NOT return the user.
-                // Let's rely on reading from localStorage which is set in login().
-                const stored = localStorage.getItem('brasameat_user');
-                if (stored) {
-                    const u = JSON.parse(stored);
-                    if (u.role === 'director') {
-                        navigate('/executive');
-                        return;
-                    }
-                }
-                navigate('/dashboard');
+            const loginRes = await login(email, password);
+            if (loginRes?.success) {
+                // If force password change is needed, handle it (assuming AuthContext handles the state but we can also use isResetOpen if we had it here)
+                // For now, let's stick to the server redirect.
+                navigate(loginRes.redirectPath || '/dashboard');
             } else {
                 setError("Invalid email or password");
             }
@@ -120,7 +103,7 @@ export const Login = () => {
                                 type="email"
                                 required
                                 className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-lg leading-5 bg-black/40 text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold sm:text-sm transition-all shadow-inner"
-                                placeholder="store-id@texasdebrazil.com"
+                                placeholder="acesso@organizacao.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />

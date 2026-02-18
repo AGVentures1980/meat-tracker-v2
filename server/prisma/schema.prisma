@@ -9,43 +9,43 @@ datasource db {
 }
 
 model Company {
-  id         String   @id @default(uuid())
+  id         String       @id @default(uuid())
   name       String
-  plan       String   @default("enterprise")
+  plan       String       @default("enterprise")
+  created_at DateTime     @default(now())
   owner_id   String?
-  created_at DateTime @default(now())
   stores     Store[]
   invoices   SysInvoice[]
 }
 
 model Store {
-  id                Int               @id @default(autoincrement())
-  company_id        String
-  store_name        String
-  location          String
-  created_at        DateTime          @default(now())
-  target_cost_guest Float             @default(9.94)
-  target_lbs_guest  Float             @default(1.76)
-  inventory_records InventoryRecord[]
-  meat_usage        MeatUsage[]
-  orders            Order[]
-  prep_logs         PrepLog[]
-  purchase_records  PurchaseRecord[]
-  reports           Report[]
-  company           Company           @relation(fields: [company_id], references: [id])
-  meat_targets      StoreMeatTarget[]
-  uploads           Upload[]
-  users             User[]
-  waste_compliance  WasteCompliance[]
-  delivery_sales    DeliverySale[]
-  invoices          InvoiceRecord[]
-  waste_logs        WasteLog[]
-  product_aliases   ProductAlias[]
-  lunch_price       Float             @default(29.90)
-  dinner_price      Float             @default(58.90)
-  is_lunch_enabled  Boolean           @default(false)
-  exclude_lamb_from_rodizio_lbs Boolean @default(false)
-  sales_forecasts   SalesForecast[]
+  id                            Int               @id @default(autoincrement())
+  company_id                    String
+  store_name                    String
+  location                      String
+  created_at                    DateTime          @default(now())
+  target_cost_guest             Float             @default(9.94)
+  target_lbs_guest              Float             @default(1.76)
+  dinner_price                  Float             @default(58.90)
+  exclude_lamb_from_rodizio_lbs Boolean           @default(false)
+  is_lunch_enabled              Boolean           @default(false)
+  lunch_price                   Float             @default(29.90)
+  delivery_sales                DeliverySale[]
+  inventory_records             InventoryRecord[]
+  invoices                      InvoiceRecord[]
+  meat_usage                    MeatUsage[]
+  orders                        Order[]
+  prep_logs                     PrepLog[]
+  product_aliases               ProductAlias[]
+  purchase_records              PurchaseRecord[]
+  reports                       Report[]
+  sales_forecasts               SalesForecast[]
+  company                       Company           @relation(fields: [company_id], references: [id])
+  meat_targets                  StoreMeatTarget[]
+  uploads                       Upload[]
+  users                         User[]
+  waste_compliance              WasteCompliance[]
+  waste_logs                    WasteLog[]
 
   @@unique([company_id, store_name])
 }
@@ -119,17 +119,17 @@ model Upload {
 }
 
 model Report {
-  id              String   @id @default(uuid())
-  store_id        Int
-  month           String
-  total_lbs       Float
-  extra_customers Int      @default(0)
-  generated_at    DateTime @default(now())
-  delivery_guests Int      @default(0)
-  dine_in_guests  Int      @default(0)
-  lunch_guests_micros  Int   @default(0)
-  dinner_guests_micros Int   @default(0)
-  store           Store    @relation(fields: [store_id], references: [id])
+  id                   String   @id @default(uuid())
+  store_id             Int
+  month                String
+  total_lbs            Float
+  extra_customers      Int      @default(0)
+  generated_at         DateTime @default(now())
+  delivery_guests      Int      @default(0)
+  dine_in_guests       Int      @default(0)
+  dinner_guests_micros Int      @default(0)
+  lunch_guests_micros  Int      @default(0)
+  store                Store    @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, month])
 }
@@ -166,7 +166,7 @@ model InvoiceRecord {
   quantity       Float
   price_per_lb   Float
   cost_total     Float
-  source         String   @default("Manual") // Manual or OCR
+  source         String   @default("Manual")
   store          Store    @relation(fields: [store_id], references: [id])
 
   @@index([store_id, date])
@@ -232,18 +232,83 @@ model PrepLog {
 }
 
 model DeliverySale {
-  id                String   @id @default(uuid())
+  id                String      @id @default(uuid())
   store_id          Int
-  date              DateTime @default(now())
+  date              DateTime    @default(now())
   source            OrderSource
   order_external_id String?
   total_lbs         Float
   guests            Int
   protein_breakdown Json
-  created_at        DateTime @default(now())
-  store             Store    @relation(fields: [store_id], references: [id])
+  created_at        DateTime    @default(now())
+  store             Store       @relation(fields: [store_id], references: [id])
 
   @@index([store_id, date])
+}
+
+model ProductAlias {
+  id         String   @id @default(uuid())
+  store_id   Int
+  alias      String
+  protein    String
+  confidence Float    @default(1.0)
+  created_at DateTime @default(now())
+  store      Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, alias])
+}
+
+model SalesForecast {
+  id              String    @id @default(uuid())
+  store_id        Int
+  week_start      DateTime  @db.Date
+  forecast_lunch  Int       @default(0)
+  forecast_dinner Int       @default(0)
+  is_locked       Boolean   @default(false)
+  locked_at       DateTime?
+  locked_by       String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  store           Store     @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, week_start])
+}
+
+model Prospect {
+  id               String   @id @default(uuid())
+  company_name     String
+  industry         String
+  size             String
+  potential_fit    Float
+  research_summary String
+  justification    String
+  contact_info     Json?
+  status           String   @default("lead")
+  agent_id         String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+}
+
+model SysInvoice {
+  id           String   @id @default(uuid())
+  company_id   String
+  amount       Float
+  billing_date DateTime @default(now())
+  due_date     DateTime
+  status       String   @default("unpaid")
+  description  String?
+  usage_stats  Json?
+  created_at   DateTime @default(now())
+  company      Company  @relation(fields: [company_id], references: [id])
+}
+
+model SystemMetric {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Float
+  category    String
+  description String?
+  timestamp   DateTime @default(now())
 }
 
 enum Role {
@@ -264,74 +329,4 @@ enum OrderSource {
 enum FileType {
   CSV
   Image
-}
-
-model ProductAlias {
-  id         String   @id @default(uuid())
-  store_id   Int
-  alias      String
-  protein    String
-  confidence Float    @default(1.0)
-  created_at DateTime @default(now())
-  store      Store    @relation(fields: [store_id], references: [id])
-
-  @@unique([store_id, alias])
-}
-
-
-model SalesForecast {
-  id              String   @id @default(uuid())
-  store_id        Int
-  week_start      DateTime @db.Date // The Monday of the forecast week
-  forecast_lunch  Int      @default(0)
-  forecast_dinner Int      @default(0)
-  
-  is_locked       Boolean  @default(false)
-  locked_at       DateTime?
-  locked_by       String?  // User ID or "System"
-  
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  store           Store    @relation(fields: [store_id], references: [id])
-
-  @@unique([store_id, week_start])
-}
-
-model Prospect {
-  id              String   @id @default(uuid())
-  company_name    String
-  industry        String
-  size            String   // Small, Medium, Large
-  potential_fit   Float    // Score 0-1
-  research_summary String   @db.Text
-  justification   String   @db.Text
-  contact_info    Json?
-  status          String   @default("lead") // lead, contacted, meeting_set, closed
-  agent_id        String?  // ID of the AI agent that found it
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-}
-
-model SysInvoice {
-  id            String   @id @default(uuid())
-  company_id    String
-  amount        Float
-  billing_date  DateTime @default(now())
-  due_date      DateTime
-  status        String   @default("unpaid") // unpaid, paid, overdue
-  description   String?
-  usage_stats   Json?    // Detailed usage that led to this amount
-  created_at    DateTime @default(now())
-  
-  company       Company  @relation(fields: [company_id], references: [id])
-}
-
-model SystemMetric {
-  id          String   @id @default(uuid())
-  key         String   @unique
-  value       Float
-  category    String   // development, performance, growth
-  description String?
-  timestamp   DateTime @default(now())
 }

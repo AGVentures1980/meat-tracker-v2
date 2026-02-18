@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface AuthContextType {
     user: any | null;
     selectedCompany: string | null;
-    login: (email: string, pass: string) => Promise<boolean>;
+    login: (email: string, pass: string) => Promise<any | null>;
     logout: () => void;
     setCompany: (id: string) => void;
     isLoading: boolean;
@@ -48,13 +48,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const userData = { ...data.user, token: data.token, forceChange: data.forcePasswordChange };
                 setUser(userData);
                 localStorage.setItem('brasameat_user', JSON.stringify(userData));
-                return true;
+
+                if (data.defaultCompanyId) {
+                    setCompany(data.defaultCompanyId);
+                }
+
+                return data; // Return full data including redirectPath
             } else {
-                return false;
+                return null;
             }
         } catch (err) {
             console.error('Login Failed', err);
-            return false;
+            return null;
         }
     };
 
