@@ -13,6 +13,11 @@ export const GovernanceGuard = ({ children }: GovernanceGuardProps) => {
     const [loading, setLoading] = useState(true);
     const [isCertified, setIsCertified] = useState(false);
 
+    // Admin/Director Bypass
+    if (user?.role === 'admin' || user?.role === 'director') {
+        return <>{children}</>;
+    }
+
     useEffect(() => {
         const checkStatus = async () => {
             if (!user?.token) return;
