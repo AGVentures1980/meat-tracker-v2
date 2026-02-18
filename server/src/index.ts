@@ -50,6 +50,7 @@ import forecastRoutes from './routes/forecast.routes';
 import ownerRoutes from './routes/owner.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
+import { OneDriveWatcher } from './services/OneDriveWatcher';
 
 import path from 'path';
 
@@ -176,12 +177,17 @@ async function ensureDefaultSettings() {
 
 // Start Server after DB Check
 ensureDirectorUser().then(() => ensureDefaultSettings()).then(() => {
+    // ... (existing imports)
+
     app.listen(PORT, () => {
         console.log(`🚀 BRASA INTEL v4.2.0-DASHBOARD-EXEC running on http://localhost:${PORT}`);
         console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
 
         // 🟢 24/7 AI AGENT BACKGROUND LOOP
         console.log(`🤖 AI Prospecting Agent: ONLINE (24/7 Watch Mode)`);
+
+        // 🔵 OFFICE 365 CONNECT (WATCHER)
+        OneDriveWatcher.start();
 
         // Run immediately on startup
         ProspectingAgent.discoverNewProspects();

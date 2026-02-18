@@ -64,6 +64,7 @@ export const ProjectionsDashboard = () => {
     const [publishError, setPublishError] = useState('');
     const [isPublished, setIsPublished] = useState(false);
     const [showProposal, setShowProposal] = useState(false);
+    const [modalMode, setModalMode] = useState<'PUBLISH' | 'RESET'>('PUBLISH');
 
     // Initialize Data
     useEffect(() => {
@@ -185,7 +186,7 @@ export const ProjectionsDashboard = () => {
         setStoreData(updated);
     };
 
-    const handlePublish = async () => {
+    const handleAuthAction = async () => {
         // Validation: Allow common variants and the user's login password for convenience
         const cleanPass = publishPassword.trim().toLowerCase();
 
@@ -196,6 +197,15 @@ export const ProjectionsDashboard = () => {
         // 4. '1234' (Simple fallback for demo)
 
         if (cleanPass === 'admin' || cleanPass === 'admin_master_2026' || cleanPass === 'ag2113@9' || cleanPass === '1234') {
+
+            if (modalMode === 'RESET') {
+                setIsPasswordModalOpen(false);
+                setIsPublished(false);
+                setPublishError('');
+                alert("Targets Unlocked. You may now edit projections.");
+                return;
+            }
+
             try {
                 // Persist Targets to Backend
                 const targetsPayload = storeData.map(s => ({
@@ -233,7 +243,7 @@ export const ProjectionsDashboard = () => {
     // Handle Enter Key
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
-            handlePublish();
+            handleAuthAction();
         }
     };
 
@@ -268,15 +278,17 @@ export const ProjectionsDashboard = () => {
 
                 <div className="flex gap-4">
                     <button
-                        onClick={() => setIsPasswordModalOpen(true)}
-                        disabled={isPublished}
+                        onClick={() => {
+                            setModalMode(isPublished ? 'RESET' : 'PUBLISH');
+                            setIsPasswordModalOpen(true);
+                        }}
                         className={`font-bold py-2 px-6 rounded-sm flex items-center transition-all uppercase text-sm tracking-wide font-mono ${isPublished
-                            ? 'bg-[#00FF94]/10 text-[#00FF94] border border-[#00FF94]/20 cursor-not-allowed'
+                            ? 'bg-[#00FF94]/10 text-[#00FF94] border border-[#00FF94]/20 hover:bg-[#FF2A6D]/10 hover:text-[#FF2A6D] hover:border-[#FF2A6D]'
                             : 'bg-brand-gold text-black hover:bg-yellow-500 shadow-[0_0_15px_rgba(197,160,89,0.3)]'
                             }`}
                     >
                         {isPublished ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
-                        {isPublished ? t('proj_targets_locked') : t('proj_publish_targets')}
+                        {isPublished ? (modalMode === 'RESET' ? "UNLOCK TARGETS?" : "LOCKED (RESET)") : t('proj_publish_targets')}
                     </button>
                     <button
                         onClick={() => setShowProposal(true)}
@@ -573,10 +585,10 @@ export const ProjectionsDashboard = () => {
                                 {t('exec_cancel')}
                             </button>
                             <button
-                                onClick={handlePublish}
-                                className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 font-mono text-sm shadow-[0_0_15px_rgba(220,38,38,0.4)]"
+                                onClick={handleAuthAction}
+                                className={`flex-1 font-bold py-3 font-mono text-sm shadow-[0_0_15px_rgba(220,38,38,0.4)] text-white ${modalMode === 'RESET' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-600 hover:bg-red-500'}`}
                             >
-                                {t('exec_confirm_publish')}
+                                {modalMode === 'RESET' ? 'CONFIRM RESET' : t('exec_confirm_publish')}
                             </button>
                         </div>
                     </div>

@@ -11,5 +11,6 @@ const router = Router();
 router.post('/sync-olo', requireAuth, DeliveryController.syncOlo);
 router.post('/process-ticket', requireAuth, upload.single('ticket'), DeliveryController.processTicket);
 router.get('/history', requireAuth, DeliveryController.getHistory);
+router.get('/network-status', requireAuth, DeliveryController.getNetworkStatus);
 
 export default router;

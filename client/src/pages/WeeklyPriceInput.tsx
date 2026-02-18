@@ -344,38 +344,40 @@ export const WeeklyPriceInput = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                {/* OCR Invoice Card */}
-                <div className="lg:col-span-1 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 relative group overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <FileText className="w-24 h-24" />
-                    </div>
-                    <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                        <Camera className="w-5 h-5 text-brand-gold" />
-                        {t('price_ocr_title')}
-                    </h3>
-                    <p className="text-gray-500 text-sm mb-6">
-                        {t('price_ocr_desc')}
-                    </p>
+                {/* OCR Invoice Card - HIDDEN FOR DIRECTORS/ADMINS */}
+                {!['admin', 'director'].includes(user?.role || '') && (
+                    <div className="lg:col-span-1 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 relative group overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <FileText className="w-24 h-24" />
+                        </div>
+                        <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                            <Camera className="w-5 h-5 text-brand-gold" />
+                            {t('price_ocr_title')}
+                        </h3>
+                        <p className="text-gray-500 text-sm mb-6">
+                            {t('price_ocr_desc')}
+                        </p>
 
-                    <label className="w-full flex flex-col items-center justify-center h-32 border-2 border-dashed border-[#333] hover:border-brand-gold/50 transition-all rounded-sm bg-black/40 cursor-pointer group/upload">
-                        <input type="file" multiple className="hidden" onChange={handleInvoiceOCR} disabled={isProcessingOCR} />
-                        {isProcessingOCR ? (
-                            <Loader2 className="w-8 h-8 text-brand-gold animate-spin" />
-                        ) : (
-                            <>
-                                <Plus className="w-8 h-8 text-gray-600 group-hover/upload:text-brand-gold transition-all" />
-                                <span className="text-[10px] font-mono text-gray-500 mt-2 uppercase tracking-widest">{t('price_scan_invoice')}</span>
-                            </>
-                        )}
-                    </label>
+                        <label className="w-full flex flex-col items-center justify-center h-32 border-2 border-dashed border-[#333] hover:border-brand-gold/50 transition-all rounded-sm bg-black/40 cursor-pointer group/upload">
+                            <input type="file" multiple className="hidden" onChange={handleInvoiceOCR} disabled={isProcessingOCR} />
+                            {isProcessingOCR ? (
+                                <Loader2 className="w-8 h-8 text-brand-gold animate-spin" />
+                            ) : (
+                                <>
+                                    <Plus className="w-8 h-8 text-gray-600 group-hover/upload:text-brand-gold transition-all" />
+                                    <span className="text-[10px] font-mono text-gray-500 mt-2 uppercase tracking-widest">{t('price_scan_invoice')}</span>
+                                </>
+                            )}
+                        </label>
 
-                    <div className="mt-6 flex flex-col gap-2">
-                        <div className="flex justify-between text-[10px] font-mono text-gray-600">
-                            <span>{t('price_last_sync')}:</span>
-                            <span>{new Date().toLocaleTimeString()}</span>
+                        <div className="mt-6 flex flex-col gap-2">
+                            <div className="flex justify-between text-[10px] font-mono text-gray-600">
+                                <span>{t('price_last_sync')}:</span>
+                                <span>{new Date().toLocaleTimeString()}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Market Intelligence Table */}
                 <div className="lg:col-span-2 bg-[#1a1a1a] border border-[#333] rounded-sm overflow-hidden flex flex-col shadow-2xl">

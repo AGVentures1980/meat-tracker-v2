@@ -7,11 +7,14 @@ import { differenceInDays } from 'date-fns';
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'brasa-secret-key-change-me';
 
+import { SentinelService } from '../services/SentinelService';
+
 export class AuthController {
 
     static async login(req: Request, res: Response) {
         try {
             const { email, password } = req.body;
+            const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
 
             // 1. Find User
             const user = await prisma.user.findUnique({
@@ -19,6 +22,7 @@ export class AuthController {
             });
 
             if (!user) {
+                await SentinelService.trackAttempt(clientIp);
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
 
@@ -35,8 +39,12 @@ export class AuthController {
             // 2. Verify Password
             const valid = await bcrypt.compare(password, user.password_hash);
             if (!valid) {
+                await SentinelService.trackAttempt(clientIp);
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
+
+            // Success - Reset Sentinel
+            SentinelService.reset(clientIp);
 
             // 3. Security Checks
             let forcePasswordChange = user.force_change;

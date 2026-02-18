@@ -201,4 +201,25 @@ export class DeliveryController {
             return res.status(500).json({ success: false, error: 'Failed to fetch history' });
         }
     }
+
+    /**
+     * GET /api/v1/delivery/network-status
+     */
+    static async getNetworkStatus(req: Request, res: Response) {
+        // Mocking Network Status for 10 key stores
+        const stores = [
+            { id: 1, name: "Dallas (Main)", status: "online", lastSync: "2 mins ago", totalLbs: 1240.5, deliveryCount: 45 },
+            { id: 2, name: "Fort Worth", status: "online", lastSync: "5 mins ago", totalLbs: 890.2, deliveryCount: 32 },
+            { id: 3, name: "Addison", status: "online", lastSync: "12 mins ago", totalLbs: 650.0, deliveryCount: 28 },
+            { id: 4, name: "Austin", status: "offline", lastSync: "4 hours ago", totalLbs: 0, deliveryCount: 0 },
+            { id: 5, name: "Houston", status: "online", lastSync: "1 min ago", totalLbs: 1540.8, deliveryCount: 62 },
+            { id: 6, name: "San Antonio", status: "online", lastSync: "3 mins ago", totalLbs: 920.4, deliveryCount: 38 },
+            { id: 7, name: "Denver", status: "online", lastSync: "8 mins ago", totalLbs: 780.1, deliveryCount: 30 },
+            { id: 8, name: "Miami", status: "offline", lastSync: "2 days ago", totalLbs: 0, deliveryCount: 0 },
+            { id: 9, name: "Chicago", status: "online", lastSync: "10 mins ago", totalLbs: 1100.3, deliveryCount: 42 },
+            { id: 10, name: "Las Vegas", status: "online", lastSync: "15 mins ago", totalLbs: 2100.9, deliveryCount: 85 },
+        ];
+
+        return res.json({ success: true, stores });
+    }
 }
