@@ -239,7 +239,7 @@ export class DeliveryController {
                     salesValue: lastSale?.amount || 0,
                     salesTarget: store.olo_sales_target || 10000
                 };
-            }).sort((a, b) => b.deliveryCount - a.deliveryCount); // Sort by delivery count for parity
+            }).slice(0, 57).sort((a, b) => b.deliveryCount - a.deliveryCount); // Sort by delivery count and limit to 57 for parity
 
             return res.json({ success: true, stores: networkStatus });
         } catch (error) {

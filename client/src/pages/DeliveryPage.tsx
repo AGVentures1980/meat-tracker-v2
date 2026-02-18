@@ -185,6 +185,10 @@ export const DeliveryPage = () => {
                                                 <span className="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">Volume:</span>
                                                 <span className="text-sm font-bold text-gray-300 font-mono">{store.totalLbs.toFixed(0)} <span className="text-[10px] text-gray-500">lbs</span></span>
                                             </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">Sales Value:</span>
+                                                <span className="text-sm font-bold text-green-500 font-mono">${store.salesValue.toLocaleString()}</span>
+                                            </div>
                                             <div className="flex justify-between items-center pt-2">
                                                 <span className="text-[9px] text-gray-500 uppercase font-bold tracking-tighter">Last Sync:</span>
                                                 <span className="text-[9px] text-gray-400 font-mono">{store.lastSync}</span>
