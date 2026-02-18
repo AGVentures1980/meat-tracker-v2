@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutGrid, TrendingUp, DownloadCloud, Brain, AlertTriangle, ShoppingBag } from 'lucide-react';
+import { LayoutGrid, TrendingUp, DownloadCloud, Brain, AlertTriangle, ShoppingBag, Zap, Target } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { NetworkReportCard } from '../components/NetworkReportCard';
 import { WeeklyInputForm } from '../components/WeeklyInputForm';
@@ -33,6 +33,7 @@ export const Dashboard = () => {
     const navigate = useNavigate();
     const { storeId } = useParams();
     const [performanceData, setPerformanceData] = useState<StorePerformance[]>([]);
+    const [summary, setSummary] = useState<any>(null);
     const [anomalies, setAnomalies] = useState<any[]>([]);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -67,6 +68,7 @@ export const Dashboard = () => {
                 if (perfRes.ok) {
                     const data = await perfRes.json();
                     setPerformanceData(data.performance || []);
+                    setSummary(data.summary || null);
                 }
                 if (anomalyRes.ok) {
                     const data = await anomalyRes.json();
@@ -165,9 +167,38 @@ export const Dashboard = () => {
 
                 {/* High Density Intelligence Hub */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8 animate-in slide-in-from-bottom-4">
-                    {/* Column 1: Network Intel */}
+                    {/* Column 1: Network Intel / Pareto Impact */}
                     <div className="lg:col-span-1">
-                        <NetworkReportCard />
+                        {summary?.villain_impact > 0 ? (
+                            <div className="bg-[#1a1a1a] border border-[#333] border-l-4 border-l-[#C5A059] p-5 rounded-sm shadow-xl relative overflow-hidden h-full">
+                                <div className="absolute top-0 right-0 p-4 opacity-5">
+                                    <Target className="w-16 h-16" />
+                                </div>
+                                <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                                    <Zap className="text-[#C5A059] w-4 h-4" />
+                                    Pareto Villain Impact
+                                </h3>
+                                <div className="mt-2">
+                                    <span className="text-3xl font-black text-[#FF2A6D] tracking-tighter">
+                                        ${summary.villain_impact.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                    </span>
+                                    <p className="text-[9px] text-gray-500 uppercase font-mono mt-1 leading-tight">
+                                        Opportunity leakage within <span className="text-white">Class A Proteins</span>. Focus on Picanha/Ribs waste.
+                                    </p>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-white/5">
+                                    <div className="flex justify-between items-center text-[10px] text-gray-500 font-mono uppercase">
+                                        <span>Governance Score</span>
+                                        <span className="text-[#00FF94]">84%</span>
+                                    </div>
+                                    <div className="w-full bg-[#333] h-1 mt-1">
+                                        <div className="bg-[#00FF94] h-full" style={{ width: '84%' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <NetworkReportCard />
+                        )}
                     </div>
 
                     {/* Column 2: Anomalies Card */}

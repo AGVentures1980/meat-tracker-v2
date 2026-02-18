@@ -24,6 +24,7 @@ router.post('/settings', requireAuth, SettingsController.updateSettings);
 router.get('/settings/stores', requireAuth, SettingsController.getStores);
 router.post('/settings/stores', requireAuth, SettingsController.createStore);
 router.put('/settings/stores/:id', requireAuth, SettingsController.updateStore);
+router.post('/settings/no-delivery', requireAuth, SettingsController.setNoDeliveryFlag);
 
 // Smart Prep (Kitchen Intelligence)
 import { SmartPrepController } from '../controllers/SmartPrepController';

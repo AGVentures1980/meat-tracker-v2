@@ -3,10 +3,8 @@ import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     TrendingUp,
-    Settings,
     LogOut,
     Menu,
-    ChefHat,
     StickyNote,
     ArrowUpRight,
     AlertTriangle,
@@ -16,8 +14,8 @@ import {
     Trash,
     Truck,
     Zap,
-    Calendar,
-    Building2
+    Building2,
+    PlayCircle
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -38,15 +36,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const navigate = useNavigate();
 
     const navItems = [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-        { icon: TrendingUp, label: 'Projections', path: '/projections' },
-        { icon: Calendar, label: 'Forecast', path: '/forecast' },
-        { icon: StickyNote, label: 'Reports', path: '/reports' },
-        { icon: ArrowUpRight, label: 'Meat Prices', path: '/prices' },
-        { id: 'smart-prep', label: 'Smart Prep', icon: ChefHat, path: '/smart-prep' },
-        { id: 'delivery', label: 'Delivery (OLO)', icon: Truck, path: '/delivery' },
-        { id: 'waste', label: 'Waste Log', icon: Trash, path: '/waste' },
-        { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' }
+        {
+            section: 'GATE (Accountability)', items: [
+                { icon: ArrowUpRight, label: 'Meat Prices / Invoices', path: '/prices' },
+            ]
+        },
+        {
+            section: 'RUN (Shift Command)', items: [
+                { icon: PlayCircle, label: 'Shift Command Center', path: '/command-center' },
+                { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
+            ]
+        },
+        {
+            section: 'VIEW (Performance)', items: [
+                { icon: LayoutDashboard, label: 'Performance Hub', path: '/dashboard' },
+                { icon: TrendingUp, label: 'Projections', path: '/projections' },
+                { icon: StickyNote, label: 'Executive Reports', path: '/reports' },
+            ]
+        }
     ];
 
     const [alerts, setAlerts] = useState([
@@ -123,23 +130,28 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     </button>
                 </div>
 
-                <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-                    {navItems.map((item) => {
-                        const active = location.pathname.includes(item.path.split('/')[1]);
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
-                                    ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
-                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                                    } `}
-                            >
-                                <item.icon className="w-5 h-5 min-w-[20px]" />
-                                <span className="text-sm font-medium tracking-wide">{item.label}</span>
-                            </Link>
-                        );
-                    })}
+                <nav className="flex-1 p-2 space-y-4 overflow-y-auto">
+                    {navItems.map((section) => (
+                        <div key={section.section} className="space-y-1">
+                            <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
+                            {section.items.map((item) => {
+                                const active = location.pathname === item.path;
+                                return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
+                                            ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
+                                            : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                            } `}
+                                    >
+                                        <item.icon className="w-5 h-5 min-w-[20px]" />
+                                        <span className="text-sm font-medium tracking-wide">{item.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    ))}
 
 
                     {/* Executive View (Admin/Director Only) */}

@@ -4,6 +4,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const VILLAINS = ['Picanha', 'Picanha with Garlic', 'Lamb Picanha', 'Beef Ribs', 'Lamb Chops', 'Filet Mignon', 'Filet Mignon with Bacon', 'Fraldinha', 'Flap Steak'];
+
 export class WasteController {
 
     static async getStatus(req: Request, res: Response) {
@@ -12,22 +14,22 @@ export class WasteController {
             const userStoreId = req.user?.storeId || req.user?.store_id || 1;
             let storeId = userStoreId;
 
-            // @ts-ignore
-            console.log(`[WasteStatus] Fetching for store: ${storeId} (User role: ${(req as any).user?.role})`);
+            const today = new Date();
+            const centralNow = WasteController.getCentralDateTime(today);
+            const dateStr = centralNow.toISOString().split('T')[0];
 
-            // Allow Admin/Director override
-            // @ts-ignore
-            if (((req as any).user?.role === 'admin' || (req as any).user?.role === 'director') && req.query.store_id) {
-                storeId = parseInt(req.query.store_id as string);
-                console.log(`[WasteStatus] Admin override to store: ${storeId}`);
+            // --- ACCOUNTABILITY GATE (OZ PRINCIPLE) ---
+            const hasAccountability = await WasteController.checkAccountabilityGate(storeId, dateStr);
+
+            if (!hasAccountability) {
+                return res.json({
+                    gate_locked: true,
+                    message: "Accountability Gate Locked: Invoice input or 'No Delivery Today' flag required for today's shift.",
+                    required_action: "/prices"
+                });
             }
 
-            const today = new Date();
-            const centralDate = WasteController.getCentralDateTime(today);
-            const dateStr = centralDate.toISOString().split('T')[0];
-            console.log(`[WasteStatus] Business Date: ${dateStr}`);
-
-            const startOfWeek = new Date(centralDate);
+            const startOfWeek = new Date(centralNow);
             const day = startOfWeek.getDay() || 7; // Get current day number, converting Sun(0) to 7 if needed
             if (day !== 1) startOfWeek.setDate(startOfWeek.getDate() - (day - 1)); // Set to Monday
             startOfWeek.setHours(0, 0, 0, 0);
@@ -95,7 +97,6 @@ export class WasteController {
             let canInputDinner = !compliance.is_locked;
             let statusMessage = "Open for Entry";
 
-            const centralNow = WasteController.getCentralDateTime(today);
             const currentWindow = WasteController.getShiftWindow(centralNow);
 
             if (compliance.is_locked) {
@@ -231,15 +232,21 @@ export class WasteController {
                 return res.status(400).json({ error: "Daily Limit Reached. Only one shift per day is allowed." });
             }
 
-            // 2. Create Log
+            // 2. Tag Villains in items for Pareto analysis
+            const taggedItems = items.map((item: any) => ({
+                ...item,
+                is_villain: VILLAINS.some(v => item.protein.includes(v))
+            }));
+
+            // 3. Create Log
             await prisma.wasteLog.create({
                 data: {
                     store_id: userStoreId,
                     date: logDate,
                     shift: shift,
-                    input_by: 'Manager', // Todo: Get name from user
+                    input_by: 'Manager',
                     user_id: userId,
-                    items: items
+                    items: taggedItems
                 }
             });
 
@@ -498,5 +505,33 @@ export class WasteController {
             console.error('Network Waste Status Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network waste status' });
         }
+    }
+    private static async checkAccountabilityGate(storeId: number, dateStr: string): Promise<boolean> {
+        // 1. Check if any invoice was logged today for this store
+        const invoices = await prisma.invoiceRecord.findMany({
+            where: {
+                store_id: storeId,
+                date: {
+                    gte: new Date(dateStr),
+                    lt: new Date(new Date(dateStr).getTime() + 86400000)
+                }
+            }
+        });
+
+        if (invoices.length > 0) return true;
+
+        // 2. Check for manual "No Delivery" flag in AuditLog
+        const noDeliveryFlag = await prisma.auditLog.findFirst({
+            where: {
+                location: storeId.toString(),
+                action: 'NO_DELIVERY_FLAG',
+                created_at: {
+                    gte: new Date(dateStr),
+                    lt: new Date(new Date(dateStr).getTime() + 86400000)
+                }
+            }
+        });
+
+        return !!noDeliveryFlag;
     }
 }

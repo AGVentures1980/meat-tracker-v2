@@ -7,6 +7,8 @@ import { MEAT_COSTS_LB, FINANCIAL_TARGET_GUEST, FINANCIAL_TOLERANCE_THRESHOLD } 
 
 const prisma = new PrismaClient();
 
+const VILLAINS = ['Picanha', 'Picanha with Garlic', 'Lamb Picanha', 'Beef Ribs', 'Lamb Chops', 'Filet Mignon', 'Filet Mignon with Bacon', 'Fraldinha', 'Flap Steak'];
+
 export class SmartPrepController {
 
     static async getNetworkPrepStatus(req: Request, res: Response) {
@@ -126,7 +128,11 @@ export class SmartPrepController {
                 forecast = baseForecast + (dayOfWeek * 25);
             }
 
-            const totalMeatLbs = forecast * targetLbsPerGuest;
+            // APPLY SAFETY BUFFER (+20% for Dinner Walk-ins)
+            const isDinner = centralNow.getHours() >= 15; // Shift definition
+            const bufferMultiplier = isDinner ? 1.20 : 1.0;
+            const totalMeatLbs = (forecast * bufferMultiplier) * targetLbsPerGuest;
+
             const prepList = [];
             const proteins = Object.keys(MEAT_UNIT_WEIGHTS);
 
@@ -143,6 +149,9 @@ export class SmartPrepController {
                     const stdVal = MEAT_STANDARDS[protein] || 0;
                     mixPercentage = stdVal / 1.76;
                 }
+
+                // PARETO TAGGING
+                const isVillain = VILLAINS.some(v => protein.includes(v));
 
                 const neededLbs = totalMeatLbs * mixPercentage;
                 const costLb = MEAT_COSTS_LB[protein] || 6.00;
@@ -204,20 +213,21 @@ export class SmartPrepController {
                     mix_percentage: (mixPercentage * 100).toFixed(1) + '%',
                     recommended_lbs: parseFloat(neededLbs.toFixed(2)),
                     recommended_units: Math.ceil(neededUnits),
-                    cost_lb: costLb
+                    cost_lb: costLb,
+                    is_villain: isVillain
                 });
             }
 
             const predictedCostGuest = totalPredictedCost / forecast;
-            const toleranceThreshold = targetCostPerGuest + 0.05; // 5 cent tolerance
+            const toleranceThreshold = targetCostPerGuest + 0.05;
 
             let tacticalBriefing = "";
             if (predictedCostGuest > toleranceThreshold) {
-                tacticalBriefing = `Financial Risk Identified: Predicted cost ($${predictedCostGuest.toFixed(2)}) is above the cap of $${toleranceThreshold.toFixed(2)}. Instruct the team to pace the output of Premium meats (Tenderloin/Lamb) and accelerate efficiency cuts (Sirloin/Pork Loin).`;
+                tacticalBriefing = `Financial Risk Identified: Predicted cost ($${predictedCostGuest.toFixed(2)}) is above the cap of $${toleranceThreshold.toFixed(2)}. PARETO ALERT: Focus strictly on VILLAINS (Picanha/Ribs) output control.`;
             } else if (predictedCostGuest > targetCostPerGuest) {
-                tacticalBriefing = `Attention: Tight margin ($${predictedCostGuest.toFixed(2)}). Your target is $${targetCostPerGuest.toFixed(2)}. Monitor the mix of high-cost meats to avoid exceeding the weekly cap.`;
+                tacticalBriefing = `Attention: Tight margin ($${predictedCostGuest.toFixed(2)}). Your target is $${targetCostPerGuest.toFixed(2)}. Monitor Villain prep carefully.`;
             } else {
-                tacticalBriefing = `Financial Goal OK: Predicted cost of $${predictedCostGuest.toFixed(2)} per guest is within the target of $${targetCostPerGuest.toFixed(2)}. Operational margin is stable.`;
+                tacticalBriefing = `Financial Goal OK ($${predictedCostGuest.toFixed(2)}). Buffer for Walk-ins included if applicable.`;
             }
 
             prepList.sort((a, b) => b.recommended_lbs - a.recommended_lbs);

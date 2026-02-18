@@ -372,4 +372,27 @@ export class SettingsController {
             return res.status(500).json({ error: 'Failed to update store' });
         }
     }
+
+    static async setNoDeliveryFlag(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const storeId = user.storeId || user.store_id || 1;
+            const dateStr = new Date().toISOString().split('T')[0];
+
+            await prisma.auditLog.create({
+                data: {
+                    user_id: user.id,
+                    action: 'NO_DELIVERY_FLAG',
+                    resource: 'Gate Override',
+                    details: { date: dateStr, reason: 'Manual Skip - No Delivery Received' },
+                    location: storeId.toString()
+                }
+            });
+
+            return res.json({ success: true, message: 'No Delivery flag set for today.' });
+        } catch (error) {
+            console.error('Set No Delivery Flag Error:', error);
+            return res.status(500).json({ error: 'Failed to set flag' });
+        }
+    }
 }

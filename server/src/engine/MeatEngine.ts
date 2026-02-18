@@ -169,6 +169,7 @@ export class MeatEngine {
 
         // Define Dinner Only Meats (Premium)
         const DINNER_ONLY_MEATS = ['lamb chops', 'beef ribs', 'filet mignon', 'filet mignon wrapped in bacon'];
+        const VILLAINS = ['picanha', 'picanha with garlic', 'lamb picanha', 'beef ribs', 'lamb chops', 'filet mignon', 'filet mignon with bacon', 'fraldinha', 'flap steak'];
         const EXCLUDE_LAMB = (storeData as any)?.exclude_lamb_from_rodizio_lbs || false;
 
         return Object.entries(meatSummary).map(([name, actual]) => {
@@ -196,7 +197,8 @@ export class MeatEngine {
                 name,
                 actual,
                 ideal: Math.round(ideal),
-                trend: actual > ideal ? 'up' : 'down'
+                trend: actual > ideal ? 'up' : 'down',
+                isVillain: VILLAINS.includes(name.toLowerCase())
             };
         }).sort((a, b) => b.actual - a.actual).slice(0, 10); // Expanded to 10 for reports
     }
@@ -459,6 +461,18 @@ export class MeatEngine {
 
         const avgVariance = performance.length > 0 ? totalVarianceSum / performance.length : 0;
 
+        // --- PARETO VILLAIN IMPACT (v3.0) ---
+        // Calculate impact specifically from Class A items across all stores
+        let totalVillainLoss = 0;
+        performance.forEach(store => {
+            // We approximate Villain Loss as 80% of negative impact if not tracked individually
+            // or we could fetch the actual Villain waste if we want to be precise.
+            // For now, let's use the 80/20 rule: 80% of overspending is caused by Villains.
+            if (store.impactYTD > 0) {
+                totalVillainLoss += store.impactYTD * 0.8;
+            }
+        });
+
         // Sort by Impact (Savings vs Spending)
         // Impact is Cost Variance * Guests.
         // Positive Impact = Overspending (Bad). Negative Impact = Savings (Good).
@@ -479,6 +493,7 @@ export class MeatEngine {
             summary: {
                 total_guests: totalGuests,
                 net_impact_ytd: totalNetImpact,
+                villain_impact: totalVillainLoss,
                 avg_lbs_variance: avgVariance,
                 status: totalNetImpact <= 0 ? 'Savings' : 'Loss'
             },

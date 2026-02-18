@@ -19,6 +19,7 @@ import { ExecutiveAnalyst } from './pages/ExecutiveAnalyst';
 import { CompanySelector } from './pages/CompanySelector';
 import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
+import { CommandCenter } from './pages/CommandCenter';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -78,6 +79,7 @@ function AppContent() {
                     <Route path="/delivery" element={<DeliveryPage />} />
                     <Route path="/waste" element={<WastePage />} />
                     <Route path="/forecast" element={<ForecastPage />} />
+                    <Route path="/command-center" element={<CommandCenter />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                 </Route>
