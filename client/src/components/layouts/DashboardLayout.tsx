@@ -38,26 +38,26 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     const navItems = [
         {
-            section: 'GATE (Accountability)', items: [
+            section: t('nav.section_gate') || 'GATE (Accountability)', items: [
                 { icon: ArrowUpRight, label: t('nav.invoices') || 'Meat Prices / Invoices', path: '/prices' },
             ]
         },
         {
-            section: 'RUN (Shift Command)', items: [
+            section: t('nav.section_run') || 'RUN (Shift Command)', items: [
                 { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
                 { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
             ]
         },
         {
-            section: 'VIEW (Performance)', items: [
+            section: t('nav.section_view') || 'VIEW (Performance)', items: [
                 { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
                 { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
                 { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
             ]
         },
         {
-            section: 'LEARN (Training)', items: [
-                { icon: GraduationCap, label: 'Training Center', path: '/training' },
+            section: t('nav.section_learn') || 'LEARN (Training)', items: [
+                { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
             ]
         }
     ];
@@ -65,9 +65,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     // Add Company Settings for Directors/Admins
     if (user?.role === 'director' || user?.role === 'admin') {
         navItems.push({
-            section: 'MANAGE (Company)', items: [
-                { icon: Users, label: 'Performance Audit', path: '/audit' },
-                { icon: Building2, label: 'Company Settings', path: '/settings/company' }
+            section: t('nav.section_manage') || 'MANAGE (Company)', items: [
+                { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
+                { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
             ]
         });
     }
@@ -203,7 +203,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-white hover:bg-white/5"
                         >
                             <LogOut className="w-5 h-5 flex-shrink-0" />
-                            <span>{t('nav_logout') || 'Sign Out'}</span>
+                            <span>{t('nav_logout')}</span>
                         </button>
                         <div className="mt-6 px-3">
                             <div className="text-[10px] text-gray-600 font-mono">v4.2.0-DASHBOARD-EXEC - LIVE</div>
