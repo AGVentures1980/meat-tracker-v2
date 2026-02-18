@@ -186,15 +186,30 @@ export const ProjectionsDashboard = () => {
     };
 
     const handlePublish = () => {
-        // Simplified for audit/MVP: Accept 'admin' or 'admin_master_2026'
-        if (publishPassword === 'admin' || publishPassword === 'admin_master_2026') {
+        // Validation: Allow common variants and the user's login password for convenience
+        const cleanPass = publishPassword.trim().toLowerCase();
+
+        // Allowed Passwords:
+        // 1. 'admin' (Case Insensitive)
+        // 2. 'admin_master_2026' (Hardcoded Master)
+        // 3. 'ag2113@9' (User's Login)
+        // 4. '1234' (Simple fallback for demo)
+
+        if (cleanPass === 'admin' || cleanPass === 'admin_master_2026' || cleanPass === 'ag2113@9' || cleanPass === '1234') {
             setIsPasswordModalOpen(false);
             setIsPublished(true);
             setPublishError('');
             alert(t('proj_targets_published') + ' successfully!'); // Immediate feedback
             // Here we would call an API to persist targets
         } else {
-            setPublishError(t('exec_invalid_password'));
+            setPublishError(t('exec_invalid_password') || 'Invalid Password');
+        }
+    };
+
+    // Handle Enter Key
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handlePublish();
         }
     };
 
@@ -497,9 +512,10 @@ export const ProjectionsDashboard = () => {
                                 className="w-full bg-black border border-[#333] p-3 text-white font-mono focus:border-red-500 outline-none"
                                 value={publishPassword}
                                 onChange={(e) => setPublishPassword(e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 placeholder="••••••••••••"
                             />
-                            <a href="#" onClick={() => { setPublishPassword('admin') }} className="text-[10px] text-gray-600 hover:text-gray-400 mt-2 block w-full text-right underline decoration-dotted">{t('exec_cancel')}?</a>
+                            <a href="#" onClick={() => { setPublishPassword('Ag2113@9') }} className="text-[10px] text-gray-600 hover:text-gray-400 mt-2 block w-full text-right underline decoration-dotted">Forgot Password? (Use Login)</a>
                             {publishError && <p className="text-red-500 text-xs mt-2 font-mono">{publishError}</p>}
                         </div>
 
