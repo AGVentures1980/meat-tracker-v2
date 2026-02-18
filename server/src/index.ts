@@ -104,7 +104,7 @@ const prisma = new PrismaClient();
 async function ensureDirectorUser() {
     try {
         const email = 'dallas@texasdebrazil.com';
-        const password = 'Dallas#2024';
+        const password = 'Dallas2026';
         const role = 'director' as any;
         const name = 'Director Dallas';
 
