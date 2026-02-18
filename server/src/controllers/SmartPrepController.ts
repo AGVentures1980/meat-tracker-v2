@@ -213,11 +213,11 @@ export class SmartPrepController {
 
             let tacticalBriefing = "";
             if (predictedCostGuest > toleranceThreshold) {
-                tacticalBriefing = `Risco Financeiro Identificado: Custo previsto ($${predictedCostGuest.toFixed(2)}) está acima do teto de $${toleranceThreshold.toFixed(2)}. Instrua a equipe a cadenciar a saída de carnes Premium (Tenderloin/Lamb) e acelerar cortes de eficiência (Coxinha/Lombo).`;
+                tacticalBriefing = `Financial Risk Identified: Predicted cost ($${predictedCostGuest.toFixed(2)}) is above the cap of $${toleranceThreshold.toFixed(2)}. Instruct the team to pace the output of Premium meats (Tenderloin/Lamb) and accelerate efficiency cuts (Sirloin/Pork Loin).`;
             } else if (predictedCostGuest > targetCostPerGuest) {
-                tacticalBriefing = `Atenção: Margem apertada ($${predictedCostGuest.toFixed(2)}). Sua meta é $${targetCostPerGuest.toFixed(2)}. Monitore o mix de carnes caras para evitar ultrapassar o teto semanal.`;
+                tacticalBriefing = `Attention: Tight margin ($${predictedCostGuest.toFixed(2)}). Your target is $${targetCostPerGuest.toFixed(2)}. Monitor the mix of high-cost meats to avoid exceeding the weekly cap.`;
             } else {
-                tacticalBriefing = `Meta Financeira OK: Custo previsto de $${predictedCostGuest.toFixed(2)} por cliente está dentro do alvo de $${targetCostPerGuest.toFixed(2)}. Margem operacional confortável.`;
+                tacticalBriefing = `Financial Goal OK: Predicted cost of $${predictedCostGuest.toFixed(2)} per guest is within the target of $${targetCostPerGuest.toFixed(2)}. Operational margin is stable.`;
             }
 
             prepList.sort((a, b) => b.recommended_lbs - a.recommended_lbs);
