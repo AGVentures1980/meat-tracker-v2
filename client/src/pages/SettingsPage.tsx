@@ -156,7 +156,7 @@ export const SettingsPage = () => {
                     target_lbs_guest: editingStore.target_lbs_guest,
                     lunch_price: editingStore.lunch_price,
                     dinner_price: editingStore.dinner_price,
-                    exclude_lamb_from_rodizio_lbs: editingStore.exclude_lamb_from_rodizio_lbs
+                    serves_lamb_chops_rodizio: editingStore.serves_lamb_chops_rodizio
                 })
             });
 
@@ -433,9 +433,15 @@ export const SettingsPage = () => {
                                                 <span className="text-xs font-mono text-brand-gold">{store.target_lbs_guest ? Number(store.target_lbs_guest).toFixed(2) : '1.76'} LBS</span>
                                             </div>
                                             <p className="text-xs text-gray-500 mb-2">Lat/Long Match: {store.location}</p>
-                                            {store.exclude_lamb_from_rodizio_lbs && (
+                                            {store.serves_lamb_chops_rodizio ? (
                                                 <div className="mb-2">
-                                                    <span className="text-[10px] text-red-400 border border-red-900/50 bg-red-900/10 px-1 py-0.5 rounded">
+                                                    <span className="text-[10px] text-green-400 border border-green-900/50 bg-green-900/10 px-1 py-0.5 rounded">
+                                                        🐑 LAMB CHOPS RODIZIO
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div className="mb-2">
+                                                    <span className="text-[10px] text-gray-500 border border-gray-700/50 bg-gray-900/10 px-1 py-0.5 rounded">
                                                         NO LAMB CHOPS
                                                     </span>
                                                 </div>
@@ -494,13 +500,13 @@ export const SettingsPage = () => {
                                                 <label className="flex items-center gap-2 cursor-pointer">
                                                     <input
                                                         type="checkbox"
-                                                        checked={editingStore.exclude_lamb_from_rodizio_lbs || false}
-                                                        onChange={(e) => setEditingStore({ ...editingStore, exclude_lamb_from_rodizio_lbs: e.target.checked })}
+                                                        checked={editingStore.serves_lamb_chops_rodizio || false}
+                                                        onChange={(e) => setEditingStore({ ...editingStore, serves_lamb_chops_rodizio: e.target.checked })}
                                                         className="w-4 h-4 accent-brand-gold bg-[#121212] border border-[#333]"
                                                     />
                                                     <div>
-                                                        <span className="block text-xs uppercase text-white font-bold">Exclude Lamb Chops from Rodizio</span>
-                                                        <span className="block text-[10px] text-gray-500">Enable this if this store does not serve Lamb Chops on the rodizio.</span>
+                                                        <span className="block text-xs uppercase text-white font-bold">Serves Lamb Chops on Rodizio (Dinner)</span>
+                                                        <span className="block text-[10px] text-gray-500">Enable if this store serves Lamb Chops as part of the dinner rodizio. Never applies to Lunch.</span>
                                                     </div>
                                                 </label>
                                             </div>

@@ -21,16 +21,17 @@ model Company {
 }
 
 model CompanyProduct {
-  id              String   @id @default(uuid())
-  company_id      String
-  name            String
-  category        String?
-  is_villain      Boolean  @default(false)
-  is_dinner_only  Boolean  @default(false)
-  include_in_delivery Boolean @default(false)
-  standard_target Float?
-  created_at      DateTime @default(now())
-  company         Company  @relation(fields: [company_id], references: [id])
+  id                  String   @id @default(uuid())
+  company_id          String
+  name                String
+  protein_group       String?  // Canonical group for LB/financial aggregation (e.g. "Filet Mignon" for both variants)
+  category            String?
+  is_villain          Boolean  @default(false)
+  is_dinner_only      Boolean  @default(false)
+  include_in_delivery Boolean  @default(false)
+  standard_target     Float?
+  created_at          DateTime @default(now())
+  company             Company  @relation(fields: [company_id], references: [id])
 
   @@unique([company_id, name])
 }
@@ -44,7 +45,7 @@ model Store {
   target_cost_guest             Float             @default(9.94)
   target_lbs_guest              Float             @default(1.76)
   dinner_price                  Float             @default(58.90)
-  exclude_lamb_from_rodizio_lbs Boolean           @default(false)
+  serves_lamb_chops_rodizio     Boolean           @default(false) // true = Lamb Chops is part of dinner rodizio at this store
   is_lunch_enabled              Boolean           @default(false)
   lunch_price                   Float             @default(29.90)
   olo_sales_target              Float             @default(0)

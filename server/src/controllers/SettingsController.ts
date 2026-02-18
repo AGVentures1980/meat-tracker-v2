@@ -182,7 +182,7 @@ export class SettingsController {
     static async updateStore(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const { target_lbs_guest, lunch_price, dinner_price, is_lunch_enabled, exclude_lamb_from_rodizio_lbs } = req.body;
+            const { target_lbs_guest, lunch_price, dinner_price, is_lunch_enabled, serves_lamb_chops_rodizio } = req.body;
             const updater = (req as any).user;
             const storeId = Number(id);
 
@@ -203,7 +203,7 @@ export class SettingsController {
                     lunch_price: parseFloat(lunch_price),
                     dinner_price: parseFloat(dinner_price),
                     is_lunch_enabled: is_lunch_enabled === true,
-                    exclude_lamb_from_rodizio_lbs: exclude_lamb_from_rodizio_lbs === true
+                    serves_lamb_chops_rodizio: serves_lamb_chops_rodizio === true
                 }
             });
 
@@ -216,7 +216,7 @@ export class SettingsController {
             const activeProteins: string[] = [];
 
             for (const [protein, stdVal] of Object.entries(MEAT_STANDARDS)) {
-                if (exclude_lamb_from_rodizio_lbs && protein === 'Lamb Chops') {
+                if (!serves_lamb_chops_rodizio && protein === 'Lamb Chops') {
                     continue; // Skip lambda
                 }
                 baseTotalLbs += (stdVal as number);
@@ -305,8 +305,8 @@ export class SettingsController {
                 });
             });
 
-            // If Lamb is excluded, zero it out
-            if (exclude_lamb_from_rodizio_lbs) {
+            // If Lamb Chops not served at this store, zero out its target
+            if (!serves_lamb_chops_rodizio) {
                 transactionops.push(
                     prisma.storeMeatTarget.upsert({
                         where: { store_id_protein: { store_id: storeId, protein: 'Lamb Chops' } },
@@ -332,7 +332,7 @@ export class SettingsController {
                     user_id: updater.id,
                     action: 'UPDATE_STORE',
                     resource: updatedStore.store_name,
-                    details: { target: target_lbs_guest, lunch: lunch_price, dinner: dinner_price, exclude_lamb: exclude_lamb_from_rodizio_lbs },
+                    details: { target: target_lbs_guest, lunch: lunch_price, dinner: dinner_price, serves_lamb_chops: serves_lamb_chops_rodizio },
                     location: 'System'
                 }
             });

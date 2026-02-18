@@ -89,11 +89,12 @@ export class MeatEngine {
             theoreticalRevenue = (estLunch * lunchPrice) + (estDinner * dinnerPrice);
         }
 
-        const EXCLUDE_LAMB = (storeData as any)?.exclude_lamb_from_rodizio_lbs || false;
+        const SERVES_LAMB_CHOPS = (storeData as any)?.serves_lamb_chops_rodizio || false;
         let indicatorLbs = totalLbsMonth;
-        if (EXCLUDE_LAMB) {
+        if (!SERVES_LAMB_CHOPS) {
+            // Lamb Chops not served at this store — exclude from LB indicator
             const lambLbs = sales
-                .filter(item => (item.protein_type || item.item_name || '').toLowerCase().includes('lamb'))
+                .filter(item => (item.protein_type || item.item_name || '').toLowerCase().includes('lamb chop'))
                 .reduce((acc, item) => acc + item.lbs, 0);
             indicatorLbs = totalLbsMonth - lambLbs;
         }

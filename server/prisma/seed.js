@@ -74,38 +74,43 @@ async function main() {
     console.log('📦 Establishing Company Product Ledger (Alphabetized)...');
 
     const MASTER_PRODUCTS = [
-        { name: 'Beef Ribs', is_villain: true, is_dinner_only: true, target: 0.12 },
-        { name: 'Chicken Breast', target: 0.08 },
-        { name: 'Chicken Drumstick', target: 0.06 },
-        { name: 'Filet Mignon', is_villain: true, is_dinner_only: true, target: 0.15 },
-        { name: 'Filet Mignon with Bacon', is_villain: true, is_dinner_only: true, target: 0.10 },
-        { name: 'Flap Steak', is_villain: true, target: 0.10 },
-        { name: 'Fraldinha/Flank Steak', is_villain: true, target: 0.18 },
-        { name: 'Lamb Chops', is_villain: true, is_dinner_only: true, target: 0.14 },
-        { name: 'Lamb Picanha', is_villain: true, target: 0.08 },
-        { name: 'Lamb Sirloin', is_villain: true, target: 0.07 },
-        { name: 'Leg of Lamb', target: 0.09 },
-        { name: 'Picanha', is_villain: true, target: 0.35 },
-        { name: 'Picanha with Garlic', is_villain: true, target: 0.10 },
-        { name: 'Pork Loin', target: 0.08 },
-        { name: 'Pork Ribs', target: 0.10 },
-        { name: 'Sausage', target: 0.10 },
-        { name: 'Tri-Tip', target: 0.05 }
+        { name: 'Beef Ribs', protein_group: 'Beef Ribs', is_villain: true, is_dinner_only: true, include_in_delivery: false, target: 0.12 },
+        { name: 'Chicken Breast', protein_group: 'Chicken', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.08 },
+        { name: 'Chicken Drumstick', protein_group: 'Chicken', is_villain: false, is_dinner_only: false, include_in_delivery: true, target: 0.06 },
+        { name: 'Filet Mignon', protein_group: 'Filet Mignon', is_villain: true, is_dinner_only: true, include_in_delivery: true, target: 0.15 },
+        { name: 'Filet Mignon with Bacon', protein_group: 'Filet Mignon', is_villain: true, is_dinner_only: true, include_in_delivery: false, target: 0.10 },
+        { name: 'Flap Steak', protein_group: 'Fraldinha', is_villain: true, is_dinner_only: false, include_in_delivery: false, target: 0.10 },
+        { name: 'Fraldinha/Flank Steak', protein_group: 'Fraldinha', is_villain: true, is_dinner_only: false, include_in_delivery: true, target: 0.18 },
+        { name: 'Lamb Chops', protein_group: 'Lamb Chops', is_villain: true, is_dinner_only: true, include_in_delivery: false, target: 0.14 },
+        { name: 'Lamb Picanha', protein_group: 'Lamb', is_villain: true, is_dinner_only: false, include_in_delivery: false, target: 0.08 },
+        { name: 'Lamb Sirloin', protein_group: 'Lamb', is_villain: true, is_dinner_only: false, include_in_delivery: false, target: 0.07 },
+        { name: 'Leg of Lamb', protein_group: 'Leg of Lamb', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.09 },
+        { name: 'Picanha', protein_group: 'Picanha', is_villain: true, is_dinner_only: false, include_in_delivery: true, target: 0.35 },
+        { name: 'Picanha with Garlic', protein_group: 'Picanha', is_villain: true, is_dinner_only: false, include_in_delivery: false, target: 0.10 },
+        { name: 'Pork Loin', protein_group: 'Pork Loin', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.08 },
+        { name: 'Pork Ribs', protein_group: 'Pork Ribs', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.10 },
+        { name: 'Sausage', protein_group: 'Sausage', is_villain: false, is_dinner_only: false, include_in_delivery: true, target: 0.10 },
+        { name: 'Tri-Tip', protein_group: 'Sirloin', is_villain: false, is_dinner_only: false, include_in_delivery: true, target: 0.05 },
+        { name: 'Spicy Sirloin', protein_group: 'Sirloin', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.05 },
     ].sort((a, b) => a.name.localeCompare(b.name));
 
     for (const p of MASTER_PRODUCTS) {
         await prisma.companyProduct.upsert({
             where: { company_id_name: { company_id: tdb.id, name: p.name } },
             update: {
+                protein_group: p.protein_group || null,
                 is_villain: p.is_villain || false,
                 is_dinner_only: p.is_dinner_only || false,
+                include_in_delivery: p.include_in_delivery || false,
                 standard_target: p.target
             },
             create: {
                 company_id: tdb.id,
                 name: p.name,
+                protein_group: p.protein_group || null,
                 is_villain: p.is_villain || false,
                 is_dinner_only: p.is_dinner_only || false,
+                include_in_delivery: p.include_in_delivery || false,
                 standard_target: p.target
             }
         });
