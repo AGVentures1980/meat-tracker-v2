@@ -499,48 +499,65 @@ export const SettingsPage = () => {
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <h3 className="text-xl font-bold text-white border-b border-[#333] pb-4">Data & Integrations</h3>
 
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="p-4 bg-[#121212] border border-[#333] rounded-sm flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-white rounded-sm flex items-center justify-center">
-                                            <span className="text-black font-black text-xs">OLO</span>
+                            {user?.email === 'alexandre@alexgarciaventures.co' ? (
+                                <>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="p-4 bg-[#121212] border border-[#333] rounded-sm flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-white rounded-sm flex items-center justify-center">
+                                                    <span className="text-black font-black text-xs">OLO</span>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-white text-sm font-bold">POS Integration (Olo)</h4>
+                                                    <p className="text-xs text-gray-500">Syncs Orders, Checks, and Guest Counts every 15 minutes.</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs text-[#00FF94] font-mono mb-1">● CONNECTED</p>
+                                                <p className="text-[10px] text-gray-600">Last Sync: 2 mins ago</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h4 className="text-white text-sm font-bold">POS Integration (Olo)</h4>
-                                            <p className="text-xs text-gray-500">Syncs Orders, Checks, and Guest Counts every 15 minutes.</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-[#00FF94] font-mono mb-1">● CONNECTED</p>
-                                        <p className="text-[10px] text-gray-600">Last Sync: 2 mins ago</p>
-                                    </div>
-                                </div>
 
-                                <div className="p-4 bg-[#121212] border border-[#333] rounded-sm flex items-center justify-between opacity-50">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-[#333] rounded-sm flex items-center justify-center">
-                                            <Database className="text-gray-500 w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-gray-300 text-sm font-bold">CTUIT / Compeat</h4>
-                                            <p className="text-xs text-gray-600">Inventory and Invoice ingestion (Coming Q3).</p>
+                                        <div className="p-4 bg-[#121212] border border-[#333] rounded-sm flex items-center justify-between opacity-50">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-[#333] rounded-sm flex items-center justify-center">
+                                                    <Database className="text-gray-500 w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-gray-300 text-sm font-bold">CTUIT / Compeat</h4>
+                                                    <p className="text-xs text-gray-600">Inventory and Invoice ingestion (Coming Q3).</p>
+                                                </div>
+                                            </div>
+                                            <button disabled className="text-xs bg-[#222] text-gray-500 px-3 py-1 rounded-sm border border-[#333]">CONNECT</button>
                                         </div>
                                     </div>
-                                    <button disabled className="text-xs bg-[#222] text-gray-500 px-3 py-1 rounded-sm border border-[#333]">CONNECT</button>
-                                </div>
-                            </div>
 
-                            <div className="mt-8 pt-6 border-t border-[#333]">
-                                <h4 className="text-sm text-white font-bold mb-4 uppercase tracking-wider">Sync Actions</h4>
-                                <div className="flex gap-4">
-                                    <button className="px-4 py-2 bg-[#252525] border border-[#333] text-white text-xs hover:bg-[#333] hover:text-brand-gold transition-colors">
-                                        FORCE FULL SYNC
-                                    </button>
-                                    <button className="px-4 py-2 bg-[#252525] border border-[#333] text-white text-xs hover:bg-[#333] hover:text-[#00FF94] transition-colors">
-                                        DOWNLOAD AUDIT LOGS
-                                    </button>
+                                    <div className="mt-8 pt-6 border-t border-[#333]">
+                                        <h4 className="text-sm text-white font-bold mb-4 uppercase tracking-wider">Sync Actions</h4>
+                                        <div className="flex gap-4">
+                                            <button className="px-4 py-2 bg-[#252525] border border-[#333] text-white text-xs hover:bg-[#333] hover:text-brand-gold transition-colors">
+                                                FORCE FULL SYNC
+                                            </button>
+                                            <button className="px-4 py-2 bg-[#252525] border border-[#333] text-white text-xs hover:bg-[#333] hover:text-[#00FF94] transition-colors">
+                                                DOWNLOAD AUDIT LOGS
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="p-8 bg-[#121212] border border-[#333] rounded-sm flex flex-col items-center justify-center text-center">
+                                    <div className="w-16 h-16 bg-[#00FF94]/10 rounded-full flex items-center justify-center mb-4">
+                                        <div className="w-3 h-3 bg-[#00FF94] rounded-full animate-pulse shadow-[0_0_10px_rgba(0,255,148,0.5)]"></div>
+                                    </div>
+                                    <h4 className="text-white text-lg font-bold uppercase tracking-widest mb-2">System Online</h4>
+                                    <p className="text-gray-500 text-sm max-w-md">
+                                        All systems are operational. Data synchronization is active and up to date.
+                                    </p>
+                                    <div className="mt-6 text-xs font-mono text-gray-600">
+                                        Last Sync: {new Date().toLocaleTimeString()}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
 

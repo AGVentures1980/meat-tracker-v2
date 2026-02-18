@@ -117,4 +117,43 @@ export class ForecastController {
             return res.status(500).json({ error: 'Failed to save forecast' });
         }
     }
+    /**
+     * GET /api/v1/forecast/network
+     * Returns forecast status for all stores (Manager compliance check)
+     */
+    static async getNetworkForecast(req: Request, res: Response) {
+        try {
+            const { date } = req.query; // Week Start (Monday)
+
+            if (!date) return res.status(400).json({ error: 'Date required' });
+
+            const stores = await prisma.store.findMany({
+                orderBy: { id: 'asc' },
+                include: {
+                    sales_forecasts: {
+                        where: { week_start: new Date(date as string) }
+                    }
+                }
+            });
+
+            const summary = stores.map((store) => {
+                const forecast = store.sales_forecasts[0];
+                return {
+                    id: store.id,
+                    name: store.store_name,
+                    location: store.location,
+                    forecast_lunch: forecast?.forecast_lunch || 0,
+                    forecast_dinner: forecast?.forecast_dinner || 0,
+                    total_guests: (forecast?.forecast_lunch || 0) + (forecast?.forecast_dinner || 0),
+                    is_locked: forecast?.is_locked || false,
+                    status: forecast ? (forecast.is_locked ? 'Locked' : 'Draft') : 'Missing'
+                };
+            });
+
+            return res.json({ success: true, summary });
+        } catch (error) {
+            console.error('Get Network Forecast Error:', error);
+            return res.status(500).json({ error: 'Failed to get network forecast' });
+        }
+    }
 }

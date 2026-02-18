@@ -268,7 +268,7 @@ const WastePage = () => {
             </div>
 
             {/* Input Form */}
-            {!isLocked && !isBlockedToday && (
+            {!isLocked && !isBlockedToday && (user?.role !== 'director' && !user?.email?.includes('director')) && (
                 <div className="bg-[#1a1a1a] rounded-lg border border-[#333] overflow-hidden">
                     <div className="p-4 border-b border-[#333] bg-[#222]">
                         <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Log Waste Items</h3>

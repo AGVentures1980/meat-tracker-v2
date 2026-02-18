@@ -166,14 +166,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
                             </Link>
 
-                            {/* Switch Company (Owner Only) */}
-                            <Link
-                                to="/select-company"
-                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
-                            >
-                                <Building2 className="w-5 h-5 min-w-[20px]" />
-                                <span className="text-sm font-bold tracking-tight">Switch Company</span>
-                            </Link>
+                            {/* Switch Company (Master Owner Only) */}
+                            {user?.email === 'alexandre@alexgarciaventures.co' && (
+                                <Link
+                                    to="/select-company"
+                                    className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
+                                >
+                                    <Building2 className="w-5 h-5 min-w-[20px]" />
+                                    <span className="text-sm font-bold tracking-tight">Switch Company</span>
+                                </Link>
+                            )}
                         </>
                     )}
 

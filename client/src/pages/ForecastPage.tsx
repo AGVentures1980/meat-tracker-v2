@@ -17,7 +17,6 @@ export const ForecastPage = () => {
     const [refreshKey, setRefreshKey] = useState(0); // Dedicated trigger for table updates
     const [searchParams] = useSearchParams();
     const externalStoreId = searchParams.get('storeId');
-    const isDrillDown = !!externalStoreId;
 
     // Initialize with Next Week's Monday
     useEffect(() => {
@@ -93,6 +92,119 @@ export const ForecastPage = () => {
         }
     };
 
+    // --- DIRECTOR AGGREGATE VIEW ---
+    const [networkForecast, setNetworkForecast] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (isExecutive && !externalStoreId) {
+            const fetchNetwork = async () => {
+                setLoading(true);
+                try {
+                    const res = await fetch(`/api/v1/forecast/network?date=${selectedDate}`, {
+                        headers: { 'Authorization': `Bearer ${user?.token}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setNetworkForecast(data.summary);
+                    }
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchNetwork();
+        }
+    }, [selectedDate, user, externalStoreId]);
+
+    const isExecutive = user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin');
+    const isDirectorView = isExecutive && !externalStoreId;
+
+    if (isDirectorView) {
+        return (
+            <div className="p-6 max-w-7xl mx-auto animate-in fade-in duration-500">
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                            <Brain className="w-8 h-8 text-[#C5A059]" />
+                            Network Forecast Status
+                        </h1>
+                        <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">Executive Overview</p>
+                    </div>
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-2.5 text-[#C5A059] w-4 h-4" />
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="bg-[#1a1a1a] border border-[#333] text-white p-2 pl-10 rounded-sm focus:border-[#C5A059] focus:outline-none font-mono text-sm"
+                        />
+                    </div>
+                </div>
+
+                <div className="bg-[#1a1a1a] border border-[#333] rounded-sm overflow-hidden">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-[#222] text-gray-500 uppercase tracking-widest font-mono text-xs">
+                            <tr>
+                                <th className="p-4">Location</th>
+                                <th className="p-4 text-center">Lunch</th>
+                                <th className="p-4 text-center">Dinner</th>
+                                <th className="p-4 text-center">Total Guests</th>
+                                <th className="p-4 text-center">Status</th>
+                                <th className="p-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#333]">
+                            {networkForecast.map((store) => (
+                                <tr key={store.id} className="hover:bg-white/5 transition-colors group">
+                                    <td className="p-4">
+                                        <div className="font-bold text-white">{store.name}</div>
+                                        <div className="text-xs text-gray-500 uppercase">{store.location}</div>
+                                    </td>
+                                    <td className="p-4 text-center font-mono text-gray-300">{store.forecast_lunch}</td>
+                                    <td className="p-4 text-center font-mono text-gray-300">{store.forecast_dinner}</td>
+                                    <td className="p-4 text-center font-bold text-white text-lg">{store.total_guests}</td>
+                                    <td className="p-4 text-center">
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${store.status === 'Locked' ? 'bg-[#00FF94]/20 text-[#00FF94]' :
+                                            store.status === 'Draft' ? 'bg-yellow-500/20 text-yellow-500' :
+                                                'bg-red-500/20 text-red-500'
+                                            }`}>
+                                            {store.status}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <button
+                                            onClick={() => window.location.href = `/forecast?storeId=${store.id}`}
+                                            className="text-gray-500 hover:text-[#C5A059] flex items-center gap-1 ml-auto text-xs uppercase font-bold"
+                                        >
+                                            <Eye size={14} /> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {networkForecast.length === 0 && !loading && (
+                                <tr>
+                                    <td colSpan={6} className="p-8 text-center text-gray-500">No stores found.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    }
+
+    // --- STANDARD STORE VIEW (Read-Only for Directors unless Admin) ---
+    // Director can VIEW specific store, but INPUTS are disabled. 
+    // Admin can always edit (override).
+    // Logic: disabled={isLocked || loading || (isExecutive && user.role !== 'admin')}
+    // Actually, requirement says "Director... cannot edit". Master Admin (owner) can.
+
+    // We already have `isDrillDown`. If isDrillDown and User is Director -> ReadOnly.
+    // If User is Store Manager -> Editable (subject to Lock).
+
+    const isReadOnly = isLocked || (isExecutive && user?.role !== 'admin');
+
     return (
         <div className="p-6 max-w-4xl mx-auto animate-in fade-in duration-500">
             {/* Non-Printable UI (Header + Inputs) */}
@@ -103,9 +215,9 @@ export const ForecastPage = () => {
                     <div>
                         <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
                             Smart Forecasting <span className="text-[10px] bg-[#333] text-gray-400 px-2 py-1 rounded-full">v4.2.0</span>
-                            {isDrillDown && (
+                            {isReadOnly && (
                                 <span className="text-[10px] bg-blue-900/30 text-blue-400 px-2 py-1 rounded border border-blue-900/50 flex items-center gap-1">
-                                    <Eye size={10} /> Read-Only Mode (Store ID: {externalStoreId})
+                                    <Eye size={10} /> Read-Only Mode {externalStoreId ? `(Store ${externalStoreId})` : ''}
                                 </span>
                             )}
                         </h1>
@@ -113,6 +225,11 @@ export const ForecastPage = () => {
                             Demand Planning & Purchasing
                         </p>
                     </div>
+                    {isExecutive && externalStoreId && (
+                        <button onClick={() => window.location.href = '/forecast'} className="ml-auto text-xs text-gray-500 hover:text-white border border-[#333] px-3 py-1 rounded">
+                            &larr; Back to Network
+                        </button>
+                    )}
                 </div>
 
                 {/* Main Card */}
@@ -145,8 +262,7 @@ export const ForecastPage = () => {
                                 </h3>
                                 <p className="text-[10px] text-gray-500 leading-relaxed">
                                     Forecast must be submitted by <strong>Wednesday</strong> of the previous week.
-                                    After this deadline, only the Director can unlock it.
-                                    This ensures the Purchasing System (Smart Order) has enough lead time for Thu/Fri orders.
+                                    After this deadline, only the Master Admin can unlock it.
                                 </p>
                             </div>
                         </div>
@@ -161,8 +277,8 @@ export const ForecastPage = () => {
                                     type="number"
                                     value={lunchGuests === 0 ? '' : lunchGuests}
                                     onChange={(e) => setLunchGuests(e.target.value === '' ? 0 : parseInt(e.target.value))}
-                                    disabled={isLocked || loading || isDrillDown}
-                                    className={`w-full bg-[#1a1a1a] border ${isLocked || isDrillDown ? 'border-gray-800 text-gray-500' : 'border-[#333] text-white hover:border-[#C5A059]'} p-4 rounded text-2xl font-mono focus:outline-none transition-colors transition-all`}
+                                    disabled={loading || isReadOnly}
+                                    className={`w-full bg-[#1a1a1a] border ${isReadOnly ? 'border-gray-800 text-gray-500 cursor-not-allowed' : 'border-[#333] text-white hover:border-[#C5A059]'} p-4 rounded text-2xl font-mono focus:outline-none transition-colors transition-all`}
                                     placeholder="0"
                                 />
                             </div>
@@ -174,8 +290,8 @@ export const ForecastPage = () => {
                                     value={dinnerGuests || ''}
                                     onChange={(e) => setDinnerGuests(Number(e.target.value))}
                                     placeholder="0"
-                                    disabled={isLocked || loading || isDrillDown}
-                                    className={`w-full bg-[#1a1a1a] border ${isLocked || isDrillDown ? 'border-gray-800 text-gray-500' : 'border-[#333] text-white hover:border-[#C5A059]'} p-4 rounded text-2xl font-mono focus:outline-none transition-colors transition-all`}
+                                    disabled={loading || isReadOnly}
+                                    className={`w-full bg-[#1a1a1a] border ${isReadOnly ? 'border-gray-800 text-gray-500 cursor-not-allowed' : 'border-[#333] text-white hover:border-[#C5A059]'} p-4 rounded text-2xl font-mono focus:outline-none transition-colors transition-all`}
                                 />
                             </div>
 
@@ -186,13 +302,13 @@ export const ForecastPage = () => {
                                 </div>
 
                                 {/* Save Button */}
-                                {!isDrillDown && (
+                                {!isReadOnly && (
                                     <button
                                         onClick={handleSave}
-                                        disabled={isLocked || loading}
-                                        className={`w-full md:w-auto px-8 py-3 rounded font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${isLocked ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#C5A059] text-black hover:bg-[#D4AF37] active:scale-95'}`}
+                                        disabled={loading}
+                                        className={`w-full md:w-auto px-8 py-3 rounded font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all bg-[#C5A059] text-black hover:bg-[#D4AF37] active:scale-95`}
                                     >
-                                        {loading ? 'Processing...' : isLocked ? <><Lock className="w-4 h-4" /> Locked</> : <><Save className="w-4 h-4" /> Submit Forecast</>}
+                                        {loading ? 'Processing...' : <><Save className="w-4 h-4" /> Submit Forecast</>}
                                     </button>
                                 )}
                             </div>

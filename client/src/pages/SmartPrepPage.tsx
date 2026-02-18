@@ -243,8 +243,8 @@ export const SmartPrepPage = () => {
                         </div>
                         {networkStatus?.company_avg_cost_guest && (
                             <div className={`px-4 py-2 rounded border text-sm font-bold flex items-center gap-2 ${networkStatus.company_avg_cost_guest > 9.98
-                                    ? 'bg-red-500/10 border-red-500/30 text-red-500'
-                                    : 'bg-[#00FF94]/10 border-[#00FF94]/30 text-[#00FF94]'
+                                ? 'bg-red-500/10 border-red-500/30 text-red-500'
+                                : 'bg-[#00FF94]/10 border-[#00FF94]/30 text-[#00FF94]'
                                 }`}>
                                 <Building2 className="w-4 h-4" />
                                 COMPANY AVG: ${networkStatus.company_avg_cost_guest}
@@ -386,13 +386,15 @@ export const SmartPrepPage = () => {
                             <CheckCircle2 className="w-4 h-4" /> {t('plan_locked')}
                         </div>
                     ) : (
-                        <button
-                            onClick={handleLock}
-                            disabled={lockLoading || loading}
-                            className="bg-[#00FF94] hover:bg-[#00e685] text-black px-4 py-2 rounded flex items-center gap-2 font-bold transition-all disabled:opacity-50"
-                        >
-                            <ChefHat className="w-4 h-4" /> {lockLoading ? 'SAVING...' : t('finalize_send')}
-                        </button>
+                        (user?.role !== 'director' && !user?.email?.includes('director')) && (
+                            <button
+                                onClick={handleLock}
+                                disabled={lockLoading || loading}
+                                className="bg-[#00FF94] hover:bg-[#00e685] text-black px-4 py-2 rounded flex items-center gap-2 font-bold transition-all disabled:opacity-50"
+                            >
+                                <ChefHat className="w-4 h-4" /> {lockLoading ? 'SAVING...' : t('finalize_send')}
+                            </button>
+                        )
                     )}
 
                     <div>
@@ -424,9 +426,9 @@ export const SmartPrepPage = () => {
                             max="1000"
                             step="10"
                             value={forecast}
-                            disabled={prepData?.is_locked}
+                            disabled={prepData?.is_locked || (isExecutive && selectedStore !== null)}
                             onChange={(e) => setForecast(parseInt(e.target.value))}
-                            className={`w-full h-2 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#00FF94] ${prepData?.is_locked ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            className={`w-full h-2 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#00FF94] ${prepData?.is_locked || (isExecutive && selectedStore !== null) ? 'opacity-30 cursor-not-allowed' : ''}`}
                         />
                     </div>
 
@@ -488,7 +490,8 @@ export const SmartPrepPage = () => {
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => toggleProtein(item.protein)}
-                                            className={`p-1 rounded hover:bg-[#222] transition-colors ${isExcluded ? 'text-red-500' : 'text-gray-500 hover:text-[#00FF94]'}`}
+                                            disabled={isExecutive && selectedStore !== null}
+                                            className={`p-1 rounded hover:bg-[#222] transition-colors ${isExcluded ? 'text-red-500' : 'text-gray-500 hover:text-[#00FF94]'} ${(isExecutive && selectedStore !== null) ? 'cursor-not-allowed opacity-50' : ''}`}
                                             title={isExcluded ? 'Enable Item' : 'Discard / Out of Stock'}
                                         >
                                             {isExcluded ? <EyeOff size={16} /> : <Eye size={16} />}

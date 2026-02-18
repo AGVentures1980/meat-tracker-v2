@@ -61,15 +61,24 @@ export const ReportsPage = () => {
         let csvContent = "\ufeff"; // UTF-8 BOM for Excel
 
         if (selectedReport === 'full-summary' && data.performance) {
-            csvContent += "Location,City,Guests,Consumption,LbsPerGuest,Target,Variance,Impact,Status\n";
-            data.performance.forEach((s: any) => {
-                csvContent += `${s.name},${s.location},${s.guests},${s.usedQty.toFixed(2)},${s.lbsPerGuest.toFixed(2)},${s.target_lbs_guest.toFixed(2)},${s.lbsGuestVar.toFixed(2)},${s.impactYTD.toFixed(2)},${s.status}\n`;
-            });
+            csvContent += "LOCATION,CITY,GUESTS,CONSUMPTION,LBS/GUEST,TARGET,VARIANCE,IMPACT,STATUS\n";
+            data.performance
+                .sort((a: any, b: any) => a.location.localeCompare(b.location))
+                .forEach((s: any) => {
+                    csvContent += `${s.name.toUpperCase()},${s.location.toUpperCase()},${s.guests},${s.usedQty.toFixed(2)},${s.lbsPerGuest.toFixed(2)},${s.target_lbs_guest.toFixed(2)},${s.lbsGuestVar.toFixed(2)},${s.impactYTD.toFixed(2)},${s.status.toUpperCase()}\n`;
+                });
         } else if (selectedReport === 'flash' && Array.isArray(data)) {
             csvContent += "Location,City,Today Lbs,Status\n";
             data.forEach((s: any) => {
                 csvContent += `${s.name},${s.location},${(s.todayLbs || 0).toFixed(2)},${s.status}\n`;
             });
+        } else if (selectedReport === 'variance-analysis' && data.variance) {
+            csvContent += "PROTEIN,ACTUAL USE,IDEAL USE,VARIANCE,VARIANCE %,COST IMPACT\n";
+            data.variance
+                .sort((a: any, b: any) => a.protein.localeCompare(b.protein))
+                .forEach((v: any) => {
+                    csvContent += `${v.protein.toUpperCase()},${v.actual.toFixed(2)},${v.ideal.toFixed(2)},${v.variance.toFixed(2)},${v.variancePercent}%,${v.costImpact.toFixed(2)}\n`;
+                });
         } else if (selectedReport === 'variance' && data.variance) {
             csvContent += "Protein,Actual,Ideal,Variance\n";
             data.variance.forEach((v: any) => {
@@ -255,9 +264,9 @@ export const ReportsPage = () => {
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-[#333]">
-                                                            {data.variance.map((v: any, i: number) => (
+                                                            {data.variance.sort((a: any, b: any) => a.protein.localeCompare(b.protein)).map((v: any, i: number) => (
                                                                 <tr key={i} className="hover:bg-white/5 transition-colors">
-                                                                    <td className="p-3 text-white font-bold">{v.protein}</td>
+                                                                    <td className="p-3 text-white font-bold uppercase">{v.protein}</td>
                                                                     <td className="p-3 text-right text-gray-300">{v.actual.toLocaleString()} lbs</td>
                                                                     <td className="p-3 text-right text-gray-500">{v.ideal.toLocaleString()} lbs</td>
                                                                     <td className={`p-3 text-right font-bold ${v.variance <= 0 ? 'text-[#00FF94]' : 'text-[#FF2A6D]'}`}>
