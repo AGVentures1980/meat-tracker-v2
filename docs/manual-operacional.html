@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manual Operacional — Texas de Brazil · Brasa Prophet Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: white;
+            color: #111;
+            padding: 40px;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        @media print {
+            body {
+                padding: 20px;
+            }
+
+            @page {
+                margin: 1.5cm;
+                size: A4;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+        }
+
+        .header {
+            border-bottom: 3px solid #111;
+            padding-bottom: 16px;
+            margin-bottom: 28px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #111;
+            color: white;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 3px 8px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+            color: #333;
+        }
+
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .routine-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .routine-card {
+            border: 1px solid #eee;
+            padding: 14px;
+        }
+
+        .routine-card h3 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .routine-item {
+            display: flex;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #fafafa;
+            font-size: 12px;
+        }
+
+        .routine-time {
+            font-weight: 700;
+            min-width: 60px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .trouble-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .trouble-table th {
+            background: #111;
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .trouble-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .trouble-table tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        .alert-code {
+            font-family: monospace;
+            font-size: 10px;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 2px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            border: 1px solid #eee;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .kpi-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-size: 18px;
+            font-weight: 900;
+            font-family: monospace;
+        }
+
+        .kpi-note {
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 2px;
+        }
+
+        .green {
+            color: #166534;
+        }
+
+        .red {
+            color: #991b1b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="badge">Manual Operacional · v1.0</div>
+        <h1>Manual Operacional</h1>
+        <p style="font-size:12px;color:#666;margin-top:4px;">Texas de Brazil · Brasa Prophet Analytics · Rotina +
+            Troubleshooting</p>
+    </div>
+
+    <!-- KPIs de Referência -->
+    <div class="section">
+        <h2>KPIs de Referência — Targets Padrão</h2>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">LBS por Guest</div>
+                <div class="kpi-value">1.76</div>
+                <div class="kpi-note">Target padrão (Rodízio Padrão)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Custo por Guest</div>
+                <div class="kpi-value">$9.94</div>
+                <div class="kpi-note">Target padrão</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Tolerância de Variância</div>
+                <div class="kpi-value">±0.05</div>
+                <div class="kpi-note">LBS/guest aceitável</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Villain Threshold</div>
+                <div class="kpi-value">5%</div>
+                <div class="kpi-note">% máximo de villain no mix</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Jantar</div>
+                <div class="kpi-value">$54</div>
+                <div class="kpi-note">Preço padrão (varia por loja)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Almoço</div>
+                <div class="kpi-value">$34</div>
+                <div class="kpi-note">Quando habilitado</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rotina Diária -->
+    <div class="section">
+        <h2>Rotina Diária do GM</h2>
+        <div class="routine-grid">
+            <div class="routine-card">
+                <h3>🌅 Abertura (antes do serviço)</h3>
+                <div class="routine-item"><span class="routine-time">08:00</span> Verificar dashboard — algum alerta
+                    pendente?</div>
+                <div class="routine-item"><span class="routine-time">08:15</span> Confirmar forecast de guests do dia
+                </div>
+                <div class="routine-item"><span class="routine-time">08:30</span> Briefar equipe de cozinha sobre
+                    targets do dia</div>
+                <div class="routine-item"><span class="routine-time">09:00</span> Confirmar estoque disponível vs.
+                    forecast</div>
+                <div class="routine-item"><span class="routine-time">09:30</span> Inserir inventário de abertura (se dia
+                    de inventário)</div>
+            </div>
+            <div class="routine-card">
+                <h3>🌙 Fechamento (após serviço)</h3>
+                <div class="routine-item"><span class="routine-time">22:00</span> Inserir total de guests do dia (almoço
+                    + jantar)</div>
+                <div class="routine-item"><span class="routine-time">22:15</span> Registrar compras recebidas no dia
+                </div>
+                <div class="routine-item"><span class="routine-time">22:30</span> Verificar se dashboard atualizou
+                    corretamente</div>
+                <div class="routine-item"><span class="routine-time">22:45</span> Responder alertas pendentes (se
+                    houver)</div>
+                <div class="routine-item"><span class="routine-time">23:00</span> Enviar resumo ao Director (se
+                    solicitado)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rotina Semanal -->
+    <div class="section">
+        <h2>Rotina Semanal</h2>
+        <div class="routine-grid">
+            <div class="routine-card">
+                <h3>📅 Segunda-feira</h3>
+                <div class="routine-item"><span class="routine-time">AM</span> Inserir relatório semanal (guests + LBS)
+                </div>
+                <div class="routine-item"><span class="routine-time">AM</span> Atualizar preços semanais das proteínas
+                </div>
+                <div class="routine-item"><span class="routine-time">PM</span> Revisar performance da semana anterior
+                </div>
+                <div class="routine-item"><span class="routine-time">PM</span> Ajustar template se semana especial
+                    prevista</div>
+            </div>
+            <div class="routine-card">
+                <h3>📊 Sexta-feira</h3>
+                <div class="routine-item"><span class="routine-time">AM</span> Fazer inventário completo das proteínas
+                </div>
+                <div class="routine-item"><span class="routine-time">AM</span> Verificar forecast para o fim de semana
+                </div>
+                <div class="routine-item"><span class="routine-time">PM</span> Confirmar estoque para pico de Sáb/Dom
+                </div>
+                <div class="routine-item"><span class="routine-time">PM</span> Briefar equipe sobre template do fim de
+                    semana</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Troubleshooting -->
+    <div class="section">
+        <h2>Troubleshooting — Problemas Comuns</h2>
+        <table class="trouble-table">
+            <tr>
+                <th>Problema</th>
+                <th>Causa Provável</th>
+                <th>Ação Imediata</th>
+                <th>Escalada</th>
+            </tr>
+            <tr>
+                <td><strong>Dashboard mostra LBS muito alto</strong><br><span class="alert-code">VILLAIN_OVERUSE</span>
+                </td>
+                <td>Excesso de Beef Ribs ou Filet Mignon no serviço</td>
+                <td>Reduzir frequência de villain no rodízio. Aumentar frango e suíno.</td>
+                <td>Se persistir 3 dias → Director</td>
+            </tr>
+            <tr>
+                <td><strong>Custo por guest acima do target</strong><br><span class="alert-code">COST_OVERRUN</span>
+                </td>
+                <td>Mix de proteínas caro + volume baixo de guests</td>
+                <td>Revisar mix. Verificar se preços de custo estão atualizados.</td>
+                <td>Se >10% acima → Director imediato</td>
+            </tr>
+            <tr>
+                <td><strong>Dashboard não atualiza</strong></td>
+                <td>Dados não inseridos ou erro de conexão</td>
+                <td>Verificar se relatório semanal foi salvo. Recarregar página.</td>
+                <td>Se persistir → prophet@texasdebrazil.com (P2)</td>
+            </tr>
+            <tr>
+                <td><strong>Alerta de "Nuclear Problem"</strong><br><span class="alert-code">NUCLEAR</span></td>
+                <td>Múltiplas semanas consecutivas acima do target</td>
+                <td>Não ignorar. Ler a recomendação do sistema e implementar.</td>
+                <td>Director deve ser notificado em 24h</td>
+            </tr>
+            <tr>
+                <td><strong>Loja não aparece no Executive Summary</strong></td>
+                <td>Sem dados na semana atual</td>
+                <td>Inserir relatório semanal com dados da semana.</td>
+                <td>Se dados inseridos e ainda não aparece → Suporte P3</td>
+            </tr>
+            <tr>
+                <td><strong>Preços de custo desatualizados</strong></td>
+                <td>Não inseridos na segunda-feira</td>
+                <td>Inserir imediatamente via Prices → Weekly Price Input.</td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td><strong>Template aplicado errado</strong></td>
+                <td>GM aplicou template incorreto</td>
+                <td>Director re-aplica o template correto via Settings → Templates.</td>
+                <td>Director resolve diretamente</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Contatos -->
+    <div class="section">
+        <h2>Contatos de Suporte</h2>
+        <table class="trouble-table">
+            <tr>
+                <th>Tipo</th>
+                <th>Contato</th>
+                <th>Quando usar</th>
+            </tr>
+            <tr>
+                <td>Suporte técnico P1/P2</td>
+                <td>prophet@texasdebrazil.com · 24/7</td>
+                <td>Sistema fora do ar, dados incorretos</td>
+            </tr>
+            <tr>
+                <td>Suporte técnico P3/P4</td>
+                <td>prophet@texasdebrazil.com · Seg–Sex 8h–18h EST</td>
+                <td>Bugs, dúvidas, melhorias</td>
+            </tr>
+            <tr>
+                <td>Regional Director</td>
+                <td>Contato direto</td>
+                <td>Alertas críticos, decisões de template</td>
+            </tr>
+        </table>
+    </div>
+
+    <p style="font-size:9px;color:#ccc;text-align:center;margin-top:20px;">Brasa Prophet Analytics v3.1 · Texas de
+        Brazil · Manual Operacional v1.0 · Documento Confidencial</p>
+
+</body>
+
+</html>

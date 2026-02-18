@@ -18,6 +18,7 @@ model Company {
   stores             Store[]
   invoices           SysInvoice[]
   products           CompanyProduct[]
+  templates          StoreTemplate[]
 }
 
 model CompanyProduct {
@@ -49,6 +50,8 @@ model Store {
   is_lunch_enabled              Boolean           @default(false)
   lunch_price                   Float             @default(29.90)
   olo_sales_target              Float             @default(0)
+  active_template_id            String?
+  active_template               StoreTemplate?    @relation("ActiveTemplate", fields: [active_template_id], references: [id])
   delivery_sales                DeliverySale[]
   inventory_records             InventoryRecord[]
   invoices                      InvoiceRecord[]
@@ -67,6 +70,20 @@ model Store {
   waste_logs                    WasteLog[]
 
   @@unique([company_id, store_name])
+}
+
+model StoreTemplate {
+  id          String   @id @default(cuid())
+  company_id  String
+  name        String
+  description String?
+  config      Json     // { target_lbs_guest, target_cost_guest, lunch_price, dinner_price, serves_lamb_chops_rodizio, protein_targets: {} }
+  is_system   Boolean  @default(false) // true = seeded by system, read-only for non-admins
+  created_at  DateTime @default(now())
+  company     Company  @relation(fields: [company_id], references: [id])
+  stores      Store[]  @relation("ActiveTemplate")
+
+  @@unique([company_id, name])
 }
 
 model StoreMeatTarget {

@@ -12,11 +12,12 @@ import {
 
 export const CompanySettings = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<'products' | 'stores'>('products');
+    const [activeTab, setActiveTab] = useState<'products' | 'stores' | 'templates'>('products');
 
     // Data State
     const [products, setProducts] = useState<any[]>([]);
     const [stores, setStores] = useState<any[]>([]);
+    const [templates, setTemplates] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Form State
@@ -39,11 +40,16 @@ export const CompanySettings = () => {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 });
                 if (res.ok) setProducts(await res.json());
-            } else {
+            } else if (activeTab === 'stores') {
                 const res = await fetch(`${API_URL}/api/v1/dashboard/company/stores`, {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 });
                 if (res.ok) setStores(await res.json());
+            } else {
+                const res = await fetch(`${API_URL}/api/v1/dashboard/company/templates`, {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                if (res.ok) setTemplates(await res.json());
             }
         } catch (error) {
             console.error('Fetch Error:', error);
@@ -135,6 +141,12 @@ export const CompanySettings = () => {
                         className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'stores' ? 'bg-[#C5A059] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
                     >
                         <StoreIcon className="w-4 h-4" /> stores
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('templates')}
+                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'templates' ? 'bg-[#C5A059] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        <Plus className="w-4 h-4" /> templates
                     </button>
                 </div>
             </div>
@@ -294,7 +306,7 @@ export const CompanySettings = () => {
                             ))}
                         </tbody>
                     </table>
-                ) : (
+                ) : activeTab === 'stores' ? (
                     <table className="w-full">
                         <thead className="bg-black text-[10px] text-gray-500 uppercase tracking-widest font-bold">
                             <tr>
@@ -317,6 +329,69 @@ export const CompanySettings = () => {
                             ))}
                         </tbody>
                     </table>
+                ) : (
+                    /* Templates Tab */
+                    <div className="p-6 space-y-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <p className="text-gray-500 text-xs">Templates de operação pré-configurados. Aplique a qualquer loja via Settings → Lojas.</p>
+                            {(user?.role === 'admin' || user?.role === 'director') && (
+                                <button className="px-4 py-2 bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded hover:bg-[#C5A059] hover:text-black transition-all flex items-center gap-2">
+                                    <Plus className="w-3 h-3" /> Começar do Zero
+                                </button>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {templates.map((t: any) => {
+                                const cfg = t.config || {};
+                                const proteins = Object.entries(cfg.protein_targets || {}).slice(0, 3);
+                                return (
+                                    <div key={t.id} className="bg-black border border-white/10 rounded-xl p-5 hover:border-[#C5A059]/40 transition-all">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div>
+                                                <h3 className="text-white font-bold text-sm">{t.name}</h3>
+                                                <p className="text-gray-500 text-xs mt-0.5">{t.description}</p>
+                                            </div>
+                                            {t.is_system && (
+                                                <span className="text-[8px] font-bold uppercase tracking-widest bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/30 px-2 py-1 rounded">Sistema</span>
+                                            )}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 mb-3">
+                                            <div className="bg-[#111] rounded p-2">
+                                                <p className="text-[9px] text-gray-600 uppercase tracking-widest">LBS/Guest</p>
+                                                <p className="text-white font-mono font-bold text-sm">{cfg.target_lbs_guest ?? '—'}</p>
+                                            </div>
+                                            <div className="bg-[#111] rounded p-2">
+                                                <p className="text-[9px] text-gray-600 uppercase tracking-widest">Cost/Guest</p>
+                                                <p className="text-white font-mono font-bold text-sm">{cfg.target_cost_guest ? `$${cfg.target_cost_guest}` : '—'}</p>
+                                            </div>
+                                            <div className="bg-[#111] rounded p-2">
+                                                <p className="text-[9px] text-gray-600 uppercase tracking-widest">Dinner</p>
+                                                <p className="text-white font-mono font-bold text-sm">{cfg.dinner_price ? `$${cfg.dinner_price}` : '—'}</p>
+                                            </div>
+                                            <div className="bg-[#111] rounded p-2">
+                                                <p className="text-[9px] text-gray-600 uppercase tracking-widest">Lamb Chops</p>
+                                                <p className={`font-mono font-bold text-sm ${cfg.serves_lamb_chops_rodizio ? 'text-[#C5A059]' : 'text-gray-600'}`}>
+                                                    {cfg.serves_lamb_chops_rodizio ? 'Incluso' : 'Não'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {proteins.length > 0 && (
+                                            <div className="flex gap-1 flex-wrap">
+                                                {proteins.map(([name, val]: any) => (
+                                                    <span key={name} className="text-[9px] bg-white/5 text-gray-400 px-2 py-0.5 rounded font-mono">
+                                                        {name}: {(val * 100).toFixed(0)}%
+                                                    </span>
+                                                ))}
+                                                {Object.keys(cfg.protein_targets || {}).length > 3 && (
+                                                    <span className="text-[9px] text-gray-600 px-2 py-0.5">+{Object.keys(cfg.protein_targets).length - 3} more</span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 )}
 
                 {loading && (

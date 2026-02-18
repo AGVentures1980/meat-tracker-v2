@@ -34,6 +34,13 @@ router.get('/company/stores', requireAuth, CompanyController.getStores);
 router.post('/company/stores', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.addStore);
 router.delete('/company/stores/:id', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.deleteStore);
 
+// Store Templates (Phase 12)
+import { TemplateController } from '../controllers/TemplateController';
+
+router.get('/company/templates', requireAuth, TemplateController.listTemplates);
+router.post('/company/templates', requireAuth, requireRole([Role.admin, Role.director]), TemplateController.createTemplate);
+router.post('/company/stores/:id/apply-template', requireAuth, TemplateController.applyTemplate);
+
 
 // Store Management
 router.get('/settings/stores', requireAuth, SettingsController.getStores);

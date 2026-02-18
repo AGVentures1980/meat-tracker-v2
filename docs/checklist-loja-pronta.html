@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist Loja Pronta — Texas de Brazil</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Georgia', serif; background: white; color: #111; padding: 40px; max-width: 800px; margin: 0 auto; }
+  @media print { body { padding: 20px; } @page { margin: 1.5cm; size: A4; } }
+  .header { border-bottom: 3px solid #111; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .header h1 { font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; }
+  .header .meta { text-align: right; font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 2px; }
+  .badge { display: inline-block; background: #111; color: white; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; padding: 3px 8px; margin-bottom: 4px; }
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: #888; border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 12px; }
+  .item { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+  .checkbox { width: 18px; height: 18px; border: 2px solid #111; flex-shrink: 0; margin-top: 2px; }
+  .item-text { flex: 1; }
+  .item-label { font-size: 13px; font-weight: 600; }
+  .item-note { font-size: 10px; color: #888; margin-top: 2px; }
+  .critical { border-left: 3px solid #c00; padding-left: 10px; }
+  .footer { margin-top: 32px; border-top: 2px solid #111; padding-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .sign-line { border-bottom: 1px solid #111; margin-bottom: 4px; height: 32px; }
+  .sign-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: #888; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="badge">Confidencial · Operações</div>
+    <h1>Checklist Loja Pronta</h1>
+    <p style="font-size:12px;color:#666;margin-top:4px;">Texas de Brazil · Brasa Prophet Analytics</p>
+  </div>
+  <div class="meta">
+    <p>Loja: ___________________</p>
+    <p style="margin-top:6px;">Data de Abertura: ___________</p>
+    <p style="margin-top:6px;">GM Responsável: ___________</p>
+  </div>
+</div>
+
+<div class="two-col">
+  <div>
+    <div class="section">
+      <div class="section-title">1. Sistema Brasa Prophet</div>
+      <div class="item critical">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Login criado e testado</div>
+          <div class="item-note">GM consegue acessar o dashboard da loja</div>
+        </div>
+      </div>
+      <div class="item critical">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Template operacional aplicado</div>
+          <div class="item-note">Settings → Templates → Selecionar e Aplicar</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Preços de almoço/jantar configurados</div>
+          <div class="item-note">Settings → Loja → Preços</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Lamb Chops rodízio configurado</div>
+          <div class="item-note">Sim/Não conforme contrato da loja</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Targets de proteína revisados</div>
+          <div class="item-note">Confirmar com Regional Director</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">2. Dados Iniciais</div>
+      <div class="item critical">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Primeiro inventário inserido</div>
+          <div class="item-note">Data de abertura como baseline</div>
+        </div>
+      </div>
+      <div class="item critical">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Primeiro relatório de guests inserido</div>
+          <div class="item-note">Semana de abertura (estimativa OK)</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Preços semanais inseridos</div>
+          <div class="item-note">Prices → Weekly Price Input</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="section">
+      <div class="section-title">3. Treinamento da Equipe</div>
+      <div class="item critical">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">GM completou Módulo 1 (Dashboard)</div>
+          <div class="item-note">Training → Módulo 1 → Quiz aprovado</div>
+        </div>
+      </div>
+      <div class="item critical">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">GM completou Módulo 2 (Alertas)</div>
+          <div class="item-note">Training → Módulo 2 → Quiz aprovado</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Equipe de cozinha briefada</div>
+          <div class="item-note">Portioning protocol explicado</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Rotina diária de entrada de dados explicada</div>
+          <div class="item-note">Quem insere, quando, como</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">4. Aprovações</div>
+      <div class="item critical">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Regional Director aprovou configuração</div>
+          <div class="item-note">Targets e template validados</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Dashboard aparece no Executive Summary</div>
+          <div class="item-note">Loja visível na rede corporativa</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="checkbox"></div>
+        <div class="item-text">
+          <div class="item-label">Primeiro alerta testado e recebido</div>
+          <div class="item-note">GM sabe como responder a alertas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div>
+    <div class="sign-line"></div>
+    <div class="sign-label">GM da Loja — Assinatura e Data</div>
+  </div>
+  <div>
+    <div class="sign-line"></div>
+    <div class="sign-label">Regional Director — Aprovação e Data</div>
+  </div>
+</div>
+
+<p style="font-size:9px;color:#ccc;text-align:center;margin-top:20px;">Brasa Prophet Analytics v3.1 · Texas de Brazil · Documento Confidencial</p>
+
+</body>
+</html>

@@ -21,6 +21,7 @@ import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
+import { CFOReport } from './pages/CFOReport';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -84,6 +85,7 @@ function AppContent() {
                     <Route path="/command-center" element={<CommandCenter />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
+                    <Route path="/cfo-report" element={<CFOReport />} />
                 </Route>
 
                 {/* Catch all redirect to login */}

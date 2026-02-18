@@ -86,6 +86,7 @@ export class AnalystController {
                 scanMetadata: {
                     timeframe,
                     range: `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`,
+                    month: now.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
                     totalStoresScanned: performance.length
                 },
                 insights: {
@@ -93,8 +94,15 @@ export class AnalystController {
                     recommendations,
                     summaryBriefing: {
                         criticalAlerts: problems.length,
-                        projectedMonthlySavings: 85200,
-                        systemHealth: performance.filter(s => s.status === 'Optimal').length / performance.length * 100
+                        // Real savings: sum of absolute impactYTD for stores under target (negative = saving)
+                        projectedMonthlySavings: performance
+                            .filter((s: any) => s.impactYTD < 0)
+                            .reduce((acc: number, s: any) => acc + Math.abs(s.impactYTD), 0),
+                        // Real loss: sum of impactYTD for stores over target (positive = overspend)
+                        projectedMonthlyLoss: performance
+                            .filter((s: any) => s.impactYTD > 0)
+                            .reduce((acc: number, s: any) => acc + s.impactYTD, 0),
+                        systemHealth: performance.filter((s: any) => s.status === 'Optimal').length / performance.length * 100
                     }
                 },
                 matrix: performance // Full data for the spreadsheet view

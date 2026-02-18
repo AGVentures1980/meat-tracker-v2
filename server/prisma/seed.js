@@ -71,6 +71,106 @@ async function main() {
         create: { id: 'tdb-main', name: 'Texas de Brazil', plan: 'enterprise' }
     });
 
+    // ─── Seed Store Templates ───────────────────────────────────────────────
+    console.log('📋 Seeding Store Templates...');
+    const SYSTEM_TEMPLATES = [
+        {
+            name: 'Template em Branco',
+            description: 'Ponto de partida para criar um template customizado do zero.',
+            is_system: true,
+            config: {
+                target_lbs_guest: null, target_cost_guest: null,
+                lunch_price: null, dinner_price: null,
+                serves_lamb_chops_rodizio: false,
+                protein_targets: {}
+            }
+        },
+        {
+            name: 'Rodízio Padrão',
+            description: 'Baseline para semanas normais. Todos os valores padrão calibrados.',
+            is_system: true,
+            config: {
+                target_lbs_guest: 1.76, target_cost_guest: 9.94,
+                lunch_price: 34.00, dinner_price: 54.00,
+                serves_lamb_chops_rodizio: false,
+                protein_targets: {
+                    'Beef Ribs': 0.12, 'Filet Mignon': 0.15, 'Picanha': 0.14,
+                    'Fraldinha': 0.13, 'Chicken': 0.07, 'Lamb Chops': 0.05,
+                    'Sirloin': 0.08, 'Sausage': 0.04, 'Pork Ribs': 0.06, 'Pork Loin': 0.05
+                }
+            }
+        },
+        {
+            name: 'Volume Alto',
+            description: 'Finais de semana movimentados, feriados. +20% no target de LBS.',
+            is_system: true,
+            config: {
+                target_lbs_guest: 2.10, target_cost_guest: 11.50,
+                lunch_price: 34.00, dinner_price: 54.00,
+                serves_lamb_chops_rodizio: false,
+                protein_targets: {
+                    'Beef Ribs': 0.14, 'Filet Mignon': 0.17, 'Picanha': 0.16,
+                    'Fraldinha': 0.15, 'Chicken': 0.08, 'Lamb Chops': 0.05,
+                    'Sirloin': 0.09, 'Sausage': 0.05, 'Pork Ribs': 0.07, 'Pork Loin': 0.06
+                }
+            }
+        },
+        {
+            name: 'Ribs-Heavy',
+            description: 'Verão / grilling season. Alta demanda de costela.',
+            is_system: true,
+            config: {
+                target_lbs_guest: 1.95, target_cost_guest: 10.80,
+                lunch_price: 34.00, dinner_price: 54.00,
+                serves_lamb_chops_rodizio: false,
+                protein_targets: {
+                    'Beef Ribs': 0.22, 'Filet Mignon': 0.10, 'Picanha': 0.12,
+                    'Fraldinha': 0.13, 'Chicken': 0.07, 'Lamb Chops': 0.04,
+                    'Sirloin': 0.07, 'Sausage': 0.05, 'Pork Ribs': 0.10, 'Pork Loin': 0.05
+                }
+            }
+        },
+        {
+            name: 'Premium Mix',
+            description: 'Eventos corporativos, noites de alto ticket. Mais Filet e Picanha.',
+            is_system: true,
+            config: {
+                target_lbs_guest: 1.65, target_cost_guest: 12.50,
+                lunch_price: 38.00, dinner_price: 62.00,
+                serves_lamb_chops_rodizio: true,
+                protein_targets: {
+                    'Beef Ribs': 0.08, 'Filet Mignon': 0.22, 'Picanha': 0.20,
+                    'Fraldinha': 0.10, 'Chicken': 0.05, 'Lamb Chops': 0.08,
+                    'Sirloin': 0.08, 'Sausage': 0.03, 'Pork Ribs': 0.04, 'Pork Loin': 0.04
+                }
+            }
+        },
+        {
+            name: 'Evento Especial',
+            description: "Valentine's Day, NYE, Mother's Day. 4x volume, mix premium, tolerância apertada.",
+            is_system: true,
+            config: {
+                target_lbs_guest: 1.55, target_cost_guest: 13.50,
+                lunch_price: 38.00, dinner_price: 62.00,
+                serves_lamb_chops_rodizio: true,
+                protein_targets: {
+                    'Beef Ribs': 0.06, 'Filet Mignon': 0.25, 'Picanha': 0.22,
+                    'Fraldinha': 0.08, 'Chicken': 0.04, 'Lamb Chops': 0.10,
+                    'Sirloin': 0.07, 'Sausage': 0.02, 'Pork Ribs': 0.03, 'Pork Loin': 0.03
+                }
+            }
+        }
+    ];
+
+    for (const tmpl of SYSTEM_TEMPLATES) {
+        await prisma.storeTemplate.upsert({
+            where: { company_id_name: { company_id: 'tdb-main', name: tmpl.name } },
+            update: { description: tmpl.description, config: tmpl.config },
+            create: { company_id: 'tdb-main', ...tmpl }
+        });
+    }
+    console.log(`✅ ${SYSTEM_TEMPLATES.length} templates seeded.`);
+
     console.log('📦 Establishing Company Product Ledger (Alphabetized)...');
 
     const MASTER_PRODUCTS = [
