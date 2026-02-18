@@ -10,7 +10,7 @@ const ACCOUNTS = {
     "annarbor@texasdebrazil.com": { "pass": "TDB-AnnArbor-79", "name": "AnnArbor", "id": "79", "company": "Texas de Brazil" },
     "buffalo@texasdebrazil.com": { "pass": "TDB-Buffalo-300", "name": "Buffalo", "id": "300", "company": "Texas de Brazil" },
     "cincinnati@texasdebrazil.com": { "pass": "TDB-Cinci-901", "name": "Cinci", "id": "901", "company": "Texas de Brazil" },
-    "dallas@texasdebrazil.com": { "pass": "TDB-Dallas-30", "name": "Dallas", "id": "30", "company": "Texas de Brazil" },
+    "dallas@texasdebrazil.com": { "pass": "Dallas2026", "name": "Dallas", "id": "30", "company": "Texas de Brazil", "role": "director" },
     "fairfax@texasdebrazil.com": { "pass": "TDB-FairOak-110", "name": "FairOak", "id": "110", "company": "Texas de Brazil" },
     "fortworth@texasdebrazil.com": { "pass": "TDB-FtWorth-40", "name": "FtWorth", "id": "40", "company": "Texas de Brazil" },
     "greenville@texasdebrazil.com": { "pass": "TDB-Gville-800", "name": "Gville", "id": "800", "company": "Texas de Brazil" },

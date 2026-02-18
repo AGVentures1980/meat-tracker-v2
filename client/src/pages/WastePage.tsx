@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MEAT_UNIT_WEIGHTS } from '../config/meat_weights';
-import { Trash2, Lock, CheckCircle, AlertTriangle, Scale, Save, FileText, ChevronDown, ChevronRight, Calendar } from 'lucide-react';
+import { Trash2, Lock, CheckCircle, AlertTriangle, Scale, Save, FileText, ChevronDown, ChevronRight, Calendar, ArrowLeft, AlertCircle, Building2 } from 'lucide-react';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -168,7 +168,9 @@ const WastePage = () => {
     const { user } = useAuth();
     const [searchParams] = useSearchParams();
     const [status, setStatus] = useState<any>(null);
+    const [networkStatus, setNetworkStatus] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [networkLoading, setNetworkLoading] = useState(false);
     const [selectedItems, setSelectedItems] = useState<any[]>([]);
 
     // Form State
@@ -181,9 +183,15 @@ const WastePage = () => {
 
     const [stores, setStores] = useState<any[]>([]);
 
+    const isExecutive = user?.role?.toLowerCase() === 'admin' ||
+        user?.role?.toLowerCase() === 'director' ||
+        user?.role?.toLowerCase() === 'owner' ||
+        user?.email?.includes('admin') ||
+        user?.email === 'dallas@texasdebrazil.com';
+
     useEffect(() => {
         const fetchStores = async () => {
-            if (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) {
+            if (isExecutive) {
                 try {
                     const res = await fetch('/api/v1/settings/stores', {
                         headers: { 'Authorization': `Bearer ${user?.token}` }
@@ -192,11 +200,8 @@ const WastePage = () => {
                         const data = await res.json();
                         setStores(data);
 
-                        // Default to first store if none selected and user has no store
-                        const storeIdParam = searchParams.get('storeId');
-                        if (!storeIdParam && !user?.store_id && data.length > 0) {
-                            setSelectedStore(data[0].id);
-                        }
+                        // If not executive, we default to their store. 
+                        // If executive, we don't auto-select if no param is present (show grid)
                     }
                 } catch (e) {
                     console.error('Failed to load stores', e);
@@ -211,9 +216,7 @@ const WastePage = () => {
         if (storeIdParam) {
             setSelectedStore(parseInt(storeIdParam));
         } else if (user?.store_id) {
-            // Default to user store if not admin/director override
-            // But for admin/director, we might want to default to param OR first store (handled above)
-            if (!selectedStore && (user.role !== 'admin' && user.role !== 'director')) {
+            if (!selectedStore && !isExecutive) {
                 setSelectedStore(user.store_id);
             }
         }
@@ -236,9 +239,32 @@ const WastePage = () => {
         }
     };
 
+    const fetchNetworkStatus = async () => {
+        setNetworkLoading(true);
+        try {
+            const res = await fetch('/api/v1/dashboard/waste/network-status', {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setNetworkStatus(data);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setNetworkLoading(false);
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        setLoading(true);
-        fetchStatus();
+        if (selectedStore) {
+            setLoading(true);
+            fetchStatus();
+        } else if (isExecutive) {
+            setLoading(true);
+            fetchNetworkStatus();
+        }
     }, [selectedStore]);
 
     const handleAddItem = () => {
@@ -309,6 +335,101 @@ const WastePage = () => {
     };
 
     if (loading) return <div className="p-8 text-[#C5A059] font-mono animate-pulse">Checking Compliance Protocols...</div>;
+
+    // --- RENDER EXECUTIVE NETWORK GRID ---
+    if (isExecutive && !selectedStore) {
+        return (
+            <div className="max-w-6xl mx-auto p-6 space-y-8">
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                            <Trash2 className="w-8 h-8 text-[#FF2A6D]" />
+                            Network Waste Status
+                        </h1>
+                        <p className="text-gray-500 text-sm mt-1 font-mono uppercase tracking-wider">Executive Compliance Overview</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="bg-[#1a1a1a] px-4 py-2 rounded border border-[#333] text-sm">
+                            <span className="text-gray-500 pr-2 uppercase text-[10px] tracking-widest">Submitted:</span>
+                            <span className="text-white font-bold">{networkStatus?.submitted_count} / {networkStatus?.total_stores}</span>
+                        </div>
+                        {networkStatus?.company_avg_percent !== undefined && (
+                            <div className={`px-4 py-2 rounded border text-sm font-bold flex items-center gap-2 ${networkStatus.company_avg_percent > 5
+                                ? 'bg-red-500/10 border-red-500/30 text-red-500'
+                                : networkStatus.company_avg_percent > 1
+                                    ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500'
+                                    : 'bg-[#00FF94]/10 border-[#00FF94]/30 text-[#00FF94]'
+                                }`}>
+                                <Building2 className="w-4 h-4" />
+                                COMPANY AVG: {networkStatus.company_avg_percent}%
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {networkStatus?.stores.map((store: any) => (
+                        <button
+                            key={store.id}
+                            onClick={() => setSelectedStore(store.id)}
+                            className={`p-4 rounded-lg border text-left transition-all group relative overflow-hidden bg-[#121212] hover:bg-[#1a1a1a] ${store.status === 'RED' ? 'border-red-500/30' :
+                                store.status === 'YELLOW' ? 'border-yellow-500/30' :
+                                    store.status === 'GREEN' ? 'border-[#00FF94]/30' : 'border-[#333]'
+                                }`}
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="font-bold text-lg text-white group-hover:text-brand-gold transition-colors">{store.name}</h3>
+                                    <p className="text-xs text-gray-500 uppercase">{store.location}</p>
+                                </div>
+                                {store.status === 'MISSING' ? (
+                                    <AlertCircle className="w-5 h-5 text-gray-700" />
+                                ) : (
+                                    <CheckCircle className="w-5 h-5 text-[#00FF94]" />
+                                )}
+                            </div>
+
+                            {store.status === 'MISSING' ? (
+                                <div className="py-2">
+                                    <span className="text-[10px] bg-gray-900 text-gray-500 px-2 py-1 rounded font-mono uppercase tracking-widest">MISSING REPORT</span>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <span className="text-[10px] text-gray-500 uppercase block leading-none mb-1">Waste Weight</span>
+                                            <span className="text-lg font-black text-white">{store.waste_lbs} <span className="text-[10px] font-normal text-gray-500">lbs</span></span>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-[10px] text-gray-500 uppercase block leading-none mb-1">Impact</span>
+                                            <span className={`text-lg font-black ${store.status === 'RED' ? 'text-red-500' :
+                                                store.status === 'YELLOW' ? 'text-yellow-500' : 'text-[#00FF94]'
+                                                }`}>{store.waste_percent}%</span>
+                                        </div>
+                                    </div>
+                                    <div className="w-full h-1 bg-[#222] rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full ${store.status === 'RED' ? 'bg-red-500' :
+                                                store.status === 'YELLOW' ? 'bg-yellow-500' : 'bg-[#00FF94]'
+                                                }`}
+                                            style={{ width: `${Math.min(store.waste_percent * 5, 100)}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Decorative Status Accent */}
+                            <div className={`absolute bottom-0 left-0 w-full h-[3px] ${store.status === 'RED' ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
+                                store.status === 'YELLOW' ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]' :
+                                    store.status === 'GREEN' ? 'bg-[#00FF94] shadow-[0_0_10px_rgba(0,255,148,0.3)]' : 'bg-transparent'
+                                }`}></div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     if (!status) return <div className="p-8 text-red-500">Failed to load status.</div>;
 
     // Determine UI State based on Status
@@ -319,21 +440,31 @@ const WastePage = () => {
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-8">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-                    <Trash2 className="w-8 h-8 text-[#FF2A6D]" />
-                    Process Waste
-                </h1>
+                <div className="flex items-center gap-4">
+                    {isExecutive && selectedStore && (
+                        <button
+                            onClick={() => setSelectedStore(null)}
+                            className="p-2 bg-[#1a1a1a] hover:bg-[#333] rounded border border-[#444] text-white transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </button>
+                    )}
+                    <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <Trash2 className="w-8 h-8 text-[#FF2A6D]" />
+                        {selectedStore ? (stores.find(s => s.id === selectedStore)?.name || 'Store Report') : 'Process Waste'}
+                    </h1>
+                </div>
 
                 {/* Admin Store Selector */}
-                {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
+                {isExecutive && (
                     <div className="flex items-center gap-2 bg-[#1a1a1a] p-1 rounded border border-[#333]">
                         <select
                             className="bg-[#121212] text-white text-sm p-1 rounded border border-[#333] outline-none focus:border-[#C5A059]"
                             value={selectedStore || ''}
                             onChange={(e) => setSelectedStore(e.target.value ? parseInt(e.target.value) : null)}
                         >
-                            <option value="">My Store (Default)</option>
-                            {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            <option value="">Select Store...</option>
+                            {stores.map(s => <option key={s.id} value={s.id}>{s.name || s.store_name}</option>)}
                         </select>
                     </div>
                 )}

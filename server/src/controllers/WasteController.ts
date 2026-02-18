@@ -412,4 +412,91 @@ export class WasteController {
             res.status(500).json({ error: 'Failed to fetch detailed history' });
         }
     }
+
+    static async getNetworkWasteStatus(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const companyId = user.company_id || user.companyId || 1;
+
+            const today = new Date();
+            const centralDate = WasteController.getCentralDateTime(today);
+            const dateStr = centralDate.toISOString().split('T')[0];
+            const startOfDay = new Date(dateStr);
+            startOfDay.setHours(0, 0, 0, 0);
+
+            // 1. Fetch all stores for the company
+            const stores = await prisma.store.findMany({
+                where: { company_id: companyId },
+                select: { id: true, store_name: true, location: true, target_lbs_guest: true }
+            });
+
+            // 2. Fetch today's logs for these stores
+            const logs = await prisma.wasteLog.findMany({
+                where: {
+                    store_id: { in: stores.map(s => s.id) },
+                    date: startOfDay
+                }
+            });
+
+            // 3. Process each store
+            let totalWasteLbsNet = 0;
+            let totalProjectedNet = 0;
+            let storesReported = 0;
+
+            const statusGrid = stores.map(store => {
+                const storeLogs = logs.filter(l => l.store_id === store.id);
+                const hasLog = storeLogs.length > 0;
+
+                let wasteLbs = 0;
+                if (hasLog) {
+                    storeLogs.forEach(l => {
+                        const items = l.items as any[];
+                        items.forEach(i => wasteLbs += i.weight);
+                    });
+                }
+
+                const storeTarget = store.target_lbs_guest || 1.76;
+                const mockForecast = 150; // Standardize for grid comparison
+                const projectedUsage = mockForecast * storeTarget;
+
+                const wastePercent = hasLog ? (wasteLbs / projectedUsage) * 100 : 0;
+
+                // Status Mapping: MISSING, GREEN (<1%), YELLOW (1-5%), RED (>5%)
+                let status = 'MISSING';
+                if (hasLog) {
+                    if (wastePercent > 5) status = 'RED';
+                    else if (wastePercent > 1) status = 'YELLOW';
+                    else status = 'GREEN';
+
+                    totalWasteLbsNet += wasteLbs;
+                    totalProjectedNet += projectedUsage;
+                    storesReported++;
+                }
+
+                return {
+                    id: store.id,
+                    name: store.store_name,
+                    location: store.location,
+                    status,
+                    waste_lbs: parseFloat(wasteLbs.toFixed(1)),
+                    waste_percent: parseFloat(wastePercent.toFixed(2)),
+                    is_locked: hasLog // UI uses this to show submitted icon
+                };
+            });
+
+            const companyAvgPercent = totalProjectedNet > 0 ? (totalWasteLbsNet / totalProjectedNet) * 100 : 0;
+
+            return res.json({
+                date: dateStr,
+                total_stores: stores.length,
+                submitted_count: storesReported,
+                company_avg_percent: parseFloat(companyAvgPercent.toFixed(2)),
+                stores: statusGrid
+            });
+
+        } catch (error) {
+            console.error('Network Waste Status Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch network waste status' });
+        }
+    }
 }
