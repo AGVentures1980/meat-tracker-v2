@@ -32,7 +32,7 @@ export class AnalystController {
                 });
             }
 
-            const reportData = selectedStores.map(store => {
+            const reportData = selectedStores.map((store, index) => {
                 // --- 2. Calculate Actuals (Mocking logic for prototype if data is sparse) ---
 
                 // Actual Loss Rate (Logic: Waste Lbs / Total Usage Lbs)
@@ -67,12 +67,27 @@ export class AnalystController {
                 const totalSavings = moneySavedLoss + moneySavedConsumption;
 
                 // Fee
-                const feePct = store.company.contract_savings_fee_pct || 8.0; // Updated to 8% as requested
+                const feePct = store.company.contract_savings_fee_pct || 8.0;
                 const saasFee = totalSavings * (feePct / 100);
+
+                // Pilot Rationale Logic (Demo Override)
+                let rationale_en = "Pilot Location";
+                let demoStoreName = store.store_name;
+                if (index === 0) {
+                    demoStoreName = "Addison, TX (HQ)";
+                    rationale_en = "Control Group • HQ Proximity • Stability Test";
+                } else if (index === 1) {
+                    demoStoreName = "Miami Beach, FL";
+                    rationale_en = "High Volume • Yield Stress Test • Tourism";
+                } else if (index === 2) {
+                    demoStoreName = "Las Vegas, NV";
+                    rationale_en = "High Cost Market • Margin Proof • Complexity";
+                }
 
                 return {
                     storeId: store.id,
-                    storeName: store.store_name,
+                    storeName: demoStoreName, // Override for demo
+                    rationale: rationale_en, // New field
                     pilotStart: store.pilot_start_date || new Date(),
                     baselines: {
                         loss: store.baseline_loss_rate,
@@ -84,7 +99,7 @@ export class AnalystController {
                         loss: actualLossRate,
                         yield: actualYieldRibs,
                         consumption: actualConsumption,
-                        forecast: 84.0 // Simulated improvement
+                        forecast: 84.0
                     },
                     financials: {
                         annualVolumeLb: annualVolume,
