@@ -144,7 +144,8 @@ export class AnalystController {
                 baseline_yield_ribs,
                 baseline_consumption_pax,
                 baseline_forecast_accuracy,
-                baseline_overproduction
+                baseline_overproduction,
+                pilot_start_date
             } = req.body;
 
             const updatedStore = await prisma.store.update({
@@ -154,7 +155,8 @@ export class AnalystController {
                     baseline_yield_ribs: parseFloat(baseline_yield_ribs),
                     baseline_consumption_pax: parseFloat(baseline_consumption_pax),
                     baseline_forecast_accuracy: parseFloat(baseline_forecast_accuracy),
-                    baseline_overproduction: parseFloat(baseline_overproduction)
+                    baseline_overproduction: parseFloat(baseline_overproduction),
+                    pilot_start_date: pilot_start_date ? new Date(pilot_start_date) : undefined
                 }
             });
 

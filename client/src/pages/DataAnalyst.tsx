@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { FileText, ArrowDown, Lock, ShieldCheck, DollarSign, TrendingDown, Target } from 'lucide-react';
+// import { useLanguage } from '../context/LanguageContext';
+import { ArrowDown, Lock, ShieldCheck, DollarSign, TrendingDown, Target } from 'lucide-react';
 
 interface RoiData {
     storeId: number;
@@ -44,7 +44,7 @@ interface AnalystResponse {
 
 export const DataAnalyst = () => {
     const { user } = useAuth();
-    const { t } = useLanguage();
+    // const { t } = useLanguage();
     const [data, setData] = useState<AnalystResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [editingStoreId, setEditingStoreId] = useState<number | null>(null);
@@ -53,7 +53,8 @@ export const DataAnalyst = () => {
         yield: 0,
         consumption: 0,
         forecast: 0,
-        overproduction: 0
+        overproduction: 0,
+        pilotStart: ''
     });
 
     useEffect(() => {
@@ -81,7 +82,8 @@ export const DataAnalyst = () => {
             yield: store.baselines.yield,
             consumption: store.baselines.consumption,
             forecast: store.baselines.forecast,
-            overproduction: store.baselines.overproduction
+            overproduction: store.baselines.overproduction,
+            pilotStart: store.pilotStart ? new Date(store.pilotStart).toISOString().split('T')[0] : ''
         });
     };
 
@@ -98,7 +100,8 @@ export const DataAnalyst = () => {
                     baseline_yield_ribs: editValues.yield,
                     baseline_consumption_pax: editValues.consumption,
                     baseline_forecast_accuracy: editValues.forecast,
-                    baseline_overproduction: editValues.overproduction
+                    baseline_overproduction: editValues.overproduction,
+                    pilot_start_date: editValues.pilotStart
                 })
             });
             setEditingStoreId(null);
@@ -167,8 +170,19 @@ export const DataAnalyst = () => {
                             )}
                         </div>
 
-                        <h2 className="text-xl font-bold mb-1 text-white uppercase tracking-wider border-l-4 border-[#C5A059] pl-3">
-                            {store.storeName} <span className="text-gray-500 text-sm font-normal">| Pilot Started: {new Date(store.pilotStart).toLocaleDateString()}</span>
+                        <h2 className="text-xl font-bold mb-1 text-white uppercase tracking-wider border-l-4 border-[#C5A059] pl-3 flex items-center gap-2">
+                            {store.storeName}
+                            <span className="text-gray-500 text-sm font-normal">| Pilot Started:</span>
+                            {editingStoreId === store.storeId ? (
+                                <input
+                                    type="date"
+                                    className="bg-[#333] text-white text-xs px-2 py-1 rounded border border-[#555] focus:border-[#C5A059] outline-none"
+                                    value={editValues.pilotStart}
+                                    onChange={(e) => setEditValues({ ...editValues, pilotStart: e.target.value })}
+                                />
+                            ) : (
+                                <span className="text-gray-500 text-sm font-normal">{new Date(store.pilotStart).toLocaleDateString()}</span>
+                            )}
                         </h2>
                         {store.rationale && (
                             <p className="text-[10px] text-gray-500 ml-4 mb-6 uppercase tracking-wider">{store.rationale}</p>
