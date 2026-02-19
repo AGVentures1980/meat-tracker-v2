@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SLA — Texas de Brazil · Brasa Prophet Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: white;
+            color: #111;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        @media print {
+            body {
+                padding: 20px;
+            }
+
+            @page {
+                margin: 1.5cm;
+                size: A4;
+            }
+        }
+
+        .header {
+            border-bottom: 3px solid #111;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #111;
+            color: white;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 3px 8px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 30px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #888;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: #111;
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        .green {
+            color: #166534;
+            font-weight: 700;
+        }
+
+        .footer {
+            margin-top: 32px;
+            border-top: 2px solid #111;
+            padding-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .sign-line {
+            border-bottom: 1px solid #111;
+            margin-bottom: 4px;
+            height: 32px;
+        }
+
+        .sign-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+        }
+
+        .note {
+            font-size: 10px;
+            color: #888;
+            background: #fafafa;
+            border-left: 3px solid #111;
+            padding: 10px 14px;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="badge">Service Level Agreement</div>
+        <h1>SLA — Brasa Prophet Analytics</h1>
+        <p class="subtitle">Texas de Brazil · Effective: January 2026 – December 2026</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">1. System Availability</div>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Commitment</th>
+                <th>Measurement</th>
+            </tr>
+            <tr>
+                <td>Monthly Uptime</td>
+                <td class="green">≥ 99.5%</td>
+                <td>Continuous Monitoring</td>
+            </tr>
+            <tr>
+                <td>Maintenance Window</td>
+                <td>Sundays 2am–4am EST</td>
+                <td>48h Advance Notice</td>
+            </tr>
+            <tr>
+                <td>API Response Time</td>
+                <td class="green">≤ 2 seconds (p95)</td>
+                <td>Server Logs</td>
+            </tr>
+            <tr>
+                <td>Dashboard Load Time</td>
+                <td class="green">≤ 3 seconds</td>
+                <td>Frontend Monitoring</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">2. Support and Response Time</div>
+        <table>
+            <tr>
+                <th>Severity</th>
+                <th>Definition</th>
+                <th>Initial Response</th>
+                <th>Resolution</th>
+            </tr>
+            <tr>
+                <td><strong>P1 — Critical</strong></td>
+                <td>System down, incorrect data affecting decisions</td>
+                <td class="green">2 hours</td>
+                <td>8 hours</td>
+            </tr>
+            <tr>
+                <td><strong>P2 — High</strong></td>
+                <td>Major feature unavailable, alerts not firing</td>
+                <td class="green">8 hours</td>
+                <td>24 hours</td>
+            </tr>
+            <tr>
+                <td><strong>P3 — Medium</strong></td>
+                <td>Bug in secondary feature, slowness</td>
+                <td>24 hours</td>
+                <td>5 business days</td>
+            </tr>
+            <tr>
+                <td><strong>P4 — Low</strong></td>
+                <td>Enhancement, question, feature request</td>
+                <td>3 business days</td>
+                <td>Next Sprint</td>
+            </tr>
+        </table>
+        <div class="note">Support via: <strong>prophet@texasdebrazil.com</strong> · Hours: Mon–Fri 8am–6pm EST · P1
+            available 24/7</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">3. Security and Data</div>
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Commitment</th>
+            </tr>
+            <tr>
+                <td>Data Backup</td>
+                <td class="green">Daily automatic, 90 days retention</td>
+            </tr>
+            <tr>
+                <td>Encryption in Transit</td>
+                <td class="green">TLS 1.3 on all connections</td>
+            </tr>
+            <tr>
+                <td>Role Based Access (RBAC)</td>
+                <td class="green">Admin / Director / Manager / Viewer</td>
+            </tr>
+            <tr>
+                <td>Audit Log</td>
+                <td class="green">All actions logged with timestamp and user</td>
+            </tr>
+            <tr>
+                <td>Operational Data Retention</td>
+                <td>12 months rolling (configurable)</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">4. SLA Exclusions</div>
+        <p style="font-size:12px;color:#666;line-height:1.6;">This SLA does not cover: (a) third-party infrastructure
+            failures (AWS, Vercel, Cloudflare); (b) scheduled maintenance communicated 48h in advance; (c) incidents
+            caused by misuse of the system by the client; (d) force majeure.</p>
+    </div>
+
+    <div class="footer">
+        <div>
+            <div class="sign-line"></div>
+            <div class="sign-label">Texas de Brazil — Authorized Representative</div>
+        </div>
+        <div>
+            <div class="sign-line"></div>
+            <div class="sign-label">Brasa Prophet Analytics — Technical Lead</div>
+        </div>
+    </div>
+
+    <p style="font-size:9px;color:#ccc;text-align:center;margin-top:20px;">Brasa Prophet Analytics v3.1 · Confidential
+        Document · Version 1.0 — January 2026</p>
+
+</body>
+
+</html>

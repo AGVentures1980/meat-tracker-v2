@@ -494,14 +494,31 @@ export const TrainingPage = () => {
         );
     }
 
-    // ─── VIEW: RESOURCES ──────────────────────────────────────────────────────────
+    // ─── VIEW: RESOURCES (ADMIN ONLY) ─────────────────────────────────────────────
     if (phase === 'resources') {
+        if (user?.role !== 'admin') {
+            return (
+                <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
+                    <div className="max-w-md text-center space-y-6 p-8 bg-red-900/10 border border-red-500/30 rounded-2xl">
+                        <Lock className="w-16 h-16 text-red-500 mx-auto" />
+                        <h1 className="text-3xl font-black text-white">Access Restricted</h1>
+                        <p className="text-gray-400">
+                            Training Documentation is classified for Master/Admin users only.
+                        </p>
+                        <button onClick={() => setPhase('slides')} className="mx-auto flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm">
+                            <ChevronLeft className="w-4 h-4" /> Back to Training Center
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
         const RESOURCES = [
-            { title: 'SLA Agreement', file: '/resources/sla.html', desc: 'System availability & support tiers' },
+            { title: 'SLA Agreement', file: '/resources/sla-agreement.html', desc: 'System availability & support tiers' },
             { title: 'Onboarding SOP', file: '/resources/onboarding-sop.html', desc: 'Standard Operating Procedures' },
-            { title: 'Operational Manual', file: '/resources/manual-operacional.html', desc: 'Daily/Weekly routines & troubleshooting' },
-            { title: 'Store Ready Checklist', file: '/resources/checklist-loja-pronta.html', desc: 'Pre-launch validation guide' },
-            { title: 'Rollout Plan', file: '/resources/plano-de-ondas.html', desc: 'Implementation strategy & timeline' },
+            { title: 'Operational Manual', file: '/resources/operational-manual.html', desc: 'Daily/Weekly routines & troubleshooting' },
+            { title: 'Store Ready Checklist', file: '/resources/store-ready-checklist.html', desc: 'Pre-launch validation guide' },
+            { title: 'Rollout Plan', file: '/resources/rollout-plan.html', desc: 'Implementation strategy & timeline' },
         ];
 
         return (
@@ -512,7 +529,7 @@ export const TrainingPage = () => {
                     </button>
 
                     <h1 className="text-3xl font-black uppercase mb-2">Training Resources</h1>
-                    <p className="text-gray-400 mb-8">Official documentation and guides for Brasa Meat Intelligence.</p>
+                    <p className="text-gray-400 mb-8">Official documentation and guides for Brasa Meat Intelligence. (Master Access)</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {RESOURCES.map((res, i) => (
@@ -554,9 +571,11 @@ export const TrainingPage = () => {
                         <p className="text-gray-500 mt-2 text-sm">Complete all 5 modules to unlock the Certification Exam.</p>
 
                         <div className="flex gap-4 mt-4">
-                            <button onClick={() => setPhase('resources')} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all">
-                                <FileText className="w-4 h-4 text-[#C5A059]" /> View Documentation
-                            </button>
+                            {user?.role === 'admin' && (
+                                <button onClick={() => setPhase('resources')} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all">
+                                    <FileText className="w-4 h-4 text-[#C5A059]" /> View Documentation
+                                </button>
+                            )}
                         </div>
 
                         <div className="mt-6 flex items-center gap-4">
