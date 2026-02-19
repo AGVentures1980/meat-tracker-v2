@@ -135,9 +135,9 @@ export const DataAnalyst = () => {
                             ) : (
                                 <button
                                     onClick={() => handleEditClick(store)}
-                                    className="bg-[#333] px-3 py-1 text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1 hover:text-white hover:bg-[#444] transition-colors"
+                                    className="bg-[#222] border border-[#00FF94]/30 px-3 py-1 text-[10px] uppercase font-bold text-[#00FF94] flex items-center gap-2 hover:bg-[#00FF94]/10 transition-colors shadow-glow"
                                 >
-                                    <Lock size={10} /> Contract Baseline: EDIT
+                                    <Lock size={12} className="text-[#00FF94]" /> UNLOCK BASELINE
                                 </button>
                             )}
                         </div>
