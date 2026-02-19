@@ -7,13 +7,17 @@ export const MicrosoftGraphService = {
         targetFolder: process.env.ONEDRIVE_FOLDER || 'Invoices/Pending'
     },
 
+    // State for mock mode
+    mockProcessedFiles: new Set<string>(),
+
     /**
      * Authenticates with Azure AD.
      * In MOCK_MODE (missing keys), returns a dummy token.
      */
     async authenticate() {
         if (!this.config.clientId) {
-            console.log('⚠️ [MS GRAPH] Authenticating in MOCK MODE (No Keys Found)');
+            // Only log sparingly to avoid spamming console in watcher loop
+            // console.log('⚠️ [MS GRAPH] Authenticating in MOCK MODE (No Keys Found)');
             return 'mock-bearer-token';
         }
         // Real implementation would use @azure/identity or axios post to login.microsoftonline.com
@@ -27,10 +31,15 @@ export const MicrosoftGraphService = {
         const token = await this.authenticate();
 
         if (token === 'mock-bearer-token') {
-            // Simulate finding a file occasionally (e.g., based on random chance or first run)
-            // For demo purposes, we will find one file on first run.
+            const mockFileId = 'mock-file-123';
+
+            // If already processed, return empty
+            if (this.mockProcessedFiles.has(mockFileId)) {
+                return [];
+            }
+
             const mockFile = {
-                id: 'mock-file-123',
+                id: mockFileId,
                 name: 'invoice_sysco_dallas_0218.pdf',
                 size: 1024 * 500, // 500kb
                 createdDateTime: new Date().toISOString()
@@ -46,7 +55,7 @@ export const MicrosoftGraphService = {
      * Downloads a file stream.
      */
     async downloadFile(fileId: string): Promise<Buffer> {
-        console.log(`⬇️ [MS GRAPH] Downloading file ${fileId}...`);
+        // console.log(`⬇️ [MS GRAPH] Downloading file ${fileId}...`);
 
         if (fileId.startsWith('mock-')) {
             // Return empty buffer for mock
@@ -62,6 +71,7 @@ export const MicrosoftGraphService = {
      */
     async moveFileToProcessed(fileId: string, fileName: string) {
         console.log(`✅ [MS GRAPH] Moving ${fileName} to 'Processed' folder...`);
+        this.mockProcessedFiles.add(fileId);
         return true;
     }
 };
