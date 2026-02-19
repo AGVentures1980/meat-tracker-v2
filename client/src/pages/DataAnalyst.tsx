@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { FileText, ArrowDown, Lock, ShieldCheck, DollarSign, TrendingDown, Target } from 'lucide-react';
 
 interface RoiData {
+    storeId: number;
     storeName: string;
     pilotStart: string;
     baselines: {

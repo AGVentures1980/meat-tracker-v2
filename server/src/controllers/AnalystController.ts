@@ -67,7 +67,7 @@ export class AnalystController {
                 const totalSavings = moneySavedLoss + moneySavedConsumption;
 
                 // Fee
-                const feePct = store.company.contract_savings_fee_pct || 5.0;
+                const feePct = store.company.contract_savings_fee_pct || 8.0; // Updated to 8% as requested
                 const saasFee = totalSavings * (feePct / 100);
 
                 return {
@@ -116,6 +116,33 @@ export class AnalystController {
         } catch (error) {
             console.error(error);
             res.status(500).json({ success: false, error: 'Failed to generate ROI report' });
+        }
+    }
+
+    static async updateBaselines(req: Request, res: Response) {
+        try {
+            const { storeId } = req.params;
+            const {
+                baseline_loss_rate,
+                baseline_yield_ribs,
+                baseline_consumption_pax,
+                baseline_forecast_accuracy
+            } = req.body;
+
+            const updatedStore = await prisma.store.update({
+                where: { id: parseInt(storeId) },
+                data: {
+                    baseline_loss_rate: parseFloat(baseline_loss_rate),
+                    baseline_yield_ribs: parseFloat(baseline_yield_ribs),
+                    baseline_consumption_pax: parseFloat(baseline_consumption_pax),
+                    baseline_forecast_accuracy: parseFloat(baseline_forecast_accuracy)
+                }
+            });
+
+            res.json({ success: true, store: updatedStore });
+        } catch (error) {
+            console.error("Failed to update baselines", error);
+            res.status(500).json({ success: false, error: 'Failed to update baselines' });
         }
     }
 }
