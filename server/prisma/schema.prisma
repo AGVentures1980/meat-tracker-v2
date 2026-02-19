@@ -21,6 +21,7 @@ model Company {
   baseline_yield     Float            @default(65.0) // 65% yield before system
   baseline_overproduction_pct Float   @default(8.0)
   baseline_ruptura_pct Float          @default(5.0)
+  contract_savings_fee_pct Float      @default(5.0) // 5% fee on savings
 
   stores             Store[]
   invoices           SysInvoice[]
@@ -50,6 +51,16 @@ model Store {
   store_name                    String
   location                      String
   created_at                    DateTime          @default(now())
+  
+  // Pilot & ROI Baseline
+  is_pilot                      Boolean           @default(false)
+  pilot_start_date              DateTime?
+  baseline_loss_rate            Float             @default(20.0)
+  baseline_yield_ribs           Float             @default(74.0)
+  baseline_overproduction       Float             @default(18.0)
+  baseline_forecast_accuracy    Float             @default(62.0)
+  baseline_consumption_pax      Float             @default(1.72)
+
   target_cost_guest             Float             @default(9.94)
   target_lbs_guest              Float             @default(1.76)
   dinner_price                  Float             @default(58.90)

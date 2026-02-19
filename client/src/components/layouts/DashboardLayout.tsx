@@ -172,9 +172,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 </div>
                             </Link>
                             <Link
-                                to={!selectedCompany ? '#' : "/executive-analyst"}
+                                to={!selectedCompany ? '#' : "/data-analyst"}
                                 onClick={(e) => !selectedCompany && e.preventDefault()}
-                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive-analyst'
+                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/data-analyst'
                                     ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
                                     : !selectedCompany
                                         ? 'text-gray-600 cursor-not-allowed opacity-50'

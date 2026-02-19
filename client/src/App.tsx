@@ -25,6 +25,7 @@ import CFOReport from './pages/CFOReport';
 import { TrainingPage } from './pages/TrainingPage';
 import { PerformanceDashboard } from './pages/PerformanceDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
+import { DataAnalyst } from './pages/DataAnalyst';
 import { GovernanceGuard } from './components/GovernanceGuard';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
@@ -99,6 +100,7 @@ function AppContent() {
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />
                     <Route path="/audit" element={<PerformanceDashboard />} />
+                    <Route path="/data-analyst" element={<DataAnalyst />} />
                     <Route path="/owner" element={<OwnerDashboard />} />
                 </Route>
 
