@@ -21,9 +21,10 @@ import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
-import { CFOReport } from './pages/CFOReport';
+import CFOReport from './pages/CFOReport';
 import { TrainingPage } from './pages/TrainingPage';
 import { PerformanceDashboard } from './pages/PerformanceDashboard';
+import OwnerDashboard from './pages/OwnerDashboard';
 import { GovernanceGuard } from './components/GovernanceGuard';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
@@ -37,7 +38,13 @@ const ProtectedRoute = () => {
     const isOwnerRole = user.role === 'director' || user.role === 'admin';
     const path = window.location.pathname;
 
-    if (isOwnerRole && !selectedCompany && path !== '/select-company' && path !== '/saas-admin' && path !== '/owner-terminal') {
+    if (isOwnerRole && !selectedCompany &&
+        path !== '/select-company' &&
+        path !== '/saas-admin' &&
+        path !== '/owner-terminal' &&
+        path !== '/owner' &&
+        path !== '/executive' &&
+        path !== '/dashboard') {
         return <Navigate to="/select-company" replace />;
     }
 
@@ -92,6 +99,7 @@ function AppContent() {
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />
                     <Route path="/audit" element={<PerformanceDashboard />} />
+                    <Route path="/owner" element={<OwnerDashboard />} />
                 </Route>
 
                 {/* Catch all redirect to login */}

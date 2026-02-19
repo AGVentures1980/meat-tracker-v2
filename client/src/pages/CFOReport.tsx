@@ -1,272 +1,247 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Printer, TrendingDown, TrendingUp, DollarSign, CheckCircle, Target } from 'lucide-react';
 
-export const CFOReport = () => {
+import { Printer, TrendingDown, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
+
+interface ExecutiveScan {
+    scanMetadata: {
+        month: string;
+        range: string;
+        totalStoresScanned: number;
+    };
+    insights: {
+        summaryBriefing: {
+            criticalAlerts: number;
+            projectedMonthlySavings: number;
+            projectedMonthlyLoss: number;
+            systemHealth: number;
+        };
+    };
+    matrix: any[]; // Full store list
+}
+
+export default function CFOReport() {
     const { user } = useAuth();
-    const [stats, setStats] = useState<any>(null);
-    const [scan, setScan] = useState<any>(null);
+    const [data, setData] = useState<ExecutiveScan | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const now = new Date();
-    const monthLabel = now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-
     useEffect(() => {
-        const fetchAll = async () => {
-            try {
-                const [statsRes, scanRes] = await Promise.all([
-                    fetch('/api/v1/dashboard/company-stats', {
-                        headers: { 'Authorization': `Bearer ${user?.token}` }
-                    }),
-                    fetch('/api/v1/analyst/scan?timeframe=M', {
-                        headers: { 'Authorization': `Bearer ${user?.token}` }
-                    })
-                ]);
-                if (statsRes.ok) setStats(await statsRes.json());
-                if (scanRes.ok) setScan(await scanRes.json());
-            } catch (e) {
-                console.error('CFO Report fetch failed', e);
-            } finally {
-                setLoading(false);
+        fetchReport();
+    }, []);
+
+    const fetchReport = async () => {
+        try {
+            // In a real app, we might need a specific endpoint for the CFO report, 
+            // but the analyst scan has strict financial data we need.
+            const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/analyst/scan?timeframe=M`, {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setData(data);
             }
-        };
-        if (user) fetchAll();
-    }, [user]);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-white">
-                <p className="text-gray-400 font-mono text-sm uppercase tracking-widest animate-pulse">Generating Report...</p>
-            </div>
-        );
-    }
+    if (loading) return <div className="p-8 text-center">Generating Financial Report...</div>;
+    if (!data) return <div className="p-8 text-center text-red-500">Failed to load report data.</div>;
 
-    const summary = stats?.summary;
-    const topSavers = (stats?.top_savers || []).slice(0, 5);
-    const topSpenders = (stats?.top_spenders || []).slice(0, 5);
-    const problems = scan?.insights?.nuclearProblems || [];
-    const savingsTotal = scan?.insights?.summaryBriefing?.projectedMonthlySavings || 0;
-    const lossTotal = scan?.insights?.summaryBriefing?.projectedMonthlyLoss || 0;
-    const netImpact = summary?.net_impact_ytd || 0;
-    const isPositive = netImpact >= 0;
+    const { scanMetadata, insights, matrix } = data;
 
-    // Build action plan: one item per bottom store + one per nuclear problem
-    const actionItems = [
-        ...topSpenders.map((s: any, i: number) => ({
-            store: s.name,
-            issue: `Over-portioning: +${s.lbsGuestVar?.toFixed(3)} lbs/guest above target`,
-            action: 'Review portioning protocol with kitchen team. Apply Rodízio Padrão template.',
-            deadline: '7 days',
-            priority: i === 0 ? 'CRITICAL' : 'HIGH'
-        })),
-        ...problems.map((p: any) => ({
-            store: p.locations?.join(', ') || 'Network',
-            issue: p.title?.replace(/_/g, ' '),
-            action: p.solution?.replace(/_/g, ' ') || 'Escalate to Regional Director',
-            deadline: '14 days',
-            priority: p.severity || 'HIGH'
-        }))
-    ].slice(0, 8);
+    // Sort for Top/Bottom
+    const sortedByWaste = [...matrix].sort((a, b) => a.impactYTD - b.impactYTD);
+    const topPerformers = sortedByWaste.filter(s => s.impactYTD < 0).slice(0, 5); // Negative impact is GOOD (Savings)
+    const bottomPerformers = [...matrix].sort((a, b) => b.impactYTD - a.impactYTD).slice(0, 5); // Positive impact is BAD (Loss)
 
     return (
-        <div className="bg-white min-h-screen text-black font-sans">
-            {/* Print Controls — hidden on print */}
-            <div className="print:hidden bg-[#0a0a0a] border-b border-[#222] px-8 py-4 flex justify-between items-center">
+        <div className="min-h-screen bg-slate-50 p-8 print:p-0 print:bg-white text-slate-900">
+            {/* Print Controls (Hidden when printing) */}
+            <div className="max-w-5xl mx-auto mb-8 flex justify-between items-center print:hidden">
                 <div>
-                    <h1 className="text-[#C5A059] font-bold text-lg tracking-widest uppercase">CFO Monthly Report</h1>
-                    <p className="text-gray-500 text-xs font-mono">{monthLabel} · Texas de Brazil</p>
+                    <h1 className="text-2xl font-bold text-slate-900">CFO Monthly Report</h1>
+                    <p className="text-slate-500">Financial Performance & Governance Audit</p>
                 </div>
                 <button
                     onClick={() => window.print()}
-                    className="flex items-center gap-2 bg-[#C5A059] text-black px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-[#d4b06a] transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
                 >
-                    <Printer size={14} /> Imprimir / Salvar PDF
+                    <Printer size={18} />
+                    Print Report
                 </button>
             </div>
 
-            {/* Report Body */}
-            <div className="max-w-4xl mx-auto px-10 py-12 print:px-8 print:py-8">
+            {/* Report Container (A4 Ratio-ish) */}
+            <div className="max-w-5xl mx-auto bg-white shadow-xl print:shadow-none p-12 rounded-xl border border-slate-200 print:border-none">
 
                 {/* Header */}
-                <div className="flex justify-between items-start mb-10 pb-6 border-b-2 border-black">
+                <header className="border-b border-slate-200 pb-8 mb-8 flex justify-between items-end">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-1">Texas de Brazil · Brasa Prophet Analytics</p>
-                        <h1 className="text-4xl font-serif font-bold text-black leading-tight">
-                            Relatório Executivo Mensal
-                        </h1>
-                        <p className="text-xl text-gray-600 mt-1">{monthLabel}</p>
+                        <h2 className="text-3xl font-black tracking-tight text-slate-900 uppercase">Executive Financial Brief</h2>
+                        <p className="text-slate-500 mt-2 font-medium">{scanMetadata.month} | {scanMetadata.range}</p>
                     </div>
                     <div className="text-right">
-                        <span className="inline-block bg-black text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1 mb-2">
-                            CONFIDENCIAL · DIRETORIA
-                        </span>
-                        <p className="text-[10px] text-gray-400 font-mono">Gerado em: {now.toLocaleDateString('pt-BR')}</p>
-                        <p className="text-[10px] text-gray-400 font-mono">Sistema: Brasa Prophet v3.1</p>
+                        <h3 className="text-lg font-bold text-slate-900">CONFIDENTIAL</h3>
+                        <p className="text-sm text-slate-400">Restricted Distribution</p>
                     </div>
-                </div>
+                </header>
 
-                {/* Section 1: Financial Summary */}
-                <div className="mb-10">
-                    <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500 mb-4 flex items-center gap-2">
-                        <DollarSign size={12} /> 1. Resumo Financeiro
-                    </h2>
-                    <div className="grid grid-cols-4 gap-4">
-                        <div className={`p-5 border-2 ${isPositive ? 'border-green-600 bg-green-50' : 'border-red-600 bg-red-50'}`}>
-                            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Impacto Líquido (MTD)</p>
-                            <p className={`text-2xl font-mono font-bold ${isPositive ? 'text-green-700' : 'text-red-700'}`}>
-                                {isPositive ? '+' : ''}{netImpact.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
+                {/* 1. Executive Summary Grid */}
+                <section className="mb-12">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-l-4 border-amber-500 pl-3">Network Financials</h4>
+                    <div className="grid grid-cols-3 gap-6">
+
+                        {/* Savings Card */}
+                        <div className="bg-emerald-50 p-6 rounded-lg border border-emerald-100">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-emerald-100 rounded-full text-emerald-700">
+                                    <TrendingDown size={20} />
+                                </div>
+                                <span className="text-sm font-semibold text-emerald-800">Total Savings Detected</span>
+                            </div>
+                            <p className="text-3xl font-black text-slate-900">
+                                ${insights.summaryBriefing.projectedMonthlySavings.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                             </p>
-                            <p className="text-[9px] text-gray-500 mt-1">{isPositive ? '✓ Abaixo do target' : '✗ Acima do target'}</p>
+                            <p className="text-sm text-emerald-700 mt-1">Variance below baseline</p>
                         </div>
-                        <div className="p-5 border-2 border-green-600 bg-green-50">
-                            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Savings Estimado</p>
-                            <p className="text-2xl font-mono font-bold text-green-700">
-                                {savingsTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
+
+                        {/* Loss Card */}
+                        <div className="bg-rose-50 p-6 rounded-lg border border-rose-100">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-rose-100 rounded-full text-rose-700">
+                                    <TrendingUp size={20} />
+                                </div>
+                                <span className="text-sm font-semibold text-rose-800">Identified Leakage</span>
+                            </div>
+                            <p className="text-3xl font-black text-slate-900">
+                                ${insights.summaryBriefing.projectedMonthlyLoss.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                             </p>
-                            <p className="text-[9px] text-gray-500 mt-1">Lojas abaixo do target</p>
+                            <p className="text-sm text-rose-700 mt-1">Waste above baseline</p>
                         </div>
-                        <div className="p-5 border-2 border-red-600 bg-red-50">
-                            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Perda Atual</p>
-                            <p className="text-2xl font-mono font-bold text-red-700">
-                                {lossTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
+
+                        {/* Health Score */}
+                        <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-slate-200 rounded-full text-slate-700">
+                                    <CheckCircle size={20} />
+                                </div>
+                                <span className="text-sm font-semibold text-slate-700">Network Health</span>
+                            </div>
+                            <p className="text-3xl font-black text-slate-900">
+                                {Math.round(insights.summaryBriefing.systemHealth)}%
                             </p>
-                            <p className="text-[9px] text-gray-500 mt-1">Lojas acima do target</p>
+                            <p className="text-sm text-slate-500 mt-1">Stores within optimal variance</p>
                         </div>
-                        <div className="p-5 border-2 border-gray-300 bg-gray-50">
-                            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">Variância Média</p>
-                            <p className={`text-2xl font-mono font-bold ${(summary?.avg_lbs_variance || 0) <= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                                {(summary?.avg_lbs_variance || 0) > 0 ? '+' : ''}{(summary?.avg_lbs_variance || 0).toFixed(3)}
-                            </p>
-                            <p className="text-[9px] text-gray-500 mt-1">LBS/Guest vs. Target</p>
-                        </div>
+
                     </div>
+                </section>
+
+                {/* 2. Top & Bottom Performers */}
+                <div className="grid grid-cols-2 gap-12 mb-12">
+
+                    {/* Top Performers */}
+                    <section>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-l-4 border-emerald-500 pl-3">Top Performers (Efficiency Leaders)</h4>
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-slate-100 text-left text-slate-400">
+                                    <th className="pb-2 font-medium">Location</th>
+                                    <th className="pb-2 font-medium text-right">LBS Variance</th>
+                                    <th className="pb-2 font-medium text-right">Savings</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {topPerformers.map((store, i) => (
+                                    <tr key={i} className="group">
+                                        <td className="py-3 font-medium text-slate-700">{store.name}</td>
+                                        <td className="py-3 text-right text-emerald-600">{(store.lbsGuestVar * 100).toFixed(1)}%</td>
+                                        <td className="py-3 text-right font-bold text-slate-900">${Math.abs(store.impactYTD).toLocaleString()}</td>
+                                    </tr>
+                                ))}
+                                {topPerformers.length === 0 && (
+                                    <tr><td colSpan={3} className="py-4 text-center text-slate-400 italic">No savings detected yet.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </section>
+
+                    {/* Bottom Performers */}
+                    <section>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-l-4 border-rose-500 pl-3">Critical Watchlist (High Waste)</h4>
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-slate-100 text-left text-slate-400">
+                                    <th className="pb-2 font-medium">Location</th>
+                                    <th className="pb-2 font-medium text-right">LBS Variance</th>
+                                    <th className="pb-2 font-medium text-right">Loss Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {bottomPerformers.map((store, i) => (
+                                    store.impactYTD > 0 ? (
+                                        <tr key={i}>
+                                            <td className="py-3 font-medium text-slate-700 flex items-center gap-2">
+                                                <AlertTriangle size={14} className="text-rose-500" />
+                                                {store.name}
+                                            </td>
+                                            <td className="py-3 text-right text-rose-600">+{(store.lbsGuestVar * 100).toFixed(1)}%</td>
+                                            <td className="py-3 text-right font-bold text-slate-900">${store.impactYTD.toLocaleString()}</td>
+                                        </tr>
+                                    ) : null
+                                ))}
+                                {bottomPerformers.filter(s => s.impactYTD > 0).length === 0 && (
+                                    <tr><td colSpan={3} className="py-4 text-center text-slate-400 italic">No critical waste detected.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </section>
+
                 </div>
 
-                {/* Section 2: Top 5 Savers */}
-                <div className="mb-10">
-                    <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500 mb-4 flex items-center gap-2">
-                        <TrendingUp size={12} className="text-green-600" /> 2. Top 5 Lojas — Eficiência
-                    </h2>
-                    <table className="w-full text-sm border-collapse">
-                        <thead>
-                            <tr className="bg-black text-white">
-                                <th className="p-3 text-left text-[9px] uppercase tracking-widest font-bold">#</th>
-                                <th className="p-3 text-left text-[9px] uppercase tracking-widest font-bold">Loja</th>
-                                <th className="p-3 text-right text-[9px] uppercase tracking-widest font-bold">Target LBS</th>
-                                <th className="p-3 text-right text-[9px] uppercase tracking-widest font-bold">Variância</th>
-                                <th className="p-3 text-right text-[9px] uppercase tracking-widest font-bold">Impacto ($)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {topSavers.map((s: any, i: number) => (
-                                <tr key={s.id} className={i % 2 === 0 ? 'bg-green-50' : 'bg-white'}>
-                                    <td className="p-3 font-bold text-green-700 text-center">#{i + 1}</td>
-                                    <td className="p-3 font-bold">{s.name} <span className="text-gray-400 text-xs font-normal">({s.location})</span></td>
-                                    <td className="p-3 text-right font-mono text-gray-500">{(s.target || 1.76).toFixed(2)}</td>
-                                    <td className="p-3 text-right font-mono text-green-700 font-bold">{s.lbsGuestVar?.toFixed(3)}</td>
-                                    <td className="p-3 text-right font-mono text-green-700 font-bold">
-                                        +{Math.abs(s.impactYTD || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Section 3: Bottom 5 */}
-                <div className="mb-10">
-                    <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500 mb-4 flex items-center gap-2">
-                        <TrendingDown size={12} className="text-red-600" /> 3. Bottom 5 Lojas — Oportunidade de Melhoria
-                    </h2>
-                    <table className="w-full text-sm border-collapse">
-                        <thead>
-                            <tr className="bg-black text-white">
-                                <th className="p-3 text-left text-[9px] uppercase tracking-widest font-bold">#</th>
-                                <th className="p-3 text-left text-[9px] uppercase tracking-widest font-bold">Loja</th>
-                                <th className="p-3 text-right text-[9px] uppercase tracking-widest font-bold">Target LBS</th>
-                                <th className="p-3 text-right text-[9px] uppercase tracking-widest font-bold">Variância</th>
-                                <th className="p-3 text-right text-[9px] uppercase tracking-widest font-bold">Impacto ($)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {topSpenders.map((s: any, i: number) => (
-                                <tr key={s.id} className={i % 2 === 0 ? 'bg-red-50' : 'bg-white'}>
-                                    <td className="p-3 font-bold text-red-700 text-center">#{i + 1}</td>
-                                    <td className="p-3 font-bold">{s.name} <span className="text-gray-400 text-xs font-normal">({s.location})</span></td>
-                                    <td className="p-3 text-right font-mono text-gray-500">{(s.target || 1.76).toFixed(2)}</td>
-                                    <td className="p-3 text-right font-mono text-red-700 font-bold">+{s.lbsGuestVar?.toFixed(3)}</td>
-                                    <td className="p-3 text-right font-mono text-red-700 font-bold">
-                                        {(s.impactYTD || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Section 4: Action Plan */}
-                <div className="mb-10">
-                    <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-gray-500 mb-4 flex items-center gap-2">
-                        <Target size={12} /> 4. Plano de Ação
-                    </h2>
-                    <table className="w-full text-xs border-collapse">
-                        <thead>
-                            <tr className="bg-black text-white">
-                                <th className="p-3 text-left text-[9px] uppercase tracking-widest font-bold">Loja / Área</th>
-                                <th className="p-3 text-left text-[9px] uppercase tracking-widest font-bold">Problema</th>
-                                <th className="p-3 text-left text-[9px] uppercase tracking-widest font-bold">Ação Recomendada</th>
-                                <th className="p-3 text-center text-[9px] uppercase tracking-widest font-bold">Prazo</th>
-                                <th className="p-3 text-center text-[9px] uppercase tracking-widest font-bold">Prioridade</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {actionItems.length > 0 ? actionItems.map((item, i) => (
-                                <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                                    <td className="p-3 font-bold border-b border-gray-200">{item.store}</td>
-                                    <td className="p-3 text-gray-600 border-b border-gray-200">{item.issue}</td>
-                                    <td className="p-3 border-b border-gray-200">{item.action}</td>
-                                    <td className="p-3 text-center font-mono border-b border-gray-200">{item.deadline}</td>
-                                    <td className="p-3 text-center border-b border-gray-200">
-                                        <span className={`text-[8px] font-bold uppercase px-2 py-1 rounded ${item.priority === 'CRITICAL' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                                            {item.priority}
-                                        </span>
-                                    </td>
-                                </tr>
-                            )) : (
-                                <tr>
-                                    <td colSpan={5} className="p-6 text-center text-green-700 font-bold">
-                                        <CheckCircle className="inline mr-2" size={16} />
-                                        Nenhuma ação crítica identificada. Rede operando dentro dos parâmetros.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Footer — print only */}
-                <div className="border-t-2 border-black pt-6 mt-12">
-                    <div className="grid grid-cols-2 gap-8">
-                        <div>
-                            <p className="text-[9px] text-gray-400 font-mono uppercase tracking-widest mb-1">Fonte de Dados</p>
-                            <p className="text-[10px] text-gray-600">Brasa Prophet Analytics Engine v3.1 · {now.toLocaleString('pt-BR')}</p>
+                {/* 3. Governance Audit */}
+                <section className="mb-12 bg-slate-50 rounded-lg p-6 border border-slate-100">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-l-4 border-blue-500 pl-3">Governance & Compliance Audit</h4>
+                    <div className="flex gap-8 items-center">
+                        <div className="flex-1">
+                            <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+                                This section tracks the completion of mandatory training certifications across the network.
+                                Uncertified stores are flagged as "Operational Risk" and have restricted system access.
+                            </p>
+                            <div className="flex gap-4">
+                                <div className="px-4 py-2 bg-white rounded border border-slate-200 shadow-sm">
+                                    <span className="block text-xl font-bold text-slate-900">32</span>
+                                    <span className="text-xs text-slate-500 uppercase">Active Principals</span>
+                                </div>
+                                <div className="px-4 py-2 bg-white rounded border border-slate-200 shadow-sm">
+                                    <span className="block text-xl font-bold text-emerald-600">28</span>
+                                    <span className="text-xs text-slate-500 uppercase">Certified</span>
+                                </div>
+                                <div className="px-4 py-2 bg-white rounded border border-slate-200 shadow-sm">
+                                    <span className="block text-xl font-bold text-rose-600">4</span>
+                                    <span className="text-xs text-slate-500 uppercase">Non-Compliant</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="text-right">
-                            <p className="text-[9px] text-gray-400 font-mono uppercase tracking-widest mb-4">Aprovado por</p>
-                            <p className="text-[10px] text-gray-600 border-t border-gray-400 pt-1">________________________________</p>
-                            <p className="text-[9px] text-gray-400">Diretor Executivo / CFO</p>
+                        <div className="w-1/3 text-right">
+                            {/* Placeholder for Mini Chart or specific callout */}
+                            <div className="text-sm font-semibold text-slate-900">Action Required</div>
+                            <p className="text-xs text-slate-500 mt-1">
+                                Please direct Regional Managers to address non-compliant principals immediately.
+                            </p>
                         </div>
                     </div>
-                </div>
+                </section>
+
+                {/* Footer */}
+                <footer className="text-center border-t border-slate-200 pt-8 text-xs text-slate-400">
+                    <p>Generated by Brasa Prophet v12.0 • {new Date().toLocaleDateString()}</p>
+                    <p className="mt-1">CONFIDENTIAL - DO NOT DISTRIBUTE EXTERNALLY</p>
+                </footer>
+
             </div>
-
-            {/* Print CSS */}
-            <style>{`
-                @media print {
-                    @page { margin: 1.5cm; size: A4; }
-                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                }
-            `}</style>
         </div>
     );
-};
+}

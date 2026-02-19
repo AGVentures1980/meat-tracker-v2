@@ -16,7 +16,9 @@ import {
     Zap,
     Building2,
     PlayCircle,
-    GraduationCap
+    GraduationCap,
+    FileText,
+    Activity
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -66,7 +68,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     if (user?.role === 'director' || user?.role === 'admin') {
         navItems.push({
             section: t('nav.section_manage') || 'MANAGE (Company)', items: [
+                { icon: Activity, label: 'Network Command Center', path: '/owner' },
                 { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
+                { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
                 { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
             ]
         });
