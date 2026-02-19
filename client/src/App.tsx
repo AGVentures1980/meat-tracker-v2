@@ -11,6 +11,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SmartPrepPage } from './pages/SmartPrepPage';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
+import { IdleTimer } from './components/IdleTimer';
 import WastePage from './pages/WastePage';
 import { ForecastPage } from './pages/ForecastPage';
 import { Landing } from './pages/Landing';
@@ -63,6 +64,7 @@ function AppContent() {
 
     return (
         <BrowserRouter>
+            <IdleTimer />
             <ChangePasswordModal />
             <Routes>
                 <Route path="/" element={<Login />} />
