@@ -12,13 +12,14 @@ interface RoiData {
         yield: number;
         consumption: number;
         forecast: number;
-        overproduction: number; // Added from schema
+        overproduction: number;
     };
     actuals: {
         loss: number;
         yield: number;
         consumption: number;
         forecast: number;
+        overproduction: number;
     };
     financials: {
         annualVolumeLb: number;
@@ -27,6 +28,7 @@ interface RoiData {
         saasFee: number;
         feePct: number;
     };
+    rationale?: string;
 }
 
 interface AnalystResponse {
@@ -43,13 +45,34 @@ interface AnalystResponse {
 export const DataAnalyst = () => {
     const { user } = useAuth();
     const { t } = useLanguage();
+    const [data, setData] = useState<AnalystResponse | null>(null);
+    const [loading, setLoading] = useState(true);
     const [editingStoreId, setEditingStoreId] = useState<number | null>(null);
     const [editValues, setEditValues] = useState({
         loss: 0,
         yield: 0,
         consumption: 0,
-        forecast: 0
+        forecast: 0,
+        overproduction: 0
     });
+
+    useEffect(() => {
+        fetchReport();
+    }, []);
+
+    const fetchReport = async () => {
+        try {
+            const res = await fetch('/api/v1/analyst/roi', {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            const jsonData = await res.json();
+            if (jsonData.success) setData(jsonData);
+        } catch (error) {
+            console.error("Failed to load ROI report", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleEditClick = (store: RoiData) => {
         setEditingStoreId(store.storeId);
@@ -57,7 +80,8 @@ export const DataAnalyst = () => {
             loss: store.baselines.loss,
             yield: store.baselines.yield,
             consumption: store.baselines.consumption,
-            forecast: store.baselines.forecast
+            forecast: store.baselines.forecast,
+            overproduction: store.baselines.overproduction
         });
     };
 
@@ -73,7 +97,8 @@ export const DataAnalyst = () => {
                     baseline_loss_rate: editValues.loss,
                     baseline_yield_ribs: editValues.yield,
                     baseline_consumption_pax: editValues.consumption,
-                    baseline_forecast_accuracy: editValues.forecast
+                    baseline_forecast_accuracy: editValues.forecast,
+                    baseline_overproduction: editValues.overproduction
                 })
             });
             setEditingStoreId(null);
@@ -252,6 +277,29 @@ export const DataAnalyst = () => {
                                                 <td className="py-3 font-mono text-white">{store.actuals.forecast}%</td>
                                                 <td className="py-3 font-mono text-right text-[#00FF94]">
                                                     +{(store.actuals.forecast - store.baselines.forecast).toFixed(0)} pts
+                                                </td>
+                                            </tr>
+
+                                            {/* Overproduction */}
+                                            <tr>
+                                                <td className="py-3 text-gray-400">Overproduction %</td>
+                                                <td className="py-3 font-mono text-[#C5A059]">
+                                                    {editingStoreId === store.storeId ? (
+                                                        <input
+                                                            type="number"
+                                                            className="bg-[#333] text-white w-20 px-1 py-0.5 rounded border border-[#555] focus:border-[#C5A059] outline-none"
+                                                            value={editValues.overproduction}
+                                                            onChange={(e) => setEditValues({ ...editValues, overproduction: parseFloat(e.target.value) })}
+                                                        />
+                                                    ) : (
+                                                        `${store.baselines.overproduction}%`
+                                                    )}
+                                                </td>
+                                                <td className="py-3 font-mono text-white">{store.actuals.overproduction ? store.actuals.overproduction.toFixed(1) : 0}%</td>
+                                                <td className="py-3 font-mono text-right text-[#00FF94]">
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <ArrowDown size={12} /> {(store.baselines.overproduction - (store.actuals.overproduction || 0)).toFixed(1)}%
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>

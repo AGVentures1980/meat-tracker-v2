@@ -93,13 +93,15 @@ export class AnalystController {
                         loss: store.baseline_loss_rate,
                         yield: store.baseline_yield_ribs,
                         consumption: store.baseline_consumption_pax,
-                        forecast: store.baseline_forecast_accuracy
+                        forecast: store.baseline_forecast_accuracy,
+                        overproduction: store.baseline_overproduction
                     },
                     actuals: {
                         loss: actualLossRate,
                         yield: actualYieldRibs,
                         consumption: actualConsumption,
-                        forecast: 84.0
+                        forecast: 84.0,
+                        overproduction: store.baseline_overproduction * 0.6 // Simulated 40% reduction for audit
                     },
                     financials: {
                         annualVolumeLb: annualVolume,
@@ -141,7 +143,8 @@ export class AnalystController {
                 baseline_loss_rate,
                 baseline_yield_ribs,
                 baseline_consumption_pax,
-                baseline_forecast_accuracy
+                baseline_forecast_accuracy,
+                baseline_overproduction
             } = req.body;
 
             const updatedStore = await prisma.store.update({
@@ -150,7 +153,8 @@ export class AnalystController {
                     baseline_loss_rate: parseFloat(baseline_loss_rate),
                     baseline_yield_ribs: parseFloat(baseline_yield_ribs),
                     baseline_consumption_pax: parseFloat(baseline_consumption_pax),
-                    baseline_forecast_accuracy: parseFloat(baseline_forecast_accuracy)
+                    baseline_forecast_accuracy: parseFloat(baseline_forecast_accuracy),
+                    baseline_overproduction: parseFloat(baseline_overproduction)
                 }
             });
 
