@@ -43,27 +43,51 @@ interface AnalystResponse {
 export const DataAnalyst = () => {
     const { user } = useAuth();
     const { t } = useLanguage();
-    const [data, setData] = useState<AnalystResponse | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [editingStoreId, setEditingStoreId] = useState<number | null>(null);
+    const [editValues, setEditValues] = useState({
+        loss: 0,
+        yield: 0,
+        consumption: 0,
+        forecast: 0
+    });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetch('/api/v1/analyst/roi', {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
-                });
-                const jsonData = await res.json();
-                if (jsonData.success) {
-                    setData(jsonData);
-                }
-            } catch (error) {
-                console.error("Failed to fetch ROI data", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [user]);
+    const handleEditClick = (store: RoiData) => {
+        setEditingStoreId(store.storeId);
+        setEditValues({
+            loss: store.baselines.loss,
+            yield: store.baselines.yield,
+            consumption: store.baselines.consumption,
+            forecast: store.baselines.forecast
+        });
+    };
+
+    const handleSave = async (storeId: number) => {
+        try {
+            await fetch(`/api/v1/analyst/roi/${storeId}/baselines`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user?.token}`
+                },
+                body: JSON.stringify({
+                    baseline_loss_rate: editValues.loss,
+                    baseline_yield_ribs: editValues.yield,
+                    baseline_consumption_pax: editValues.consumption,
+                    baseline_forecast_accuracy: editValues.forecast
+                })
+            });
+            setEditingStoreId(null);
+            // Reload data
+            const res = await fetch('/api/v1/analyst/roi', {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            const jsonData = await res.json();
+            if (jsonData.success) setData(jsonData);
+        } catch (error) {
+            console.error("Failed to save baselines", error);
+            alert("Failed to save changes. Check console.");
+        }
+    };
 
     if (loading) return <div className="p-8 text-white">Loading Official Audit...</div>;
     if (!data) return <div className="p-8 text-white">Audit System Offline.</div>;
@@ -92,13 +116,38 @@ export const DataAnalyst = () => {
             <div className="space-y-12">
                 {data.stores.map((store, idx) => (
                     <div key={idx} className="bg-[#111] border border-[#333] rounded-sm p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 bg-[#333] px-3 py-1 text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1">
-                            <Lock size={10} /> Contract Baseline: FROZEN
+                        <div className="absolute top-0 right-0 flex">
+                            {editingStoreId === store.storeId ? (
+                                <div className="flex">
+                                    <button
+                                        onClick={() => handleSave(store.storeId)}
+                                        className="bg-[#00FF94] text-black px-4 py-1 text-[10px] uppercase font-bold hover:bg-[#00cc76]"
+                                    >
+                                        SAVE CHANGES
+                                    </button>
+                                    <button
+                                        onClick={() => setEditingStoreId(null)}
+                                        className="bg-[#333] text-white px-4 py-1 text-[10px] uppercase font-bold hover:bg-[#444]"
+                                    >
+                                        CANCEL
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => handleEditClick(store)}
+                                    className="bg-[#333] px-3 py-1 text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1 hover:text-white hover:bg-[#444] transition-colors"
+                                >
+                                    <Lock size={10} /> Contract Baseline: EDIT
+                                </button>
+                            )}
                         </div>
 
-                        <h2 className="text-xl font-bold mb-6 text-white uppercase tracking-wider border-l-4 border-[#C5A059] pl-3">
+                        <h2 className="text-xl font-bold mb-1 text-white uppercase tracking-wider border-l-4 border-[#C5A059] pl-3">
                             {store.storeName} <span className="text-gray-500 text-sm font-normal">| Pilot Started: {new Date(store.pilotStart).toLocaleDateString()}</span>
                         </h2>
+                        {store.rationale && (
+                            <p className="text-[10px] text-gray-500 ml-4 mb-6 uppercase tracking-wider">{store.rationale}</p>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {/* 1. Baseline vs Actuals Table */}
@@ -117,9 +166,21 @@ export const DataAnalyst = () => {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-[#333]">
+                                            {/* Loss Rate */}
                                             <tr>
                                                 <td className="py-3 text-gray-400">Meat Loss %</td>
-                                                <td className="py-3 font-mono text-[#C5A059]">{store.baselines.loss.toFixed(1)}%</td>
+                                                <td className="py-3 font-mono text-[#C5A059]">
+                                                    {editingStoreId === store.storeId ? (
+                                                        <input
+                                                            type="number"
+                                                            className="bg-[#333] text-white w-20 px-1 py-0.5 rounded border border-[#555] focus:border-[#C5A059] outline-none"
+                                                            value={editValues.loss}
+                                                            onChange={(e) => setEditValues({ ...editValues, loss: parseFloat(e.target.value) })}
+                                                        />
+                                                    ) : (
+                                                        `${store.baselines.loss.toFixed(1)}%`
+                                                    )}
+                                                </td>
                                                 <td className="py-3 font-mono text-white">{store.actuals.loss.toFixed(1)}%</td>
                                                 <td className="py-3 font-mono text-right text-[#00FF94]">
                                                     <div className="flex items-center justify-end gap-1">
@@ -127,17 +188,44 @@ export const DataAnalyst = () => {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Yield */}
                                             <tr>
                                                 <td className="py-3 text-gray-400">Yield (Ribs)</td>
-                                                <td className="py-3 font-mono text-[#C5A059]">{store.baselines.yield}%</td>
+                                                <td className="py-3 font-mono text-[#C5A059]">
+                                                    {editingStoreId === store.storeId ? (
+                                                        <input
+                                                            type="number"
+                                                            className="bg-[#333] text-white w-20 px-1 py-0.5 rounded border border-[#555] focus:border-[#C5A059] outline-none"
+                                                            value={editValues.yield}
+                                                            onChange={(e) => setEditValues({ ...editValues, yield: parseFloat(e.target.value) })}
+                                                        />
+                                                    ) : (
+                                                        `${store.baselines.yield}%`
+                                                    )}
+                                                </td>
                                                 <td className="py-3 font-mono text-white">{store.actuals.yield.toFixed(1)}%</td>
                                                 <td className="py-3 font-mono text-right text-[#00FF94]">
                                                     +{(store.actuals.yield - store.baselines.yield).toFixed(1)}%
                                                 </td>
                                             </tr>
+
+                                            {/* Consumption */}
                                             <tr>
                                                 <td className="py-3 text-gray-400">Consumption / Pax</td>
-                                                <td className="py-3 font-mono text-[#C5A059]">{store.baselines.consumption} lb</td>
+                                                <td className="py-3 font-mono text-[#C5A059]">
+                                                    {editingStoreId === store.storeId ? (
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            className="bg-[#333] text-white w-20 px-1 py-0.5 rounded border border-[#555] focus:border-[#C5A059] outline-none"
+                                                            value={editValues.consumption}
+                                                            onChange={(e) => setEditValues({ ...editValues, consumption: parseFloat(e.target.value) })}
+                                                        />
+                                                    ) : (
+                                                        `${store.baselines.consumption} lb`
+                                                    )}
+                                                </td>
                                                 <td className="py-3 font-mono text-white">{store.actuals.consumption} lb</td>
                                                 <td className="py-3 font-mono text-right text-[#00FF94]">
                                                     <div className="flex items-center justify-end gap-1">
@@ -145,9 +233,22 @@ export const DataAnalyst = () => {
                                                     </div>
                                                 </td>
                                             </tr>
+
+                                            {/* Forecast */}
                                             <tr>
                                                 <td className="py-3 text-gray-400">Forecast Accuracy</td>
-                                                <td className="py-3 font-mono text-[#C5A059]">{store.baselines.forecast}%</td>
+                                                <td className="py-3 font-mono text-[#C5A059]">
+                                                    {editingStoreId === store.storeId ? (
+                                                        <input
+                                                            type="number"
+                                                            className="bg-[#333] text-white w-20 px-1 py-0.5 rounded border border-[#555] focus:border-[#C5A059] outline-none"
+                                                            value={editValues.forecast}
+                                                            onChange={(e) => setEditValues({ ...editValues, forecast: parseFloat(e.target.value) })}
+                                                        />
+                                                    ) : (
+                                                        `${store.baselines.forecast}%`
+                                                    )}
+                                                </td>
                                                 <td className="py-3 font-mono text-white">{store.actuals.forecast}%</td>
                                                 <td className="py-3 font-mono text-right text-[#00FF94]">
                                                     +{(store.actuals.forecast - store.baselines.forecast).toFixed(0)} pts
