@@ -67,7 +67,7 @@ export class AnalystController {
                 const totalSavings = moneySavedLoss + moneySavedConsumption;
 
                 // Fee
-                const feePct = store.company.contract_savings_fee_pct || 8.0;
+                const feePct = 8.0; // Forced to 8% for Pilot
                 const saasFee = totalSavings * (feePct / 100);
 
                 // Pilot Rationale Logic (Demo Override)
