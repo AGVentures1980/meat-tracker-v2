@@ -9,4 +9,7 @@ router.get('/roi', AnalystController.getRoiReport);
 // Update Frozen Baselines
 router.put('/roi/:storeId/baselines', AnalystController.updateBaselines);
 
+// Executive Scan (CFO Report)
+router.get('/scan', AnalystController.getAnalystScan);
+
 export default router;
