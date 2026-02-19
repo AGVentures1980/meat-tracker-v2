@@ -49,7 +49,13 @@ async function main() {
         let found = false;
 
         for (const item of messages) {
-            const all = item.parts.find(part => part.which === '');
+            const all = item.parts.find((part: any) => part.which === '');
+
+            if (!all) {
+                console.log(`⚠️ Skipping message ${item.attributes.uid} (no body part)`);
+                continue;
+            }
+
             const id = item.attributes.uid;
             const idHeader = "Imap-Id: " + id + "\r\n";
 
