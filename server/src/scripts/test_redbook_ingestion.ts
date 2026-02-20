@@ -2,6 +2,7 @@ import imap from 'imap-simple';
 import { simpleParser } from 'mailparser';
 import fs from 'fs';
 import path from 'path';
+import { ReportParserService } from '../services/ReportParserService';
 
 // --- CONFIGURATION ---
 const CONFIG = {
@@ -64,8 +65,16 @@ async function main() {
 
             console.log(`   - Subject: ${mail.subject}`);
 
-            if (mail.subject && (mail.subject.toUpperCase().includes('RED BOOK') || mail.subject.toUpperCase().includes('REDBOOK'))) {
+            // Identify Report Type
+            const isRedbook = mail.subject && (mail.subject.toUpperCase().includes('RED BOOK') || mail.subject.toUpperCase().includes('REDBOOK'));
+            const isNetSales = mail.subject && mail.subject.toUpperCase().includes('NET SALES');
+
+            if (isRedbook || isNetSales) {
                 console.log(`   🎯 MATCH FOUND! Subject: ${mail.subject}`);
+
+                // Identify Store from Sender
+                const senderAddress = mail.from?.value[0]?.address || 'unknown';
+                console.log(`   👤 Sender: ${senderAddress}`);
 
                 if (mail.attachments && mail.attachments.length > 0) {
                     for (const attachment of mail.attachments) {
@@ -81,6 +90,22 @@ async function main() {
                             fs.writeFileSync(filePath, attachment.content);
                             console.log(`      ✅ Saved to: ${filePath}`);
                             found = true;
+
+                            // ---- PARSE THE PDF DATA ----
+                            try {
+                                if (isRedbook) {
+                                    const data = await ReportParserService.parseRedbook(attachment.content);
+                                    console.log(`      📊 [PARSER] Redbook Extracted -> Lunch Guests: ${data.lunchGuests}, Dinner Guests: ${data.dinnerGuests}`);
+                                    // Here we would call prisma.salesForecast.upsert(...) mapping by senderAddress
+                                } else if (isNetSales) {
+                                    const data = await ReportParserService.parseNetSales(attachment.content);
+                                    console.log(`      💵 [PARSER] Net Sales Extracted -> ${data}`);
+                                    // Here we would call prisma.netSalesRecord.upsert(...) mapping by senderAddress
+                                }
+                            } catch (err) {
+                                console.error(`      ❌ [PARSER] Error parsing PDF ${attachment.filename}`, err);
+                            }
+                            // -----------------------------
                         }
                     }
                 } else {
