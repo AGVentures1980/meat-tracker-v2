@@ -9,83 +9,85 @@ datasource db {
 }
 
 model Company {
-  id                 String           @id @default(uuid())
+  id                 String   @id @default(uuid())
   name               String
-  plan               String           @default("enterprise")
-  created_at         DateTime         @default(now())
+  plan               String   @default("enterprise")
+  created_at         DateTime @default(now())
   owner_id           String?
-  annual_growth_rate Float            @default(5.0)
-  
-  // Baseline Metrics for ROI (The "Before" Picture)
-  baseline_loss_pct  Float            @default(15.0) // 15% loss before system
-  baseline_yield     Float            @default(65.0) // 65% yield before system
-  baseline_overproduction_pct Float   @default(8.0)
-  baseline_ruptura_pct Float          @default(5.0)
-  contract_savings_fee_pct Float      @default(5.0) // 5% fee on savings
+  annual_growth_rate Float    @default(5.0)
 
-  stores             Store[]
-  invoices           SysInvoice[]
-  products           CompanyProduct[]
-  templates          StoreTemplate[]
+  // Baseline Metrics for ROI (The "Before" Picture)
+  baseline_loss_pct           Float @default(15.0) // 15% loss before system
+  baseline_yield              Float @default(65.0) // 65% yield before system
+  baseline_overproduction_pct Float @default(8.0)
+  baseline_ruptura_pct        Float @default(5.0)
+  contract_savings_fee_pct    Float @default(5.0) // 5% fee on savings
+
+  stores    Store[]
+  invoices  SysInvoice[]
+  products  CompanyProduct[]
+  templates StoreTemplate[]
 }
 
 model CompanyProduct {
-  id                  String   @id @default(uuid())
+  id                  String          @id @default(uuid())
   company_id          String
   name                String
-  protein_group       String?  // Canonical group for LB/financial aggregation (e.g. "Filet Mignon" for both variants)
+  protein_group       String? // Canonical group for LB/financial aggregation (e.g. "Filet Mignon" for both variants)
   category            String?
-  is_villain          Boolean  @default(false)
-  is_dinner_only      Boolean  @default(false)
-  include_in_delivery Boolean  @default(false)
+  is_villain          Boolean         @default(false)
+  is_dinner_only      Boolean         @default(false)
+  include_in_delivery Boolean         @default(false)
   standard_target     Float?
-  created_at          DateTime @default(now())
-  company             Company  @relation(fields: [company_id], references: [id])
+  created_at          DateTime        @default(now())
+  company             Company         @relation(fields: [company_id], references: [id])
+  inventory_items     InventoryItem[]
 
   @@unique([company_id, name])
 }
 
 model Store {
-  id                            Int               @id @default(autoincrement())
-  company_id                    String
-  store_name                    String
-  location                      String
-  created_at                    DateTime          @default(now())
-  
-  // Pilot & ROI Baseline
-  is_pilot                      Boolean           @default(false)
-  pilot_start_date              DateTime?
-  baseline_loss_rate            Float             @default(20.0)
-  baseline_yield_ribs           Float             @default(74.0)
-  baseline_overproduction       Float             @default(18.0)
-  baseline_forecast_accuracy    Float             @default(62.0)
-  baseline_consumption_pax      Float             @default(1.72)
+  id         Int      @id @default(autoincrement())
+  company_id String
+  store_name String
+  location   String
+  created_at DateTime @default(now())
 
-  target_cost_guest             Float             @default(9.94)
-  target_lbs_guest              Float             @default(1.76)
-  dinner_price                  Float             @default(58.90)
-  serves_lamb_chops_rodizio     Boolean           @default(false) // true = Lamb Chops is part of dinner rodizio at this store
-  is_lunch_enabled              Boolean           @default(false)
-  lunch_price                   Float             @default(29.90)
-  olo_sales_target              Float             @default(0)
-  active_template_id            String?
-  active_template               StoreTemplate?    @relation("ActiveTemplate", fields: [active_template_id], references: [id])
-  delivery_sales                DeliverySale[]
-  inventory_records             InventoryRecord[]
-  invoices                      InvoiceRecord[]
-  meat_usage                    MeatUsage[]
-  orders                        Order[]
-  prep_logs                     PrepLog[]
-  product_aliases               ProductAlias[]
-  purchase_records              PurchaseRecord[]
-  reports                       Report[]
-  sales_forecasts               SalesForecast[]
-  company                       Company           @relation(fields: [company_id], references: [id])
-  meat_targets                  StoreMeatTarget[]
-  uploads                       Upload[]
-  users                         User[]
-  waste_compliance              WasteCompliance[]
-  waste_logs                    WasteLog[]
+  // Pilot & ROI Baseline
+  is_pilot                   Boolean   @default(false)
+  pilot_start_date           DateTime?
+  baseline_loss_rate         Float     @default(20.0)
+  baseline_yield_ribs        Float     @default(74.0)
+  baseline_overproduction    Float     @default(18.0)
+  baseline_forecast_accuracy Float     @default(62.0)
+  baseline_consumption_pax   Float     @default(1.72)
+
+  target_cost_guest         Float             @default(9.94)
+  target_lbs_guest          Float             @default(1.76)
+  dinner_price              Float             @default(58.90)
+  serves_lamb_chops_rodizio Boolean           @default(false) // true = Lamb Chops is part of dinner rodizio at this store
+  is_lunch_enabled          Boolean           @default(false)
+  lunch_price               Float             @default(29.90)
+  olo_sales_target          Float             @default(0)
+  active_template_id        String?
+  active_template           StoreTemplate?    @relation("ActiveTemplate", fields: [active_template_id], references: [id])
+  delivery_sales            DeliverySale[]
+  inventory_records         InventoryRecord[]
+  invoices                  InvoiceRecord[]
+  meat_usage                MeatUsage[]
+  orders                    Order[]
+  prep_logs                 PrepLog[]
+  product_aliases           ProductAlias[]
+  purchase_records          PurchaseRecord[]
+  reports                   Report[]
+  sales_forecasts           SalesForecast[]
+  inventory_cycles          InventoryCycle[]
+  company                   Company           @relation(fields: [company_id], references: [id])
+  meat_targets              StoreMeatTarget[]
+  uploads                   Upload[]
+  users                     User[]
+  waste_compliance          WasteCompliance[]
+  waste_logs                WasteLog[]
 
   @@unique([company_id, store_name])
 }
@@ -95,7 +97,7 @@ model StoreTemplate {
   company_id  String
   name        String
   description String?
-  config      Json     // { target_lbs_guest, target_cost_guest, lunch_price, dinner_price, serves_lamb_chops_rodizio, protein_targets: {} }
+  config      Json // { target_lbs_guest, target_cost_guest, lunch_price, dinner_price, serves_lamb_chops_rodizio, protein_targets: {} }
   is_system   Boolean  @default(false) // true = seeded by system, read-only for non-admins
   created_at  DateTime @default(now())
   company     Company  @relation(fields: [company_id], references: [id])
@@ -116,25 +118,25 @@ model StoreMeatTarget {
 }
 
 model User {
-  id                   String    @id @default(uuid())
+  id                   String             @id @default(uuid())
   store_id             Int?
-  email                String    @unique
+  email                String             @unique
   password_hash        String
-  role                 Role      @default(viewer)
-  created_at           DateTime  @default(now())
-  force_change         Boolean   @default(false)
-  last_password_change DateTime  @default(now())
-  is_trial             Boolean   @default(false)
+  role                 Role               @default(viewer)
+  created_at           DateTime           @default(now())
+  force_change         Boolean            @default(false)
+  last_password_change DateTime           @default(now())
+  is_trial             Boolean            @default(false)
   trial_expires_at     DateTime?
-  store                Store?    @relation(fields: [store_id], references: [id])
+  store                Store?             @relation(fields: [store_id], references: [id])
   training_progress    TrainingProgress[]
 }
 
 model TrainingProgress {
   id           String   @id @default(uuid())
   user_id      String
-  module_id    String   // '1', '2', '3', '4', '5' or 'exam'
-  score        Int      // 0-100
+  module_id    String // '1', '2', '3', '4', '5' or 'exam'
+  score        Int // 0-100
   attempts     Int      @default(1)
   completed_at DateTime @default(now())
   user         User     @relation(fields: [user_id], references: [id])
@@ -377,6 +379,47 @@ model SystemMetric {
   category    String
   description String?
   timestamp   DateTime @default(now())
+}
+
+model InventoryCycle {
+  id           String          @id @default(uuid())
+  store_id     Int
+  cycle_type   CycleType // WEEKLY or MONTHLY
+  start_date   DateTime        @db.Date
+  end_date     DateTime        @db.Date
+  status       CycleStatus     @default(PENDING) // PENDING, SUBMITTED, LOCKED
+  submitted_by String?
+  submitted_at DateTime?
+  store        Store           @relation(fields: [store_id], references: [id])
+  items        InventoryItem[]
+
+  @@unique([store_id, cycle_type, start_date])
+}
+
+model InventoryItem {
+  id            String         @id @default(uuid())
+  cycle_id      String
+  protein_id    String
+  expected_lbs  Float          @default(0) // Theoretical Stock
+  actual_lbs    Float          @default(0) // Physical Count
+  variance_lbs  Float          @default(0) // Actual - Expected
+  variance_cost Float          @default(0) // Financial Impact
+  notes         String?
+  cycle         InventoryCycle @relation(fields: [cycle_id], references: [id])
+  product       CompanyProduct @relation(fields: [protein_id], references: [id])
+
+  @@unique([cycle_id, protein_id])
+}
+
+enum CycleType {
+  WEEKLY
+  MONTHLY
+}
+
+enum CycleStatus {
+  PENDING
+  SUBMITTED
+  LOCKED
 }
 
 enum Role {

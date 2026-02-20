@@ -18,7 +18,8 @@ import {
     PlayCircle,
     GraduationCap,
     FileText,
-    Activity
+    Activity,
+    ShieldAlert
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -42,6 +43,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {
             section: t('nav.section_gate') || 'GATE (Accountability)', items: [
                 { icon: ArrowUpRight, label: t('nav.invoices') || 'Meat Prices / Invoices', path: '/prices' },
+                { icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' },
             ]
         },
         {

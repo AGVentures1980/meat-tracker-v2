@@ -11,6 +11,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SmartPrepPage } from './pages/SmartPrepPage';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { WeeklyPriceInput } from './pages/WeeklyPriceInput';
+import { WeeklyInventory } from './pages/WeeklyInventory';
 import { IdleTimer } from './components/IdleTimer';
 import WastePage from './pages/WastePage';
 import { ForecastPage } from './pages/ForecastPage';
@@ -85,7 +86,7 @@ function AppContent() {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/:storeId" element={<Dashboard />} />
                     <Route path="/projections" element={<GovernanceGuard><ProjectionsDashboard /></GovernanceGuard>} />
-                    <Route path="/inventory" element={<PlaceholderPage title="Inventory Management" />} />
+                    <Route path="/inventory" element={<GovernanceGuard><WeeklyInventory /></GovernanceGuard>} />
                     <Route path="/reports" element={<GovernanceGuard><ReportsPage /></GovernanceGuard>} />
                     <Route path="/prices" element={<WeeklyPriceInput />} />
                     <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
