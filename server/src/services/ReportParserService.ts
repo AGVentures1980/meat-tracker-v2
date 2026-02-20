@@ -33,25 +33,43 @@ export class ReportParserService {
     }
 
     /**
-     * Parses an NCR Net Sales PDF buffer and extracts Net Sales
+     * Parses an NCR Net Sales PDF buffer and extracts Food Net Sales 
+     * (Dinners, Lunch, Other Food, A-La-Carte Food, Dessert)
      * @param buffer PDF File Buffer
-     * @returns number (Net Sales) or null
+     * @returns number (Net Food Sales) or null
      */
     static async parseNetSales(buffer: Buffer): Promise<number | null> {
         try {
             const data = await pdf(buffer);
             const text = data.text;
 
-            // Target the NCR format first
-            const subTotalMatch = text.match(/Sub Total:\s*([\d,.]+)/);
-            if (subTotalMatch) {
-                return parseFloat(subTotalMatch[1].replace(/,/g, ''));
+            // Target the NCR format (Net Transaction Report)
+            // It lists the categories twice, then the numbers twice.
+            // "MISC" is the last category. The numbers start after the 2nd MISC.
+            const lines = text.split('\n').map(l => l.trim());
+            let numberBlockStart = -1;
+            for (let i = 0; i < lines.length - 1; i++) {
+                if (lines[i] === 'MISC' && lines[i + 1].match(/^[\d,.]+$/)) {
+                    numberBlockStart = i + 1;
+                    break;
+                }
             }
 
-            // Fallback for variation
-            const netSalesMatch = text.match(/Total Net Sales\s*\n\s*([\-\d,.]+)\s*\n/);
-            if (netSalesMatch) {
-                return parseFloat(netSalesMatch[1].replace(/,/g, ''));
+            if (numberBlockStart !== -1) {
+                const dinners = parseFloat(lines[numberBlockStart].replace(/,/g, ''));
+                const lunch = parseFloat(lines[numberBlockStart + 1].replace(/,/g, ''));
+                const dessert = parseFloat(lines[numberBlockStart + 2].replace(/,/g, ''));
+                const otherFood = parseFloat(lines[numberBlockStart + 3].replace(/,/g, ''));
+                // skip beverages, liquor, beer, wine (positions +4 to +7)
+                const aLaCarte = parseFloat(lines[numberBlockStart + 8].replace(/,/g, ''));
+
+                return Number((dinners + lunch + dessert + otherFood + aLaCarte).toFixed(2));
+            }
+
+            // Fallback for Redbook format variation
+            const rbMatch = text.match(/Total Net Food Sales\s*\n\s*[\d,.]+\s*[\-\d,.]+\s*([\d,.]+)/);
+            if (rbMatch) {
+                return parseFloat(rbMatch[1].replace(/,/g, ''));
             }
 
             return null;
