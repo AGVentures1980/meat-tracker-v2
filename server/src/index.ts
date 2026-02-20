@@ -130,6 +130,24 @@ async function ensureDirectorUser() {
     }
 }
 
+async function cleanupDuplicateProteins() {
+    try {
+        console.log(`[Startup] Cleaning up duplicate proteins from the database...`);
+        const proteinsToRemove = ['Flap Steak', 'Lamb Picanha', 'Picanha with Garlic', 'Spicy Sirloin'];
+
+        const deleted = await (prisma as any).companyProduct.deleteMany({
+            where: {
+                name: {
+                    in: proteinsToRemove
+                }
+            }
+        });
+        console.log(`[Startup] SUCCESS: Removed ${deleted.count} duplicate proteins.`);
+    } catch (error) {
+        console.error('[Startup] FAILED to clean up duplicate proteins:', error);
+    }
+}
+
 async function ensureDefaultSettings() {
     try {
         console.log(`[Startup] Ensuring default system settings exist...`);
@@ -176,7 +194,7 @@ async function ensureDefaultSettings() {
 }
 
 // Start Server after DB Check
-ensureDirectorUser().then(() => ensureDefaultSettings()).then(() => {
+cleanupDuplicateProteins().then(() => ensureDirectorUser()).then(() => ensureDefaultSettings()).then(() => {
     // ... (existing imports)
 
     app.listen(PORT, () => {
