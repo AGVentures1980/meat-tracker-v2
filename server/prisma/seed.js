@@ -179,19 +179,15 @@ async function main() {
         { name: 'Chicken Drumstick', protein_group: 'Chicken', is_villain: false, is_dinner_only: false, include_in_delivery: true, target: 0.06 },
         { name: 'Filet Mignon', protein_group: 'Filet Mignon', is_villain: true, is_dinner_only: true, include_in_delivery: true, target: 0.15 },
         { name: 'Filet Mignon with Bacon', protein_group: 'Filet Mignon', is_villain: true, is_dinner_only: true, include_in_delivery: false, target: 0.10 },
-        { name: 'Flap Steak', protein_group: 'Fraldinha', is_villain: true, is_dinner_only: false, include_in_delivery: false, target: 0.10 },
         { name: 'Fraldinha/Flank Steak', protein_group: 'Fraldinha', is_villain: true, is_dinner_only: false, include_in_delivery: true, target: 0.18 },
         { name: 'Lamb Chops', protein_group: 'Lamb Chops', is_villain: true, is_dinner_only: true, include_in_delivery: false, target: 0.14 },
-        { name: 'Lamb Picanha', protein_group: 'Lamb', is_villain: true, is_dinner_only: false, include_in_delivery: false, target: 0.08 },
         { name: 'Lamb Sirloin', protein_group: 'Lamb', is_villain: true, is_dinner_only: false, include_in_delivery: false, target: 0.07 },
         { name: 'Leg of Lamb', protein_group: 'Leg of Lamb', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.09 },
         { name: 'Picanha', protein_group: 'Picanha', is_villain: true, is_dinner_only: false, include_in_delivery: true, target: 0.35 },
-        { name: 'Picanha with Garlic', protein_group: 'Picanha', is_villain: true, is_dinner_only: false, include_in_delivery: false, target: 0.10 },
         { name: 'Pork Loin', protein_group: 'Pork Loin', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.08 },
         { name: 'Pork Ribs', protein_group: 'Pork Ribs', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.10 },
         { name: 'Sausage', protein_group: 'Sausage', is_villain: false, is_dinner_only: false, include_in_delivery: true, target: 0.10 },
         { name: 'Tri-Tip', protein_group: 'Sirloin', is_villain: false, is_dinner_only: false, include_in_delivery: true, target: 0.05 },
-        { name: 'Spicy Sirloin', protein_group: 'Sirloin', is_villain: false, is_dinner_only: false, include_in_delivery: false, target: 0.05 },
     ].sort((a, b) => a.name.localeCompare(b.name));
 
     for (const p of MASTER_PRODUCTS) {
@@ -311,7 +307,7 @@ async function main() {
         });
 
         const now = new Date();
-        const PROTEINS = ["Beef Ribs", "Chicken Breast", "Chicken Drumstick", "Filet Mignon", "Filet Mignon with Bacon", "Flap Steak", "Fraldinha/Flank Steak", "Lamb Chops", "Lamb Picanha", "Lamb Sirloin", "Leg of Lamb", "Picanha", "Picanha with Garlic", "Pork Loin", "Pork Ribs", "Sausage", "Tri-Tip"];
+        const PROTEINS = ["Beef Ribs", "Chicken Breast", "Chicken Drumstick", "Filet Mignon", "Filet Mignon with Bacon", "Fraldinha/Flank Steak", "Lamb Chops", "Lamb Sirloin", "Leg of Lamb", "Picanha", "Pork Loin", "Pork Ribs", "Sausage", "Tri-Tip"];
         const lastWeek = new Date(now);
         lastWeek.setDate(now.getDate() - 7);
 

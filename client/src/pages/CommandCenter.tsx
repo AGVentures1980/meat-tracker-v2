@@ -222,27 +222,31 @@ export const CommandCenter = () => {
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                        <button
-                            onClick={() => navigate('/prices')}
-                            className="flex items-center justify-between p-6 bg-[#252525] hover:bg-[#333] border border-white/5 rounded-lg transition-all group"
-                        >
-                            <div className="text-left">
-                                <span className="block text-[#C5A059] text-xs font-bold uppercase tracking-widest mb-1">Process Invoices</span>
-                                <span className="text-white font-bold">Log New Delivery</span>
-                            </div>
-                            <ChevronRight className="w-6 h-6 text-gray-600 group-hover:text-[#C5A059] group-hover:translate-x-1 transition-all" />
-                        </button>
+                        {(user?.role === 'manager' || user?.role === 'store_admin') && (
+                            <>
+                                <button
+                                    onClick={() => navigate('/prices')}
+                                    className="flex items-center justify-between p-6 bg-[#252525] hover:bg-[#333] border border-white/5 rounded-lg transition-all group"
+                                >
+                                    <div className="text-left">
+                                        <span className="block text-[#C5A059] text-xs font-bold uppercase tracking-widest mb-1">Process Invoices</span>
+                                        <span className="text-white font-bold">Log New Delivery</span>
+                                    </div>
+                                    <ChevronRight className="w-6 h-6 text-gray-600 group-hover:text-[#C5A059] group-hover:translate-x-1 transition-all" />
+                                </button>
 
-                        <button
-                            onClick={handleSetNoDelivery}
-                            className="flex items-center justify-between p-6 bg-[#121212] hover:bg-[#1a1a1a] border border-white/5 rounded-lg transition-all group border-dashed"
-                        >
-                            <div className="text-left">
-                                <span className="block text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Manual Override</span>
-                                <span className="text-gray-300 font-bold">No Delivery Received Today</span>
-                            </div>
-                            <PlayCircle className="w-6 h-6 text-gray-800 group-hover:text-white transition-colors" />
-                        </button>
+                                <button
+                                    onClick={handleSetNoDelivery}
+                                    className="flex items-center justify-between p-6 bg-[#121212] hover:bg-[#1a1a1a] border border-white/5 rounded-lg transition-all group border-dashed"
+                                >
+                                    <div className="text-left">
+                                        <span className="block text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Manual Override</span>
+                                        <span className="text-gray-300 font-bold">No Delivery Received Today</span>
+                                    </div>
+                                    <PlayCircle className="w-6 h-6 text-gray-800 group-hover:text-white transition-colors" />
+                                </button>
+                            </>
+                        )}
                     </div>
 
                     <div className="mt-12 pt-8 border-t border-white/5">
@@ -288,12 +292,16 @@ export const CommandCenter = () => {
                         <div className="text-center px-4 border-r border-white/5">
                             <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Forecast Guests</span>
                             <div className="flex items-center gap-2">
-                                <input
-                                    type="number"
-                                    value={forecast}
-                                    onChange={(e) => setForecast(parseInt(e.target.value) || 0)}
-                                    className="w-16 bg-transparent text-xl font-black text-white outline-none border-b border-[#333] focus:border-[#C5A059]"
-                                />
+                                {user?.role === 'director' || user?.role === 'admin' ? (
+                                    <span className="text-xl font-black text-white px-2 py-1">{forecast}</span>
+                                ) : (
+                                    <input
+                                        type="number"
+                                        value={forecast}
+                                        onChange={(e) => setForecast(parseInt(e.target.value) || 0)}
+                                        className="w-16 bg-transparent text-xl font-black text-white outline-none border-b border-[#333] focus:border-[#C5A059]"
+                                    />
+                                )}
                                 <Users className="w-4 h-4 text-gray-600" />
                             </div>
                         </div>
@@ -384,12 +392,14 @@ export const CommandCenter = () => {
                             <div className="flex-1 flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-white/5 rounded-lg mb-6">
                                 <Trash2 className="w-12 h-12 text-gray-800 mb-4" />
                                 <p className="text-gray-500 mb-6">No waste recorded for this shift yet.</p>
-                                <button
-                                    onClick={addWasteItem}
-                                    className="px-6 py-3 bg-[#C5A059] text-black font-black uppercase text-xs tracking-widest rounded hover:bg-[#d6b579] transition-all flex items-center gap-2 shadow-lg hover:shadow-[#C5A059]/20"
-                                >
-                                    <Plus className="w-4 h-4" /> Start Shift Log
-                                </button>
+                                {(user?.role !== 'director' && user?.role !== 'admin') && (
+                                    <button
+                                        onClick={addWasteItem}
+                                        className="px-6 py-3 bg-[#C5A059] text-black font-black uppercase text-xs tracking-widest rounded hover:bg-[#d6b579] transition-all flex items-center gap-2 shadow-lg hover:shadow-[#C5A059]/20"
+                                    >
+                                        <Plus className="w-4 h-4" /> Start Shift Log
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             <div className="flex-1 space-y-3 mb-6">
@@ -403,6 +413,7 @@ export const CommandCenter = () => {
                                                     value={item.protein}
                                                     onChange={(e) => updateWasteItem(idx, 'protein', e.target.value)}
                                                     className="w-full bg-[#111] text-white border border-white/10 rounded p-2 text-sm outline-none focus:border-[#C5A059]"
+                                                    disabled={user?.role === 'director' || user?.role === 'admin'}
                                                 >
                                                     {proteins.map(p => (
                                                         <option key={p} value={p}>{p}</option>
@@ -421,6 +432,7 @@ export const CommandCenter = () => {
                                                     value={item.weight}
                                                     onChange={(e) => updateWasteItem(idx, 'weight', parseFloat(e.target.value) || 0)}
                                                     className="w-full bg-[#111] text-white border border-white/10 rounded p-2 text-sm outline-none focus:border-[#C5A059] font-mono"
+                                                    disabled={user?.role === 'director' || user?.role === 'admin'}
                                                 />
                                             </div>
                                             <div className="flex-1">
@@ -429,27 +441,32 @@ export const CommandCenter = () => {
                                                     value={item.reason}
                                                     onChange={(e) => updateWasteItem(idx, 'reason', e.target.value)}
                                                     className="w-full bg-[#111] text-white border border-white/10 rounded p-2 text-sm outline-none focus:border-[#C5A059]"
+                                                    disabled={user?.role === 'director' || user?.role === 'admin'}
                                                 >
                                                     {WASTE_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
                                                 </select>
                                             </div>
-                                            <div className="flex items-end justify-end">
-                                                <button
-                                                    onClick={() => removeWasteItem(idx)}
-                                                    className="p-2.5 text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded transition-all"
-                                                >
-                                                    <X className="w-5 h-5" />
-                                                </button>
-                                            </div>
+                                            {(user?.role !== 'director' && user?.role !== 'admin') && (
+                                                <div className="flex items-end justify-end">
+                                                    <button
+                                                        onClick={() => removeWasteItem(idx)}
+                                                        className="p-2.5 text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded transition-all"
+                                                    >
+                                                        <X className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}
-                                <button
-                                    onClick={addWasteItem}
-                                    className="w-full py-4 border-2 border-dashed border-white/5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest"
-                                >
-                                    <Plus className="w-4 h-4" /> Add Another Item
-                                </button>
+                                {(user?.role !== 'director' && user?.role !== 'admin') && (
+                                    <button
+                                        onClick={addWasteItem}
+                                        className="w-full py-4 border-2 border-dashed border-white/5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest"
+                                    >
+                                        <Plus className="w-4 h-4" /> Add Another Item
+                                    </button>
+                                )}
                             </div>
                         )}
 
@@ -461,13 +478,15 @@ export const CommandCenter = () => {
                                         {wasteItems.reduce((sum, item) => sum + (item.weight || 0), 0).toFixed(2)} <span className="text-xs font-normal text-gray-500">LBS</span>
                                     </span>
                                 </div>
-                                <button
-                                    onClick={submitWaste}
-                                    disabled={isSubmittingWaste}
-                                    className="w-full md:w-auto px-10 py-4 bg-[#FF2A6D] text-white font-black uppercase text-sm tracking-widest rounded hover:bg-[#ff1b62] shadow-lg shadow-[#FF2A6D]/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                                >
-                                    {isSubmittingWaste ? 'RECORDING OPS...' : 'FINALIZE SHIFT WASTE'} <ArrowRight className="w-5 h-5" />
-                                </button>
+                                {(user?.role !== 'director' && user?.role !== 'admin') && (
+                                    <button
+                                        onClick={submitWaste}
+                                        disabled={isSubmittingWaste}
+                                        className="w-full md:w-auto px-10 py-4 bg-[#FF2A6D] text-white font-black uppercase text-sm tracking-widest rounded hover:bg-[#ff1b62] shadow-lg shadow-[#FF2A6D]/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                    >
+                                        {isSubmittingWaste ? 'RECORDING OPS...' : 'FINALIZE SHIFT WASTE'} <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>
