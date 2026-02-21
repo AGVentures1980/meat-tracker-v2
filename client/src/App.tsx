@@ -23,6 +23,7 @@ import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
+import { UsersPage } from './pages/UsersPage';
 import CFOReport from './pages/CFOReport';
 import { TrainingPage } from './pages/TrainingPage';
 import { PerformanceDashboard } from './pages/PerformanceDashboard';
@@ -89,7 +90,7 @@ function AppContent() {
                     <Route path="/inventory" element={<GovernanceGuard><WeeklyInventory /></GovernanceGuard>} />
                     <Route path="/reports" element={<GovernanceGuard><ReportsPage /></GovernanceGuard>} />
                     <Route path="/prices" element={<WeeklyPriceInput />} />
-                    <Route path="/users" element={<PlaceholderPage title="User Administration" />} />
+                    <Route path="/users" element={<UsersPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/settings/company" element={<CompanySettings />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />

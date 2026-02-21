@@ -63,6 +63,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             section: t('nav.section_learn') || 'LEARN (Training)', items: [
                 { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
             ]
+        },
+        {
+            section: t('nav.section_team') || 'TEAM (Store)', items: [
+                { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
+            ]
         }
     ];
 

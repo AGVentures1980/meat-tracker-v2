@@ -120,6 +120,8 @@ model StoreMeatTarget {
 model User {
   id                   String             @id @default(uuid())
   store_id             Int?
+  first_name           String?
+  last_name            String?
   email                String             @unique
   password_hash        String
   role                 Role               @default(viewer)

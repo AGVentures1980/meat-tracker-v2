@@ -48,6 +48,7 @@ import negotiationRoutes from './routes/negotiation.routes';
 import reportRoutes from './routes/report.routes';
 import forecastRoutes from './routes/forecast.routes';
 import ownerRoutes from './routes/owner.routes';
+import userRoutes from './routes/user.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
