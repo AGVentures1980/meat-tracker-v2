@@ -139,7 +139,7 @@ export const UsersPage = () => {
                     </p>
                 </div>
 
-                {(!isMasterOrAdmin && user?.isPrimary) && (
+                {(!isMasterOrAdmin && user?.isPrimary !== false) && (
                     <button
                         onClick={() => setIsAdding(true)}
                         className="bg-brand-gold hover:bg-yellow-500 text-black px-6 py-3 rounded-sm font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap"
@@ -245,7 +245,7 @@ export const UsersPage = () => {
                                                 )}
                                             </td>
                                             <td className="p-4 pr-6 text-right">
-                                                {!isSelf && (!isMasterOrAdmin && user?.isPrimary) && (
+                                                {!isSelf && (!isMasterOrAdmin && user?.isPrimary !== false) && (
                                                     <button
                                                         onClick={() => handleDeleteUser(u.id, u.email)}
                                                         className="p-2 text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-all"

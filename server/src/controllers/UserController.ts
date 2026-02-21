@@ -19,7 +19,7 @@ export const UserController = {
                 return res.status(400).json({ error: 'Store ID is required' });
             }
 
-            if (user.role === 'manager' && !user.isPrimary) {
+            if (user.role === 'manager' && user.isPrimary === false) {
                 return res.status(403).json({ error: 'Only the primary store account can view team members' });
             }
 
@@ -58,7 +58,7 @@ export const UserController = {
                 return res.status(400).json({ error: 'Store ID is required' });
             }
 
-            if (currentUser.role === 'manager' && !currentUser.isPrimary) {
+            if (currentUser.role === 'manager' && currentUser.isPrimary === false) {
                 return res.status(403).json({ error: 'Only the primary store account can add team members' });
             }
 
@@ -123,7 +123,7 @@ export const UserController = {
                 if (targetUser.store_id !== currentUser.storeId) {
                     return res.status(403).json({ error: 'Unauthorized to delete this user' });
                 }
-                if (!currentUser.isPrimary) {
+                if (currentUser.isPrimary === false) {
                     return res.status(403).json({ error: 'Only the primary store account can delete team members' });
                 }
             }

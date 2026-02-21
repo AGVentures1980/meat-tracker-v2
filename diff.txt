@@ -1,0 +1,53 @@
+diff --git a/client/src/pages/UsersPage.tsx b/client/src/pages/UsersPage.tsx
+index fdc982b..7288d08 100644
+--- a/client/src/pages/UsersPage.tsx
++++ b/client/src/pages/UsersPage.tsx
+@@ -139,7 +139,7 @@ export const UsersPage = () => {
+                     </p>
+                 </div>
+ 
+-                {(!isMasterOrAdmin && user?.isPrimary) && (
++                {(!isMasterOrAdmin && user?.isPrimary !== false) && (
+                     <button
+                         onClick={() => setIsAdding(true)}
+                         className="bg-brand-gold hover:bg-yellow-500 text-black px-6 py-3 rounded-sm font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap"
+@@ -245,7 +245,7 @@ export const UsersPage = () => {
+                                                 )}
+                                             </td>
+                                             <td className="p-4 pr-6 text-right">
+-                                                {!isSelf && (!isMasterOrAdmin && user?.isPrimary) && (
++                                                {!isSelf && (!isMasterOrAdmin && user?.isPrimary !== false) && (
+                                                     <button
+                                                         onClick={() => handleDeleteUser(u.id, u.email)}
+                                                         className="p-2 text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-all"
+diff --git a/server/src/controllers/UserController.ts b/server/src/controllers/UserController.ts
+index 3c0fac3..03f9b55 100644
+--- a/server/src/controllers/UserController.ts
++++ b/server/src/controllers/UserController.ts
+@@ -19,7 +19,7 @@ export const UserController = {
+                 return res.status(400).json({ error: 'Store ID is required' });
+             }
+ 
+-            if (user.role === 'manager' && !user.isPrimary) {
++            if (user.role === 'manager' && user.isPrimary === false) {
+                 return res.status(403).json({ error: 'Only the primary store account can view team members' });
+             }
+ 
+@@ -58,7 +58,7 @@ export const UserController = {
+                 return res.status(400).json({ error: 'Store ID is required' });
+             }
+ 
+-            if (currentUser.role === 'manager' && !currentUser.isPrimary) {
++            if (currentUser.role === 'manager' && currentUser.isPrimary === false) {
+                 return res.status(403).json({ error: 'Only the primary store account can add team members' });
+             }
+ 
+@@ -123,7 +123,7 @@ export const UserController = {
+                 if (targetUser.store_id !== currentUser.storeId) {
+                     return res.status(403).json({ error: 'Unauthorized to delete this user' });
+                 }
+-                if (!currentUser.isPrimary) {
++                if (currentUser.isPrimary === false) {
+                     return res.status(403).json({ error: 'Only the primary store account can delete team members' });
+                 }
+             }
