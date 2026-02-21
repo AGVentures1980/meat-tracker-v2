@@ -99,7 +99,8 @@ export class AuthController {
                     email: user.email,
                     role: user.role,
                     storeId: user.store_id,
-                    companyId: defaultCompanyId || 'tdb-main' // Fallback for TDB safety
+                    companyId: defaultCompanyId || 'tdb-main', // Fallback for TDB safety
+                    isPrimary: user.is_primary
                 },
                 JWT_SECRET,
                 { expiresIn: '12h' }
@@ -114,7 +115,8 @@ export class AuthController {
                     email: user.email,
                     role: user.role,
                     storeId: user.store_id,
-                    companyId: defaultCompanyId || 'tdb-main'
+                    companyId: defaultCompanyId || 'tdb-main',
+                    isPrimary: user.is_primary
                 },
                 redirectPath,
                 defaultCompanyId,

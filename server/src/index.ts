@@ -195,8 +195,26 @@ async function ensureDefaultSettings() {
     }
 }
 
+async function ensurePrimaryStoreUsers() {
+    try {
+        console.log(`[Startup] Ensuring primary store users are marked...`);
+        const updated = await (prisma as any).user.updateMany({
+            where: {
+                role: { in: ['manager', 'admin', 'director'] },
+                is_primary: false,
+                first_name: null,
+                last_name: null
+            },
+            data: { is_primary: true }
+        });
+        console.log(`[Startup] SUCCESS: Marked ${updated.count} legacy/system users as primary.`);
+    } catch (error) {
+        console.error('[Startup] FAILED to mark primary users:', error);
+    }
+}
+
 // Start Server after DB Check
-cleanupDuplicateProteins().then(() => ensureDirectorUser()).then(() => ensureDefaultSettings()).then(() => {
+cleanupDuplicateProteins().then(() => ensureDirectorUser()).then(() => ensureDefaultSettings()).then(() => ensurePrimaryStoreUsers()).then(() => {
     // ... (existing imports)
 
     app.listen(PORT, () => {

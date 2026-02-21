@@ -19,6 +19,10 @@ export const UserController = {
                 return res.status(400).json({ error: 'Store ID is required' });
             }
 
+            if (user.role === 'manager' && !user.isPrimary) {
+                return res.status(403).json({ error: 'Only the primary store account can view team members' });
+            }
+
             const users = await prisma.user.findMany({
                 where: { store_id: targetStoreId },
                 select: {
@@ -52,6 +56,10 @@ export const UserController = {
 
             if (!targetStoreId) {
                 return res.status(400).json({ error: 'Store ID is required' });
+            }
+
+            if (currentUser.role === 'manager' && !currentUser.isPrimary) {
+                return res.status(403).json({ error: 'Only the primary store account can add team members' });
             }
 
             const { first_name, last_name, email, password } = req.body;
@@ -111,8 +119,13 @@ export const UserController = {
             }
 
             // Ensure the manager only deletes users from their own store
-            if (currentUser.role === 'manager' && targetUser.store_id !== currentUser.storeId) {
-                return res.status(403).json({ error: 'Unauthorized to delete this user' });
+            if (currentUser.role === 'manager') {
+                if (targetUser.store_id !== currentUser.storeId) {
+                    return res.status(403).json({ error: 'Unauthorized to delete this user' });
+                }
+                if (!currentUser.isPrimary) {
+                    return res.status(403).json({ error: 'Only the primary store account can delete team members' });
+                }
             }
 
             // Ensure a user cannot delete themselves (or maybe they can? standard is no)

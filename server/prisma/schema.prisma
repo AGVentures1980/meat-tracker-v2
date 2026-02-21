@@ -125,6 +125,7 @@ model User {
   email                String             @unique
   password_hash        String
   role                 Role               @default(viewer)
+  is_primary           Boolean            @default(false)
   created_at           DateTime           @default(now())
   force_change         Boolean            @default(false)
   last_password_change DateTime           @default(now())
