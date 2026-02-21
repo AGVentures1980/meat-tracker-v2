@@ -279,8 +279,9 @@ export const UsersPage = () => {
                             <form onSubmit={handleAddUser} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">First Name</label>
+                                        <label htmlFor="firstName" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">First Name</label>
                                         <input
+                                            id="firstName"
                                             type="text"
                                             autoFocus
                                             required
@@ -291,8 +292,9 @@ export const UsersPage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Last Name</label>
+                                        <label htmlFor="lastName" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Last Name</label>
                                         <input
+                                            id="lastName"
                                             type="text"
                                             required
                                             autoComplete="off"
@@ -304,8 +306,9 @@ export const UsersPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Email Address</label>
+                                    <label htmlFor="email" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Email Address</label>
                                     <input
+                                        id="email"
                                         type="email"
                                         required
                                         autoComplete="off"
@@ -316,8 +319,9 @@ export const UsersPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Temporary Password</label>
+                                    <label htmlFor="tempPassword" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Temporary Password</label>
                                     <input
+                                        id="tempPassword"
                                         type="password"
                                         required
                                         autoComplete="new-password"
