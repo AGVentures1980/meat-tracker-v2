@@ -91,7 +91,8 @@ export const UsersPage = () => {
                 alert(`Error: ${data.error || 'Failed to add user'}`);
             }
         } catch (error) {
-            alert('Failed to connect to the server.');
+            console.error('Add user error:', error);
+            alert('Failed to connect to the server. It might be restarting, please try again in a minute.');
         } finally {
             setIsSubmitting(false);
         }
@@ -283,10 +284,10 @@ export const UsersPage = () => {
                                             type="text"
                                             autoFocus
                                             required
+                                            autoComplete="off"
                                             value={firstName}
                                             onChange={e => setFirstName(e.target.value)}
                                             className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none text-sm transition-colors"
-                                            placeholder="John"
                                         />
                                     </div>
                                     <div>
@@ -294,10 +295,10 @@ export const UsersPage = () => {
                                         <input
                                             type="text"
                                             required
+                                            autoComplete="off"
                                             value={lastName}
                                             onChange={e => setLastName(e.target.value)}
                                             className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none text-sm transition-colors"
-                                            placeholder="Doe"
                                         />
                                     </div>
                                 </div>
@@ -307,10 +308,10 @@ export const UsersPage = () => {
                                     <input
                                         type="email"
                                         required
+                                        autoComplete="off"
                                         value={email}
                                         onChange={e => setEmail(e.target.value)}
                                         className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none text-sm transition-colors"
-                                        placeholder="john.doe@texasdebrazil.com"
                                     />
                                 </div>
 
@@ -319,10 +320,10 @@ export const UsersPage = () => {
                                     <input
                                         type="password"
                                         required
+                                        autoComplete="new-password"
                                         value={password}
                                         onChange={e => setPassword(e.target.value)}
                                         className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none text-sm transition-colors font-mono"
-                                        placeholder="••••••••"
                                     />
                                 </div>
 
