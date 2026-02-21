@@ -71,6 +71,7 @@ app.use('/api/v1/negotiation', requireAuth, negotiationRoutes);
 app.use('/api/v1/reports', requireAuth, reportRoutes);
 app.use('/api/v1/forecast', requireAuth, forecastRoutes);
 app.use('/api/v1/owner', ownerRoutes);
+app.use('/api/v1/users', userRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
