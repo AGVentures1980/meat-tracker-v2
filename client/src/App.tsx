@@ -30,6 +30,8 @@ import { PerformanceDashboard } from './pages/PerformanceDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
 import { DataAnalyst } from './pages/DataAnalyst';
 import { GovernanceGuard } from './components/GovernanceGuard';
+import { SupportHub } from './pages/SupportHub';
+import { AdminSupport } from './pages/AdminSupport';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -106,6 +108,8 @@ function AppContent() {
                     <Route path="/audit" element={<PerformanceDashboard />} />
                     <Route path="/data-analyst" element={<DataAnalyst />} />
                     <Route path="/owner" element={<OwnerDashboard />} />
+                    <Route path="/admin-support" element={<AdminSupport />} />
+                    <Route path="/support" element={<SupportHub />} />
                 </Route>
 
                 {/* Catch all redirect to login */}

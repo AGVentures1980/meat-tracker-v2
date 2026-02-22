@@ -88,6 +88,7 @@ model Store {
   users                     User[]
   waste_compliance          WasteCompliance[]
   waste_logs                WasteLog[]
+  support_tickets           SupportTicket[]
 
   @@unique([company_id, store_name])
 }
@@ -133,6 +134,7 @@ model User {
   trial_expires_at     DateTime?
   store                Store?             @relation(fields: [store_id], references: [id])
   training_progress    TrainingProgress[]
+  support_tickets      SupportTicket[]
 }
 
 model TrainingProgress {
@@ -443,4 +445,54 @@ enum OrderSource {
 enum FileType {
   CSV
   Image
+}
+
+// ==========================================
+// AI Agent Support Hub Models
+// ==========================================
+
+model FAQ {
+  id              String   @id @default(uuid())
+  question        String
+  answer          String   @db.Text
+  frequency_count Int      @default(0)
+  category        String   @default("General")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model SupportTicket {
+  id         String           @id @default(uuid())
+  store_id   Int
+  user_id    String
+  title      String
+  status     TicketStatus     @default(OPEN)
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  store      Store            @relation(fields: [store_id], references: [id])
+  user       User             @relation(fields: [user_id], references: [id])
+  messages   SupportMessage[]
+
+  @@index([store_id, status])
+}
+
+model SupportMessage {
+  id          String        @id @default(uuid())
+  ticket_id   String
+  sender_type SenderType    @default(USER)
+  content     String        @db.Text
+  created_at  DateTime      @default(now())
+  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+}
+
+enum TicketStatus {
+  OPEN
+  RESOLVED
+  CLOSED
+}
+
+enum SenderType {
+  USER
+  AI
+  ADMIN
 }

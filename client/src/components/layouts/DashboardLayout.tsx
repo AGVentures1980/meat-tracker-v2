@@ -62,6 +62,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {
             section: t('nav.section_learn') || 'LEARN (Training)', items: [
                 { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
+                { icon: FileText, label: t('nav.support') || 'AGV Support Hub', path: '/support' },
             ]
         },
         {
@@ -76,6 +77,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         navItems.push({
             section: t('nav.section_manage') || 'MANAGE (Company)', items: [
                 { icon: Activity, label: 'Network Command Center', path: '/owner' },
+                { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' },
                 { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
                 { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
                 { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }

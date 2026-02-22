@@ -49,6 +49,7 @@ import reportRoutes from './routes/report.routes';
 import forecastRoutes from './routes/forecast.routes';
 import ownerRoutes from './routes/owner.routes';
 import userRoutes from './routes/user.routes';
+import supportRoutes from './routes/support.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
@@ -70,6 +71,7 @@ app.use('/api/v1/analyst', requireAuth, analystRoutes);
 app.use('/api/v1/negotiation', requireAuth, negotiationRoutes);
 app.use('/api/v1/reports', requireAuth, reportRoutes);
 app.use('/api/v1/forecast', requireAuth, forecastRoutes);
+app.use('/api/v1/support', requireAuth, supportRoutes);
 app.use('/api/v1/owner', ownerRoutes);
 app.use('/api/v1/users', userRoutes);
 
