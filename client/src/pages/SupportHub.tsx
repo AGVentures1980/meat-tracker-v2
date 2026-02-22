@@ -17,7 +17,7 @@ interface Message {
 }
 
 export const SupportHub: React.FC = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const [faqs, setFaqs] = useState<FAQ[]>([]);
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputQuery, setInputQuery] = useState('');
@@ -28,7 +28,7 @@ export const SupportHub: React.FC = () => {
     useEffect(() => {
         fetchFaqs();
         fetchThread();
-    }, []);
+    }, [selectedCompany]);
 
     const fetchFaqs = async () => {
         try {
@@ -48,7 +48,8 @@ export const SupportHub: React.FC = () => {
     const fetchThread = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/v1/support/chat', {
+            const url = selectedCompany ? `/api/v1/support/chat?store_id=${selectedCompany}` : '/api/v1/support/chat';
+            const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -77,13 +78,16 @@ export const SupportHub: React.FC = () => {
 
         try {
             const token = localStorage.getItem('token');
+            const payload: any = { content: optimisticMessage.content };
+            if (selectedCompany) payload.store_id = selectedCompany;
+
             const res = await fetch('/api/v1/support/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ content: optimisticMessage.content })
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {

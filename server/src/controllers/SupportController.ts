@@ -37,11 +37,11 @@ export class SupportController {
 
     static async sendMessage(req: Request, res: Response) {
         try {
-            const { content } = req.body;
+            const { content, store_id: bodyStoreId } = req.body;
             // The Auth Middleware injects `req.user` theoretically
             // For now, assume auth works and user is attached
             const user_id = (req as any).user?.id || 'demo-user-id';
-            const store_id = (req as any).user?.store_id || 1;
+            const store_id = bodyStoreId ? parseInt(bodyStoreId, 10) : ((req as any).user?.store_id || 1);
 
             if (!content) return res.status(400).json({ error: 'Message content required' });
 
@@ -75,18 +75,17 @@ export class SupportController {
             let aiResponse = '';
             let escalate = false;
 
-            if (lowerContent.includes('bug') || lowerContent.includes('error') || lowerContent.includes('broken') || lowerContent.includes('help') ||
-                lowerContent.includes('erro') || lowerContent.includes('problema') || lowerContent.includes('ajuda') || lowerContent.includes('socorro') || lowerContent.includes('não funciona')) {
-                aiResponse = 'Entendido. Reportando imediatamente para o Time Executivo (Alex Garcia). Um alerta acaba de soar no painel da diretoria. Aguarde a resposta por aqui.';
+            if (lowerContent.includes('bug') || lowerContent.includes('error') || lowerContent.includes('broken') || lowerContent.includes('help')) {
+                aiResponse = 'Understood. I have detected this may be a technical issue. I am immediately escalating this ticket to the Executive Command Center (Alex Garcia). You will be notified and receive a response here shortly.';
                 escalate = true;
 
                 await prisma.supportTicket.update({
                     where: { id: ticket.id },
                     data: { is_escalated: true }
                 });
-            } else if (lowerContent.includes('report') || lowerContent.includes('roi') || lowerContent.includes('relatório')) {
+            } else if (lowerContent.includes('report') || lowerContent.includes('roi')) {
                 aiResponse = 'To read the ROI reports, access the "Financials & ROI" tab on the left menu. There you will see the projected impact based on actual consumption vs baseline. Did this answer help?';
-            } else if (lowerContent.includes('inventory') || lowerContent.includes('pulse') || lowerContent.includes('count') || lowerContent.includes('inventário')) {
+            } else if (lowerContent.includes('inventory') || lowerContent.includes('pulse') || lowerContent.includes('count')) {
                 aiResponse = 'The Weekly Smart Inventory (Pulse) must be physically counted and entered into the platform by 11:00 AM on Monday. Beware of The Garcia Rule!';
             } else {
                 aiResponse = `Hello, how can I help you today? Let's get started.`;
@@ -117,7 +116,8 @@ export class SupportController {
 
     static async getStoreThread(req: Request, res: Response) {
         try {
-            const store_id = (req as any).user?.store_id || 1;
+            const queryStoreId = req.query.store_id as string;
+            const store_id = queryStoreId ? parseInt(queryStoreId, 10) : ((req as any).user?.store_id || 1);
 
             const ticket = await prisma.supportTicket.findFirst({
                 where: { store_id, status: 'OPEN' },
