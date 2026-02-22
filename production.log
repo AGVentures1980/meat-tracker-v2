@@ -14,20 +14,20 @@ The database is already in sync with the Prisma schema.
 
 Running generate... (Use --skip-generate to skip the generators)
 [2K[1A[2K[GRunning generate... - Prisma Client
-[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 98ms
+[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 97ms
 
 DEBUG: Ls dist
 total 24
-drwxr-xr-x@ 10 alexandregarcia  staff    320 Feb 22 02:54 .
-drwxr-xr-x@  4 alexandregarcia  staff    128 Feb 22 02:54 ..
-drwxr-xr-x@  7 alexandregarcia  staff    224 Feb 22 02:54 config
-drwxr-xr-x@ 28 alexandregarcia  staff    896 Feb 22 02:54 controllers
-drwxr-xr-x@  4 alexandregarcia  staff    128 Feb 22 02:54 engine
--rw-r--r--@  1 alexandregarcia  staff  10131 Feb 22 02:54 index.js
-drwxr-xr-x@  5 alexandregarcia  staff    160 Feb 22 02:54 middleware
-drwxr-xr-x@ 18 alexandregarcia  staff    576 Feb 22 02:54 routes
-drwxr-xr-x@ 30 alexandregarcia  staff    960 Feb 22 02:54 scripts
-drwxr-xr-x@  9 alexandregarcia  staff    288 Feb 22 02:54 services
+drwxr-xr-x@ 10 alexandregarcia  staff    320 Feb 22 03:10 .
+drwxr-xr-x@  4 alexandregarcia  staff    128 Feb 22 03:10 ..
+drwxr-xr-x@  7 alexandregarcia  staff    224 Feb 22 03:10 config
+drwxr-xr-x@ 28 alexandregarcia  staff    896 Feb 22 03:10 controllers
+drwxr-xr-x@  4 alexandregarcia  staff    128 Feb 22 03:10 engine
+-rw-r--r--@  1 alexandregarcia  staff  10402 Feb 22 03:10 index.js
+drwxr-xr-x@  5 alexandregarcia  staff    160 Feb 22 03:10 middleware
+drwxr-xr-x@ 18 alexandregarcia  staff    576 Feb 22 03:10 routes
+drwxr-xr-x@ 30 alexandregarcia  staff    960 Feb 22 03:10 scripts
+drwxr-xr-x@  9 alexandregarcia  staff    288 Feb 22 03:10 services
 [Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
 [Startup] Cleaning up duplicate proteins from the database...
 [Startup] SUCCESS: Removed 0 duplicate proteins.
@@ -48,18 +48,29 @@ drwxr-xr-x@  9 alexandregarcia  staff    288 Feb 22 02:54 services
 ✅ AI Prospecting Agent: Exploration complete. Found 3 high-value targets.
    ✨ [Automated Ingestion] Successfully processed invoice_sysco_dallas_0218.pdf. Extracted 12 items.
 ✅ [MS GRAPH] Moving invoice_sysco_dallas_0218.pdf to 'Processed' folder...
-🔍 [ONEDRIVE WATCHER] Checking for new files...
-   (No new files found)
-🔍 [ONEDRIVE WATCHER] Checking for new files...
-   (No new files found)
-🔍 [ONEDRIVE WATCHER] Checking for new files...
-   (No new files found)
-🔍 [ONEDRIVE WATCHER] Checking for new files...
-   (No new files found)
-🔍 [ONEDRIVE WATCHER] Checking for new files...
-   (No new files found)
-🔍 [ONEDRIVE WATCHER] Checking for new files...
-   (No new files found)
+[0mGET /api/v1/support/faq [32m200[0m 33.814 ms - 1765[0m
+[HTTP] GET /faq 200 34ms
+[0mGET /api/v1/support/chat [32m200[0m 2.974 ms - 2[0m
+[HTTP] GET /chat 200 4ms
+Failed to process message PrismaClientKnownRequestError: 
+Invalid `prisma.supportTicket.create()` invocation:
+
+
+Foreign key constraint violated: `SupportTicket_user_id_fkey (index)`
+    at $n.handleRequestError (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/@prisma/client/runtime/library.js:121:7315)
+    at $n.handleAndLogRequestError (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at async l (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at async sendMessage (/Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/server/dist/src/controllers/SupportController.js:53:26) {
+  code: 'P2003',
+  clientVersion: '5.22.0',
+  meta: {
+    modelName: 'SupportTicket',
+    field_name: 'SupportTicket_user_id_fkey (index)'
+  }
+}
+[0mPOST /api/v1/support/chat [31m500[0m 3.876 ms - 37[0m
+[HTTP] POST /chat 500 4ms
 🔍 [ONEDRIVE WATCHER] Checking for new files...
    (No new files found)
 🔍 [ONEDRIVE WATCHER] Checking for new files...

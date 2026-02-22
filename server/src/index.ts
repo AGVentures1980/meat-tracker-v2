@@ -34,6 +34,16 @@ app.get('/health', (req, res) => {
 import { requireAuth } from './middleware/auth.middleware';
 import authRoutes from './routes/auth.routes';
 
+// Global Request Logger
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`[HTTP] ${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
+    });
+    next();
+});
+
 // API Routes
 import dashboardRoutes from './routes/dashboard.routes';
 import orderRoutes from './routes/order.routes';

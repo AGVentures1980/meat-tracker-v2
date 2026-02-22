@@ -39,8 +39,9 @@ export class SupportController {
         try {
             const { content, store_id: bodyStoreId } = req.body;
             // The Auth Middleware injects `req.user` theoretically
-            // For now, assume auth works and user is attached
-            const user_id = (req as any).user?.id || 'demo-user-id';
+            const userId = (req as any).user?.userId || (req as any).user?.id;
+            if (!userId) return res.status(401).json({ error: 'User context required' });
+            const user_id = userId;
             let store_id = bodyStoreId ? parseInt(bodyStoreId, 10) : (req as any).user?.store_id;
             if (!store_id) {
                 const firstStore = await prisma.store.findFirst();
