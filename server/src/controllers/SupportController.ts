@@ -75,20 +75,21 @@ export class SupportController {
             let aiResponse = '';
             let escalate = false;
 
-            if (lowerContent.includes('bug') || lowerContent.includes('error') || lowerContent.includes('broken') || lowerContent.includes('help')) {
-                aiResponse = 'Understood. I have detected this may be a technical issue. I am immediately escalating this ticket to the Executive Command Center (Alex Garcia). You will be notified and receive a response here shortly.';
+            if (lowerContent.includes('bug') || lowerContent.includes('error') || lowerContent.includes('broken') || lowerContent.includes('help') ||
+                lowerContent.includes('erro') || lowerContent.includes('problema') || lowerContent.includes('ajuda') || lowerContent.includes('socorro') || lowerContent.includes('não funciona')) {
+                aiResponse = 'Entendido. Reportando imediatamente para o Time Executivo (Alex Garcia). Um alerta acaba de soar no painel da diretoria. Aguarde a resposta por aqui.';
                 escalate = true;
 
                 await prisma.supportTicket.update({
                     where: { id: ticket.id },
                     data: { is_escalated: true }
                 });
-            } else if (lowerContent.includes('report') || lowerContent.includes('roi')) {
+            } else if (lowerContent.includes('report') || lowerContent.includes('roi') || lowerContent.includes('relatório')) {
                 aiResponse = 'To read the ROI reports, access the "Financials & ROI" tab on the left menu. There you will see the projected impact based on actual consumption vs baseline. Did this answer help?';
-            } else if (lowerContent.includes('inventory') || lowerContent.includes('pulse') || lowerContent.includes('count')) {
+            } else if (lowerContent.includes('inventory') || lowerContent.includes('pulse') || lowerContent.includes('count') || lowerContent.includes('inventário')) {
                 aiResponse = 'The Weekly Smart Inventory (Pulse) must be physically counted and entered into the platform by 11:00 AM on Monday. Beware of The Garcia Rule!';
             } else {
-                aiResponse = 'Hello! I am the AGV Support Agent. If you require advanced technical assistance, say "I need help" and I will escalate to the Executive Board. What do you need today?';
+                aiResponse = `Hello, how can I help you today? Let's get started.`;
             }
 
             // 5. Save AI Reply

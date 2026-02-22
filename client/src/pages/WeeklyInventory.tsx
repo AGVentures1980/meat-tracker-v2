@@ -2,13 +2,10 @@ import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock } from 'lucide-react';
 
 const FULL_PROTEIN_LIST = [
-    { id: '1', name: 'Picanha', expected: 124.5, unit: 'Lbs' },
-    { id: '2', name: 'Garlic Picanha', expected: 32.0, unit: 'Lbs' },
+    { id: '1', name: 'Picanha (Includes Garlic)', expected: 156.5, unit: 'Lbs' },
     { id: '3', name: 'Fraldinha/Flank Steak', expected: 88.0, unit: 'Lbs' },
-    { id: '4', name: 'Tri-Tip', expected: 45.0, unit: 'Lbs' },
-    { id: '5', name: 'Spicy Sirloin', expected: 20.0, unit: 'Lbs' },
-    { id: '6', name: 'Filet Mignon', expected: 45.2, unit: 'Lbs' },
-    { id: '7', name: 'Filet Bacon', expected: 25.0, unit: 'Lbs' },
+    { id: '4', name: 'Tri-Tip (Includes Spicy Sirloin)', expected: 65.0, unit: 'Lbs' },
+    { id: '6', name: 'Filet Mignon (Includes Bacon-Wrapped)', expected: 70.2, unit: 'Lbs' },
     { id: '8', name: 'Beef Ribs', expected: 30.5, unit: 'Lbs' },
     { id: '9', name: 'Pork Ribs', expected: 42.0, unit: 'Lbs' },
     { id: '10', name: 'Pork Loin', expected: 25.0, unit: 'Lbs' },

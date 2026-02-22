@@ -130,10 +130,7 @@ export const SupportHub: React.FC = () => {
                     {messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-gray-500">
                             <Bot size={48} className="mb-4 opacity-50" />
-                            <p className="text-lg font-medium text-gray-300">Hello, {user?.first_name || 'Chef'}!</p>
-                            <p className="text-sm text-center max-w-sm mt-2">
-                                I am the Brasa Meat Intel intelligent support agent. How can I assist you today with reports, system questions, or bug reports?
-                            </p>
+                            <p className="text-lg font-medium text-gray-300">Hello {user?.first_name || 'Chef'}, how can I help you today? Let's get started.</p>
                         </div>
                     ) : (
                         messages.map((msg) => (
