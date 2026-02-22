@@ -92,7 +92,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     ]);
 
     useEffect(() => {
-        if (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) {
+        const isMaster = user?.email === 'alexandre@alexgarciaventures.co';
+        if (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin') || isMaster) {
             const fetchEscalations = async () => {
                 try {
                     const token = localStorage.getItem('token');

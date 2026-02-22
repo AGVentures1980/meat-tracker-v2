@@ -165,18 +165,23 @@ export const AdminSupport: React.FC = () => {
                         <div className="flex-1 p-6 overflow-y-auto space-y-4">
                             {activeTicket.messages.map((msg) => (
                                 <div key={msg.id} className={`flex ${msg.sender_type === 'USER' ? 'justify-start' : 'justify-end'}`}>
-                                    <div className={`flex gap-3 max-w-[80%] ${msg.sender_type === 'USER' ? 'flex-row' : 'flex-row-reverse'}`}>
-                                        <div className={`p-2 rounded-full h-fit flex-shrink-0 ${msg.sender_type === 'USER' ? 'bg-gray-800' :
-                                            msg.sender_type === 'ADMIN' ? 'bg-amber-600/80 border border-amber-500' : 'bg-red-900/50 text-red-500'
-                                            }`}>
-                                            {msg.sender_type === 'USER' ? <UserIcon size={16} /> :
-                                                msg.sender_type === 'ADMIN' ? <ShieldAlert size={16} /> : <Bot size={16} />}
+                                    <div className={`flex flex-col max-w-[80%]`}>
+                                        <div className={`flex gap-3 ${msg.sender_type === 'USER' ? 'flex-row' : 'flex-row-reverse'}`}>
+                                            <div className={`p-2 rounded-full h-fit flex-shrink-0 ${msg.sender_type === 'USER' ? 'bg-gray-800' :
+                                                msg.sender_type === 'ADMIN' ? 'bg-amber-600/80 border border-amber-500' : 'bg-red-900/50 text-red-500'
+                                                }`}>
+                                                {msg.sender_type === 'USER' ? <UserIcon size={16} /> :
+                                                    msg.sender_type === 'ADMIN' ? <ShieldAlert size={16} /> : <Bot size={16} />}
+                                            </div>
+                                            <div className={`p-3 rounded-2xl ${msg.sender_type === 'USER' ? 'bg-gray-800 text-gray-100 rounded-tl-sm' :
+                                                msg.sender_type === 'ADMIN' ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-tr-sm shadow-lg shadow-amber-900/20' :
+                                                    'bg-gray-900 border border-[#333] text-gray-400 rounded-tr-sm text-xs italic'
+                                                }`}>
+                                                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                            </div>
                                         </div>
-                                        <div className={`p-3 rounded-2xl ${msg.sender_type === 'USER' ? 'bg-gray-800 text-gray-100 rounded-tl-sm' :
-                                            msg.sender_type === 'ADMIN' ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-tr-sm shadow-lg shadow-amber-900/20' :
-                                                'bg-gray-900 border border-[#333] text-gray-400 rounded-tr-sm text-xs italic'
-                                            }`}>
-                                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                        <div className={`text-[10px] text-gray-500 mt-1 mx-12 ${msg.sender_type === 'USER' ? 'text-left' : 'text-right'}`}>
+                                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </div>
                                     </div>
                                 </div>

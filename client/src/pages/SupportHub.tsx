@@ -139,22 +139,27 @@ export const SupportHub: React.FC = () => {
                     ) : (
                         messages.map((msg) => (
                             <div key={msg.id} className={`flex ${msg.sender_type === 'USER' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`flex gap-3 max-w-[80%] ${msg.sender_type === 'USER' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                    <div className={`p-2 rounded-full h-fit flex-shrink-0 ${msg.sender_type === 'USER' ? 'bg-gray-800' :
-                                        msg.sender_type === 'ADMIN' ? 'bg-amber-600' : 'bg-red-600'
-                                        }`}>
-                                        {msg.sender_type === 'USER' ? <UserIcon size={16} /> : <Bot size={16} />}
+                                <div className={`flex flex-col max-w-[80%]`}>
+                                    <div className={`flex gap-3 ${msg.sender_type === 'USER' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                        <div className={`p-2 rounded-full h-fit flex-shrink-0 ${msg.sender_type === 'USER' ? 'bg-gray-800' :
+                                            msg.sender_type === 'ADMIN' ? 'bg-amber-600' : 'bg-red-600'
+                                            }`}>
+                                            {msg.sender_type === 'USER' ? <UserIcon size={16} /> : <Bot size={16} />}
+                                        </div>
+                                        <div className={`p-3 rounded-2xl ${msg.sender_type === 'USER' ? 'bg-gray-800 text-gray-100 rounded-tr-sm' :
+                                            msg.sender_type === 'ADMIN' ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-tl-sm shadow-amber-900/50' :
+                                                'bg-gray-800 border border-gray-700 text-gray-300 rounded-tl-sm'
+                                            }`}>
+                                            {msg.sender_type === 'ADMIN' && (
+                                                <div className="text-[10px] font-bold text-amber-200 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                    Official AGV Executive Reply
+                                                </div>
+                                            )}
+                                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                        </div>
                                     </div>
-                                    <div className={`p-3 rounded-2xl ${msg.sender_type === 'USER' ? 'bg-gray-800 text-gray-100 rounded-tr-sm' :
-                                        msg.sender_type === 'ADMIN' ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-tl-sm shadow-amber-900/50' :
-                                            'bg-gray-800 border border-gray-700 text-gray-300 rounded-tl-sm'
-                                        }`}>
-                                        {msg.sender_type === 'ADMIN' && (
-                                            <div className="text-[10px] font-bold text-amber-200 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                Official AGV Executive Reply
-                                            </div>
-                                        )}
-                                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                    <div className={`text-[10px] text-gray-500 mt-1 mx-12 ${msg.sender_type === 'USER' ? 'text-right' : 'text-left'}`}>
+                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </div>
                             </div>
