@@ -14,11 +14,11 @@ export class SupportController {
             if (faqCount === 0) {
                 await prisma.fAQ.createMany({
                     data: [
-                        { question: 'Where can I see the Picanha yield?', answer: 'Go to the "Operations" tab and click the row corresponding to your store. The detailed data will appear on the right metrics panel.', category: 'Reports', frequency_count: 5 },
-                        { question: 'How do I submit my lunch waste?', answer: 'Enter the "Dashboard" during the Lunch shift. The "Process Waste" button will be green and unlocked for entry.', category: 'Operations', frequency_count: 8 },
-                        { question: 'What is "The Garcia Rule"?', answer: 'It is the automatic lock mechanism if the Weekly Smart Inventory is not submitted by MONDAY at 11:00 AM.', category: 'Policy', frequency_count: 3 },
-                        { question: 'How do I add a new user?', answer: 'Only Company Administrators can add users through the Corporate Governance Hub.', category: 'Access', frequency_count: 2 },
-                        { question: 'Where do I view the simulated ROI?', answer: 'Select "Financials & ROI" from the main panel; the projected savings and opportunity loss are displayed in real-time.', category: 'Reports', frequency_count: 4 }
+                        { question: 'My system is frozen or broken, what do I do?', answer: 'Type "I need help" or "error" in this chat to immediately escalate your issue to the Executive Command Center.', category: 'Tech Support', frequency_count: 5 },
+                        { question: 'How do I submit my Weekly Pulse Inventory?', answer: 'Go to the Dashboard and click the Weekly Pulse icon. It must be counted and submitted by 11:00 AM every Monday.', category: 'Operations', frequency_count: 8 },
+                        { question: 'I forgot to log lunch waste, can I do it now?', answer: 'If the shift is closed, you must escalate to an Executive Admin to unlock your historical daily waste logs.', category: 'Operations', frequency_count: 3 },
+                        { question: 'Where do I find my Picanha consumption data?', answer: 'Navigate to the Performance Hub on the left menu. You will find a detailed breakdown of all protein usage vs theoretical baseline.', category: 'Reports', frequency_count: 4 },
+                        { question: 'How do I view the projected ROI impact?', answer: 'Access the "Data Analyst" or "Executive Reports" tab to view real-time savings and opportunity loss metrics.', category: 'Reports', frequency_count: 2 }
                     ]
                 });
             }
