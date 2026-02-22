@@ -62,7 +62,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {
             section: t('nav.section_learn') || 'LEARN (Training)', items: [
                 { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
-                { icon: FileText, label: t('nav.support') || 'AGV Support Hub', path: '/support' },
+                { icon: FileText, label: 'AGV Support Hub', path: '/support' },
             ]
         },
         {
@@ -85,13 +85,52 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         });
     }
 
-    const [alerts, setAlerts] = useState([
+    const [alerts, setAlerts] = useState<any[]>([
         { id: 1, type: 'WARNING', time: '2m ago', message: 'Inventory Variance Detected: Dallas (1.89 vs 1.76 Target). Action Required.', path: '/dashboard/1', color: '#FF9F1C' },
         { id: 2, type: 'INFO', time: '15m ago', message: 'OLO Sync Latency &gt; 300ms. Operations normal but monitoring.', path: '/reports', color: 'gray-400' },
         { id: 3, type: 'REMINDER', time: '1h ago', message: 'Weekly Close Pending for 3 Stores. Due by 5:00 PM EST.', path: '/dashboard', color: 'gray-400' }
     ]);
 
-    const handleAlertClick = (id: number, path: string) => {
+    useEffect(() => {
+        if (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) {
+            const fetchEscalations = async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    const res = await fetch('/api/v1/support/tickets', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const tickets = await res.json();
+                        if (tickets.length > 0) {
+                            const escalationAlerts = tickets.map((t: any) => ({
+                                id: `escalation-${t.id}`,
+                                type: 'ESCALATION',
+                                time: 'Just now',
+                                message: `Store ${t.store.store_name} reported an issue: ${t.title}`,
+                                path: '/admin-support',
+                                color: '#FF2A6D'
+                            }));
+
+                            setAlerts(prev => {
+                                const systemAlerts = prev.filter(a => typeof a.id === 'number');
+                                return [...escalationAlerts, ...systemAlerts];
+                            });
+                        } else {
+                            setAlerts(prev => prev.filter(a => typeof a.id === 'number'));
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch escalations', error);
+                }
+            };
+
+            fetchEscalations();
+            const interval = setInterval(fetchEscalations, 15000);
+            return () => clearInterval(interval);
+        }
+    }, [user]);
+
+    const handleAlertClick = (id: string | number, path: string) => {
         setAlerts(prev => prev.filter(a => a.id !== id));
         setShowAlerts(false);
         navigate(path);

@@ -465,10 +465,11 @@ model SupportTicket {
   id         String           @id @default(uuid())
   store_id   Int
   user_id    String
-  title      String
-  status     TicketStatus     @default(OPEN)
-  created_at DateTime         @default(now())
-  updated_at DateTime         @updatedAt
+  title        String
+  status       TicketStatus     @default(OPEN)
+  is_escalated Boolean          @default(false)
+  created_at   DateTime         @default(now())
+  updated_at   DateTime         @updatedAt
   store      Store            @relation(fields: [store_id], references: [id])
   user       User             @relation(fields: [user_id], references: [id])
   messages   SupportMessage[]

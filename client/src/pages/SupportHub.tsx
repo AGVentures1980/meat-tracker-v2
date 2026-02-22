@@ -114,7 +114,7 @@ export const SupportHub: React.FC = () => {
                         </div>
                         <div>
                             <h2 className="text-lg font-bold">AGV Support Agent</h2>
-                            <p className="text-xs text-gray-400">Assitência Técnica & Inteligência Operacional</p>
+                            <p className="text-xs text-gray-400">Technical Assistance & Operational Intelligence</p>
                         </div>
                     </div>
                     {isEscalated && (
@@ -130,9 +130,9 @@ export const SupportHub: React.FC = () => {
                     {messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-gray-500">
                             <Bot size={48} className="mb-4 opacity-50" />
-                            <p className="text-lg font-medium text-gray-300">Olá, {user?.first_name || 'Chef'}!</p>
+                            <p className="text-lg font-medium text-gray-300">Hello, {user?.first_name || 'Chef'}!</p>
                             <p className="text-sm text-center max-w-sm mt-2">
-                                Sou o agente de suporte inteligente do Brasa Meat Intel. Como posso te ajudar hoje com relatórios, dúvidas do sistema ou bugs?
+                                I am the Brasa Meat Intel intelligent support agent. How can I assist you today with reports, system questions, or bug reports?
                             </p>
                         </div>
                     ) : (
@@ -140,17 +140,17 @@ export const SupportHub: React.FC = () => {
                             <div key={msg.id} className={`flex ${msg.sender_type === 'USER' ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`flex gap-3 max-w-[80%] ${msg.sender_type === 'USER' ? 'flex-row-reverse' : 'flex-row'}`}>
                                     <div className={`p-2 rounded-full h-fit flex-shrink-0 ${msg.sender_type === 'USER' ? 'bg-gray-800' :
-                                            msg.sender_type === 'ADMIN' ? 'bg-amber-600' : 'bg-red-600'
+                                        msg.sender_type === 'ADMIN' ? 'bg-amber-600' : 'bg-red-600'
                                         }`}>
                                         {msg.sender_type === 'USER' ? <UserIcon size={16} /> : <Bot size={16} />}
                                     </div>
                                     <div className={`p-3 rounded-2xl ${msg.sender_type === 'USER' ? 'bg-gray-800 text-gray-100 rounded-tr-sm' :
-                                            msg.sender_type === 'ADMIN' ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-tl-sm shadow-amber-900/50' :
-                                                'bg-gray-800 border border-gray-700 text-gray-300 rounded-tl-sm'
+                                        msg.sender_type === 'ADMIN' ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-tl-sm shadow-amber-900/50' :
+                                            'bg-gray-800 border border-gray-700 text-gray-300 rounded-tl-sm'
                                         }`}>
                                         {msg.sender_type === 'ADMIN' && (
                                             <div className="text-[10px] font-bold text-amber-200 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                Alex Garcia (Executive Team)
+                                                Official AGV Executive Reply
                                             </div>
                                         )}
                                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -184,7 +184,7 @@ export const SupportHub: React.FC = () => {
                             type="text"
                             value={inputQuery}
                             onChange={(e) => setInputQuery(e.target.value)}
-                            placeholder="Faça uma pergunta ou reporte um problema..."
+                            placeholder="Ask a question or report an issue..."
                             className="w-full bg-gray-800 border border-gray-700 rounded-lg py-3 pl-4 pr-12 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
                         />
                         <button
@@ -196,7 +196,7 @@ export const SupportHub: React.FC = () => {
                         </button>
                     </form>
                     <p className="text-xs text-gray-500 mt-2 text-center">
-                        Problemas técnicos urgentes serão redirecionados automaticamente para a Diretoria Executiva.
+                        Urgent technical issues will be automatically redirected to the Executive Board.
                     </p>
                 </div>
             </div>
@@ -204,8 +204,8 @@ export const SupportHub: React.FC = () => {
             {/* Right Column: Dynamic FAQ */}
             <div className="w-full lg:w-1/3 flex flex-col gap-4">
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl">
-                    <h3 className="text-lg font-bold text-white mb-2">Dúvidas Frequentes</h3>
-                    <p className="text-xs text-gray-400 mb-6">As {faqs.length} perguntas mais comuns na rede Brasa nesta semana.</p>
+                    <h3 className="text-lg font-bold text-white mb-2">Frequently Asked Questions</h3>
+                    <p className="text-xs text-gray-400 mb-6">The {faqs.length} most common questions in the Brasa network this week.</p>
 
                     <div className="space-y-3">
                         {faqs.map((faq) => (

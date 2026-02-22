@@ -14,11 +14,11 @@ export class SupportController {
             if (faqCount === 0) {
                 await prisma.fAQ.createMany({
                     data: [
-                        { question: 'Como vejo o rendimento da Picanha?', answer: 'Vá na aba "Operations" e clique na linha correspondente à loja. Os dados detalhados aparecerão à direita no painel de métricas.', category: 'Reports', frequency_count: 5 },
-                        { question: 'Como preencho minha perda de almoço?', answer: 'Entre no "Dashboard" durante o turno do almoço e o botão "Process Waste" estará verde e liberado para entrada.', category: 'Operations', frequency_count: 8 },
-                        { question: 'O que é a "Regra do Garcia"?', answer: 'É o bloqueio automático de tela caso o inventário semanal não seja submetido até SEGUNDA 11h da manhã.', category: 'Policy', frequency_count: 3 },
-                        { question: 'Como adiciono um novo usuário?', answer: 'Apenas Administradores de Empresa podem adicionar usuários no Hub de Governança corporativa.', category: 'Access', frequency_count: 2 },
-                        { question: 'Onde vejo o ROI simulado?', answer: 'Selecione "Financials & ROI" no painel principal; a economia projetada e a perda de oportunidade são exibidas em tempo real.', category: 'Reports', frequency_count: 4 }
+                        { question: 'Where can I see the Picanha yield?', answer: 'Go to the "Operations" tab and click the row corresponding to your store. The detailed data will appear on the right metrics panel.', category: 'Reports', frequency_count: 5 },
+                        { question: 'How do I submit my lunch waste?', answer: 'Enter the "Dashboard" during the Lunch shift. The "Process Waste" button will be green and unlocked for entry.', category: 'Operations', frequency_count: 8 },
+                        { question: 'What is "The Garcia Rule"?', answer: 'It is the automatic lock mechanism if the Weekly Smart Inventory is not submitted by MONDAY at 11:00 AM.', category: 'Policy', frequency_count: 3 },
+                        { question: 'How do I add a new user?', answer: 'Only Company Administrators can add users through the Corporate Governance Hub.', category: 'Access', frequency_count: 2 },
+                        { question: 'Where do I view the simulated ROI?', answer: 'Select "Financials & ROI" from the main panel; the projected savings and opportunity loss are displayed in real-time.', category: 'Reports', frequency_count: 4 }
                     ]
                 });
             }
@@ -75,15 +75,20 @@ export class SupportController {
             let aiResponse = '';
             let escalate = false;
 
-            if (lowerContent.includes('bug') || lowerContent.includes('erro') || lowerContent.includes('não funciona') || lowerContent.includes('ajuda')) {
-                aiResponse = 'Entendido. Detectei que isso pode ser um problema técnico. Estou escalando este chamado imediatamente para o Centro de Comando Executivo (Alex Garcia). Ele será notificado e responderá por aqui em breve.';
+            if (lowerContent.includes('bug') || lowerContent.includes('error') || lowerContent.includes('broken') || lowerContent.includes('help')) {
+                aiResponse = 'Understood. I have detected this may be a technical issue. I am immediately escalating this ticket to the Executive Command Center (Alex Garcia). You will be notified and receive a response here shortly.';
                 escalate = true;
-            } else if (lowerContent.includes('relatório') || lowerContent.includes('roi')) {
-                aiResponse = 'Para ler os relatórios de ROI, acesse a aba "Financials & ROI" no menu esquerdo. Lá você verá o impacto projetado baseado no consumo real vs baseline. Essa resposta ajudou?';
-            } else if (lowerContent.includes('inventário') || lowerContent.includes('pulso')) {
-                aiResponse = 'O Inventário Semanal (Weekly Pulse) deve ser feito fisicamente e inserido na plataforma até as 11:00 AM de Segunda-feira. Cuidado com a Regra do Garcia!';
+
+                await prisma.supportTicket.update({
+                    where: { id: ticket.id },
+                    data: { is_escalated: true }
+                });
+            } else if (lowerContent.includes('report') || lowerContent.includes('roi')) {
+                aiResponse = 'To read the ROI reports, access the "Financials & ROI" tab on the left menu. There you will see the projected impact based on actual consumption vs baseline. Did this answer help?';
+            } else if (lowerContent.includes('inventory') || lowerContent.includes('pulse') || lowerContent.includes('count')) {
+                aiResponse = 'The Weekly Smart Inventory (Pulse) must be physically counted and entered into the platform by 11:00 AM on Monday. Beware of The Garcia Rule!';
             } else {
-                aiResponse = 'Olá! Sou o AGV Support Agent. Se precisar de assistência técnica avançada, diga "preciso de ajuda" e eu chamarei a Diretoria. O que precisa hoje?';
+                aiResponse = 'Hello! I am the AGV Support Agent. If you require advanced technical assistance, say "I need help" and I will escalate to the Executive Board. What do you need today?';
             }
 
             // 5. Save AI Reply
@@ -94,9 +99,6 @@ export class SupportController {
                     content: aiResponse
                 }
             });
-
-            // If it's escalated, we keep it OPEN. If it was just an FAQ, maybe we do nothing or auto-close?
-            // For now, keep OPEN so Admin can always see history.
 
             // 6. Return the updated thread
             const updatedThread = await prisma.supportMessage.findMany({
@@ -134,7 +136,7 @@ export class SupportController {
         try {
             // Admin only
             const tickets = await prisma.supportTicket.findMany({
-                where: { status: 'OPEN' },
+                where: { status: 'OPEN', is_escalated: true },
                 include: {
                     store: { select: { store_name: true, location: true } },
                     user: { select: { first_name: true, last_name: true, email: true } },

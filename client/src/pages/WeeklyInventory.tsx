@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock } from 'lucide-react';
 
-const WEEKLY_VILLAINS = [
+const FULL_PROTEIN_LIST = [
     { id: '1', name: 'Picanha', expected: 124.5, unit: 'Lbs' },
-    { id: '2', name: 'Filet Mignon', expected: 45.2, unit: 'Lbs' },
-    { id: '3', name: 'Fraldinha/Flank', expected: 88.0, unit: 'Lbs' },
-    { id: '4', name: 'Lamb Chops', expected: 12.5, unit: 'Lbs' },
+    { id: '2', name: 'Garlic Picanha', expected: 32.0, unit: 'Lbs' },
+    { id: '3', name: 'Fraldinha/Flank Steak', expected: 88.0, unit: 'Lbs' },
+    { id: '4', name: 'Tri-Tip', expected: 45.0, unit: 'Lbs' },
+    { id: '5', name: 'Spicy Sirloin', expected: 20.0, unit: 'Lbs' },
+    { id: '6', name: 'Filet Mignon', expected: 45.2, unit: 'Lbs' },
+    { id: '7', name: 'Filet Bacon', expected: 25.0, unit: 'Lbs' },
+    { id: '8', name: 'Beef Ribs', expected: 30.5, unit: 'Lbs' },
+    { id: '9', name: 'Pork Ribs', expected: 42.0, unit: 'Lbs' },
+    { id: '10', name: 'Pork Loin', expected: 25.0, unit: 'Lbs' },
+    { id: '11', name: 'Chicken Drumstick', expected: 55.0, unit: 'Lbs' },
+    { id: '12', name: 'Chicken Breast', expected: 60.0, unit: 'Lbs' },
+    { id: '13', name: 'Lamb Chops', expected: 12.5, unit: 'Lbs' },
+    { id: '14', name: 'Leg of Lamb', expected: 28.0, unit: 'Lbs' },
+    { id: '15', name: 'Lamb Picanha', expected: 35.0, unit: 'Lbs' },
+    { id: '16', name: 'Sausage', expected: 22.0, unit: 'Lbs' }
 ];
 
 export const WeeklyInventory = () => {
@@ -32,7 +44,7 @@ export const WeeklyInventory = () => {
                     <h1 className="text-3xl font-bold tracking-tight text-white">Weekly Pulse: Smart Inventory</h1>
                 </div>
                 <p className="text-gray-400">
-                    Mandatory cycle count for Core Proteins (Vilões) to enforce <span className="text-[#C5A059] font-mono">The Garcia Rule</span>.
+                    Mandatory cycle count for All Network Proteins to enforce <span className="text-[#C5A059] font-mono">The Garcia Rule</span>.
                 </p>
             </header>
 
@@ -57,7 +69,7 @@ export const WeeklyInventory = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                                {WEEKLY_VILLAINS.map((item) => {
+                                {FULL_PROTEIN_LIST.map((item) => {
                                     const actual = counts[item.id] || 0;
                                     const variance = actual - item.expected;
                                     const isNegative = variance < 0;
