@@ -32,7 +32,7 @@ export const SupportHub: React.FC = () => {
 
     const fetchFaqs = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = user?.token;
             const res = await fetch('/api/v1/support/faq', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -65,7 +65,7 @@ export const SupportHub: React.FC = () => {
 
     const fetchThread = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = user?.token;
             const url = selectedCompany ? `/api/v1/support/chat?store_id=${selectedCompany}` : '/api/v1/support/chat';
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -113,7 +113,7 @@ export const SupportHub: React.FC = () => {
         setLoading(true);
 
         try {
-            const token = localStorage.getItem('token');
+            const token = user?.token;
             const payload: any = { content: optimisticMessage.content };
             if (selectedCompany) payload.store_id = selectedCompany;
 
