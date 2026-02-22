@@ -14,20 +14,20 @@ The database is already in sync with the Prisma schema.
 
 Running generate... (Use --skip-generate to skip the generators)
 [2K[1A[2K[GRunning generate... - Prisma Client
-[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 95ms
+[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 98ms
 
 DEBUG: Ls dist
 total 24
-drwxr-xr-x@ 10 alexandregarcia  staff    320 Feb 22 02:49 .
-drwxr-xr-x@  4 alexandregarcia  staff    128 Feb 22 02:49 ..
-drwxr-xr-x@  7 alexandregarcia  staff    224 Feb 22 02:49 config
-drwxr-xr-x@ 28 alexandregarcia  staff    896 Feb 22 02:49 controllers
-drwxr-xr-x@  4 alexandregarcia  staff    128 Feb 22 02:49 engine
--rw-r--r--@  1 alexandregarcia  staff  10131 Feb 22 02:49 index.js
-drwxr-xr-x@  5 alexandregarcia  staff    160 Feb 22 02:49 middleware
-drwxr-xr-x@ 18 alexandregarcia  staff    576 Feb 22 02:49 routes
-drwxr-xr-x@ 30 alexandregarcia  staff    960 Feb 22 02:49 scripts
-drwxr-xr-x@  9 alexandregarcia  staff    288 Feb 22 02:49 services
+drwxr-xr-x@ 10 alexandregarcia  staff    320 Feb 22 02:54 .
+drwxr-xr-x@  4 alexandregarcia  staff    128 Feb 22 02:54 ..
+drwxr-xr-x@  7 alexandregarcia  staff    224 Feb 22 02:54 config
+drwxr-xr-x@ 28 alexandregarcia  staff    896 Feb 22 02:54 controllers
+drwxr-xr-x@  4 alexandregarcia  staff    128 Feb 22 02:54 engine
+-rw-r--r--@  1 alexandregarcia  staff  10131 Feb 22 02:54 index.js
+drwxr-xr-x@  5 alexandregarcia  staff    160 Feb 22 02:54 middleware
+drwxr-xr-x@ 18 alexandregarcia  staff    576 Feb 22 02:54 routes
+drwxr-xr-x@ 30 alexandregarcia  staff    960 Feb 22 02:54 scripts
+drwxr-xr-x@  9 alexandregarcia  staff    288 Feb 22 02:54 services
 [Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
 [Startup] Cleaning up duplicate proteins from the database...
 [Startup] SUCCESS: Removed 0 duplicate proteins.
@@ -48,6 +48,14 @@ drwxr-xr-x@  9 alexandregarcia  staff    288 Feb 22 02:49 services
 ✅ AI Prospecting Agent: Exploration complete. Found 3 high-value targets.
    ✨ [Automated Ingestion] Successfully processed invoice_sysco_dallas_0218.pdf. Extracted 12 items.
 ✅ [MS GRAPH] Moving invoice_sysco_dallas_0218.pdf to 'Processed' folder...
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+   (No new files found)
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+   (No new files found)
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+   (No new files found)
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+   (No new files found)
 🔍 [ONEDRIVE WATCHER] Checking for new files...
    (No new files found)
 🔍 [ONEDRIVE WATCHER] Checking for new files...
