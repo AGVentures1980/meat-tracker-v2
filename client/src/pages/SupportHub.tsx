@@ -39,9 +39,27 @@ export const SupportHub: React.FC = () => {
             if (res.ok) {
                 const data = await res.json();
                 setFaqs(data);
+            } else {
+                let errorMessage = 'Failed to load FAQs. Server returned a non-200 status.';
+                try {
+                    const errData = await res.json();
+                    errorMessage = errData.error || errorMessage;
+                } catch (e) { }
+                setFaqs([{
+                    id: 'error-faq',
+                    question: '⚠️ System Error Loading FAQs',
+                    answer: `The server encountered a fatal error while trying to fetch the FAQs: ${errorMessage}. If you just deployed, make sure 'prisma db push' ran successfully on your remote database.`,
+                    category: 'System Error'
+                }]);
             }
         } catch (error) {
             console.error('Failed to load FAQs', error);
+            setFaqs([{
+                id: 'error-faq-net',
+                question: '⚠️ Network Error',
+                answer: 'Could not reach the backend server to load FAQs. Please check your internet connection or the server URL.',
+                category: 'System Error'
+            }]);
         }
     };
 
@@ -55,9 +73,27 @@ export const SupportHub: React.FC = () => {
             if (res.ok) {
                 const data = await res.json();
                 setMessages(data);
+            } else {
+                let errorMessage = 'Failed to load Support History.';
+                try {
+                    const errData = await res.json();
+                    errorMessage = errData.error || errorMessage;
+                } catch (e) { }
+                setMessages([{
+                    id: 'error-thread',
+                    content: `[SYSTEM ERROR] Could not retrieve your active ticket history: ${errorMessage}. If this is a fresh deployment, verify your remote Database migrations.`,
+                    sender_type: 'AI',
+                    created_at: new Date().toISOString()
+                }]);
             }
         } catch (error) {
             console.error('Failed to load thread', error);
+            setMessages([{
+                id: 'error-thread-net',
+                content: `[NETWORK ERROR] Could not reach the API to retrieve your history. Check the URL routing.`,
+                sender_type: 'AI',
+                created_at: new Date().toISOString()
+            }]);
         }
     };
 
@@ -96,9 +132,29 @@ export const SupportHub: React.FC = () => {
                 if (data.isEscalated) {
                     setIsEscalated(true);
                 }
+            } else {
+                let errorMessage = 'Failed to connect to AI Support. Please try again.';
+                try {
+                    const errData = await res.json();
+                    errorMessage = errData.error || errorMessage;
+                } catch (e) { }
+
+                // Add error message as a system response so the user sees it visually
+                setMessages(prev => [...prev, {
+                    id: Date.now().toString() + '-err',
+                    content: `[SYSTEM ERROR]: ${errorMessage}. Please screenshot this and send it to the Executive Team.`,
+                    sender_type: 'AI',
+                    created_at: new Date().toISOString()
+                }]);
             }
         } catch (error) {
             console.error('Failed to send message', error);
+            setMessages(prev => [...prev, {
+                id: Date.now().toString() + '-err',
+                content: `[NETWORK ERROR]: Could not reach the server. Please check your internet connection or contact the Admin.`,
+                sender_type: 'AI',
+                created_at: new Date().toISOString()
+            }]);
         } finally {
             setLoading(false);
         }
