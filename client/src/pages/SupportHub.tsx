@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Bot, User as UserIcon, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Send, Bot, User as UserIcon, AlertCircle, ChevronDown, ChevronUp, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface FAQ {
@@ -163,8 +163,8 @@ export const SupportHub: React.FC = () => {
     return (
         <div className="flex flex-col lg:flex-row gap-6 p-6 h-[calc(100vh-80px)] text-white">
 
-            {/* Left Column: AI Support Chat */}
-            <div className={`w-full ${user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co' ? '' : 'lg:w-2/3'} flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl`}>
+            {/* Left Column: AI Support Chat (Restricted Width for Admins) */}
+            <div className={`w-full lg:w-2/3 ${(user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co') ? 'max-w-md mx-auto lg:mx-0' : ''} flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl shrink-0`}>
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
@@ -174,47 +174,47 @@ export const SupportHub: React.FC = () => {
                         </div>
                         <div>
                             <h2 className="text-lg font-bold">AGV Support Agent</h2>
-                            <p className="text-xs text-gray-400">Technical Assistance & Operational Intelligence</p>
+                            <p className="text-[10px] text-gray-400">Technical Assistance</p>
                         </div>
                     </div>
                     {isEscalated && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-xs font-medium">
-                            <AlertCircle size={14} />
+                        <div className="flex items-center gap-1 px-2 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-[10px] font-medium">
+                            <AlertCircle size={12} />
                             Escalation Active
                         </div>
                     )}
                 </div>
 
                 {/* Chat History */}
-                <div className="flex-1 p-6 overflow-y-auto space-y-4">
+                <div className="flex-1 p-4 overflow-y-auto space-y-4">
                     {messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-gray-500">
                             <Bot size={48} className="mb-4 opacity-50" />
-                            <p className="text-lg font-medium text-gray-300">Hello {user?.first_name || 'Chef'}, how can I help you today? Let's get started.</p>
+                            <p className="text-sm font-medium text-gray-400 text-center px-4">Hello {user?.first_name || 'Chef'}, how can I help you today?</p>
                         </div>
                     ) : (
                         messages.map((msg) => (
                             <div key={msg.id} className={`flex ${msg.sender_type === 'USER' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`flex flex-col max-w-[80%]`}>
-                                    <div className={`flex gap-3 ${msg.sender_type === 'USER' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                        <div className={`p-2 rounded-full h-fit flex-shrink-0 ${msg.sender_type === 'USER' ? 'bg-gray-800' :
+                                <div className={`flex flex-col max-w-[85%]`}>
+                                    <div className={`flex gap-2 ${msg.sender_type === 'USER' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                        <div className={`p-1.5 rounded-full h-fit flex-shrink-0 ${msg.sender_type === 'USER' ? 'bg-gray-800' :
                                             msg.sender_type === 'ADMIN' ? 'bg-amber-600' : 'bg-red-600'
                                             }`}>
-                                            {msg.sender_type === 'USER' ? <UserIcon size={16} /> : <Bot size={16} />}
+                                            {msg.sender_type === 'USER' ? <UserIcon size={14} /> : <Bot size={14} />}
                                         </div>
                                         <div className={`p-3 rounded-2xl ${msg.sender_type === 'USER' ? 'bg-gray-800 text-gray-100 rounded-tr-sm' :
                                             msg.sender_type === 'ADMIN' ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-tl-sm shadow-amber-900/50' :
                                                 'bg-gray-800 border border-gray-700 text-gray-300 rounded-tl-sm'
                                             }`}>
                                             {msg.sender_type === 'ADMIN' && (
-                                                <div className="text-[10px] font-bold text-amber-200 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                    Official AGV Executive Reply
+                                                <div className="text-[9px] font-bold text-amber-200 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                    Executive Reply
                                                 </div>
                                             )}
-                                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                            <p className="text-xs whitespace-pre-wrap">{msg.content}</p>
                                         </div>
                                     </div>
-                                    <div className={`text-[10px] text-gray-500 mt-1 mx-12 ${msg.sender_type === 'USER' ? 'text-right' : 'text-left'}`}>
+                                    <div className={`text-[9px] text-gray-500 mt-1 mx-8 ${msg.sender_type === 'USER' ? 'text-right' : 'text-left'}`}>
                                         {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </div>
@@ -223,12 +223,12 @@ export const SupportHub: React.FC = () => {
                     )}
                     {loading && (
                         <div className="flex justify-start">
-                            <div className="flex gap-3 max-w-[80%] flex-row">
-                                <div className="p-2 bg-red-600 rounded-full h-fit">
-                                    <Bot size={16} />
+                            <div className="flex gap-2 max-w-[80%] flex-row">
+                                <div className="p-1.5 bg-red-600 rounded-full h-fit">
+                                    <Bot size={14} />
                                 </div>
                                 <div className="p-3 bg-gray-800 border border-gray-700 rounded-2xl rounded-tl-sm">
-                                    <div className="flex gap-1 items-center h-5">
+                                    <div className="flex gap-1 items-center h-4">
                                         <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"></div>
                                         <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                                         <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
@@ -240,30 +240,60 @@ export const SupportHub: React.FC = () => {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 bg-gray-900 border-t border-gray-800">
+                <div className="p-3 bg-gray-900 border-t border-gray-800">
                     <form onSubmit={sendMessage} className="relative">
                         <input
                             type="text"
                             value={inputQuery}
                             onChange={(e) => setInputQuery(e.target.value)}
-                            placeholder="Ask a question or report an issue..."
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg py-3 pl-4 pr-12 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                            placeholder="Message support..."
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-3 pr-10 text-xs focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
                         />
                         <button
                             type="submit"
                             disabled={!inputQuery.trim() || loading}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:hover:bg-red-600 transition-colors"
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:hover:bg-red-600 transition-colors"
                         >
-                            <Send size={16} />
+                            <Send size={14} />
                         </button>
                     </form>
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                        Urgent technical issues will be automatically redirected to the Executive Board.
+                    <p className="text-[9px] text-gray-600 mt-2 text-center px-2">
+                        Technical issues are redirected to the Executive Board.
                     </p>
                 </div>
             </div>
 
-            {/* Right Column: Dynamic FAQ */}
+            {/* Right Column: Executive Actions (Instead of FAQ) */}
+            {(user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co') && (
+                <div className="w-full lg:flex-1 flex flex-col gap-4">
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-2xl h-full flex flex-col justify-center items-center text-center">
+                        <div className="p-4 bg-gray-800 rounded-full mb-6 relative">
+                            <Bot size={48} className="text-red-500" />
+                            <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900"></div>
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-2">AGV Operations Intelligence</h3>
+                        <p className="text-sm text-gray-400 mb-8 max-w-md">
+                            Your Support Agent is currently actively monitoring network escalations and routing technical inquiries.
+                            The chat window is configured to a mobile-friendly view for rapid execution.
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+                            <a href="/admin-support" className="flex flex-col items-center justify-center p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group">
+                                <ShieldAlert size={24} className="text-amber-500 mb-2 group-hover:scale-110 transition-transform" />
+                                <span className="text-sm font-bold text-gray-200">Support Triage</span>
+                                <span className="text-xs text-gray-500">Inbox Zero</span>
+                            </a>
+                            <a href="/owner" className="flex flex-col items-center justify-center p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group">
+                                <AlertCircle size={24} className="text-red-500 mb-2 group-hover:scale-110 transition-transform" />
+                                <span className="text-sm font-bold text-gray-200">Network Command</span>
+                                <span className="text-xs text-gray-500">System Logs</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Right Column: Dynamic FAQ (For Store Managers) */}
             {user?.role !== 'admin' && user?.role !== 'director' && user?.email !== 'alexandre@alexgarciaventures.co' && (
                 <div className="w-full lg:w-1/3 flex flex-col gap-4">
                     <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl">
