@@ -39,51 +39,55 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     const navigate = useNavigate();
 
-    const navItems = [
-        {
-            section: t('nav.section_gate') || 'GATE (Accountability)', items: [
-                { icon: ArrowUpRight, label: t('nav.invoices') || 'Meat Prices / Invoices', path: '/prices' },
-                { icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' },
-            ]
-        },
-        {
-            section: t('nav.section_run') || 'RUN (Shift Command)', items: [
-                { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
-                { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
-            ]
-        },
-        {
-            section: t('nav.section_view') || 'VIEW (Performance)', items: [
-                { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
-                { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
-                { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
-            ]
-        },
-        {
-            section: t('nav.section_learn') || 'LEARN (Training)', items: [
-                { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
-                { icon: FileText, label: 'AGV Support Hub', path: '/support' },
-            ]
-        },
-        {
-            section: t('nav.section_team') || 'TEAM (Store)', items: [
-                { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
-            ]
-        }
-    ];
+    let navItems: any[] = [];
 
-    // Add Company Settings for Directors/Admins/Master
-    const isMaster = user?.email === 'alexandre@alexgarciaventures.co';
-    if (user?.role === 'director' || user?.role === 'admin' || isMaster) {
-        navItems.push({
-            section: t('nav.section_manage') || 'MANAGE (Company)', items: [
-                { icon: Activity, label: 'Network Command Center', path: '/owner' },
-                { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' },
-                { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
-                { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
-                { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
-            ]
-        });
+    if (selectedCompany) {
+        navItems = [
+            {
+                section: t('nav.section_gate') || 'GATE (Accountability)', items: [
+                    { icon: ArrowUpRight, label: t('nav.invoices') || 'Meat Prices / Invoices', path: '/prices' },
+                    { icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' },
+                ]
+            },
+            {
+                section: t('nav.section_run') || 'RUN (Shift Command)', items: [
+                    { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
+                    { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
+                ]
+            },
+            {
+                section: t('nav.section_view') || 'VIEW (Performance)', items: [
+                    { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
+                    { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
+                    { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
+                ]
+            },
+            {
+                section: t('nav.section_learn') || 'LEARN (Training)', items: [
+                    { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
+                    { icon: FileText, label: 'AGV Support Hub', path: '/support' },
+                ]
+            },
+            {
+                section: t('nav.section_team') || 'TEAM (Store)', items: [
+                    { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
+                ]
+            }
+        ];
+
+        // Add Company Settings for Directors/Admins/Master
+        const isMaster = user?.email === 'alexandre@alexgarciaventures.co';
+        if (user?.role === 'director' || user?.role === 'admin' || isMaster) {
+            navItems.push({
+                section: t('nav.section_manage') || 'MANAGE (Company)', items: [
+                    { icon: Activity, label: 'Network Command Center', path: '/owner' },
+                    { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' },
+                    { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
+                    { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
+                    { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
+                ]
+            });
+        }
     }
 
     const [alerts, setAlerts] = useState<any[]>([
@@ -172,35 +176,43 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 </div>
 
                 <nav className="flex-1 p-2 space-y-4 overflow-y-auto">
-                    {navItems.map((section) => (
-                        <div key={section.section} className="space-y-1">
-                            <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
-                            {section.items.map((item) => {
-                                const active = location.pathname === item.path;
-                                const isLocked = !selectedCompany && item.path !== '/dashboard';
-
-                                return (
-                                    <Link
-                                        key={item.path}
-                                        to={isLocked ? '#' : item.path}
-                                        onClick={(e) => isLocked && e.preventDefault()}
-                                        className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
-                                            ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
-                                            : isLocked
-                                                ? 'text-gray-600 cursor-not-allowed opacity-50'
-                                                : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                                            } `}
-                                    >
-                                        <item.icon className={`w-5 h-5 min-w-[20px] ${isLocked ? 'text-gray-700' : ''}`} />
-                                        <div className="flex flex-1 items-center justify-between">
-                                            <span className="text-sm font-medium tracking-wide">{item.label}</span>
-                                            {isLocked && <AlertTriangle className="w-3 h-3 text-red-900/50" />}
-                                        </div>
-                                    </Link>
-                                );
-                            })}
+                    {navItems.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-48 px-4 text-center">
+                            <Building2 className="w-8 h-8 text-[#C5A059] mb-3 opacity-50" />
+                            <p className="text-sm font-medium text-gray-300">No Location Selected</p>
+                            <p className="text-xs text-gray-500 mt-2">Please select a store from the top menu to view the operational command center.</p>
                         </div>
-                    ))}
+                    ) : (
+                        navItems.map((section) => (
+                            <div key={section.section} className="space-y-1">
+                                <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
+                                {section.items.map((item: any) => {
+                                    const active = location.pathname === item.path;
+                                    const isLocked = !selectedCompany && item.path !== '/dashboard';
+
+                                    return (
+                                        <Link
+                                            key={item.path}
+                                            to={isLocked ? '#' : item.path}
+                                            onClick={(e) => isLocked && e.preventDefault()}
+                                            className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
+                                                ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
+                                                : isLocked
+                                                    ? 'text-gray-600 cursor-not-allowed opacity-50'
+                                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                                } `}
+                                        >
+                                            <item.icon className={`w-5 h-5 min-w-[20px] ${isLocked ? 'text-gray-700' : ''}`} />
+                                            <div className="flex flex-1 items-center justify-between">
+                                                <span className="text-sm font-medium tracking-wide">{item.label}</span>
+                                                {isLocked && <AlertTriangle className="w-3 h-3 text-red-900/50" />}
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        ))
+                    )}
 
 
                     {/* Executive View (Admin/Director Only) */}
