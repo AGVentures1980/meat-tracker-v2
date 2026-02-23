@@ -92,8 +92,12 @@ export class SupportController {
                 aiResponse = 'To read the ROI reports, access the "Financials & ROI" tab on the left menu. There you will see the projected impact based on actual consumption vs baseline. Did this answer help?';
             } else if (lowerContent.includes('inventory') || lowerContent.includes('pulse') || lowerContent.includes('count')) {
                 aiResponse = 'The Weekly Smart Inventory (Pulse) must be physically counted and entered into the platform by 11:00 AM on Monday. Beware of The Garcia Rule!';
+            } else if (lowerContent.includes('obrigado') || lowerContent.includes('thanks') || lowerContent.includes('thank you') || lowerContent.includes('valeu')) {
+                aiResponse = 'You are very welcome! Let me know if you need anything else.';
+            } else if (lowerContent.includes('hi') || lowerContent.includes('hello') || lowerContent.includes('hey') || lowerContent.includes('ola') || lowerContent.includes('olá')) {
+                aiResponse = `Hello there! I am the AGV Support Agent. You can ask me questions about operations, or type "error" to escalate a ticket to the Executive Team.`;
             } else {
-                aiResponse = `Hello, how can I help you today? Let's get started.`;
+                aiResponse = `I'm here to help. Could you provide a bit more detail about what you need assistance with?`;
             }
 
             // 5. Save AI Reply

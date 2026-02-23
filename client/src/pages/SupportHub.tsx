@@ -164,7 +164,7 @@ export const SupportHub: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-6 p-6 h-[calc(100vh-80px)] text-white">
 
             {/* Left Column: AI Support Chat */}
-            <div className="w-full lg:w-2/3 flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+            <div className={`w-full ${user?.role === 'admin' || user?.role === 'director' ? '' : 'lg:w-2/3'} flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl`}>
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
@@ -264,35 +264,37 @@ export const SupportHub: React.FC = () => {
             </div>
 
             {/* Right Column: Dynamic FAQ */}
-            <div className="w-full lg:w-1/3 flex flex-col gap-4">
-                <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl">
-                    <h3 className="text-lg font-bold text-white mb-2">Frequently Asked Questions</h3>
-                    <p className="text-xs text-gray-400 mb-6">The {faqs.length} most common questions in the Brasa network this week.</p>
+            {user?.role !== 'admin' && user?.role !== 'director' && (
+                <div className="w-full lg:w-1/3 flex flex-col gap-4">
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl">
+                        <h3 className="text-lg font-bold text-white mb-2">Frequently Asked Questions</h3>
+                        <p className="text-xs text-gray-400 mb-6">The {faqs.length} most common questions in the Brasa network this week.</p>
 
-                    <div className="space-y-3">
-                        {faqs.map((faq) => (
-                            <div key={faq.id} className="border border-gray-800 rounded-lg overflow-hidden bg-black/40">
-                                <button
-                                    onClick={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
-                                    className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-800/50 transition-colors"
-                                >
-                                    <span className="text-sm font-medium text-gray-200 pr-4">{faq.question}</span>
-                                    {expandedFaq === faq.id ? <ChevronUp size={16} className="text-red-500 flex-shrink-0" /> : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />}
-                                </button>
-                                {expandedFaq === faq.id && (
-                                    <div className="px-4 pb-4 pt-0">
-                                        <div className="h-px w-full bg-gray-800 mb-3"></div>
-                                        <p className="text-sm text-gray-400 leading-relaxed">{faq.answer}</p>
-                                        <div className="mt-3 inline-block px-2 py-1 bg-gray-800 text-gray-500 text-[10px] uppercase rounded">
-                                            {faq.category}
+                        <div className="space-y-3">
+                            {faqs.map((faq) => (
+                                <div key={faq.id} className="border border-gray-800 rounded-lg overflow-hidden bg-black/40">
+                                    <button
+                                        onClick={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
+                                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-800/50 transition-colors"
+                                    >
+                                        <span className="text-sm font-medium text-gray-200 pr-4">{faq.question}</span>
+                                        {expandedFaq === faq.id ? <ChevronUp size={16} className="text-red-500 flex-shrink-0" /> : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />}
+                                    </button>
+                                    {expandedFaq === faq.id && (
+                                        <div className="px-4 pb-4 pt-0">
+                                            <div className="h-px w-full bg-gray-800 mb-3"></div>
+                                            <p className="text-sm text-gray-400 leading-relaxed">{faq.answer}</p>
+                                            <div className="mt-3 inline-block px-2 py-1 bg-gray-800 text-gray-500 text-[10px] uppercase rounded">
+                                                {faq.category}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };
