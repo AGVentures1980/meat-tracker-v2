@@ -41,7 +41,7 @@ export class SupportController {
             // The Auth Middleware injects `req.user` theoretically
             const userId = (req as any).user?.userId || (req as any).user?.id;
             if (!userId) return res.status(401).json({ error: 'User context required' });
-            const user_id = userId;
+
             let store_id = (req as any).user?.storeId;
             if (bodyStoreId) {
                 const parsed = parseInt(bodyStoreId, 10);
@@ -56,6 +56,16 @@ export class SupportController {
             if (!store_id) {
                 const firstStore = await prisma.store.findFirst();
                 store_id = firstStore?.id || 1;
+            }
+
+            // To prevent admin emails showing up on store tickets during testing:
+            // Find a valid store manager for the targeted store.
+            let user_id = userId;
+            const targetStoreUser = await prisma.user.findFirst({
+                where: { store_id, role: 'manager' }
+            });
+            if (targetStoreUser) {
+                user_id = targetStoreUser.id;
             }
 
             if (!content) return res.status(400).json({ error: 'Message content required' });

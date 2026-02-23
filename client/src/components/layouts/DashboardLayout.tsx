@@ -216,72 +216,64 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
 
                     {/* Executive View (Admin/Director Only) */}
-                    {(user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
+                    {selectedCompany && (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
                         <>
                             <Link
-                                to={!selectedCompany ? '#' : "/executive"}
-                                onClick={(e) => !selectedCompany && e.preventDefault()}
+                                to="/executive"
                                 className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
                                     ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
-                                    : !selectedCompany
-                                        ? 'text-gray-600 cursor-not-allowed opacity-50'
-                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                     } `}
                             >
-                                <AlertTriangle className={`w-5 h-5 min-w-[20px] ${!selectedCompany ? 'text-gray-700' : ''}`} />
+                                <AlertTriangle className="w-5 h-5 min-w-[20px]" />
                                 <div className="flex flex-1 items-center justify-between">
                                     <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>
-                                    {!selectedCompany && <AlertTriangle className="w-3 h-3 text-red-900/50" />}
                                 </div>
                             </Link>
                             <Link
-                                to={!selectedCompany ? '#' : "/data-analyst"}
-                                onClick={(e) => !selectedCompany && e.preventDefault()}
+                                to="/data-analyst"
                                 className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/data-analyst'
                                     ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
-                                    : !selectedCompany
-                                        ? 'text-gray-600 cursor-not-allowed opacity-50'
-                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                     } `}
                             >
-                                <Zap className={`w-5 h-5 min-w-[20px] ${!selectedCompany ? 'text-gray-700' : 'text-[#C5A059] fill-[#C5A059]/20'}`} />
+                                <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
                                 <div className="flex flex-1 items-center justify-between">
                                     <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
-                                    {!selectedCompany && <AlertTriangle className="w-3 h-3 text-red-900/50" />}
                                 </div>
                             </Link>
-
-                            {/* Switch Company (Master Owner Only) */}
-                            {user?.email === 'alexandre@alexgarciaventures.co' && (
-                                <Link
-                                    to="/select-company"
-                                    className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
-                                >
-                                    <Building2 className="w-5 h-5 min-w-[20px]" />
-                                    <span className="text-sm font-bold tracking-tight">Switch Company</span>
-                                </Link>
-                            )}
                         </>
                     )}
 
-                    <div className="pt-4 mt-4 border-t border-white/10">
-                        <button
-                            onClick={logout}
-                            className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-white hover:bg-white/5"
+                    {/* Switch Company (Master Owner Only) */}
+                    {user?.email === 'alexandre@alexgarciaventures.co' && (
+                        <Link
+                            to="/select-company"
+                            className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
                         >
-                            <LogOut className="w-5 h-5 flex-shrink-0" />
-                            <span>{t('nav_logout')}</span>
-                        </button>
-                        <div className="mt-6 px-3">
-                            <div className="text-[10px] text-gray-600 font-mono">v4.2.0-DASHBOARD-EXEC - LIVE</div>
-                            <div className="text-[10px] text-brand-gold font-mono mb-2">CONN: POSTGRES-CL-V3</div>
-                            <div className="text-[9px] text-gray-700 font-mono">Build: {new Date().toLocaleDateString()}, {new Date().toLocaleTimeString()}</div>
-                            <div className="mt-4 flex items-center gap-2 opacity-30 hover:opacity-100 transition-opacity">
-                                <span className="text-[10px] font-serif text-white uppercase tracking-widest">Powered by AGV</span>
-                            </div>
+                            <Building2 className="w-5 h-5 min-w-[20px]" />
+                            <span className="text-sm font-bold tracking-tight">Switch Company</span>
+                        </Link>
+                    )}
+                </nav>
+
+                <div className="pt-4 mt-4 border-t border-white/10">
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-white hover:bg-white/5"
+                    >
+                        <LogOut className="w-5 h-5 flex-shrink-0" />
+                        <span>{t('nav_logout')}</span>
+                    </button>
+                    <div className="mt-6 px-3">
+                        <div className="text-[10px] text-gray-600 font-mono">v4.2.0-DASHBOARD-EXEC - LIVE</div>
+                        <div className="text-[10px] text-brand-gold font-mono mb-2">CONN: POSTGRES-CL-V3</div>
+                        <div className="text-[9px] text-gray-700 font-mono">Build: {new Date().toLocaleDateString()}, {new Date().toLocaleTimeString()}</div>
+                        <div className="mt-4 flex items-center gap-2 opacity-30 hover:opacity-100 transition-opacity">
+                            <span className="text-[10px] font-serif text-white uppercase tracking-widest">Powered by AGV</span>
                         </div>
                     </div>
-                </nav>
+                </div>
             </aside>
 
             {/* Main Content */}
