@@ -72,8 +72,15 @@ export const IdleTimer = () => {
         // Initial setup
         resetTimer();
 
+        // Throttle the activity handler to prevent excessive re-renders/timers
+        let throttleTimeout: ReturnType<typeof setTimeout> | null = null;
+
         const handleActivity = () => {
-            resetTimer();
+            if (throttleTimeout) return;
+            throttleTimeout = setTimeout(() => {
+                resetTimer();
+                throttleTimeout = null;
+            }, 500); // 500ms throttle
         };
 
         events.forEach(event => {
@@ -86,8 +93,9 @@ export const IdleTimer = () => {
             });
             if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
             if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+            if (throttleTimeout) clearTimeout(throttleTimeout);
         };
-    }, [user, isIdle]); // Re-bind if user status changes or idle state toggles
+    }, [user]); // Removed isIdle dependency to prevent unbinding/rebinding on state change
 
     if (!isIdle || !user) return null;
 
