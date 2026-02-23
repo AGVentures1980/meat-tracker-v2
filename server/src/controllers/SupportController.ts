@@ -175,6 +175,28 @@ export class SupportController {
                 include: { messages: { orderBy: { created_at: 'asc' } } }
             });
 
+            if (ticket && ticket.is_escalated) {
+                const hasAdminReply = ticket.messages.some(m => m.sender_type === 'ADMIN');
+                const highVolumeMsg = "We are aware of your message, but are experiencing higher than expected volume. We will serve you as soon as possible. Please leave your error message or concern.";
+                const hasSentHighVolume = ticket.messages.some(m => m.content === highVolumeMsg);
+
+                if (!hasAdminReply && !hasSentHighVolume && ticket.messages.length > 0) {
+                    const lastMessage = ticket.messages[ticket.messages.length - 1];
+                    const oneMinuteAgo = new Date(Date.now() - 60000);
+
+                    if (new Date(lastMessage.created_at) < oneMinuteAgo) {
+                        const newMsg = await prisma.supportMessage.create({
+                            data: {
+                                ticket_id: ticket.id,
+                                sender_type: 'AI',
+                                content: highVolumeMsg
+                            }
+                        });
+                        ticket.messages.push(newMsg);
+                    }
+                }
+            }
+
             res.json(ticket ? ticket.messages : []);
         } catch (error) {
             console.error('Failed to load thread', error);
