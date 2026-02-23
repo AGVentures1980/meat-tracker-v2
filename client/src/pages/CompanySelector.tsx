@@ -19,6 +19,7 @@ export const CompanySelector = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setCompany(null); // Force lockout
         const fetchCompanies = async () => {
             try {
                 const res = await fetch('/api/v1/owner/my-companies', {

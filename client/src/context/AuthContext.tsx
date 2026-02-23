@@ -5,7 +5,7 @@ interface AuthContextType {
     selectedCompany: string | null;
     login: (email: string, pass: string) => Promise<any | null>;
     logout: () => void;
-    setCompany: (id: string) => void;
+    setCompany: (id: string | null) => void;
     isLoading: boolean;
 }
 
@@ -28,9 +28,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
     }, []);
 
-    const setCompany = (id: string) => {
+    const setCompany = (id: string | null) => {
         setSelectedCompany(id);
-        localStorage.setItem('brasameat_selected_company', id);
+        if (id) {
+            localStorage.setItem('brasameat_selected_company', id);
+        } else {
+            localStorage.removeItem('brasameat_selected_company');
+        }
     };
 
     const login = async (email: string, pass: string) => {

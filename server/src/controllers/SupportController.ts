@@ -43,7 +43,11 @@ export class SupportController {
             if (!userId) return res.status(401).json({ error: 'User context required' });
 
             let store_id = (req as any).user?.storeId;
-            if (bodyStoreId) {
+            const role = (req as any).user?.role;
+            const isExecutive = role === 'admin' || role === 'director' || (req as any).user?.email?.includes('admin');
+
+            // ONLY override if they are an executive pretending to be a store
+            if (isExecutive && bodyStoreId) {
                 const parsed = parseInt(bodyStoreId, 10);
                 if (isNaN(parsed)) {
                     const store = await prisma.store.findFirst({ where: { company_id: bodyStoreId } });
@@ -147,7 +151,11 @@ export class SupportController {
         try {
             const queryStoreId = req.query.store_id as string;
             let store_id = (req as any).user?.storeId;
-            if (queryStoreId) {
+            const role = (req as any).user?.role;
+            const isExecutive = role === 'admin' || role === 'director' || (req as any).user?.email?.includes('admin');
+
+            // ONLY override if they are an executive without a strict store mapping
+            if (isExecutive && queryStoreId) {
                 const parsed = parseInt(queryStoreId, 10);
                 if (isNaN(parsed)) {
                     const store = await prisma.store.findFirst({ where: { company_id: queryStoreId } });
