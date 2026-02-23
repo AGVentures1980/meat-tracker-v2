@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Bot, User as UserIcon, AlertCircle, ChevronDown, ChevronUp, ShieldAlert } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface FAQ {
@@ -278,16 +279,16 @@ export const SupportHub: React.FC = () => {
                         </p>
 
                         <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-                            <a href="/admin-support" className="flex flex-col items-center justify-center p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group">
+                            <Link to="/admin-support" className="flex flex-col items-center justify-center p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group">
                                 <ShieldAlert size={24} className="text-amber-500 mb-2 group-hover:scale-110 transition-transform" />
                                 <span className="text-sm font-bold text-gray-200">Support Triage</span>
                                 <span className="text-xs text-gray-500">Inbox Zero</span>
-                            </a>
-                            <a href="/owner" className="flex flex-col items-center justify-center p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group">
+                            </Link>
+                            <Link to="/owner" className="flex flex-col items-center justify-center p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group">
                                 <AlertCircle size={24} className="text-red-500 mb-2 group-hover:scale-110 transition-transform" />
                                 <span className="text-sm font-bold text-gray-200">Network Command</span>
                                 <span className="text-xs text-gray-500">System Logs</span>
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>
