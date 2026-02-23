@@ -42,7 +42,17 @@ export class SupportController {
             const userId = (req as any).user?.userId || (req as any).user?.id;
             if (!userId) return res.status(401).json({ error: 'User context required' });
             const user_id = userId;
-            let store_id = bodyStoreId ? parseInt(bodyStoreId, 10) : (req as any).user?.storeId;
+            let store_id = (req as any).user?.storeId;
+            if (bodyStoreId) {
+                const parsed = parseInt(bodyStoreId, 10);
+                if (isNaN(parsed)) {
+                    const store = await prisma.store.findFirst({ where: { company_id: bodyStoreId } });
+                    if (store) store_id = store.id;
+                } else {
+                    store_id = parsed;
+                }
+            }
+
             if (!store_id) {
                 const firstStore = await prisma.store.findFirst();
                 store_id = firstStore?.id || 1;
@@ -126,7 +136,16 @@ export class SupportController {
     static async getStoreThread(req: Request, res: Response) {
         try {
             const queryStoreId = req.query.store_id as string;
-            let store_id = queryStoreId ? parseInt(queryStoreId, 10) : (req as any).user?.store_id;
+            let store_id = (req as any).user?.storeId;
+            if (queryStoreId) {
+                const parsed = parseInt(queryStoreId, 10);
+                if (isNaN(parsed)) {
+                    const store = await prisma.store.findFirst({ where: { company_id: queryStoreId } });
+                    if (store) store_id = store.id;
+                } else {
+                    store_id = parsed;
+                }
+            }
 
             if (!store_id) {
                 const firstStore = await prisma.store.findFirst();
