@@ -164,7 +164,7 @@ export const SupportHub: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-6 p-6 h-[calc(100vh-80px)] text-white">
 
             {/* Left Column: AI Support Chat */}
-            <div className={`w-full ${user?.role === 'admin' || user?.role === 'director' ? '' : 'lg:w-2/3'} flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl`}>
+            <div className={`w-full ${user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co' ? '' : 'lg:w-2/3'} flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl`}>
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
@@ -264,7 +264,7 @@ export const SupportHub: React.FC = () => {
             </div>
 
             {/* Right Column: Dynamic FAQ */}
-            {user?.role !== 'admin' && user?.role !== 'director' && (
+            {user?.role !== 'admin' && user?.role !== 'director' && user?.email !== 'alexandre@alexgarciaventures.co' && (
                 <div className="w-full lg:w-1/3 flex flex-col gap-4">
                     <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl">
                         <h3 className="text-lg font-bold text-white mb-2">Frequently Asked Questions</h3>

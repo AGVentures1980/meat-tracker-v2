@@ -72,8 +72,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         }
     ];
 
-    // Add Company Settings for Directors/Admins
-    if (user?.role === 'director' || user?.role === 'admin') {
+    // Add Company Settings for Directors/Admins/Master
+    const isMaster = user?.email === 'alexandre@alexgarciaventures.co';
+    if (user?.role === 'director' || user?.role === 'admin' || isMaster) {
         navItems.push({
             section: t('nav.section_manage') || 'MANAGE (Company)', items: [
                 { icon: Activity, label: 'Network Command Center', path: '/owner' },
@@ -96,7 +97,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         if (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin') || isMaster) {
             const fetchEscalations = async () => {
                 try {
-                    const token = localStorage.getItem('token');
+                    const token = user?.token;
+                    if (!token) return;
                     const res = await fetch('/api/v1/support/tickets', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
