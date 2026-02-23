@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Bot, User as UserIcon, AlertCircle, ChevronDown, ChevronUp, ShieldAlert } from 'lucide-react';
+import { Send, Bot, User as UserIcon, AlertCircle, ChevronDown, ChevronUp, ShieldAlert, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -25,6 +25,11 @@ export const SupportHub: React.FC = () => {
     const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
     const [isEscalated, setIsEscalated] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [requiresRating, setRequiresRating] = useState(false);
+    const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
+    const [rating, setRating] = useState(0);
+    const [ratingFeedback, setRatingFeedback] = useState('');
+    const [submittingRating, setSubmittingRating] = useState(false);
 
     useEffect(() => {
         fetchFaqs();
@@ -77,7 +82,24 @@ export const SupportHub: React.FC = () => {
             });
             if (res.ok) {
                 const data = await res.json();
-                setMessages(data);
+
+                if (data.requiresRating && data.ticketId) {
+                    setRequiresRating(true);
+                    setActiveTicketId(data.ticketId);
+                } else {
+                    setRequiresRating(false);
+                }
+
+                setMessages(data.messages || []);
+                if (data.status === 'OPEN' && data.messages.length > 0) {
+                    // check if escalated ... we'd need to add escalated flag to payload. Doing basic check.
+                }
+            } else if (res.status === 403) {
+                const errData = await res.json();
+                if (errData.code === 'RATING_REQUIRED') {
+                    setRequiresRating(true);
+                    setActiveTicketId(errData.ticketId);
+                }
             } else {
                 let errorMessage = 'Failed to load Support History.';
                 try {
@@ -165,6 +187,35 @@ export const SupportHub: React.FC = () => {
         }
     };
 
+    const submitRating = async () => {
+        if (!activeTicketId || rating === 0) return;
+        setSubmittingRating(true);
+
+        try {
+            const token = user?.token;
+            const res = await fetch(`/api/v1/support/tickets/${activeTicketId}/rating`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ rating, feedback: ratingFeedback })
+            });
+
+            if (res.ok) {
+                setRequiresRating(false);
+                setRating(0);
+                setRatingFeedback('');
+                setActiveTicketId(null);
+                await fetchThread(); // reload cleanly
+            }
+        } catch (error) {
+            console.error("Failed to submit rating", error);
+        } finally {
+            setSubmittingRating(false);
+        }
+    };
+
     return (
         <div className="flex flex-col lg:flex-row gap-6 p-6 h-[calc(100vh-80px)] text-white">
 
@@ -244,15 +295,53 @@ export const SupportHub: React.FC = () => {
                     )}
                 </div>
 
-                {/* Input Area */}
-                <div className="p-3 bg-gray-900 border-t border-gray-800">
+                {/* Input Area or Rating Block */}
+                <div className="p-3 bg-gray-900 border-t border-gray-800 relative">
+                    {requiresRating && (
+                        <div className="absolute inset-0 z-10 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 border-t border-amber-500/50">
+                            <div className="w-full max-w-sm text-center">
+                                <h3 className="text-amber-500 font-bold mb-1">Ticket Resolved</h3>
+                                <p className="text-xs text-gray-400 mb-4">Please rate the support you received before opening a new ticket.</p>
+
+                                <div className="flex justify-center gap-2 mb-4">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            onClick={() => setRating(star)}
+                                            className="focus:outline-none transition-transform hover:scale-110"
+                                        >
+                                            <Star size={28} className={star <= rating ? "fill-amber-500 text-amber-500" : "text-gray-600"} />
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <textarea
+                                    className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs mb-3 text-white focus:border-amber-500 focus:outline-none"
+                                    placeholder="Optional feedback..."
+                                    rows={2}
+                                    value={ratingFeedback}
+                                    onChange={(e) => setRatingFeedback(e.target.value)}
+                                />
+
+                                <button
+                                    onClick={submitRating}
+                                    disabled={rating === 0 || submittingRating}
+                                    className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-2 rounded text-sm transition-colors"
+                                >
+                                    {submittingRating ? 'Saving...' : 'Submit Rating'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     <form onSubmit={sendMessage} className="relative">
                         <input
                             type="text"
                             value={inputQuery}
+                            disabled={requiresRating}
                             onChange={(e) => setInputQuery(e.target.value)}
                             placeholder="Message support..."
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-3 pr-10 text-xs focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-3 pr-10 text-xs focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors disabled:opacity-50"
                         />
                         <button
                             type="submit"

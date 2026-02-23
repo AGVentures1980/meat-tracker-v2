@@ -76,11 +76,21 @@ export class SupportController {
 
             // 1. See if there is an OPEN ticket for this store
             let ticket = await prisma.supportTicket.findFirst({
-                where: { store_id, status: 'OPEN' }
+                where: { store_id, status: { in: ['OPEN', 'RESOLVED'] } },
+                orderBy: { updated_at: 'desc' }
             });
 
-            // 2. If not, create one
-            if (!ticket) {
+            // If the last ticket is resolved but unrated, force rating first
+            if (ticket && ticket.status === 'RESOLVED' && ticket.rating === null) {
+                return res.status(403).json({
+                    error: 'Rating Required',
+                    code: 'RATING_REQUIRED',
+                    ticketId: ticket.id
+                });
+            }
+
+            // 2. If no open ticket, create one
+            if (!ticket || ticket.status === 'RESOLVED') {
                 ticket = await prisma.supportTicket.create({
                     data: {
                         store_id,
@@ -171,11 +181,16 @@ export class SupportController {
             }
 
             const ticket = await prisma.supportTicket.findFirst({
-                where: { store_id, status: 'OPEN' },
+                where: { store_id, status: { in: ['OPEN', 'RESOLVED'] } },
+                orderBy: { updated_at: 'desc' },
                 include: { messages: { orderBy: { created_at: 'asc' } } }
             });
 
-            if (ticket && ticket.is_escalated) {
+            if (!ticket) return res.json({ messages: [], requiresRating: false });
+
+            const requiresRating = ticket.status === 'RESOLVED' && ticket.rating === null;
+
+            if (ticket.is_escalated && ticket.status === 'OPEN') {
                 const hasAdminReply = ticket.messages.some(m => m.sender_type === 'ADMIN');
                 const highVolumeMsg = "We are aware of your message, but are experiencing higher than expected volume. We will serve you as soon as possible. Please leave your error message or concern.";
                 const hasSentHighVolume = ticket.messages.some(m => m.content === highVolumeMsg);
@@ -197,7 +212,12 @@ export class SupportController {
                 }
             }
 
-            res.json(ticket ? ticket.messages : []);
+            res.json({
+                ticketId: ticket.id,
+                messages: ticket.messages,
+                requiresRating,
+                status: ticket.status
+            });
         } catch (error) {
             console.error('Failed to load thread', error);
             res.status(500).json({ error: 'Failed to load thread' });
@@ -255,6 +275,76 @@ export class SupportController {
         } catch (error) {
             console.error('Admin reply failed', error);
             res.status(500).json({ error: 'Failed to send admin reply' });
+        }
+    }
+
+    static async submitRating(req: Request, res: Response) {
+        try {
+            const { ticketId } = req.params;
+            const { rating, feedback } = req.body;
+
+            if (rating < 1 || rating > 5) return res.status(400).json({ error: 'Invalid rating' });
+
+            // Store Managers can only rate their own tickets essentially, but for simplicity we rely on ticketId
+            const ticket = await prisma.supportTicket.update({
+                where: { id: ticketId },
+                data: {
+                    rating,
+                    rating_feedback: feedback || null,
+                    status: 'CLOSED' // Once rated, it's permanently closed
+                }
+            });
+
+            res.json({ success: true, ticket });
+        } catch (error) {
+            console.error('Failed to submit rating', error);
+            res.status(500).json({ error: 'Failed to submit rating' });
+        }
+    }
+
+    static async getCompanyRatings(req: Request, res: Response) {
+        try {
+            // Calculate aggregate ratings per company using grouped prisma queries
+            const companies = await prisma.company.findMany({
+                include: {
+                    stores: {
+                        include: {
+                            support_tickets: {
+                                where: { status: 'CLOSED', rating: { not: null } },
+                                select: { rating: true }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const results = companies.map(company => {
+                let totalScore = 0;
+                let ratingCount = 0;
+
+                company.stores.forEach(store => {
+                    store.support_tickets.forEach(ticket => {
+                        if (ticket.rating) {
+                            totalScore += ticket.rating;
+                            ratingCount++;
+                        }
+                    });
+                });
+
+                const average = ratingCount > 0 ? (totalScore / ratingCount) : 0;
+
+                return {
+                    company_id: company.id,
+                    company_name: company.name,
+                    average_rating: parseFloat(average.toFixed(1)),
+                    total_ratings: ratingCount
+                };
+            }).filter(r => r.total_ratings > 0).sort((a, b) => b.average_rating - a.average_rating);
+
+            res.json(results);
+        } catch (error) {
+            console.error('Failed to get company ratings', error);
+            res.status(500).json({ error: 'Failed to load ratings' });
         }
     }
 }

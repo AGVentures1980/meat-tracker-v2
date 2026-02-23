@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Bot, User as UserIcon, Clock, CheckCircle2, ShieldAlert, ArrowLeft, MessageSquare } from 'lucide-react';
+import { Send, Bot, User as UserIcon, Clock, CheckCircle2, ShieldAlert, ArrowLeft, MessageSquare, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+interface CompanyRating {
+    company_id: string;
+    company_name: string;
+    average_rating: number;
+    total_ratings: number;
+}
 
 interface SupportMessage {
     id: string;
@@ -30,6 +37,7 @@ interface Ticket {
 export const AdminSupport: React.FC = () => {
     const { user } = useAuth();
     const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [ratings, setRatings] = useState<CompanyRating[]>([]);
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
     const [replyContent, setReplyContent] = useState('');
     const [loading, setLoading] = useState(false);
@@ -55,9 +63,29 @@ export const AdminSupport: React.FC = () => {
         }
     };
 
+    const fetchRatings = async () => {
+        try {
+            const token = user?.token;
+            if (!token) return;
+            const res = await fetch('/api/v1/support/ratings', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setRatings(data);
+            }
+        } catch (error) {
+            console.error('Failed to load ratings', error);
+        }
+    };
+
     useEffect(() => {
         fetchTickets();
-        const interval = setInterval(fetchTickets, 15000);
+        fetchRatings();
+        const interval = setInterval(() => {
+            fetchTickets();
+            fetchRatings();
+        }, 15000);
         return () => clearInterval(interval);
     }, [user?.token]);
 
@@ -105,6 +133,27 @@ export const AdminSupport: React.FC = () => {
                             <p className="text-sm text-gray-400">Executive Command Center for Store Support</p>
                         </div>
                     </div>
+
+                    {/* Social Proof: Company Ratings */}
+                    {ratings.length > 0 && (
+                        <div className="mb-8 border border-gray-800 rounded-xl bg-gray-900/50 p-4">
+                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <Star size={12} className="text-amber-500 fill-amber-500" />
+                                AGV Operational Intelligence Rating
+                            </h3>
+                            <div className="flex flex-wrap gap-4">
+                                {ratings.map(r => (
+                                    <div key={r.company_id} className="flex items-center gap-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                                        <span className="text-sm font-semibold text-gray-200">{r.company_name}</span>
+                                        <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded text-sm font-bold border border-amber-500/20">
+                                            {r.average_rating.toFixed(1)} <Star size={12} className="fill-amber-500" />
+                                        </div>
+                                        <span className="text-[10px] text-gray-500">({r.total_ratings})</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {errorMsg && (
                         <div className="mb-6 p-4 bg-red-900/50 border border-red-500/50 text-red-200 rounded-lg">
