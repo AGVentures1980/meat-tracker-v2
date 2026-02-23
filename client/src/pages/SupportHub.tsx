@@ -29,6 +29,10 @@ export const SupportHub: React.FC = () => {
     useEffect(() => {
         fetchFaqs();
         fetchThread();
+
+        // Auto-refresh chat thread every 15 seconds to receive Admin replies
+        const interval = setInterval(fetchThread, 15000);
+        return () => clearInterval(interval);
     }, [selectedCompany]);
 
     const fetchFaqs = async () => {
