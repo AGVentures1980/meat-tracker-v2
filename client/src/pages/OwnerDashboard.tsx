@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
     Activity,
     AlertTriangle,
     DollarSign,
     Users,
-    TrendingUp
+    TrendingUp,
+    Star
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+interface CompanyRating {
+    company_id: string;
+    company_name: string;
+    average_rating: number;
+    total_ratings: number;
+}
 
 // --- Types ---
 interface NetworkMetric {
@@ -27,7 +36,31 @@ interface AlertItem {
 }
 
 const OwnerDashboard: React.FC = () => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'financials' | 'operations' | 'people'>('financials');
+    const [ratings, setRatings] = useState<CompanyRating[]>([]);
+
+    useEffect(() => {
+        const fetchRatings = async () => {
+            try {
+                const token = user?.token;
+                if (!token) return;
+                const res = await fetch('/api/v1/support/ratings', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setRatings(data);
+                }
+            } catch (error) {
+                console.error('Failed to load ratings', error);
+            }
+        };
+
+        fetchRatings();
+        const interval = setInterval(fetchRatings, 15000);
+        return () => clearInterval(interval);
+    }, [user?.token]);
 
     // --- Mock Data (Morning Briefing) ---
     const metrics: NetworkMetric[] = [
@@ -91,6 +124,29 @@ const OwnerDashboard: React.FC = () => {
                     ))}
                 </div>
             </div>
+
+            {/* --- SOCIAL PROOF RATINGS (Added per User Request) --- */}
+            {ratings.length > 0 && (
+                <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <Star size={12} className="text-amber-500 fill-amber-500" />
+                        AGV Operational Intelligence Support Rating
+                    </h3>
+                    <div className="flex flex-wrap gap-4">
+                        {ratings.map(r => (
+                            <div key={r.company_id} className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                                <span className="text-sm font-semibold text-slate-200">{r.company_name}</span>
+                                <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded text-sm font-bold border border-amber-500/20">
+                                    {r.total_ratings > 0 ? r.average_rating.toFixed(1) : 'NEW'} <Star size={12} className={r.total_ratings > 0 ? "fill-amber-500" : ""} />
+                                </div>
+                                <span className="text-[10px] text-slate-500">
+                                    {r.total_ratings > 0 ? `(${r.total_ratings} reviews)` : '(No tickets rated yet)'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* --- 2. MAIN CONTENT AREA --- */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

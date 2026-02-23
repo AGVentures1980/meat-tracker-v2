@@ -339,7 +339,7 @@ export class SupportController {
                     average_rating: parseFloat(average.toFixed(1)),
                     total_ratings: ratingCount
                 };
-            }).filter(r => r.total_ratings > 0).sort((a, b) => b.average_rating - a.average_rating);
+            }).filter(r => r.company_id !== 'tdb-main').sort((a, b) => b.average_rating - a.average_rating);
 
             res.json(results);
         } catch (error) {

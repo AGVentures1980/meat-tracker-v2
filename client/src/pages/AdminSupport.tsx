@@ -146,9 +146,11 @@ export const AdminSupport: React.FC = () => {
                                     <div key={r.company_id} className="flex items-center gap-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
                                         <span className="text-sm font-semibold text-gray-200">{r.company_name}</span>
                                         <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded text-sm font-bold border border-amber-500/20">
-                                            {r.average_rating.toFixed(1)} <Star size={12} className="fill-amber-500" />
+                                            {r.total_ratings > 0 ? r.average_rating.toFixed(1) : 'NEW'} <Star size={12} className={r.total_ratings > 0 ? "fill-amber-500" : ""} />
                                         </div>
-                                        <span className="text-[10px] text-gray-500">({r.total_ratings})</span>
+                                        <span className="text-[10px] text-gray-500">
+                                            {r.total_ratings > 0 ? `(${r.total_ratings})` : '(No tickets rated yet)'}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
