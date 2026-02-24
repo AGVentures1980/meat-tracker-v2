@@ -37,44 +37,86 @@ export class PurchaseController {
 
     /**
      * GET /api/v1/purchases/weighted-averages
-     * Calculate averages for a specific week/period
+     * Calculate averages for a specific week/period AND the previous week
      */
     static async getWeightedAverages(req: Request, res: Response) {
         try {
             const { start, end } = req.query;
-            const storeId = (req as any).user?.storeId || 1;
+            const user = (req as any).user;
+            const storeId = user?.storeId || 1;
+            const role = user?.role;
+            const companyId = user?.companyId;
 
+            const isExecutive = role === 'admin' || role === 'director';
+
+            // Current Period
             const startDate = start ? new Date(start as string) : new Date(new Date().setDate(new Date().getDate() - 7));
             const endDate = end ? new Date(end as string) : new Date();
 
-            const invoices = await (prisma as any).invoiceRecord.findMany({
-                where: {
-                    store_id: storeId,
-                    date: {
-                        gte: startDate,
-                        lte: endDate
+            // Previous Period (Shift by 7 days)
+            const prevStartDate = new Date(startDate);
+            prevStartDate.setDate(prevStartDate.getDate() - 7);
+            const prevEndDate = new Date(endDate);
+            prevEndDate.setDate(prevEndDate.getDate() - 7);
+
+            const whereClauseCurrent: any = {
+                date: { gte: startDate, lte: endDate }
+            };
+            const whereClausePrev: any = {
+                date: { gte: prevStartDate, lte: prevEndDate }
+            };
+
+            // Network Aggregation for Executives
+            if (isExecutive && companyId) {
+                const stores = await prisma.store.findMany({ where: { company_id: companyId }, select: { id: true } });
+                const storeIds = stores.map(s => s.id);
+                whereClauseCurrent.store_id = { in: storeIds };
+                whereClausePrev.store_id = { in: storeIds };
+            } else {
+                whereClauseCurrent.store_id = storeId;
+                whereClausePrev.store_id = storeId;
+            }
+
+            const [currentInvoices, prevInvoices] = await Promise.all([
+                (prisma as any).invoiceRecord.findMany({ where: whereClauseCurrent }),
+                (prisma as any).invoiceRecord.findMany({ where: whereClausePrev })
+            ]);
+
+            // Helper to aggregate
+            const aggregate = (invoices: any[]) => {
+                const map: Record<string, { total_weight: number, total_cost: number }> = {};
+                invoices.forEach((inv: any) => {
+                    if (!map[inv.item_name]) {
+                        map[inv.item_name] = { total_weight: 0, total_cost: 0 };
                     }
-                }
+                    map[inv.item_name].total_weight += inv.quantity;
+                    map[inv.item_name].total_cost += inv.cost_total;
+                });
+                return map;
+            };
+
+            const currentAggregation = aggregate(currentInvoices);
+            const prevAggregation = aggregate(prevInvoices);
+
+            // Merge keys to ensure we return history even if missing in current week
+            const allItems = new Set([...Object.keys(currentAggregation), ...Object.keys(prevAggregation)]);
+
+            const results = Array.from(allItems).map((item) => {
+                const currData = currentAggregation[item] || { total_weight: 0, total_cost: 0 };
+                const prevData = prevAggregation[item] || { total_weight: 0, total_cost: 0 };
+
+                const currAvg = currData.total_weight > 0 ? (currData.total_cost / currData.total_weight) : 0;
+                const prevAvg = prevData.total_weight > 0 ? (prevData.total_cost / prevData.total_weight) : 0;
+
+                return {
+                    item_name: item,
+                    weighted_average: currAvg,
+                    previous_average: prevAvg,
+                    total_lb: currData.total_weight,
+                    total_cost: currData.total_cost,
+                    delivery_count: currentInvoices.filter((i: any) => i.item_name === item).length
+                };
             });
-
-            // Group by item name and calculate weighted average
-            const aggregation: Record<string, { total_weight: number, total_cost: number }> = {};
-
-            invoices.forEach((inv: any) => {
-                if (!aggregation[inv.item_name]) {
-                    aggregation[inv.item_name] = { total_weight: 0, total_cost: 0 };
-                }
-                aggregation[inv.item_name].total_weight += inv.quantity;
-                aggregation[inv.item_name].total_cost += inv.cost_total;
-            });
-
-            const results = Object.entries(aggregation).map(([item, data]) => ({
-                item_name: item,
-                weighted_average: data.total_weight > 0 ? (data.total_cost / data.total_weight) : 0,
-                total_lb: data.total_weight,
-                total_cost: data.total_cost,
-                delivery_count: invoices.filter((i: any) => i.item_name === item).length
-            }));
 
             return res.json({ success: true, averages: results });
         } catch (error) {

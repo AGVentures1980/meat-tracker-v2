@@ -21,6 +21,7 @@ export const WeeklyPriceInput = () => {
 
     // State for calculated weighted averages
     const [weightedAverages, setWeightedAverages] = useState<Record<string, number>>({});
+    const [previousAverages, setPreviousAverages] = useState<Record<string, number>>({});
 
     // Batch Scan Result State (Duplicate/Success Summary)
     const [scanResult, setScanResult] = useState<{ total: number; successful: number; duplicates: number } | null>(null);
@@ -86,10 +87,13 @@ export const WeeklyPriceInput = () => {
             const data = await response.json();
             if (data.success) {
                 const map: Record<string, number> = {};
+                const prevMap: Record<string, number> = {};
                 data.averages.forEach((a: any) => {
                     map[a.item_name] = a.weighted_average;
+                    prevMap[a.item_name] = a.previous_average;
                 });
                 setWeightedAverages(map);
+                setPreviousAverages(prevMap);
 
                 // Update prices state if data exists
                 setPrices(prev => prev.map(p => {
@@ -229,6 +233,8 @@ export const WeeklyPriceInput = () => {
         newDate.setDate(selectedDate.getDate() + (direction === 'next' ? 7 : -7));
         setSelectedDate(newDate);
     };
+
+    const isExecutive = ['admin', 'director'].includes(user?.role || '');
 
     return (
         <div className="max-w-5xl mx-auto p-4 relative">
@@ -421,18 +427,52 @@ export const WeeklyPriceInput = () => {
                     <div className="divide-y divide-[#333] overflow-y-auto max-h-[500px]">
                         <div className="hidden md:grid grid-cols-12 gap-4 p-5 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-black/20">
                             <div className="col-span-6">{t('price_protein_desc')}</div>
-                            <div className="col-span-3 text-right">{t('price_cost_history')}</div>
-                            <div className="col-span-3 text-right">{t('price_market_price')}</div>
+                            <div className="col-span-3 text-right">{isExecutive ? 'Historical Network Avg' : t('price_cost_history')}</div>
+                            <div className="col-span-3 text-right">{isExecutive ? 'Current Network Avg' : t('price_market_price')}</div>
                         </div>
 
                         {prices.map((item) => {
                             const hasWeighted = weightedAverages[item.item] !== undefined;
+                            const currentAvg = weightedAverages[item.item] || 0;
+                            const prevAvg = previousAverages[item.item] || 0;
+
+                            // Calculate trend
+                            let trendIcon = null;
+                            let trendColor = '';
+                            let trendText = '';
+
+                            if (isExecutive && hasWeighted && prevAvg > 0) {
+                                const diff = currentAvg - prevAvg;
+                                const pct = (diff / prevAvg) * 100;
+
+                                if (pct > 0.1) {
+                                    trendIcon = <TrendingUp className="w-3 h-3 text-red-500" />;
+                                    trendColor = 'text-red-500';
+                                    trendText = `+${pct.toFixed(1)}%`;
+                                } else if (pct < -0.1) {
+                                    trendIcon = <TrendingDown className="w-3 h-3 text-green-500" />;
+                                    trendColor = 'text-green-500';
+                                    trendText = `${pct.toFixed(1)}%`; // Negative sign included in pct
+                                } else {
+                                    trendIcon = <div className="w-3 h-3 text-yellow-500 font-bold text-center leading-3">−</div>;
+                                    trendColor = 'text-yellow-500';
+                                    trendText = `0.0%`;
+                                }
+                            }
 
                             return (
                                 <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 md:p-5 items-center hover:bg-white/5 transition-colors group">
                                     <div className="col-span-1 md:col-span-6 flex justify-between md:block">
                                         <div>
-                                            <div className="font-bold text-white group-hover:text-brand-gold transition-colors text-sm md:text-base">{formatProteinName(item.item)}</div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="font-bold text-white group-hover:text-brand-gold transition-colors text-sm md:text-base">{formatProteinName(item.item)}</div>
+                                                {isExecutive && trendText && (
+                                                    <div className={`flex items-center gap-1 text-[10px] font-mono font-bold ${trendColor} bg-black/40 px-1.5 py-0.5 rounded-sm border border-white/5`} title="vs. Last Week">
+                                                        {trendIcon}
+                                                        <span>{trendText}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="text-[9px] text-gray-500 font-mono mt-1">{t('price_standard_calc')}: {item.unit}</div>
                                         </div>
                                         {/* Mobile History View */}
@@ -450,19 +490,28 @@ export const WeeklyPriceInput = () => {
                                     <div className="col-span-1 md:col-span-3 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2">
                                         <span className="md:hidden text-xs font-bold text-brand-gold uppercase tracking-wider">Current Price:</span>
                                         <div className="relative w-full md:w-auto">
-                                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-600 text-[10px]">$</span>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                value={item.current}
-                                                onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                                                disabled={isLocked}
-                                                className={`w-full md:w-28 bg-[#1a1a1a] border border-[#333] rounded-sm py-2 pl-6 pr-2 text-right text-white font-mono text-sm outline-none transition-all ${isLocked ? 'opacity-50 cursor-not-allowed' : 'focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/20'}`}
-                                            />
+                                            {isExecutive ? (
+                                                <div className="w-full md:w-28 bg-[#1a1a1a]/50 border border-[#333]/50 rounded-sm py-2 pl-6 pr-2 text-right text-gray-400 font-mono text-sm shadow-inner relative">
+                                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-600 text-[10px]">$</span>
+                                                    {item.current.toFixed(2)}
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-600 text-[10px]">$</span>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={item.current}
+                                                        onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                                                        disabled={isLocked}
+                                                        className={`w-full md:w-28 bg-[#1a1a1a] border border-[#333] rounded-sm py-2 pl-6 pr-2 text-right text-white font-mono text-sm outline-none transition-all ${isLocked ? 'opacity-50 cursor-not-allowed' : 'focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/20'}`}
+                                                    />
+                                                </>
+                                            )}
                                         </div>
                                         {hasWeighted && (
                                             <span className="text-[8px] px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-full font-bold uppercase animate-pulse shrink-0">
-                                                {t('price_weighted_applied')}
+                                                {isExecutive ? 'Network Avg' : t('price_weighted_applied')}
                                             </span>
                                         )}
                                     </div>
@@ -471,16 +520,18 @@ export const WeeklyPriceInput = () => {
                         })}
                     </div>
 
-                    <div className="p-5 border-t border-[#333] bg-black/40 flex justify-end">
-                        <button
-                            onClick={handleSave}
-                            disabled={loading || isLocked}
-                            className="bg-brand-gold hover:bg-yellow-500 text-black font-bold py-3 px-10 rounded-sm shadow-xl flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 uppercase text-xs tracking-widest"
-                        >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            {t('price_update_ledger')}
-                        </button>
-                    </div>
+                    {!isExecutive && (
+                        <div className="p-5 border-t border-[#333] bg-black/40 flex justify-end">
+                            <button
+                                onClick={handleSave}
+                                disabled={loading || isLocked}
+                                className="bg-brand-gold hover:bg-yellow-500 text-black font-bold py-3 px-10 rounded-sm shadow-xl flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 uppercase text-xs tracking-widest"
+                            >
+                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                {t('price_update_ledger')}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
