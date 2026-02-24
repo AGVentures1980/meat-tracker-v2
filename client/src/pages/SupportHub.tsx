@@ -207,6 +207,8 @@ export const SupportHub: React.FC = () => {
                 setRating(0);
                 setRatingFeedback('');
                 setActiveTicketId(null);
+                setMessages([]); // Force clear the chat UI locally
+                setIsEscalated(false); // Reset escalation state
                 await fetchThread(); // reload cleanly
             }
         } catch (error) {
