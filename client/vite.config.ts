@@ -9,7 +9,7 @@ export default defineConfig({
         react(),
         VitePWA({
             registerType: 'autoUpdate',
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'brasa-logo-v3.png'],
+            includeAssets: ['favicon.ico', 'brasa-logo-v3-dark.png', 'masked-icon.svg', 'brasa-logo-v3.png'],
             manifest: {
                 name: 'Brasa Meat Intelligence',
                 short_name: 'Brasa',
@@ -19,17 +19,17 @@ export default defineConfig({
                 display: 'standalone',
                 icons: [
                     {
-                        src: 'brasa-logo-v3.png',
+                        src: 'brasa-logo-v3-dark.png',
                         sizes: '192x192',
                         type: 'image/png'
                     },
                     {
-                        src: 'brasa-logo-v3.png',
+                        src: 'brasa-logo-v3-dark.png',
                         sizes: '512x512',
                         type: 'image/png'
                     },
                     {
-                        src: 'brasa-logo-v3.png',
+                        src: 'brasa-logo-v3-dark.png',
                         sizes: '512x512',
                         type: 'image/png',
                         purpose: 'any maskable'
