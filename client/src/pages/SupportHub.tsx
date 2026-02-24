@@ -222,7 +222,47 @@ export const SupportHub: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-6 p-6 h-[calc(100vh-80px)] text-white">
 
             {/* Left Column: AI Support Chat (Restricted Width for Admins) */}
-            <div className={`w-full lg:w-2/3 ${(user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co') ? 'max-w-md mx-auto lg:mx-0' : ''} flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl shrink-0`}>
+            <div className={`w-full lg:w-2/3 ${(user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co') ? 'max-w-md mx-auto lg:mx-0' : ''} flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl shrink-0 relative`}>
+
+                {/* --- RATING MODAL STRICT OVERLAY --- */}
+                {requiresRating && (
+                    <div className="absolute inset-0 z-50 bg-gray-900/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+                        <div className="w-full max-w-sm">
+                            <h3 className="text-2xl text-amber-500 font-bold mb-2">Ticket Resolved</h3>
+                            <p className="text-sm text-gray-400 mb-6">Please rate the support you received before opening a new ticket.</p>
+
+                            <div className="flex justify-center gap-3 mb-6">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => setRating(star)}
+                                        className="focus:outline-none transition-all hover:scale-125 hover:-translate-y-1"
+                                    >
+                                        <Star size={36} strokeWidth={1.5} className={(star <= rating) ? "fill-amber-500 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "text-gray-600"} />
+                                    </button>
+                                ))}
+                            </div>
+
+                            <textarea
+                                className="w-full bg-gray-800/80 border border-gray-700/80 rounded-lg p-3 text-sm mb-4 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none shadow-inner"
+                                placeholder="Optional feedback..."
+                                rows={3}
+                                value={ratingFeedback}
+                                onChange={(e) => setRatingFeedback(e.target.value)}
+                            />
+
+                            <button
+                                type="button"
+                                onClick={submitRating}
+                                disabled={rating === 0 || submittingRating}
+                                className="w-full bg-amber-600 hover:bg-amber-500 disabled:bg-gray-700 disabled:text-gray-500 disabled:border-transparent text-white font-bold py-3 px-4 rounded-lg text-sm transition-all shadow-lg border border-amber-500"
+                            >
+                                {submittingRating ? 'Saving...' : 'Submit Rating'}
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
@@ -245,7 +285,11 @@ export const SupportHub: React.FC = () => {
 
                 {/* Chat History */}
                 <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                    {messages.length === 0 ? (
+                    {requiresRating ? (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                            <p className="text-sm">Ticket pending rating...</p>
+                        </div>
+                    ) : messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-gray-500">
                             <Bot size={48} className="mb-4 opacity-50" />
                             <p className="text-sm font-medium text-gray-400 text-center px-4">Hello {user?.first_name || 'Chef'}, how can I help you today?</p>
@@ -298,44 +342,7 @@ export const SupportHub: React.FC = () => {
                 </div>
 
                 {/* Input Area or Rating Block */}
-                <div className="p-3 bg-gray-900 border-t border-gray-800 relative">
-                    {requiresRating && (
-                        <div className="absolute inset-0 z-10 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 border-t border-amber-500/50">
-                            <div className="w-full max-w-sm text-center">
-                                <h3 className="text-amber-500 font-bold mb-1">Ticket Resolved</h3>
-                                <p className="text-xs text-gray-400 mb-4">Please rate the support you received before opening a new ticket.</p>
-
-                                <div className="flex justify-center gap-2 mb-4">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            onClick={() => setRating(star)}
-                                            className="focus:outline-none transition-transform hover:scale-110"
-                                        >
-                                            <Star size={28} className={star <= rating ? "fill-amber-500 text-amber-500" : "text-gray-600"} />
-                                        </button>
-                                    ))}
-                                </div>
-
-                                <textarea
-                                    className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs mb-3 text-white focus:border-amber-500 focus:outline-none"
-                                    placeholder="Optional feedback..."
-                                    rows={2}
-                                    value={ratingFeedback}
-                                    onChange={(e) => setRatingFeedback(e.target.value)}
-                                />
-
-                                <button
-                                    onClick={submitRating}
-                                    disabled={rating === 0 || submittingRating}
-                                    className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-2 rounded text-sm transition-colors"
-                                >
-                                    {submittingRating ? 'Saving...' : 'Submit Rating'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
+                <div className="p-3 bg-gray-900 border-t border-gray-800 relative z-10">
                     <form onSubmit={sendMessage} className="relative">
                         <input
                             type="text"
