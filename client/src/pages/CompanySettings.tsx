@@ -80,7 +80,8 @@ export const CompanySettings = () => {
                 alert('Template applied successfully!');
                 fetchData();
             } else {
-                alert('Failed to apply template');
+                const data = await res.json().catch(() => ({ error: res.statusText }));
+                alert(`Failed to apply template: ${data.error || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Apply Template Error:', error);
@@ -424,10 +425,10 @@ export const CompanySettings = () => {
                     /* Templates Tab */
                     <div className="p-6 space-y-4">
                         <div className="flex justify-between items-center mb-2">
-                            <p className="text-gray-500 text-xs">Templates de operação pré-configurados. Aplique a qualquer loja via Settings → Lojas.</p>
+                            <p className="text-gray-500 text-xs">Pre-configured operational templates. Apply to any store via Settings → Stores.</p>
                             {(user?.role === 'admin' || user?.role === 'director') && (
                                 <button onClick={() => setIsAdding(true)} className="px-4 py-2 bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded hover:bg-[#C5A059] hover:text-black transition-all flex items-center gap-2">
-                                    <Plus className="w-3 h-3" /> Começar do Zero
+                                    <Plus className="w-3 h-3" /> Start from Scratch
                                 </button>
                             )}
                         </div>
@@ -443,7 +444,7 @@ export const CompanySettings = () => {
                                                 <p className="text-gray-500 text-xs mt-0.5">{t.description}</p>
                                             </div>
                                             {t.is_system && (
-                                                <span className="text-[8px] font-bold uppercase tracking-widest bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/30 px-2 py-1 rounded">Sistema</span>
+                                                <span className="text-[8px] font-bold uppercase tracking-widest bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/30 px-2 py-1 rounded">System</span>
                                             )}
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 mb-3">
@@ -462,7 +463,7 @@ export const CompanySettings = () => {
                                             <div className="bg-[#111] rounded p-2">
                                                 <p className="text-[9px] text-gray-600 uppercase tracking-widest">Lamb Chops</p>
                                                 <p className={`font-mono font-bold text-sm ${cfg.serves_lamb_chops_rodizio ? 'text-[#C5A059]' : 'text-gray-600'}`}>
-                                                    {cfg.serves_lamb_chops_rodizio ? 'Incluso' : 'Não'}
+                                                    {cfg.serves_lamb_chops_rodizio ? 'Included' : 'No'}
                                                 </p>
                                             </div>
                                         </div>

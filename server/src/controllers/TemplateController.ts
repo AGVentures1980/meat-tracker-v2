@@ -1,3 +1,6 @@
+// Copyright (c) 2023-2026 AGV VENTURES / Alexandre Garcia. All rights reserved.
+// This code is proprietary and confidential. An AGV VENTURES Product.
+
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../services/AuditService';
@@ -68,6 +71,7 @@ export class TemplateController {
             const user = (req as any).user;
             const storeId = parseInt(req.params.id);
             const { template_id } = req.body;
+            console.log(`[DEBUG] applyTemplate called! userStore: ${user.storeId}, userRole: ${user.role}, targetStore: ${storeId}, template: ${template_id}`);
 
             if (!template_id) {
                 return res.status(400).json({ error: 'template_id is required' });
@@ -82,10 +86,12 @@ export class TemplateController {
             }
 
             // Fetch template and verify it belongs to the same company
+            console.log(`[DEBUG] Looking for template ${template_id} for company ${user.companyId}`);
             const template = await (prisma as any).storeTemplate.findFirst({
                 where: { id: template_id, company_id: user.companyId }
             });
             if (!template) {
+                console.log(`[DEBUG] Template not found in DB!`);
                 return res.status(404).json({ error: 'Template not found' });
             }
 

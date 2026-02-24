@@ -1,3 +1,5 @@
+// Copyright (c) 2023-2026 AGV VENTURES / Alexandre Garcia. All rights reserved.
+// This code is proprietary and confidential. An AGV VENTURES Product.
 
 import { Request, Response } from 'express';
 import { MeatEngine } from '../engine/MeatEngine';

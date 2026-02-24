@@ -1,3 +1,6 @@
+// Copyright (c) 2023-2026 AGV VENTURES / Alexandre Garcia. All rights reserved.
+// This code is proprietary and confidential. An AGV VENTURES Product.
+
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]

@@ -1,0 +1,31 @@
+=============================================================================
+DECLARAÇÃO DE DIREITOS AUTORAIS E PROPRIEDADE INTELECTUAL
+(COPYRIGHT AND PROPRIETARY RIGHTS NOTICE)
+=============================================================================
+
+SOFTWARE: Brasa Meat Intelligence (v3.0+)
+UM PRODUTO AGV VENTURES (AN AGV VENTURES PRODUCT)
+PROPRIEDADE DE: Alexandre Garcia / AGV VENTURES
+ANO DE REGISTRO/CRIAÇÃO: 2023 - 2026
+
+1. DIREITOS AUTORAIS DO CÓDIGO FONTE (SOURCE CODE COPYRIGHT)
+O código-fonte completo deste software, abrangendo tanto os componentes de front-end (React/TypeScript, PWAs) quanto os componentes de back-end (Node.js, Express, Integrações com MS Graph e Agentes de Inteligência Artificial), é de propriedade exclusiva do detentor dos direitos supramencionado. É estritamente proibida a cópia, reprodução, distribuição, modificação ou engenharia reversa (reverse engineering) de qualquer linha de código sem a autorização prévia, expressa e por escrito do proprietário.
+
+2. PROTEÇÃO DE ARQUITETURA DE SISTEMAS (SYSTEM ARCHITECTURE)
+A arquitetura de software desenvolvida para o Brasa Meat Intelligence constitui Segredo de Negócio (Trade Secret). Estão protegidos legalmente os padrões de design (Design Patterns), fluxos de comunicação entre microserviços, automações de ingestão de documentos via IA, integrações de APIs externas, e a metodologia de sincronização PWA offline/online. A replicação desta exata estrutura em sistemas concorrentes constitui quebra de propriedade intelectual.
+
+3. ESTRUTURA DE BANCO DE DADOS E ENGENHARIA DE DADOS (DATABASE SCHEMA & ENGINEERING)
+O modelo de banco de dados (Relational Prisma/PostgreSQL Schema), suas tabelas, relações (Foreign Keys), restrições (Constraints), e estruturas de indexação criadas especificamente para o gerenciamento de inventário de carnes em formato rodízio estão integralmente protegidos. A proteção cobre especificamente a estrutura desenhada para sustentar o "Master Ledger", "Store Meat Targets", "Waste Logs", e a modelagem matemática para apuração de LBS/Guest e Cost/Guest.
+
+4. LÓGICA DE NEGÓCIOS E ALGORITMOS MATEMÁTICOS (BUSINESS LOGIC & ALGORITHMS)
+Todos os motores de cálculo (Calculation Engines) embutidos no sistema estão protegidos sob direitos autorais, incluindo, mas não se limitando a:
+- A fórmula e algoritmo de rastreamento "The Garcia Rule" (Travamento Operacional e Accountability).
+- O motor paramétrico do "Smart Prep" utilizado para projeção de escala (Yield & Consumption Matrix).
+- Os agrupamentos de proteínas ("Protein Groups" e Mapeamento de "Villains").
+- Engenharia de Prompts (Prompt Engineering) e lógicas utilizadas nos Agentes de Inteligência Artificial para leitura de faturas e processamento de dados (Automation Ingestion).
+
+AVISO LEGAL (LEGAL WARNING):
+Este sistema contém dados proprietários e confidenciais. O acesso não autorizado, extração de código, duplicação não autorizada ou cópia da lógica de software para uso comercial de terceiros resultará em ações legais em conformidade com as leis internacionais de proteção à Propriedade Intelectual (Intellectual Property - IP) e Direitos Autorais em vigor (Lei de Direitos Autorais / DMCA - Digital Millennium Copyright Act / Trade Secrets Acts).
+
+© 2023-2026 AGV VENTURES / Alexandre Garcia. Todos os direitos reservados. (All rights reserved).
+=============================================================================
