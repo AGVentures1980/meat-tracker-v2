@@ -111,6 +111,7 @@ export const WeeklyInventory = () => {
                                                 <div className="md:col-span-2 flex items-center gap-3">
                                                     <input
                                                         type="number"
+                                                        inputMode="decimal"
                                                         step="0.1"
                                                         min="0"
                                                         placeholder="Lbs..."
