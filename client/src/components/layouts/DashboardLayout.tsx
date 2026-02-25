@@ -76,7 +76,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         ];
 
         // Add Company Settings for Directors/Admins/Master
-        const isMaster = user?.email === 'alexandre@alexgarciaventures.co';
+        const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
         if (user?.role === 'director' || user?.role === 'admin' || isMaster) {
             navItems.push({
                 section: t('nav.section_manage') || 'MANAGE (Company)', items: [
@@ -97,8 +97,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     ]);
 
     useEffect(() => {
-        const isMaster = user?.email === 'alexandre@alexgarciaventures.co';
-        if (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin') || isMaster) {
+        const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
+        if (user?.role === 'admin' || user?.role === 'director' || user?.email?.toLowerCase().includes('admin') || isMaster) {
             const fetchEscalations = async () => {
                 try {
                     const token = user?.token;

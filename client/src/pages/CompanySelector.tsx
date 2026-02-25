@@ -119,7 +119,7 @@ export const CompanySelector = () => {
                 </div>
 
                 {/* Idea Vault Quick Access for Master Owner Only */}
-                {user?.email === 'alexandre@alexgarciaventures.co' && (
+                {user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co' && (
                     <div className="mt-16 flex justify-center">
                         <button
                             onClick={() => navigate('/vault')}
