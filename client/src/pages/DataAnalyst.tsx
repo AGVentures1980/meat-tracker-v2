@@ -130,7 +130,7 @@ export const DataAnalyst = () => {
                         OFFICIAL ROI AUDIT
                     </h1>
                     <p className="text-gray-500 text-xs font-mono uppercase tracking-[0.2em] mt-1">
-                        Frozen Baseline Comparison • {new Date(data.generatedAt).toLocaleDateString()}
+                        BASELINE: HIGHER OF (YOY 90-DAY) OR (6-MO TRAILING LBS/GUEST) • {new Date(data.generatedAt).toLocaleDateString()}
                     </p>
                 </div>
                 <div className="text-right">
