@@ -14,7 +14,6 @@ export const CorpProcurement = () => {
             alert('Supplier Benchmark Report generated successfully and sent to your email.');
         }, 1500);
     };
-    const [isGenerating, setIsGenerating] = useState(false);
 
     // Mock Data for the Stealth Flow Demonstration
     const topOpportunities = [
@@ -174,7 +173,6 @@ export const CorpProcurement = () => {
                             </div>
                         ))}
                     </div>
-                    </div>
                 </div>
             </div>
 
@@ -194,6 +192,6 @@ export const CorpProcurement = () => {
                     )}
                 </button>
             </div>
-        </div >
+        </div>
     );
 };
