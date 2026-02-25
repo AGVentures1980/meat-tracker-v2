@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, ArrowRight, Users, Settings, Zap } from 'lucide-react';
+import { Building2, ArrowRight, Users, Zap, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface Company {
@@ -117,6 +117,24 @@ export const CompanySelector = () => {
                     ))}
 
                 </div>
+
+                {/* Idea Vault Quick Access for Owners */}
+                {(user?.role === 'admin' || user?.role === 'director') && (
+                    <div className="mt-16 flex justify-center">
+                        <button
+                            onClick={() => navigate('/vault')}
+                            className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95"
+                        >
+                            <div className="w-16 h-16 bg-[#1a1a1a] border border-[#333] group-hover:border-[#C5A059] group-hover:shadow-[0_0_20px_rgba(197,160,89,0.2)] rounded-2xl flex items-center justify-center transition-all">
+                                <Lock className="w-6 h-6 text-gray-400 group-hover:text-[#C5A059] transition-colors" />
+                            </div>
+                            <div className="text-center">
+                                <h4 className="text-white text-sm font-bold tracking-widest uppercase">Idea Vault</h4>
+                                <p className="text-[10px] text-gray-500 font-mono uppercase mt-1">Direct Engineering Link</p>
+                            </div>
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
