@@ -118,9 +118,9 @@ export const CompanySelector = () => {
 
                 </div>
 
-                {/* Idea Vault Quick Access for Master Owner Only */}
+                {/* Idea Vault Quick Access for Master Owner Only - Mobile Only */}
                 {user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co' && (
-                    <div className="mt-16 flex justify-center">
+                    <div className="mt-16 flex justify-center md:hidden">
                         <button
                             onClick={() => navigate('/vault')}
                             className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95"
