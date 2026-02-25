@@ -72,7 +72,7 @@ export const IdeaVault = () => {
 
     if (!isUnlocked) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 fixed inset-0 z-50">
+            <div className="h-[100dvh] bg-black flex flex-col items-center justify-center p-6 relative z-50">
                 <div className="w-full max-w-sm">
                     <div className="text-center mb-10">
                         <div className="w-20 h-20 bg-[#1a1a1a] rounded-full flex items-center justify-center mx-auto mb-6 border border-[#333]">
@@ -115,7 +115,7 @@ export const IdeaVault = () => {
     }
 
     return (
-        <div className="flex flex-col h-[100dvh] bg-black fixed inset-0 z-50">
+        <div className="flex flex-col h-[100dvh] bg-black relative z-50">
             {/* Header */}
             <header className="bg-[#111] border-b border-[#333] p-4 flex items-center gap-4 shrink-0">
                 <button onClick={() => navigate('/dashboard')} className="text-gray-400 p-2 -ml-2 hover:bg-[#222] rounded-full">
@@ -138,7 +138,7 @@ export const IdeaVault = () => {
             </header>
 
             {/* Messages Area */}
-            <main className="flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-black to-[#050505] pb-24">
+            <main className="flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-black to-[#050505] pb-8">
                 <div className="text-center text-xs text-brand-gold font-mono uppercase tracking-widest mb-8 border-b border-brand-gold/20 pb-4">
                     AGV Ventures End-to-End Encryption
                 </div>
@@ -176,7 +176,10 @@ export const IdeaVault = () => {
             </main>
 
             {/* Input Area */}
-            <footer className="bg-[#111] border-t border-[#333] p-4 shrink-0 fixed bottom-0 left-0 right-0 z-50 w-full mb-safe">
+            <footer
+                className="bg-[#111] border-t border-[#333] p-3 shrink-0 w-full z-50 relative"
+                style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+            >
                 {selectedFile && (
                     <div className="absolute -top-12 left-0 right-0 bg-[#222] p-2 flex justify-between items-center border-t border-[#333]">
                         <div className="flex items-center gap-2 text-xs text-gray-300">
