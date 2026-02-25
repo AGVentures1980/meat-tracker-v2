@@ -58,7 +58,7 @@ export const DeliveryPage = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${user?.token}`
                 },
-                body: JSON.stringify({ storeId: 1, date: new Date().toISOString() })
+                body: JSON.stringify({ date: new Date().toISOString() })
             });
 
             if (!response.ok) {
