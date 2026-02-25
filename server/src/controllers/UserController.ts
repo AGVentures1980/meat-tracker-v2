@@ -31,6 +31,7 @@ export const UserController = {
                     last_name: true,
                     email: true,
                     role: true,
+                    position: true,
                     created_at: true,
                     training_progress: true
                 },
@@ -62,7 +63,7 @@ export const UserController = {
                 return res.status(403).json({ error: 'Only the primary store account can add team members' });
             }
 
-            const { first_name, last_name, email, password } = req.body;
+            const { first_name, last_name, email, password, position } = req.body;
 
             if (!email || !password) {
                 return res.status(400).json({ error: 'Email and password are required' });
@@ -86,6 +87,7 @@ export const UserController = {
                     email,
                     password_hash: hash,
                     role: 'manager', // Store secondary users are also "manager" level for that store
+                    position: position || null,
                     store_id: targetStoreId,
                     force_change: true
                 },
@@ -94,7 +96,8 @@ export const UserController = {
                     first_name: true,
                     last_name: true,
                     email: true,
-                    role: true
+                    role: true,
+                    position: true
                 }
             });
 
@@ -146,6 +149,27 @@ export const UserController = {
         } catch (error) {
             console.error('deleteStoreUser error:', error);
             res.status(500).json({ error: 'Failed to delete user' });
+        }
+    },
+
+    acceptEula: async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            if (!user || !user.userId) {
+                return res.status(401).json({ error: 'Not authenticated' });
+            }
+
+            await prisma.user.update({
+                where: { id: user.userId },
+                data: {
+                    eula_accepted_at: new Date()
+                }
+            });
+
+            res.json({ success: true, message: 'EULA accepted successfully' });
+        } catch (error) {
+            console.error('acceptEula error:', error);
+            res.status(500).json({ error: 'Failed to accept EULA' });
         }
     }
 };

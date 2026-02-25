@@ -100,7 +100,9 @@ export class AuthController {
                     role: user.role,
                     storeId: user.store_id,
                     companyId: defaultCompanyId || 'tdb-main', // Fallback for TDB safety
-                    isPrimary: user.is_primary
+                    isPrimary: user.is_primary,
+                    eula_accepted: !!user.eula_accepted_at,
+                    position: user.position
                 },
                 JWT_SECRET,
                 { expiresIn: '12h' }
@@ -116,7 +118,9 @@ export class AuthController {
                     role: user.role,
                     storeId: user.store_id,
                     companyId: defaultCompanyId || 'tdb-main',
-                    isPrimary: user.is_primary
+                    isPrimary: user.is_primary,
+                    eula_accepted: !!user.eula_accepted_at,
+                    position: user.position
                 },
                 redirectPath,
                 defaultCompanyId,

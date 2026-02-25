@@ -32,6 +32,7 @@ import { DataAnalyst } from './pages/DataAnalyst';
 import { GovernanceGuard } from './components/GovernanceGuard';
 import { SupportHub } from './pages/SupportHub';
 import { AdminSupport } from './pages/AdminSupport';
+import { EulaAgreement } from './pages/EulaAgreement';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -54,6 +55,11 @@ const ProtectedRoute = () => {
         return <Navigate to="/select-company" replace />;
     }
 
+    // EULA Enforcement: If EULA is not accepted, force them to the agreement page.
+    if (!user.eula_accepted && path !== '/eula-agreement') {
+        return <Navigate to="/eula-agreement" replace />;
+    }
+
     return (
         <DashboardLayout>
             <Outlet />
@@ -74,6 +80,7 @@ function AppContent() {
                 <Route path="/" element={<Login />} />
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/eula-agreement" element={<EulaAgreement />} />
                 <Route path="/select-company" element={<ProtectedRoute />}>
                     <Route index element={<CompanySelector />} />
                 </Route>

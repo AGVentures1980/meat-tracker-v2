@@ -9,5 +9,7 @@ const router = Router();
 router.get('/store', requireAuth, requireRole([Role.manager, Role.admin, Role.director]), UserController.getStoreUsers);
 router.post('/store', requireAuth, requireRole([Role.manager, Role.admin, Role.director]), UserController.createStoreUser);
 router.delete('/store/:id', requireAuth, requireRole([Role.manager, Role.admin, Role.director]), UserController.deleteStoreUser);
+// EULA Acceptance
+router.post('/accept-eula', requireAuth, UserController.acceptEula);
 
 export default router;

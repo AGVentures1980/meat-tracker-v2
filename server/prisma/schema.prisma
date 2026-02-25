@@ -135,6 +135,8 @@ model User {
   last_password_change DateTime           @default(now())
   is_trial             Boolean            @default(false)
   trial_expires_at     DateTime?
+  eula_accepted_at     DateTime?
+  position             String?            // e.g., 'GM', 'Manager', 'Kitchen Manager', 'Carver Leader'
   store                Store?             @relation(fields: [store_id], references: [id])
   training_progress    TrainingProgress[]
   support_tickets      SupportTicket[]

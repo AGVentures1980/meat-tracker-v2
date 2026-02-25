@@ -8,6 +8,7 @@ interface StoreUser {
     last_name: string | null;
     email: string;
     role: string;
+    position: string | null;
     created_at: string;
     training_progress: any[];
 }
@@ -23,6 +24,7 @@ export const UsersPage = () => {
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [position, setPosition] = useState('Manager');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isMasterOrAdmin = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co';
@@ -73,7 +75,8 @@ export const UsersPage = () => {
                     first_name: firstName,
                     last_name: lastName,
                     email,
-                    password
+                    password,
+                    position
                 })
             });
 
@@ -85,6 +88,7 @@ export const UsersPage = () => {
                 setLastName('');
                 setEmail('');
                 setPassword('');
+                setPosition('Manager');
                 setIsAdding(false);
                 fetchUsers();
             } else {
@@ -181,7 +185,7 @@ export const UsersPage = () => {
                             <tr className="border-b border-[#333] bg-[#0f0f0f]">
                                 <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest pl-6">Name</th>
                                 <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">Email</th>
-                                <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">Role</th>
+                                <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">Position</th>
                                 <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">Training Status</th>
                                 <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest text-right pr-6">Actions</th>
                             </tr>
@@ -229,7 +233,10 @@ export const UsersPage = () => {
                                                 </div>
                                             </td>
                                             <td className="p-4">
-                                                <span className="text-xs text-gray-400 font-mono uppercase tracking-wider">{u.role}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-brand-gold font-bold uppercase tracking-wider">{u.position || 'Manager'}</span>
+                                                    <span className="text-[10px] text-gray-500 font-mono uppercase">System: {u.role}</span>
+                                                </div>
                                             </td>
                                             <td className="p-4">
                                                 {cert ? (
@@ -318,17 +325,33 @@ export const UsersPage = () => {
                                     />
                                 </div>
 
-                                <div>
-                                    <label htmlFor="tempPassword" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Temporary Password</label>
-                                    <input
-                                        id="tempPassword"
-                                        type="password"
-                                        required
-                                        autoComplete="new-password"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none text-sm transition-colors font-mono"
-                                    />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="position" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Position / Title</label>
+                                        <select
+                                            id="position"
+                                            value={position}
+                                            onChange={e => setPosition(e.target.value)}
+                                            className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none text-sm transition-colors"
+                                        >
+                                            <option value="General Manager (GM)">General Manager (GM)</option>
+                                            <option value="Manager">Manager</option>
+                                            <option value="Kitchen Manager">Kitchen Manager</option>
+                                            <option value="Carver Leader">Carver Leader</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="tempPassword" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 font-mono">Temporary Password</label>
+                                        <input
+                                            id="tempPassword"
+                                            type="password"
+                                            required
+                                            autoComplete="new-password"
+                                            value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-brand-gold outline-none text-sm transition-colors font-mono"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="flex gap-3 justify-end pt-6 mt-4 border-t border-[#333]">
