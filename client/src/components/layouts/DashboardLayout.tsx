@@ -82,6 +82,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 section: t('nav.section_manage') || 'MANAGE (Company)', items: [
                     { icon: Activity, label: 'Network Command Center', path: '/owner' },
                     { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' },
+                    { icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' },
                     { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
                     { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
                     { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
