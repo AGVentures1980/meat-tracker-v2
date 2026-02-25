@@ -23,7 +23,7 @@ export const WeeklyInventory = () => {
     const [isSubmitted, setIsSubmitted] = useState(false);
 
     const handleCountChange = (id: string, value: string) => {
-        updateCount(id, parseFloat(value) || 0);
+        updateCount(id, value);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -96,8 +96,10 @@ export const WeeklyInventory = () => {
 
                                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
                                     {FULL_PROTEIN_LIST.map((item) => {
-                                        const actual = counts[item.id] || 0;
-                                        const variance = actual - item.expected;
+                                        const rawVal = counts[item.id];
+                                        const actual = typeof rawVal === 'string' ? parseFloat(rawVal) : rawVal;
+                                        const parsedActual = isNaN(actual as number) ? 0 : actual as number;
+                                        const variance = parsedActual - item.expected;
                                         const isNegative = variance < 0;
 
                                         return (
@@ -113,14 +115,14 @@ export const WeeklyInventory = () => {
                                                         min="0"
                                                         placeholder="Lbs..."
                                                         className="w-full bg-[#1a1a1a] border-2 border-[#333] rounded-lg px-4 py-4 md:py-3 text-white focus:outline-none focus:border-[#C5A059] font-mono text-xl md:text-lg touch-manipulation shadow-inner"
-                                                        value={counts[item.id] || ''}
+                                                        value={counts[item.id] ?? ''}
                                                         onChange={(e) => handleCountChange(item.id, e.target.value)}
                                                         required
                                                     />
                                                     <span className="text-gray-500 font-mono text-sm uppercase">{item.unit}</span>
                                                 </div>
                                                 <div className="md:col-span-1 text-right mt-2 md:mt-0">
-                                                    {counts[item.id] !== undefined && counts[item.id] !== 0 && (
+                                                    {counts[item.id] !== undefined && counts[item.id] !== '' && (
                                                         <div className={`font-mono font-bold text-sm md:text-base bg-black/40 px-3 py-2 rounded border border-[#333] inline-block ${isNegative ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
                                                             {isNegative ? '' : '+'}{variance.toFixed(1)} <span className="text-[10px] text-gray-500 uppercase tracking-wider">VAR</span>
                                                         </div>

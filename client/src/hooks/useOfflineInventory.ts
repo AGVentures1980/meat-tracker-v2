@@ -3,11 +3,11 @@ import localforage from 'localforage';
 
 export interface PendingSyncData {
     timestamp: number;
-    counts: Record<string, number>;
+    counts: Record<string, string | number>;
 }
 
 export function useOfflineInventory() {
-    const [counts, setCounts] = useState<Record<string, number>>({});
+    const [counts, setCounts] = useState<Record<string, string | number>>({});
     const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
     const [hasPendingSync, setHasPendingSync] = useState<boolean>(false);
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -20,7 +20,7 @@ export function useOfflineInventory() {
         });
 
         // Load drafted counts from IndexedDB on boot
-        localforage.getItem<Record<string, number>>('draft_counts').then((savedCounts) => {
+        localforage.getItem<Record<string, string | number>>('draft_counts').then((savedCounts) => {
             if (savedCounts) {
                 setCounts(savedCounts);
             }
@@ -47,7 +47,7 @@ export function useOfflineInventory() {
     }, []);
 
     // Save transient counts to IndexedDB to survive refresh
-    const updateCount = useCallback((id: string, value: number) => {
+    const updateCount = useCallback((id: string, value: string | number) => {
         setCounts(prev => {
             const next = { ...prev, [id]: value };
             localforage.setItem('draft_counts', next).catch(console.error);
@@ -62,10 +62,17 @@ export function useOfflineInventory() {
         }
     }, [isOnline, hasPendingSync]);
 
-    const queueForSync = async (finalCounts: Record<string, number>) => {
+    const queueForSync = async (finalCounts: Record<string, string | number>) => {
+        // Parse everything to numbers before queueing for final backend sync
+        const sanitizedCounts: Record<string, number> = {};
+        for (const [key, val] of Object.entries(finalCounts)) {
+            const parsed = typeof val === 'string' ? parseFloat(val) : val;
+            sanitizedCounts[key] = isNaN(parsed) ? 0 : parsed;
+        }
+
         const payload: PendingSyncData = {
             timestamp: Date.now(),
-            counts: finalCounts
+            counts: sanitizedCounts
         };
         await localforage.setItem('pending_sync', payload);
         await localforage.removeItem('draft_counts'); // Clear draft
