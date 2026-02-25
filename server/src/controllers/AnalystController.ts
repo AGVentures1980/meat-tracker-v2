@@ -37,11 +37,9 @@ export class AnalystController {
 
                 // Calculate the "Higher Of" Baseline (YoY 90-Day vs 6-Mo Trailing)
                 // In production, this queries the last 6 months vs same 90-days last year
-                const yoy90DayLbsPerGuest = 1.88; // Simulated YoY average
+                const yoy90DayLbsPerGuest = store.baseline_yoy_pax;
 
-                const trailing6MonthLbsPerGuest = store.baseline_consumption_pax > 0
-                    ? store.baseline_consumption_pax
-                    : 1.85; // Default "bad" baseline if none set
+                const trailing6MonthLbsPerGuest = store.baseline_trailing_pax;
 
                 // The Mathematical Protection Rule
                 const activeBaselineLbsPerGuest = Math.max(yoy90DayLbsPerGuest, trailing6MonthLbsPerGuest);
@@ -59,8 +57,8 @@ export class AnalystController {
 
                 // --- 3. Calculate Savings ---
 
-                // Volume Basis (Annualized) - Hardcoded for prototype example or typically from Company
-                const annualVolume = 180000; // lbs
+                // Volume Basis (Annualized) - Configured per store
+                const annualVolume = store.annual_volume_lbs; // lbs
                 const avgCostPerLb = store.baseline_cost_per_lb; // $ per lb
 
                 // Loss Savings
@@ -105,6 +103,8 @@ export class AnalystController {
                         loss: store.baseline_loss_rate,
                         yield: store.baseline_yield_ribs,
                         consumption: activeBaselineLbsPerGuest, // Using the protected higher-of baseline
+                        yoyPax: store.baseline_yoy_pax,
+                        trailingPax: store.baseline_trailing_pax,
                         forecast: store.baseline_forecast_accuracy,
                         overproduction: store.baseline_overproduction,
                         costPerLb: store.baseline_cost_per_lb
@@ -155,10 +155,12 @@ export class AnalystController {
             const {
                 baseline_loss_rate,
                 baseline_yield_ribs,
-                baseline_consumption_pax,
+                baseline_yoy_pax,
+                baseline_trailing_pax,
                 baseline_forecast_accuracy,
                 baseline_overproduction,
                 baseline_cost_per_lb,
+                annual_volume_lbs,
                 pilot_start_date
             } = req.body;
 
@@ -167,10 +169,12 @@ export class AnalystController {
                 data: {
                     baseline_loss_rate: parseFloat(baseline_loss_rate),
                     baseline_yield_ribs: parseFloat(baseline_yield_ribs),
-                    baseline_consumption_pax: parseFloat(baseline_consumption_pax),
+                    baseline_yoy_pax: baseline_yoy_pax ? parseFloat(baseline_yoy_pax) : undefined,
+                    baseline_trailing_pax: baseline_trailing_pax ? parseFloat(baseline_trailing_pax) : undefined,
                     baseline_forecast_accuracy: parseFloat(baseline_forecast_accuracy),
                     baseline_overproduction: parseFloat(baseline_overproduction),
                     baseline_cost_per_lb: baseline_cost_per_lb ? parseFloat(baseline_cost_per_lb) : undefined,
+                    annual_volume_lbs: annual_volume_lbs ? parseInt(annual_volume_lbs) : undefined,
                     pilot_start_date: pilot_start_date ? new Date(pilot_start_date) : undefined
                 }
             });

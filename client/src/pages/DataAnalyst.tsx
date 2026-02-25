@@ -11,6 +11,8 @@ interface RoiData {
         loss: number;
         yield: number;
         consumption: number;
+        yoyPax: number;
+        trailingPax: number;
         forecast: number;
         overproduction: number;
         costPerLb: number;
@@ -53,10 +55,12 @@ export const DataAnalyst = () => {
         loss: 0,
         yield: 0,
         consumption: 0,
-        consumption: 0,
+        yoyPax: 0,
+        trailingPax: 0,
         forecast: 0,
         overproduction: 0,
         costPerLb: 9.50,
+        annualVolume: 180000,
         pilotStart: ''
     });
 
@@ -84,9 +88,12 @@ export const DataAnalyst = () => {
             loss: store.baselines.loss,
             yield: store.baselines.yield,
             consumption: store.baselines.consumption,
+            yoyPax: store.baselines.yoyPax,
+            trailingPax: store.baselines.trailingPax,
             forecast: store.baselines.forecast,
             overproduction: store.baselines.overproduction,
             costPerLb: store.baselines.costPerLb || store.financials.costPerLb,
+            annualVolume: store.financials.annualVolumeLb,
             pilotStart: store.pilotStart ? new Date(store.pilotStart).toISOString().split('T')[0] : ''
         });
     };
@@ -102,10 +109,12 @@ export const DataAnalyst = () => {
                 body: JSON.stringify({
                     baseline_loss_rate: editValues.loss,
                     baseline_yield_ribs: editValues.yield,
-                    baseline_consumption_pax: editValues.consumption,
+                    baseline_yoy_pax: editValues.yoyPax,
+                    baseline_trailing_pax: editValues.trailingPax,
                     baseline_forecast_accuracy: editValues.forecast,
                     baseline_overproduction: editValues.overproduction,
                     baseline_cost_per_lb: editValues.costPerLb,
+                    annual_volume_lbs: editValues.annualVolume,
                     pilot_start_date: editValues.pilotStart
                 })
             });
@@ -235,7 +244,7 @@ export const DataAnalyst = () => {
 
                                             {/* Yield */}
                                             <tr>
-                                                <td className="py-3 text-gray-400">Yield (Ribs)</td>
+                                                <td className="py-3 text-gray-400">Yield (Thickness & Trim)</td>
                                                 <td className="py-3 font-mono text-[#C5A059]">
                                                     {editingStoreId === store.storeId ? (
                                                         <input
@@ -256,22 +265,39 @@ export const DataAnalyst = () => {
 
                                             {/* Consumption */}
                                             <tr>
-                                                <td className="py-3 text-gray-400">Consumption / Pax</td>
+                                                <td className="py-3 text-gray-400">
+                                                    <div>Consumption (Active Baseline)</div>
+                                                    <div className="text-[10px] text-gray-600 mt-1 pl-2">↳ YoY 90-Day (lbs/cx)</div>
+                                                    <div className="text-[10px] text-gray-600 pl-2">↳ 6-Mo Trailing (lbs/cx)</div>
+                                                </td>
                                                 <td className="py-3 font-mono text-[#C5A059]">
+                                                    <div className="mb-2">{store.baselines.consumption} lb</div>
                                                     {editingStoreId === store.storeId ? (
-                                                        <input
-                                                            type="number"
-                                                            step="0.01"
-                                                            className="bg-[#333] text-white w-20 px-1 py-0.5 rounded border border-[#555] focus:border-[#C5A059] outline-none"
-                                                            value={editValues.consumption}
-                                                            onChange={(e) => setEditValues({ ...editValues, consumption: parseFloat(e.target.value) })}
-                                                        />
+                                                        <>
+                                                            <input
+                                                                type="number"
+                                                                step="0.01"
+                                                                className="bg-[#333] mb-1 text-white w-20 px-1 py-0.5 rounded border border-[#555] focus:border-[#C5A059] outline-none text-[10px]"
+                                                                value={editValues.yoyPax}
+                                                                onChange={(e) => setEditValues({ ...editValues, yoyPax: parseFloat(e.target.value) })}
+                                                            /><br />
+                                                            <input
+                                                                type="number"
+                                                                step="0.01"
+                                                                className="bg-[#333] text-white w-20 px-1 py-0.5 rounded border border-[#555] focus:border-[#C5A059] outline-none text-[10px]"
+                                                                value={editValues.trailingPax}
+                                                                onChange={(e) => setEditValues({ ...editValues, trailingPax: parseFloat(e.target.value) })}
+                                                            />
+                                                        </>
                                                     ) : (
-                                                        `${store.baselines.consumption} lb`
+                                                        <>
+                                                            <div className="text-[10px] text-gray-500 mb-1">{store.baselines.yoyPax} lb</div>
+                                                            <div className="text-[10px] text-gray-500">{store.baselines.trailingPax} lb</div>
+                                                        </>
                                                     )}
                                                 </td>
-                                                <td className="py-3 font-mono text-white">{store.actuals.consumption} lb</td>
-                                                <td className="py-3 font-mono text-right text-[#00FF94]">
+                                                <td className="py-3 font-mono text-white align-top">{store.actuals.consumption} lb</td>
+                                                <td className="py-3 font-mono text-right text-[#00FF94] align-top">
                                                     <div className="flex items-center justify-end gap-1">
                                                         <TrendingDown size={12} /> {(store.baselines.consumption - store.actuals.consumption).toFixed(2)} lb
                                                     </div>
@@ -335,7 +361,19 @@ export const DataAnalyst = () => {
                                     <div className="space-y-4 mt-6">
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-gray-500">Annual Volume</span>
-                                            <span className="font-mono text-white">{store.financials.annualVolumeLb.toLocaleString()} lbs</span>
+                                            {editingStoreId === store.storeId ? (
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="number"
+                                                        className="bg-[#333] text-white w-24 px-1 py-0.5 font-mono rounded border border-[#555] focus:border-[#C5A059] outline-none text-right"
+                                                        value={editValues.annualVolume}
+                                                        onChange={(e) => setEditValues({ ...editValues, annualVolume: parseInt(e.target.value) })}
+                                                    />
+                                                    <span className="text-gray-500 text-xs ml-1">lbs</span>
+                                                </div>
+                                            ) : (
+                                                <span className="font-mono text-white">{store.financials.annualVolumeLb.toLocaleString()} lbs</span>
+                                            )}
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-gray-500">Cost Baseline</span>
