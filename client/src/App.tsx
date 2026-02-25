@@ -52,6 +52,7 @@ const ProtectedRoute = () => {
         path !== '/owner-terminal' &&
         path !== '/owner' &&
         path !== '/executive' &&
+        path !== '/vault' &&
         path !== '/dashboard') {
         return <Navigate to="/select-company" replace />;
     }
