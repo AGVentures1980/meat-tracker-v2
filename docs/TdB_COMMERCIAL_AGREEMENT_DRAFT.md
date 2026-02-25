@@ -24,11 +24,10 @@ During the 90-Day Pilot phase, AGV Ventures (Provider) assumes the performance r
 **3. THE "FROZEN BASELINE" (THE REFERENCE POINT)**
 To accurately calculate the 8% Performance Participation Fee, both parties must agree on the historical operational metrics before the Brasa OS goes live.
 
-- **Baseline Metrics Required (per pilot store):**
-  1. Average Weekly Protein Yield (%) trailing 6-12 months.
-  2. Average Weekly Food Cost (%) trailing 6-12 months.
-  3. Average Lbs Consumed per Guest trailing 6-12 months.
-  4. Average Weekly Overproduction Variance (Theoretical vs. Actual).
+- **Baseline Metric Definition:**
+  The baseline will be established using the higher of:
+  (a) the Year-over-Year equivalent 90-day operational period, or
+  (b) a normalized 6-month trailing average of the "Pounds Consumed Per Guest (Lbs/Guest)" metric.
 
 *(These numbers will be documented in "Appendix A: The Frozen Baseline" and signed by both parties on Day 1).*
 
