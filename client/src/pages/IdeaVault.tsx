@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Send, Paperclip, ChevronLeft, Bot, User, FileText, Image as ImageIcon } from 'lucide-react';
+import { Lock, Send, Paperclip, ChevronLeft, Bot, User, FileText, Image as ImageIcon, WifiOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useOfflineVault } from '../hooks/useOfflineVault';
 
 export const IdeaVault = () => {
     const { user } = useAuth();
@@ -9,20 +10,22 @@ export const IdeaVault = () => {
     const [isUnlocked, setIsUnlocked] = useState(false);
     const [pinCode, setPinCode] = useState('');
     const [pinError, setPinError] = useState('');
-    const [messages, setMessages] = useState<any[]>([]);
+
+    // Offline Hook
+    const { messages, pendingMessages, isOnline, isSyncing, enqueueMessage, fetchVaultMessages } = useOfflineVault();
+
     const [inputText, setInputText] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [isSending, setIsSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Only allow Directors/Admins to even see the PIN screen optionally, 
     // but the backend enforces the PIN anyway. Let's just enforce PIN.
 
     useEffect(() => {
-        if (isUnlocked) {
-            fetchMessages();
+        if (isUnlocked && isOnline) {
+            fetchVaultMessages();
         }
-    }, [isUnlocked]);
+    }, [isUnlocked, isOnline, fetchVaultMessages]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -52,51 +55,15 @@ export const IdeaVault = () => {
         }
     };
 
-    const fetchMessages = async () => {
-        try {
-            const res = await fetch('/api/v1/vault/messages', {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
-            });
-            const data = await res.json();
-            if (data.success) {
-                setMessages(data.messages);
-            }
-        } catch (err) {
-            console.error('Failed to fetch vault messages');
-        }
-    };
-
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!inputText.trim() && !selectedFile) return;
 
-        setIsSending(true);
-        const formData = new FormData();
-        if (inputText.trim()) formData.append('text', inputText.trim());
-        if (selectedFile) formData.append('file', selectedFile);
+        await enqueueMessage(inputText, selectedFile);
 
-        try {
-            const res = await fetch('/api/v1/vault/messages', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${user?.token}`
-                },
-                body: formData
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                setMessages(prev => [...prev, data.message]);
-                setInputText('');
-                setSelectedFile(null);
-            }
-        } catch (err) {
-            console.error('Failed to send message');
-        } finally {
-            setIsSending(false);
-        }
+        setInputText('');
+        setSelectedFile(null);
     };
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setSelectedFile(e.target.files[0]);
@@ -159,8 +126,13 @@ export const IdeaVault = () => {
                         <Lock className="w-5 h-5 text-brand-gold" />
                     </div>
                     <div>
-                        <h1 className="text-white font-bold tracking-widest uppercase text-sm">Idea Vault</h1>
-                        <p className="text-[#00FF94] text-[10px] font-mono uppercase">Encrypted // Sync Active</p>
+                        <h1 className="text-white font-bold tracking-widest uppercase text-sm flex items-center gap-2">
+                            Idea Vault
+                            {!isOnline && <WifiOff className="w-3 h-3 text-red-500" />}
+                        </h1>
+                        <p className={`text-[10px] font-mono uppercase ${!isOnline ? 'text-red-500' : isSyncing ? 'text-yellow-500' : 'text-[#00FF94]'}`}>
+                            {!isOnline ? 'Offline Mode' : isSyncing ? 'Syncing...' : 'Encrypted // Sync Active'}
+                        </p>
                     </div>
                 </div>
             </header>
@@ -239,7 +211,7 @@ export const IdeaVault = () => {
 
                     <button
                         type="submit"
-                        disabled={isSending || (!inputText.trim() && !selectedFile)}
+                        disabled={!inputText.trim() && !selectedFile}
                         className="w-12 h-12 bg-brand-gold hover:bg-yellow-500 text-black rounded-full flex items-center justify-center disabled:opacity-50 shrink-0 transition-transform active:scale-95"
                     >
                         <Send className="w-5 h-5 ml-1" />
