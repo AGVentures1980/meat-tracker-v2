@@ -33,6 +33,7 @@ import { GovernanceGuard } from './components/GovernanceGuard';
 import { SupportHub } from './pages/SupportHub';
 import { AdminSupport } from './pages/AdminSupport';
 import { EulaAgreement } from './pages/EulaAgreement';
+import { IdeaVault } from './pages/IdeaVault';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -117,6 +118,7 @@ function AppContent() {
                     <Route path="/owner" element={<OwnerDashboard />} />
                     <Route path="/admin-support" element={<AdminSupport />} />
                     <Route path="/support" element={<SupportHub />} />
+                    <Route path="/vault" element={<IdeaVault />} />
                 </Route>
 
                 {/* Catch all redirect to login */}

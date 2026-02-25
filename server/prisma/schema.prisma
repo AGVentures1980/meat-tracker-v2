@@ -142,6 +142,17 @@ model User {
   support_tickets      SupportTicket[]
 }
 
+model OwnerVaultMessage {
+  id         String   @id @default(uuid())
+  text       String?
+  file_url   String?
+  file_name  String?
+  file_type  String?
+  sender     String   @default("OWNER") // "OWNER" or "AI"
+  created_at DateTime @default(now())
+  is_read    Boolean  @default(false)
+}
+
 model TrainingProgress {
   id           String   @id @default(uuid())
   user_id      String
