@@ -64,6 +64,7 @@ model Store {
   baseline_overproduction    Float     @default(18.0)
   baseline_forecast_accuracy Float     @default(62.0)
   baseline_consumption_pax   Float     @default(1.72)
+  baseline_cost_per_lb       Float     @default(9.50)
 
   target_cost_guest         Float             @default(9.94)
   target_lbs_guest          Float             @default(1.76)

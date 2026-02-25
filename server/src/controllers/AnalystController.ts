@@ -61,7 +61,7 @@ export class AnalystController {
 
                 // Volume Basis (Annualized) - Hardcoded for prototype example or typically from Company
                 const annualVolume = 180000; // lbs
-                const avgCostPerLb = 9.50; // $
+                const avgCostPerLb = store.baseline_cost_per_lb; // $ per lb
 
                 // Loss Savings
                 const lossVariance = (store.baseline_loss_rate - actualLossRate) / 100;
@@ -106,7 +106,8 @@ export class AnalystController {
                         yield: store.baseline_yield_ribs,
                         consumption: activeBaselineLbsPerGuest, // Using the protected higher-of baseline
                         forecast: store.baseline_forecast_accuracy,
-                        overproduction: store.baseline_overproduction
+                        overproduction: store.baseline_overproduction,
+                        costPerLb: store.baseline_cost_per_lb
                     },
                     actuals: {
                         loss: actualLossRate,
@@ -157,6 +158,7 @@ export class AnalystController {
                 baseline_consumption_pax,
                 baseline_forecast_accuracy,
                 baseline_overproduction,
+                baseline_cost_per_lb,
                 pilot_start_date
             } = req.body;
 
@@ -168,6 +170,7 @@ export class AnalystController {
                     baseline_consumption_pax: parseFloat(baseline_consumption_pax),
                     baseline_forecast_accuracy: parseFloat(baseline_forecast_accuracy),
                     baseline_overproduction: parseFloat(baseline_overproduction),
+                    baseline_cost_per_lb: baseline_cost_per_lb ? parseFloat(baseline_cost_per_lb) : undefined,
                     pilot_start_date: pilot_start_date ? new Date(pilot_start_date) : undefined
                 }
             });

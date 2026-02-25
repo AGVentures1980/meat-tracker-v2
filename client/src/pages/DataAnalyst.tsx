@@ -13,6 +13,7 @@ interface RoiData {
         consumption: number;
         forecast: number;
         overproduction: number;
+        costPerLb: number;
     };
     actuals: {
         loss: number;
@@ -52,8 +53,10 @@ export const DataAnalyst = () => {
         loss: 0,
         yield: 0,
         consumption: 0,
+        consumption: 0,
         forecast: 0,
         overproduction: 0,
+        costPerLb: 9.50,
         pilotStart: ''
     });
 
@@ -83,6 +86,7 @@ export const DataAnalyst = () => {
             consumption: store.baselines.consumption,
             forecast: store.baselines.forecast,
             overproduction: store.baselines.overproduction,
+            costPerLb: store.baselines.costPerLb || store.financials.costPerLb,
             pilotStart: store.pilotStart ? new Date(store.pilotStart).toISOString().split('T')[0] : ''
         });
     };
@@ -101,6 +105,7 @@ export const DataAnalyst = () => {
                     baseline_consumption_pax: editValues.consumption,
                     baseline_forecast_accuracy: editValues.forecast,
                     baseline_overproduction: editValues.overproduction,
+                    baseline_cost_per_lb: editValues.costPerLb,
                     pilot_start_date: editValues.pilotStart
                 })
             });
@@ -334,7 +339,21 @@ export const DataAnalyst = () => {
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-gray-500">Cost Baseline</span>
-                                            <span className="font-mono text-white">${store.financials.costPerLb.toFixed(2)} / lb</span>
+                                            {editingStoreId === store.storeId ? (
+                                                <div className="flex items-center">
+                                                    <span className="text-[#C5A059] mr-1">$</span>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        className="bg-[#333] text-white w-20 px-1 py-0.5 font-mono rounded border border-[#555] focus:border-[#C5A059] outline-none"
+                                                        value={editValues.costPerLb}
+                                                        onChange={(e) => setEditValues({ ...editValues, costPerLb: parseFloat(e.target.value) })}
+                                                    />
+                                                    <span className="text-gray-500 text-xs ml-1">/ lb</span>
+                                                </div>
+                                            ) : (
+                                                <span className="font-mono text-white">${store.financials.costPerLb.toFixed(2)} / lb</span>
+                                            )}
                                         </div>
                                         <div className="border-t border-[#444] my-2"></div>
                                         <div className="flex justify-between items-center">
