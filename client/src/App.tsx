@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
@@ -40,7 +40,9 @@ import { DashboardLayout } from './components/layouts/DashboardLayout';
 // Protected Route Wrapper
 const ProtectedRoute = () => {
     const { user, selectedCompany } = useAuth();
-    if (!user) return <Navigate to="/login" replace />;
+    const location = useLocation();
+
+    if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
 
     // If director/admin but no company selected, go to selector (except for the selector itself and SaaS admin)
     const isOwnerRole = user.role === 'director' || user.role === 'admin';

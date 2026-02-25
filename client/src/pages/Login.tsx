@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { PasswordResetModal } from '../components/auth/PasswordResetModal';
 import { Eye, EyeOff, Lock, User, ArrowRight, Smartphone, X } from 'lucide-react';
@@ -8,6 +8,8 @@ import { QRCodeSVG } from 'qrcode.react';
 export const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const fromPath = location.state?.from?.pathname;
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -31,9 +33,9 @@ export const Login = () => {
         try {
             const loginRes = await login(email, password);
             if (loginRes?.success) {
-                // If force password change is needed, handle it (assuming AuthContext handles the state but we can also use isResetOpen if we had it here)
-                // For now, let's stick to the server redirect.
-                navigate(loginRes.redirectPath || '/dashboard');
+                // Respect original destination if they were intercepted by ProtectedRoute
+                const destination = fromPath || loginRes.redirectPath || '/dashboard';
+                navigate(destination, { replace: true });
             } else {
                 setError("Invalid email or password");
             }
