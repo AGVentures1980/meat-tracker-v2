@@ -83,4 +83,34 @@ export class VaultController {
             return res.status(500).json({ success: false, error: 'Internal Server Error' });
         }
     }
+
+    /**
+     * GET /api/v1/vault/sync
+     * Machine-to-machine endpoint for the AI Agent to fetch messages locally.
+     * Protected by AGV_AGENT_SECRET.
+     */
+    static async agentSync(req: Request, res: Response) {
+        try {
+            const authHeader = req.headers.authorization;
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return res.status(401).json({ success: false, error: 'Unauthorized' });
+            }
+
+            const token = authHeader.split(' ')[1];
+            const secret = process.env.AGV_AGENT_SECRET || 'agv-local-agent-sync-key-v1';
+
+            if (token !== secret) {
+                return res.status(403).json({ success: false, error: 'Forbidden' });
+            }
+
+            const messages = await prisma.ownerVaultMessage.findMany({
+                orderBy: { created_at: 'asc' }
+            });
+
+            return res.json({ success: true, messages });
+        } catch (error) {
+            console.error('Error in agent sync:', error);
+            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+        }
+    }
 }

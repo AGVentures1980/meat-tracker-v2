@@ -12,4 +12,7 @@ router.post('/verify', requireAuth, VaultController.verifyPin);
 router.get('/messages', requireAuth, VaultController.getMessages);
 router.post('/messages', requireAuth, upload.single('file'), VaultController.postMessage);
 
+// Special System Agent sync route to feed context back to the AI
+router.get('/sync', VaultController.agentSync);
+
 export default router;
