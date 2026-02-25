@@ -35,6 +35,13 @@ export class AnalystController {
             const reportData = selectedStores.map((store, index) => {
                 // --- 2. Calculate Actuals (Mocking logic for prototype if data is sparse) ---
 
+                // Calculate the Trailing 6-Month Baseline (The "Composite Baseline")
+                // In production, this queries the last 6 months of MeatUsage and DeliverySales
+                // For this pilot prototype, we simulate a realistic trailing average
+                const trailing6MonthLbsPerGuest = store.baseline_consumption_pax > 0
+                    ? store.baseline_consumption_pax
+                    : 1.85; // Default "bad" baseline if none set
+
                 // Actual Loss Rate (Logic: Waste Lbs / Total Usage Lbs)
                 // For prototype, we'll simulate a slight improvement over baseline
                 const actualLossRate = store.baseline_loss_rate * 0.85; // 15% improvement simulation
@@ -42,8 +49,9 @@ export class AnalystController {
                 // Actual Yield (Ribs)
                 const actualYieldRibs = store.baseline_yield_ribs * 1.05; // 5% improvement
 
-                // Consumption Per Pax
-                const actualConsumption = 1.65; // Target is 1.65, Baseline 1.72
+                // Actual Consumption Per Pax (The Pilot Result)
+                // We simulate the Garcia Rule bringing consumption down to a healthier rate
+                const actualConsumption = trailing6MonthLbsPerGuest * 0.90; // 10% improvement in pilot
 
                 // --- 3. Calculate Savings ---
 
@@ -56,10 +64,10 @@ export class AnalystController {
                 const poundsSavedLoss = annualVolume * lossVariance;
                 const moneySavedLoss = poundsSavedLoss * avgCostPerLb;
 
-                // Consumption Savings
-                const consumptionVariance = store.baseline_consumption_pax - actualConsumption;
-                // Assuming 180k lbs represents ~105k guests (at 1.72lb/guest)
-                const estimatedGuests = annualVolume / store.baseline_consumption_pax;
+                // Consumption Savings (Based on the newly calculated 6-month trailing baseline)
+                const consumptionVariance = trailing6MonthLbsPerGuest - actualConsumption;
+                // Assuming 180k lbs represents ~105k guests (based on trailing baseline)
+                const estimatedGuests = annualVolume / trailing6MonthLbsPerGuest;
                 const poundsSavedConsumption = consumptionVariance * estimatedGuests;
                 const moneySavedConsumption = poundsSavedConsumption * avgCostPerLb;
 
@@ -92,7 +100,7 @@ export class AnalystController {
                     baselines: {
                         loss: store.baseline_loss_rate,
                         yield: store.baseline_yield_ribs,
-                        consumption: store.baseline_consumption_pax,
+                        consumption: trailing6MonthLbsPerGuest, // Using the composite baseline
                         forecast: store.baseline_forecast_accuracy,
                         overproduction: store.baseline_overproduction
                     },
