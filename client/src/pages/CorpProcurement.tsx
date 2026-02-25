@@ -5,6 +5,16 @@ import { useLanguage } from '../context/LanguageContext';
 export const CorpProcurement = () => {
     const { t } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleGenerateReport = () => {
+        setIsGenerating(true);
+        setTimeout(() => {
+            setIsGenerating(false);
+            alert('Supplier Benchmark Report generated successfully and sent to your email.');
+        }, 1500);
+    };
+    const [isGenerating, setIsGenerating] = useState(false);
 
     // Mock Data for the Stealth Flow Demonstration
     const topOpportunities = [
@@ -164,14 +174,26 @@ export const CorpProcurement = () => {
                             </div>
                         ))}
                     </div>
+                    </div>
                 </div>
             </div>
 
             <div className="mt-8 flex justify-center">
-                <button className="px-6 py-2 bg-[#C5A059] text-black text-sm font-bold uppercase rounded hover:bg-[#d6b069] transition-colors">
-                    Generate Supplier Benchmark Report
+                <button
+                    onClick={handleGenerateReport}
+                    disabled={isGenerating}
+                    className={`px-6 py-2 bg-[#C5A059] text-black text-sm font-bold uppercase rounded hover:bg-[#d6b069] transition-colors flex items-center gap-2 ${isGenerating ? 'opacity-70 cursor-not-allowed' : ''}`}
+                >
+                    {isGenerating ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                            Generating...
+                        </>
+                    ) : (
+                        'Generate Supplier Benchmark Report'
+                    )}
                 </button>
             </div>
-        </div>
+        </div >
     );
 };
