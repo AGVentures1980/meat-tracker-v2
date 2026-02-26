@@ -84,11 +84,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' }
             ];
 
-            // Only show Corp Procurement to the owner, and only when looking at Dallas (or all stores if selectedCompany doesn't have a specific name, but user requested 'texas de brazil de dallas')
-            const isDallas = selectedCompany && typeof selectedCompany === 'object' && 'name' in selectedCompany && typeof (selectedCompany as any).name === 'string'
-                ? (selectedCompany as any).name.toLowerCase().includes('dallas') || (selectedCompany as any).name.toLowerCase().includes('texas de brazil')
-                : false;
-            if (isMaster && isDallas) {
+            // Only show Corp Procurement to the exact owner login
+            if (isMaster) {
                 manageItems.push({ icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' });
             }
 
