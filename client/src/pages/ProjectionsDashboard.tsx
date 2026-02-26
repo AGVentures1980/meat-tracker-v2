@@ -87,7 +87,8 @@ export const ProjectionsDashboard = () => {
             }
         };
         fetchProjections();
-    }, [growthRate, user?.token]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.token]);
 
     // Logic: Calculate a single row based on FINANCIAL TARGET
     const calculateRow = (data: StoreProjectionData, growth: number): StoreProjectionData => {
