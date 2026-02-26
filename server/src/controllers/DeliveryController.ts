@@ -211,12 +211,15 @@ export class DeliveryController {
                         role: "system",
                         content: `You are an OCR and Protein Data Extractor AI. You process delivery tickets/invoices. 
 You must extract only proteins (beef, chicken, pork, lamb, sausage, bacon). Ignore side dishes, salads, drinks, etc.
+
+CRITICAL RULE (AVOID DOUBLE COUNTING): If the ticket shows a combo plate (e.g. 'Churrasco Plate' or 'Feast') and ALSO lists the specific meat choices underneath it, you MUST NOT extract the combo name itself. ONLY extract the specific meat choices.
+
 Return ONLY a valid JSON object (no markdown formatting, no backticks) with a single root key 'items' which is an array of objects. 
 Each object must have: 
 - 'item' (string, the name of the meat)
 - 'qty' (number, how many pieces/orders)
-- 'weightStr' (string, original weight text from ticket like '1/2 lb' or '8 oz'. If missing, return 'unknown')
-- 'lbs' (number, total calculated weight in pounds for this line item. If missing but it's a known combo like 'Feast for 4' estimate 2.0, 'Plate' estimate 1.0, standard meat estimate 0.5 per qty)
+- 'weightStr' (string, original weight text from ticket like '1/2 lb'. If missing, return 'unknown')
+- 'lbs' (number, total calculated weight in pounds. Every individual meat choice is EXACTLY 0.5 lbs per qty. Only if you find a combo WITHOUT sub-items listed, 'Feast for 4' is 2.0 lbs, 'Plate' is 1.0 lbs)
 - 'price' (number, total line item price)
 
 If you cannot read the image or find no meat items, return {"items": []}.`
