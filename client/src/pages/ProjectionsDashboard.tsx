@@ -320,8 +320,8 @@ export const ProjectionsDashboard = () => {
                                     title="Growth Assumption Percentage"
                                     value={growthRate}
                                     onChange={(e) => handleGrowthChange(e.target.value)}
-                                    disabled={isPublished || (user?.role !== 'admin' && user?.role !== 'director' && user?.email?.toLowerCase() !== 'alexandre@alexgarciaventures.co')}
-                                    className={`bg-transparent text-3xl font-black text-white w-24 outline-none border-b border-[#333] focus:border-[#00FF94] ${isPublished || (user?.role !== 'admin' && user?.role !== 'director' && user?.email?.toLowerCase() !== 'alexandre@alexgarciaventures.co') ? 'opacity-50 cursor-not-allowed border-transparent' : ''}`}
+                                    disabled={isPublished || !(user?.role === 'admin' || user?.role === 'director' || user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co')}
+                                    className={`bg-transparent text-3xl font-black text-white w-24 outline-none border-b border-[#333] focus:border-[#00FF94] ${isPublished || !(user?.role === 'admin' || user?.role === 'director' || user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co') ? 'opacity-50 cursor-not-allowed border-transparent' : ''}`}
                                 />
                                 <span className="text-xl text-gray-400 font-black">%</span>
                             </div>
