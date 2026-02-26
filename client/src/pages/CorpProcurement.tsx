@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import { Shield, TrendingDown, TrendingUp, Target, DollarSign, Database, AlertCircle, EyeOff, Search } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 export const CorpProcurement = () => {
     const { t } = useLanguage();
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+
+    // Hard Lockout: ONLY the owner can see this page
+    if (user?.email?.toLowerCase().trim() !== 'alexandre@alexgarciaventures.co') {
+        return <Navigate to="/dashboard" replace />;
+    }
 
     const handleGenerateReport = () => {
         setIsGenerating(true);
