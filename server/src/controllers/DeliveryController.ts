@@ -209,8 +209,8 @@ export class DeliveryController {
                 messages: [
                     {
                         role: "system",
-                        content: `You are an OCR and Meat Data Extractor AI. You process delivery tickets/invoices. 
-You must extract only the MEAT items. 
+                        content: `You are an OCR and Protein Data Extractor AI. You process delivery tickets/invoices. 
+You must extract only proteins (beef, chicken, pork, lamb, sausage, bacon). Ignore side dishes, salads, drinks, etc.
 Return ONLY a valid JSON object (no markdown formatting, no backticks) with a single root key 'items' which is an array of objects. 
 Each object must have: 
 - 'item' (string, the name of the meat)
