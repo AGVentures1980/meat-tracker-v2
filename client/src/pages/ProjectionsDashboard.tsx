@@ -316,10 +316,11 @@ export const ProjectionsDashboard = () => {
                                 <TrendingUp className="w-5 h-5 text-[#00FF94]" />
                                 <input
                                     type="number"
+                                    title="Growth Assumption Percentage"
                                     value={growthRate}
                                     onChange={(e) => handleGrowthChange(e.target.value)}
-                                    disabled={isPublished || user?.role === 'manager'}
-                                    className={`bg-transparent text-3xl font-black text-white w-24 outline-none border-b border-[#333] focus:border-[#00FF94] ${isPublished || user?.role === 'manager' ? 'opacity-50 cursor-not-allowed border-transparent' : ''}`}
+                                    disabled={isPublished || (user?.role !== 'admin' && user?.role !== 'director' && user?.email?.toLowerCase() !== 'alexandre@alexgarciaventures.co')}
+                                    className={`bg-transparent text-3xl font-black text-white w-24 outline-none border-b border-[#333] focus:border-[#00FF94] ${isPublished || (user?.role !== 'admin' && user?.role !== 'director' && user?.email?.toLowerCase() !== 'alexandre@alexgarciaventures.co') ? 'opacity-50 cursor-not-allowed border-transparent' : ''}`}
                                 />
                                 <span className="text-xl text-gray-400 font-black">%</span>
                             </div>
@@ -407,6 +408,8 @@ export const ProjectionsDashboard = () => {
                                     {/* Inputs */}
                                     <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            type="number"
+                                            title={`Lunch Guests Last Year - ${store.name}`}
                                             value={store.lunchGuestsLastYear}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'lunchGuestsLastYear', e.target.value)}
@@ -414,6 +417,8 @@ export const ProjectionsDashboard = () => {
                                     </td>
                                     <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            type="number"
+                                            title={`Dinner Guests Last Year - ${store.name}`}
                                             value={store.dinnerGuestsLastYear}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'dinnerGuestsLastYear', e.target.value)}
@@ -421,6 +426,8 @@ export const ProjectionsDashboard = () => {
                                     </td>
                                     <td className="p-2 text-right">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            type="number"
+                                            title={`Lunch Price - ${store.name}`}
                                             value={store.lunchPrice}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'lunchPrice', e.target.value)}
@@ -428,6 +435,8 @@ export const ProjectionsDashboard = () => {
                                     </td>
                                     <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            type="number"
+                                            title={`Dinner Price - ${store.name}`}
                                             value={store.dinnerPrice}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'dinnerPrice', e.target.value)}
@@ -435,6 +444,8 @@ export const ProjectionsDashboard = () => {
                                     </td>
                                     <td className="p-2 text-right">
                                         <input className={`bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            type="number"
+                                            title={`Target Lbs per Guest - ${store.name}`}
                                             value={store.target_lbs_guest}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', e.target.value)}
@@ -500,6 +511,7 @@ export const ProjectionsDashboard = () => {
                                 <p className="text-gray-500 text-xs uppercase tracking-widest mt-1 font-mono">{t('proj_breakdown_vol_type')}</p>
                             </div>
                             <button
+                                title="Close Breakdown Modal"
                                 onClick={() => setIsBreakdownModalOpen(false)}
                                 className="text-gray-500 hover:text-white transition-colors"
                             >
