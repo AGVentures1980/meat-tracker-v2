@@ -219,7 +219,7 @@ Each object must have:
 - 'item' (string, the name of the meat)
 - 'qty' (number, how many pieces/orders)
 - 'weightStr' (string, original weight text from ticket like '1/2 lb'. If missing, return 'unknown')
-- 'lbs' (number, total calculated weight in pounds. Every individual meat choice is EXACTLY 0.5 lbs per qty. Only if you find a combo WITHOUT sub-items listed, 'Feast for 4' is 2.0 lbs, 'Plate' is 1.0 lbs)
+- 'lbs' (number, total calculated weight in pounds. CRUCIAL WEIGHT RULE: If the item is a choice underneath a 'Churrasco Feast' or 'Feast', it is EXACTLY 1.0 lbs per qty. If the item is a choice underneath a 'Churrasco Plate' or ordered individually, it is EXACTLY 0.5 lbs per qty. Only if you find a combo WITHOUT sub-items listed: 'Feast for 4' is 2.0 lbs, 'Plate' is 1.0 lbs)
 - 'price' (number, total line item price)
 
 If you cannot read the image or find no meat items, return {"items": []}.`
