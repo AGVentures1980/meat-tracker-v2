@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import OpenAI from 'openai';
 
 const prisma = new PrismaClient();
 
@@ -188,41 +189,109 @@ export class DeliveryController {
             }
 
             if (req.file) {
-                console.log(`[OCR DEBUG ${requestId}] File received: ${req.file.originalname}`);
+                console.log(`[OCR DEBUG ${requestId}] File received: ${req.file.originalname}, MIME: ${req.file.mimetype}`);
             } else {
                 console.warn(`[OCR DEBUG ${requestId}] NO FILE RECEIVED in request`);
+                return res.status(400).json({ error: 'No ticket image provided.' });
             }
-            // ... (rest of logic)
-            const scannedItems = [
-                { id: "41331939074703368", item: "Picanha", qty: 2, weightStr: "1/2 lb", price: 29.58 }
-            ];
 
-            const proteinAggregation: Record<string, number> = {
-                "Picanha": 1.0 // 2 * 0.5 lbs
-            };
+            if (!process.env.OPENAI_API_KEY) {
+                console.error(`[OCR DEBUG ${requestId}] OPENAI_API_KEY is missing!`);
+                return res.status(500).json({ error: 'Engine Error: OPENAI_API_KEY is not configured.' });
+            }
+
+            const openai = new OpenAI();
+            const base64Image = req.file.buffer.toString('base64');
+            const mimeType = req.file.mimetype || 'image/jpeg';
+
+            const response = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are an OCR and Meat Data Extractor AI. You process delivery tickets/invoices. 
+You must extract only the MEAT items. 
+Return ONLY a valid JSON object (no markdown formatting, no backticks) with a single root key 'items' which is an array of objects. 
+Each object must have: 
+- 'item' (string, the name of the meat)
+- 'qty' (number, how many pieces/orders)
+- 'weightStr' (string, original weight text from ticket like '1/2 lb' or '8 oz'. If missing, return 'unknown')
+- 'lbs' (number, total calculated weight in pounds for this line item. If missing but it's a known combo like 'Feast for 4' estimate 2.0, 'Plate' estimate 1.0, standard meat estimate 0.5 per qty)
+- 'price' (number, total line item price)
+
+If you cannot read the image or find no meat items, return {"items": []}.`
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: "Please extract meat delivery data from this ticket." },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: `data:${mimeType};base64,${base64Image}`
+                                }
+                            }
+                        ]
+                    }
+                ],
+                response_format: { type: "json_object" },
+                max_tokens: 1000,
+            });
+
+            const content = response.choices[0].message.content;
+            if (!content) throw new Error("Empty response from OpenAI");
+
+            const parsedData = JSON.parse(content);
+            const scannedItems = parsedData.items || [];
+
+            const proteinAggregation: Record<string, number> = {};
+            let totalLbs = 0;
+            let totalGuests = 0;
+            let totalAmount = 0;
+
+            for (const item of scannedItems) {
+                const weight = item.lbs || 0.5 * (item.qty || 1);
+
+                // Decompose into actual proteins
+                const breakdown = await DeliveryController.decomposeMeat(item.item, weight, user.companyId);
+                breakdown.forEach(b => {
+                    proteinAggregation[b.protein] = (proteinAggregation[b.protein] || 0) + b.weight;
+                });
+
+                totalLbs += weight;
+                totalGuests += Math.round(weight * 2); // Estimate ~0.5lb per guest
+                totalAmount += item.price || 0;
+            }
 
             const proteinBreakdownArray = Object.entries(proteinAggregation).map(([name, lbs]) => ({
                 protein: name,
-                lbs
+                lbs: parseFloat(lbs.toFixed(2))
             }));
+
+            if (scannedItems.length === 0) {
+                return res.json({ success: false, error: "No meat items detected in the image.", metrics: { totalLbs: 0, calculatedGuests: 0, amount: 0 }, proteinBreakdown: [], items: [] });
+            }
+
+            const externalId = `OCR-${Math.floor(Date.now() / 1000)}`;
 
             // PERSIST TO DATABASE
             await prisma.deliverySale.create({
                 data: {
                     store_id: storeId,
                     source: 'OCR',
-                    order_external_id: "41331939074703368",
-                    total_lbs: 1.0,
-                    guests: 4,
-                    amount: 29.58,
-                    protein_breakdown: proteinBreakdownArray as any
+                    order_external_id: externalId,
+                    total_lbs: totalLbs,
+                    guests: totalGuests,
+                    amount: totalAmount,
+                    protein_breakdown: proteinBreakdownArray as any,
+                    date: new Date()
                 }
             });
 
             return res.json({
                 success: true,
-                message: "Ticket parsed and SAVED successfully",
-                metrics: { totalLbs: 1.0, calculatedGuests: 4, amount: 29.58 },
+                message: "Ticket parsed with GPT-4o Vision and SAVED successfully",
+                metrics: { totalLbs, calculatedGuests: totalGuests, amount: totalAmount },
                 proteinBreakdown: proteinBreakdownArray,
                 items: scannedItems
             });
