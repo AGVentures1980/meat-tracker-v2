@@ -378,6 +378,18 @@ export class MeatEngine {
 
             const totalLbs = sales.reduce((acc, m) => acc + m.lbs, 0);
 
+            // [DELIVERY FIREWALL LOGIC]
+            // Fetch Delivery Volume to subtract from Dine-in calculations
+            const deliverySales = await prisma.deliverySale.findMany({
+                where: {
+                    store_id: store.id,
+                    created_at: { gte: start, lte: end }
+                }
+            });
+            const deliveryLbs = deliverySales.reduce((acc, sale) => acc + (sale.total_lbs || 0), 0);
+            const dineInLbs = Math.max(0, totalLbs - deliveryLbs);
+
+
             // Calculate Guests (Mock/Estimate if missing)
             // In a real scenario, this comes from OrderItem or POS integration
             // For Demo/Seed, we reverse engineer from ideal: Guests = Lbs / Target
@@ -407,7 +419,9 @@ export class MeatEngine {
 
             if (guests === 0) guests = 1; // Avoid div by zero
 
-            const lbsPerGuest = totalLbs / guests;
+            // [DELIVERY FIREWALL LOGIC]
+            // Lbs/Guest is exclusively calculated based on Dine-in Lbs, protecting the metric
+            const lbsPerGuest = dineInLbs / guests;
 
             // Cost Estimation (REAL WEIGHTED AVERAGE from Invoices)
             // Fetch invoices for this store in this period to calculate actual price/lb
@@ -427,9 +441,11 @@ export class MeatEngine {
                 }
             }
 
-            const totalCost = totalLbs * estimatedCostPerLb;
-            // Recalculate cost per guest based on actual meat usage value
-            const costPerGuest = guests > 0 ? (totalCost / guests) : 0;
+            const totalCost = totalLbs * estimatedCostPerLb; // The store still paid for the whole meat
+            const dineInCost = dineInLbs * estimatedCostPerLb; // The cost allocated strictly to Dine-in clients
+
+            // Recalculate cost per guest based on actual DINE-IN meat usage value
+            const costPerGuest = guests > 0 ? (dineInCost / guests) : 0;
 
             // v3.2: Theoretical Revenue & Food Cost %
             const lunchPrice = (store as any).lunch_price || 34.00;
