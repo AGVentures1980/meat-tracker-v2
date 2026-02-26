@@ -110,14 +110,15 @@ export const WeeklyInventory = () => {
                                                 </div>
                                                 <div className="md:col-span-2 flex items-center gap-3">
                                                     <input
-                                                        type="number"
+                                                        type="text"
                                                         inputMode="decimal"
-                                                        step="0.1"
-                                                        min="0"
                                                         placeholder="Lbs..."
                                                         className="w-full bg-[#1a1a1a] border-2 border-[#333] rounded-lg px-4 py-4 md:py-3 text-white focus:outline-none focus:border-[#C5A059] font-mono text-xl md:text-lg touch-manipulation shadow-inner"
                                                         value={counts[item.id] ?? ''}
-                                                        onChange={(e) => handleCountChange(item.id, e.target.value)}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+                                                            handleCountChange(item.id, val);
+                                                        }}
                                                         required
                                                     />
                                                     <span className="text-gray-500 font-mono text-sm uppercase">{item.unit}</span>
