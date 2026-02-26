@@ -78,15 +78,29 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         // Add Company Settings for Directors/Admins/Master
         const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
         if (user?.role === 'director' || user?.role === 'admin' || isMaster) {
+
+            const manageItems = [
+                { icon: Activity, label: 'Network Command Center', path: '/owner' },
+                { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' }
+            ];
+
+            // Only show Corp Procurement to the owner, and only when looking at Dallas (or all stores if selectedCompany doesn't have a specific name, but user requested 'texas de brazil de dallas')
+            const isDallas = selectedCompany && typeof selectedCompany === 'object' && 'name' in selectedCompany && typeof (selectedCompany as any).name === 'string'
+                ? (selectedCompany as any).name.toLowerCase().includes('dallas') || (selectedCompany as any).name.toLowerCase().includes('texas de brazil')
+                : false;
+            if (isMaster && isDallas) {
+                manageItems.push({ icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' });
+            }
+
+            manageItems.push(
+                { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
+                { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
+                { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
+            );
+
             navItems.push({
-                section: t('nav.section_manage') || 'MANAGE (Company)', items: [
-                    { icon: Activity, label: 'Network Command Center', path: '/owner' },
-                    { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' },
-                    { icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' },
-                    { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
-                    { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
-                    { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
-                ]
+                section: t('nav.section_manage') || 'MANAGE (Company)',
+                items: manageItems
             });
         }
     }
