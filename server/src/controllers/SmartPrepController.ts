@@ -293,9 +293,9 @@ export class SmartPrepController {
                 prep_list: prepList
             });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Smart Prep Error:', error);
-            return res.status(500).json({ error: 'Failed to generate prep list' });
+            return res.status(500).json({ error: 'Failed to generate prep list: ' + (error?.message || String(error)) });
         }
     }
 
