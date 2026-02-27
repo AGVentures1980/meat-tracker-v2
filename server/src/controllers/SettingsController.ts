@@ -353,7 +353,7 @@ export class SettingsController {
             await prisma.auditLog.create({
                 data: {
                     user_id: user.id,
-                    action: enabled ? 'NO_DELIVERY_FLAG_SET' : 'NO_DELIVERY_FLAG_REMOVED',
+                    action: enabled ? 'NO_DELIVERY_FLAG' : 'NO_DELIVERY_FLAG_REMOVED',
                     resource: `Store:${storeId}`,
                     location: storeId.toString()
                 }
