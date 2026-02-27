@@ -137,6 +137,37 @@ export const CommandCenter = () => {
         }
     };
 
+    const lockPrepPlan = async () => {
+        if (!window.confirm(`Lock Shift Prep Plan for ${forecast} guests?`)) return;
+        try {
+            const payload: any = {
+                store_id: selectedStoreId || user?.storeId || 1,
+                date: selectedDate,
+                forecast: forecast,
+                data: prepData
+            };
+
+            const res = await fetch('/api/v1/dashboard/smart-prep/lock', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${user?.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert('Prep Plan locked successfully.');
+                fetchData();
+            } else {
+                const err = await res.json();
+                alert(err.error || 'Failed to lock plan');
+            }
+        } catch (err) {
+            alert('Connection error');
+        }
+    };
+
     const addWasteItem = () => {
         setWasteItems([...wasteItems, { protein: proteins[0] || '', weight: 0, reason: WASTE_REASONS[0] }]);
     };
@@ -334,15 +365,24 @@ export const CommandCenter = () => {
                         <div className="text-center px-4 border-r border-white/5">
                             <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Forecast Guests</span>
                             <div className="flex items-center gap-2">
-                                {user?.role === 'director' || user?.role === 'admin' ? (
+                                {prepData?.is_locked || user?.role === 'director' || user?.role === 'admin' ? (
                                     <span className="text-xl font-black text-white px-2 py-1">{forecast}</span>
                                 ) : (
-                                    <input
-                                        type="number"
-                                        value={forecast}
-                                        onChange={(e) => setForecast(parseInt(e.target.value) || 0)}
-                                        className="w-16 bg-transparent text-xl font-black text-white outline-none border-b border-[#333] focus:border-[#C5A059]"
-                                    />
+                                    <>
+                                        <input
+                                            type="number"
+                                            value={forecast}
+                                            onChange={(e) => setForecast(parseInt(e.target.value) || 0)}
+                                            className="w-16 bg-transparent text-xl font-black text-white outline-none border-b border-[#333] focus:border-[#C5A059]"
+                                        />
+                                        <button
+                                            onClick={lockPrepPlan}
+                                            title="Lock Forecast"
+                                            className="ml-2 px-3 py-1 bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30 rounded text-xs font-bold uppercase transition-colors hover:bg-[#00FF94]/30"
+                                        >
+                                            Lock
+                                        </button>
+                                    </>
                                 )}
                                 <Users className="w-4 h-4 text-gray-600" />
                             </div>

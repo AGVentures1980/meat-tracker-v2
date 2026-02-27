@@ -115,15 +115,22 @@ export class SmartPrepController {
             });
 
             if (savedLog) {
-                return res.json({
-                    store_name: storeLookup.store_name,
-                    date: dateStr,
-                    forecast_guests: savedLog.forecast,
-                    ...(savedLog.data as any),
-                    is_locked: true,
-                    locked_by: savedLog.user_id,
-                    locked_at: savedLog.created_at
-                });
+                const savedData = savedLog.data as any;
+                // Auto-healer for corrupted DB payloads
+                if (!savedData?.prep_list || savedData.prep_list.length === 0) {
+                    await (prisma as any).prepLog.delete({ where: { id: savedLog.id } });
+                    // Proceed to recalculate
+                } else {
+                    return res.json({
+                        store_name: storeLookup.store_name,
+                        date: dateStr,
+                        forecast_guests: savedLog.forecast,
+                        ...savedData,
+                        is_locked: true,
+                        locked_by: savedLog.user_id,
+                        locked_at: savedLog.created_at
+                    });
+                }
             }
 
             const store = await (prisma.store as any).findUnique({
