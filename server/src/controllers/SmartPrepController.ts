@@ -150,20 +150,20 @@ export class SmartPrepController {
             });
 
             // SHIFT DEFINITION LOGIC
+            // The user prepares for the shift BEFORE it starts. Wait until Lunch ENDS to switch to Dinner prep.
             let isDinner = centralNow.getHours() >= 15; // Default fallback
 
-            if (store.is_lunch_enabled && store.lunch_start_time && store.lunch_end_time) {
+            if (store.is_lunch_enabled && store.lunch_end_time) {
                 const currentHour = centralNow.getHours();
                 const currentMinute = centralNow.getMinutes();
                 const currentTimeVal = currentHour + (currentMinute / 60);
 
-                const [lStartH, lStartM] = store.lunch_start_time.split(':').map(Number);
                 const [lEndH, lEndM] = store.lunch_end_time.split(':').map(Number);
-
-                const lunchStartVal = lStartH + ((lStartM || 0) / 60);
                 const lunchEndVal = lEndH + ((lEndM || 0) / 60);
 
-                if (currentTimeVal >= lunchStartVal && currentTimeVal < lunchEndVal) {
+                // If we are before Lunch ends, assume we are forecasting/prepping for Lunch.
+                // If we are after Lunch ends, assume Dinner.
+                if (currentTimeVal < lunchEndVal) {
                     isDinner = false;
                 } else {
                     isDinner = true;
@@ -235,14 +235,15 @@ export class SmartPrepController {
                     // Exclude if it's marked as Dinner Only in the company ledger
                     if (DINNER_ONLY_MEATS.includes(lName)) return false;
                     // Exclude if this store specifically drops it at lunch
-                    if (lunchExcluded.includes(p)) return false;
+                    // lunch_excluded_proteins may be stored as an array of strings
+                    if (Array.isArray(lunchExcluded) && lunchExcluded.includes(p)) return false;
                     return true;
                 });
-            } else {
-                // Even if it's dinner, block Lamb Chops if the store doesn't serve them in Rodizio
-                if (store.serves_lamb_chops_rodizio === false) {
-                    proteins = proteins.filter(p => !p.toLowerCase().includes('lamb chops'));
-                }
+            }
+
+            // Global exclusion: block Lamb Chops entirely if the store doesn't serve them in Rodizio
+            if (store.serves_lamb_chops_rodizio === false) {
+                proteins = proteins.filter(p => !p.toLowerCase().includes('lamb chops'));
             }
 
             let totalPredictedCost = 0;

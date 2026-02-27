@@ -260,15 +260,20 @@ export default function StoreSettings() {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Lunch Target Lbs/Guest</label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase">Lunch Target Lbs/Guest</label>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#C5A059]/20 text-[#C5A059]">AUTO</span>
+                                </div>
                                 <input
                                     type="number" step="0.01"
-                                    value={settings.lunch_target_lbs_guest || ''}
-                                    onChange={e => setSettings({ ...settings, lunch_target_lbs_guest: parseFloat(e.target.value) })}
-                                    placeholder="Optional (e.g. 1.45)"
-                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                    disabled={!settings.is_lunch_enabled}
+                                    value={settings.target_lbs_guest ? (settings.target_lbs_guest - 0.22).toFixed(2) : ''}
+                                    className="w-full bg-[#1a1a1a] text-gray-400 p-3 border border-white/5 rounded-lg cursor-not-allowed"
+                                    disabled
+                                    readOnly
                                 />
+                                <p className="text-[10px] text-gray-500 mt-2">
+                                    Lunch target is automatically offset (-0.22 lbs) from Dinner.
+                                </p>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Dinner Target Lbs/Guest</label>

@@ -11,7 +11,8 @@ import {
     Printer,
     ArrowRight,
     Plus,
-    X
+    X,
+    ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +31,7 @@ export const CommandCenter = () => {
     const [networkAccountability, setNetworkAccountability] = useState<any>(null);
     const [networkPrepStatus, setNetworkPrepStatus] = useState<any>(null);
     const [selectedStoreId, setSelectedStoreId] = useState<number | null>(user?.storeId || null);
+    const [isStoreDropdownOpen, setIsStoreDropdownOpen] = useState(false);
 
     // --- REASON LIST FOR WASTE ---
     const WASTE_REASONS = ['Floor Drop', 'Over-Prep', 'Quality Check', 'Burnt/Cook Error', 'End of Shift'];
@@ -131,6 +133,28 @@ export const CommandCenter = () => {
 
     useEffect(() => {
         fetchData();
+
+        // Polling for network status for Admin
+        let interval: NodeJS.Timeout;
+        if (user?.role === 'director' || user?.role === 'admin') {
+            interval = setInterval(() => {
+                fetch('/api/v1/dashboard/waste/network-accountability', {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                })
+                    .then(res => res.json())
+                    .then(data => setNetworkAccountability(data))
+                    .catch(err => console.error(err));
+
+                fetch('/api/v1/dashboard/smart-prep/network-status', {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                })
+                    .then(res => res.json())
+                    .then(data => setNetworkPrepStatus(data))
+                    .catch(err => console.error(err));
+            }, 10000); // Poll every 10 seconds
+        }
+
+        return () => clearInterval(interval);
     }, [user, forecast, selectedStoreId]);
 
     // --- HANDLERS ---
@@ -348,20 +372,48 @@ export const CommandCenter = () => {
                     </div>
                     <div className="flex items-center gap-3 mt-1">
                         {(user?.role === 'director' || user?.role === 'admin') && networkPrepStatus ? (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 relative">
                                 <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">Commanding Store:</p>
-                                <select
-                                    className="bg-black/40 border border-white/10 text-white text-sm font-bold py-1 px-2 rounded cursor-pointer outline-none hover:border-[#C5A059] transition-colors"
-                                    value={selectedStoreId || 1}
-                                    onChange={(e) => setSelectedStoreId(parseInt(e.target.value))}
-                                    title="Store Selector"
-                                >
-                                    {networkPrepStatus.stores.map((store: any) => (
-                                        <option key={store.id} value={store.id}>
-                                            {store.is_locked ? '🟢' : '🔴'} {store.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setIsStoreDropdownOpen(!isStoreDropdownOpen)}
+                                        className="bg-black/40 border border-white/10 text-white text-sm font-bold py-1 px-3 rounded flex items-center justify-between min-w-[160px] hover:border-[#C5A059] transition-colors"
+                                    >
+                                        <span>
+                                            {(() => {
+                                                const currentOptions = networkPrepStatus.stores.find((s: any) => s.id === (selectedStoreId || 1));
+                                                return currentOptions ? `${currentOptions.is_locked ? '🟢' : '🔴'} ${currentOptions.name}` : 'Select Store';
+                                            })()}
+                                        </span>
+                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isStoreDropdownOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {isStoreDropdownOpen && (
+                                        <>
+                                            <div
+                                                className="fixed inset-0 z-[100]"
+                                                onClick={() => setIsStoreDropdownOpen(false)}
+                                            />
+                                            <div className="absolute top-full mt-2 left-0 w-full min-w-[200px] bg-[#1a1a1a] border border-white/10 rounded overflow-hidden shadow-2xl z-[101]">
+                                                <ul className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                                                    {networkPrepStatus.stores.map((store: any) => (
+                                                        <li
+                                                            key={store.id}
+                                                            onClick={() => {
+                                                                setSelectedStoreId(store.id);
+                                                                setIsStoreDropdownOpen(false);
+                                                            }}
+                                                            className={`px-4 py-2 text-sm font-bold cursor-pointer transition-colors hover:bg-[#C5A059]/20 flex items-center gap-2 ${selectedStoreId === store.id ? 'bg-[#C5A059]/10 text-white border-l-2 border-[#C5A059]' : 'text-gray-300'}`}
+                                                        >
+                                                            <span>{store.is_locked ? '🟢' : '🔴'}</span>
+                                                            <span>{store.name}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">Store {gateStatus?.storeId || '...'} | Shift: {gateStatus?.today?.can_input_lunch ? 'LUNCH' : (gateStatus?.today?.can_input_dinner ? 'DINNER' : 'ALL DAY')}</p>
@@ -386,7 +438,7 @@ export const CommandCenter = () => {
                         <div className="text-center px-4 border-r border-white/5">
                             <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Forecast Guests</span>
                             <div className="flex items-center gap-2">
-                                {prepData?.is_locked || user?.role === 'director' || user?.role === 'admin' ? (
+                                {user?.role === 'director' || user?.role === 'admin' ? (
                                     <span className="text-xl font-black text-white px-2 py-1">{forecast}</span>
                                 ) : (
                                     <>
@@ -394,14 +446,16 @@ export const CommandCenter = () => {
                                             type="number"
                                             value={forecast}
                                             onChange={(e) => setForecast(parseInt(e.target.value) || 0)}
-                                            className="w-16 bg-transparent text-xl font-black text-white outline-none border-b border-[#333] focus:border-[#C5A059]"
+                                            disabled={prepData?.is_locked}
+                                            className={`w-16 bg-transparent text-xl font-black outline-none border-b focus:border-[#C5A059] ${prepData?.is_locked ? 'text-gray-500 border-gray-800 cursor-not-allowed' : 'text-white border-[#333]'}`}
                                         />
                                         <button
-                                            onClick={lockPrepPlan}
+                                            onClick={prepData?.is_locked ? undefined : lockPrepPlan}
+                                            disabled={prepData?.is_locked}
                                             title="Lock Forecast"
-                                            className="ml-2 px-3 py-1 bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30 rounded text-xs font-bold uppercase transition-colors hover:bg-[#00FF94]/30"
+                                            className={`ml-2 px-3 py-1 border rounded text-xs font-bold uppercase transition-colors ${prepData?.is_locked ? 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed' : 'bg-[#00FF94]/20 text-[#00FF94] border-[#00FF94]/30 hover:bg-[#00FF94]/30'}`}
                                         >
-                                            Lock
+                                            {prepData?.is_locked ? 'Locked' : 'Lock'}
                                         </button>
                                     </>
                                 )}

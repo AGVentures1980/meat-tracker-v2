@@ -199,7 +199,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div key={section.section} className="space-y-1">
                                 <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
                                 {section.items.map((item: any) => {
-                                    const active = location.pathname === item.path;
+                                    const active = location.pathname === item.path || (item.path === '/settings/company' && location.pathname.startsWith('/settings/'));
                                     const isLocked = !selectedCompany && item.path !== '/dashboard';
 
                                     return (

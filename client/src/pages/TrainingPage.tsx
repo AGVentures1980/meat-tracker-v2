@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle, ChevronRight, ChevronLeft, Award, BookOpen, BarChart2, Bell, FileText, Layers, Lock, AlertTriangle, Download } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronLeft, Award, BookOpen, BarChart2, Bell, FileText, Layers, Lock, AlertTriangle, Download, Store, Truck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -11,6 +11,8 @@ const IMG = {
     m3: '/training/module3_data_entry.png',
     m4: '/training/module4_templates.png',
     m5: '/training/module5_cfo_report.png',
+    m6: '/training/module6_store_ops.png',
+    m7: '/training/module7_procurement.png',
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -287,6 +289,102 @@ const MODULES: Module[] = [
                 options: ['Export CSV', 'Email', 'Print / Save PDF button', 'Auto-email'],
                 correct: 2,
                 explanation: 'Use the print button and select "Save as PDF".',
+            },
+        ],
+    },
+    {
+        id: 6,
+        icon: <Store className="w-5 h-5" />,
+        title: 'Store Operations',
+        subtitle: 'Managing shifts and menu exclusions',
+        duration: '4 min',
+        img: IMG.m6,
+        slides: [
+            {
+                title: 'Shift-Aware Targets',
+                body: [
+                    'The system now tracks Lunch and Dinner shifts independently.',
+                    'Dinner Target Lbs/Guest is the baseline. The Lunch Target is auto-calculated (-0.22 lbs).',
+                    'This ensures fairness in your KPIs, as guests eat less meat during the day.',
+                ],
+                highlight: 'You only need to update the Dinner Target. Lunch adapts automatically.',
+            },
+            {
+                title: 'Menu Exclusions',
+                body: [
+                    'Premium meats (Lamb Chops, Filet Mignon, Filet with Bacon, Beef Ribs) are standard exclusions for Lunch.',
+                    'The Smart Prep system automatically removes them from your morning prep list.',
+                    'If you serve Lamb Chops during Dinner, enable "Serves Lamb Chops in Rodizio" in settings.',
+                ],
+                highlight: 'Corporate standardizes Lunch exclusions. You cannot override these 4 premiums.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'How is the Lunch Target Lbs/Guest determined?',
+                options: ['Kitchen Manager decides', 'Auto-calculated (-0.22) from Dinner Target', 'It is the same as Dinner', 'Based on yesterday\'s average'],
+                correct: 1,
+                explanation: 'Lunch target is always 0.22 lbs lower than your Dinner target automatically.',
+            },
+            {
+                q: 'Which protein is ALWAYS excluded from the Lunch Smart Prep list?',
+                options: ['Picanha', 'Chicken Drumstick', 'Filet Mignon', 'Fraldinha'],
+                correct: 2,
+                explanation: 'Filet Mignon (along with Lamb, Beef Ribs, and Filet with Bacon) is a standard corporate exclusion for lunch.',
+            },
+            {
+                q: 'Where do you update shift start/end times?',
+                options: ['Company Templates', 'Store Operations Configuration', 'Weekly Report', 'CFO Report'],
+                correct: 1,
+                explanation: 'Admins and Directors use Store Operations Configuration to manage shift schedules.',
+            },
+        ],
+    },
+    {
+        id: 7,
+        icon: <Truck className="w-5 h-5" />,
+        title: 'Delivery & Procurement',
+        subtitle: 'Handling off-premise volume and supply chain',
+        duration: '6 min',
+        img: IMG.m7,
+        slides: [
+            {
+                title: 'Delivery Volume Buffer',
+                body: [
+                    'Off-premise orders (UberEats, OLO) consume meat without adding to your guest count.',
+                    'The system uses OCR to scan your delivery receipts and extracts exact protein weights.',
+                    'These weights are added to the Smart Prep list as a "Delivery Buffer".',
+                ],
+                highlight: 'Delivery volume is isolated—it will NOT inflate or penalize your Dine-in Lbs/Guest KPI.',
+            },
+            {
+                title: 'Market Index Monitoring',
+                body: [
+                    'Corporate tracks the prices you pay against the Urner Barry (UB) Market Index.',
+                    'The "Hive Mind" anonymously compares prices across the entire network.',
+                    'If your supplier charges above market rate, Corporate steps in to renegotiate.',
+                ],
+                highlight: 'Accurate weekly price entry empowers Corporate to secure better deals for your store.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'How does Delivery volume affect your Dine-in Lbs/Guest KPI?',
+                options: ['It ruins the KPI', 'It artificially improves the KPI', 'It has NO impact (It is isolated)', 'It doubles the guest count'],
+                correct: 2,
+                explanation: 'Delivery volume is ring-fenced by the engine so your Dine-in KPI remains pure.',
+            },
+            {
+                q: 'How does the system know exactly what proteins were sent in a delivery?',
+                options: ['Manual entry', 'OCR scanning of uploaded receipts', 'Guessing based on weather', 'POS integration only'],
+                correct: 1,
+                explanation: 'The system uses Vision AI (OCR) to read the physical receipt and extract the weights.',
+            },
+            {
+                q: 'What is the "Market Index" used for?',
+                options: ['Stock market investing', 'Comparing your supplier prices to the national baseline (Urner Barry)', 'Tracking employee performance', 'Setting menu prices'],
+                correct: 1,
+                explanation: 'Corporate uses the Urner Barry index to ensure suppliers aren\'t overcharging your store.',
             },
         ],
     },

@@ -8,8 +8,31 @@
 
 Environment variables loaded from .env
 Prisma schema loaded from prisma/schema.prisma
-Datasource "db": PostgreSQL database "brasa_meat_tracker", schema "public" at "localhost:5433"
+Datasource "db": PostgreSQL database "brasa_meat_tracker", schema "public" at "localhost:5432"
 
-Error: P1001: Can't reach database server at `localhost:5433`
+The database is already in sync with the Prisma schema.
 
-Please make sure your database server is running at `localhost:5433`.
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 101ms
+
+[Static] Serving frontend from: /Users/alexandregarcia/.gemini/antigravity/scratch/meat-tracker/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring user dallas@texasdebrazil.com exists...
+[Startup] SUCCESS: Verified user dallas@texasdebrazil.com with role director
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+🚀 BRASA INTEL v4.2.0-DASHBOARD-EXEC running on http://localhost:3000
+📅 Business Date Sync: Central Time (UTC-6) ACTIVE
+🤖 AI Prospecting Agent: ONLINE (24/7 Watch Mode)
+👁️ [ONEDRIVE WATCHER] Service Started. Monitoring for invoices...
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+🚀 AI Prospecting Agent: Initiating full-scale search for new companies...
+   Found 1 new invoices.
+   Processing: invoice_sysco_dallas_0218.pdf
+✅ AI Prospecting Agent: Exploration complete. Found 3 high-value targets.
+   ✨ [Automated Ingestion] Successfully processed invoice_sysco_dallas_0218.pdf. Extracted 12 items.
+✅ [MS GRAPH] Moving invoice_sysco_dallas_0218.pdf to 'Processed' folder...
