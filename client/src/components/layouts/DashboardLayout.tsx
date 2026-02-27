@@ -75,9 +75,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             }
         ];
 
-        // Add Company Settings for Directors/Admins/Master
+        // Add Company Settings for Directors/Admins/Master/Owners
         const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
-        if (user?.role === 'director' || user?.role === 'admin' || isMaster) {
+        if (user?.role === 'director' || user?.role === 'admin' || user?.role === 'owner' || isMaster) {
 
             const manageItems = [
                 { icon: Activity, label: 'Network Command Center', path: '/owner' },
