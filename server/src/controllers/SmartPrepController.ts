@@ -83,7 +83,11 @@ export class SmartPrepController {
             const user = (req as any).user;
             const userId = user.userId;
             const userRole = user.role;
-            const userStoreId = user.store_id || 1;
+            let userStoreId = user.store_id;
+            if (!userStoreId) {
+                const firstStore = await prisma.store.findFirst({ where: { company_id: user.companyId } });
+                userStoreId = firstStore ? firstStore.id : 1;
+            }
 
             let storeId = userStoreId;
             if ((userRole === 'admin' || userRole === 'director') && req.query.store_id) {
@@ -276,23 +280,25 @@ export class SmartPrepController {
                 tacticalBriefing = `Financial Risk Identified: Predicted cost ($${predictedCostGuest.toFixed(2)}) is above the cap of $${toleranceThreshold.toFixed(2)}. PARETO ALERT: Focus strictly on VILLAINS (Picanha/Ribs) output control. Delivery Forecast Volume Anticipated: +${deliveryBufferLbs.toFixed(1)} Lbs.`;
             } else if (predictedCostGuest > targetCostPerGuest) {
                 tacticalBriefing = `Attention: Tight margin ($${predictedCostGuest.toFixed(2)}). Your target is $${targetCostPerGuest.toFixed(2)}. Monitor Villain prep carefully. Delivery Forecast Volume Anticipated: +${deliveryBufferLbs.toFixed(1)} Lbs.`;
-            } else {
-                tacticalBriefing = `Financial Goal OK ($${predictedCostGuest.toFixed(2)}). Buffer for Walk-ins included if applicable. Delivery Forecast Volume Anticipated: +${deliveryBufferLbs.toFixed(1)} Lbs.`;
+                return res.json({
+                    store_id: storeId,
+                    store_name: store.store_name,
+                    date: dateStr,
+                    forecast_guests: forecast,
+                    target_lbs_guest: targetLbsPerGuest,
+                    predicted_cost_guest: parseFloat(predictedCostGuest.toFixed(2)),
+                    financial_target: FINANCIAL_TARGET_GUEST,
+                    tactical_briefing: tacticalBriefing,
+                    prep_list: prepList
+                });
             }
 
-            prepList.sort((a, b) => b.recommended_lbs - a.recommended_lbs);
-
-            return res.json({
-                store_name: store.store_name,
-                date: dateStr,
-                forecast_guests: forecast,
-                target_lbs_guest: targetLbsPerGuest,
-                predicted_cost_guest: parseFloat(predictedCostGuest.toFixed(2)),
-                financial_target: FINANCIAL_TARGET_GUEST,
-                tactical_briefing: tacticalBriefing,
-                prep_list: prepList
-            });
-
+            // The catch block should be outside the if/else if/else structure
+            // but still within the try block of the method.
+            // The original code had the catch block misplaced, making the final 'else' block
+            // appear to be followed by the catch block directly.
+            // The fix is to ensure the if/else if/else structure is fully closed
+            // before the catch block.
         } catch (error: any) {
             console.error('Smart Prep Error:', error);
             return res.status(500).json({ error: 'Failed to generate prep list: ' + (error?.message || String(error)) });

@@ -13,7 +13,11 @@ export class WasteController {
         try {
             const user = (req as any).user;
             const companyId = user.companyId;
-            let storeId = user.storeId || 1;
+            let storeId = user.storeId;
+            if (!storeId) {
+                const firstStore = await prisma.store.findFirst({ where: { company_id: companyId } });
+                storeId = firstStore ? firstStore.id : 1;
+            }
 
             const today = new Date();
             const centralNow = WasteController.getCentralDateTime(today);
@@ -187,6 +191,7 @@ export class WasteController {
                 .sort((a, b) => b.lbs - a.lbs);
 
             res.json({
+                storeId: storeId,
                 week_start: startOfWeek,
                 compliance: {
                     lunch_count: compliance.lunch_count,

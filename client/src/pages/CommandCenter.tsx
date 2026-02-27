@@ -29,7 +29,7 @@ export const CommandCenter = () => {
     const [isSubmittingWaste, setIsSubmittingWaste] = useState(false);
     const [networkAccountability, setNetworkAccountability] = useState<any>(null);
     const [networkPrepStatus, setNetworkPrepStatus] = useState<any>(null);
-    const [selectedStoreId, setSelectedStoreId] = useState<number | null>(user?.storeId || 1);
+    const [selectedStoreId, setSelectedStoreId] = useState<number | null>(user?.storeId || null);
 
     // --- REASON LIST FOR WASTE ---
     const WASTE_REASONS = ['Floor Drop', 'Over-Prep', 'Quality Check', 'Burnt/Cook Error', 'End of Shift'];
@@ -60,6 +60,7 @@ export const CommandCenter = () => {
             });
             const statusData = await statusRes.json();
             setGateStatus(statusData);
+            if (statusData.storeId && !selectedStoreId) setSelectedStoreId(statusData.storeId);
 
             if (!statusData.gate_locked) {
                 // 2. Fetch Prep Data if gate is open
@@ -71,6 +72,7 @@ export const CommandCenter = () => {
                 if (prepRes.ok) {
                     const pData = await prepRes.json();
                     setPrepData(pData);
+                    if (pData.store_id && !selectedStoreId) setSelectedStoreId(pData.store_id);
                     if (pData.is_locked) setForecast(pData.forecast_guests);
                 } else {
                     const err = await prepRes.json();
