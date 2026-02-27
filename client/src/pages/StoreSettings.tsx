@@ -141,254 +141,250 @@ export default function StoreSettings() {
 
     if (error && !settings) {
         return (
-            <DashboardLayout title="Access Denied" userRole={user?.role || 'viewer'}>
-                <div className="p-8 text-center text-red-500 font-bold">{error}</div>
-            </DashboardLayout>
+            <div className="p-8 text-center text-red-500 font-bold">{error}</div>
         );
     }
 
     return (
-        <DashboardLayout title="Store Configuration" userRole={user?.role || 'viewer'}>
-            <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-6 p-6">
 
-                {/* Header & Store Selector */}
-                <div className="bg-[#1a1a1a] p-6 rounded-xl border border-white/5 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div>
-                        <h1 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
-                            <Store className="w-8 h-8 text-[#C5A059]" />
-                            Store Operations Configuration
-                        </h1>
-                        <p className="text-sm text-gray-400 mt-1">Manage shift hours, target metrics, and menu exclusions per store.</p>
-                    </div>
-
-                    <div className="relative">
-                        <select
-                            value={selectedStoreId || ''}
-                            onChange={(e) => setSelectedStoreId(Number(e.target.value))}
-                            className="appearance-none w-full min-w-[250px] bg-[#252525] border border-white/10 rounded-lg px-4 py-3 pr-10 text-white font-bold cursor-pointer hover:bg-[#333] transition-colors focus:outline-none focus:border-[#C5A059]"
-                        >
-                            {networkStores.map(store => (
-                                <option key={store.store_id} value={store.store_id}>
-                                    {store.store_name}
-                                </option>
-                            ))}
-                        </select>
-                        <Store className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
+            {/* Header & Store Selector */}
+            <div className="bg-[#1a1a1a] p-6 rounded-xl border border-white/5 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                        <Store className="w-8 h-8 text-[#C5A059]" />
+                        Store Operations Configuration
+                    </h1>
+                    <p className="text-sm text-gray-400 mt-1">Manage shift hours, target metrics, and menu exclusions per store.</p>
                 </div>
 
-                {error && (
-                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-lg flex items-center gap-3">
-                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                        <p className="text-sm font-medium">{error}</p>
-                    </div>
-                )}
-                {success && (
-                    <div className="bg-[#00FF94]/10 border border-[#00FF94]/30 text-[#00FF94] p-4 rounded-lg flex items-center gap-3">
-                        <Save className="w-5 h-5 flex-shrink-0" />
-                        <p className="text-sm font-medium">{success}</p>
-                    </div>
-                )}
+                <div className="relative">
+                    <select
+                        value={selectedStoreId || ''}
+                        onChange={(e) => setSelectedStoreId(Number(e.target.value))}
+                        className="appearance-none w-full min-w-[250px] bg-[#252525] border border-white/10 rounded-lg px-4 py-3 pr-10 text-white font-bold cursor-pointer hover:bg-[#333] transition-colors focus:outline-none focus:border-[#C5A059]"
+                    >
+                        {networkStores.map(store => (
+                            <option key={store.store_id} value={store.store_id}>
+                                {store.store_name}
+                            </option>
+                        ))}
+                    </select>
+                    <Store className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+            </div>
 
-                {loading || !settings ? (
-                    <div className="flex justify-center p-20">
-                        <div className="w-8 h-8 border-4 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-lg flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                    <p className="text-sm font-medium">{error}</p>
+                </div>
+            )}
+            {success && (
+                <div className="bg-[#00FF94]/10 border border-[#00FF94]/30 text-[#00FF94] p-4 rounded-lg flex items-center gap-3">
+                    <Save className="w-5 h-5 flex-shrink-0" />
+                    <p className="text-sm font-medium">{success}</p>
+                </div>
+            )}
 
-                        {/* GENERAL CONFIG */}
-                        <div className="bg-[#1a1a1a] p-6 rounded-xl border border-white/5 shadow-xl space-y-6">
-                            <h2 className="text-lg font-bold text-[#C5A059] uppercase tracking-widest border-b border-white/10 pb-2 mb-4">Shift Setup</h2>
+            {loading || !settings ? (
+                <div className="flex justify-center p-20">
+                    <div className="w-8 h-8 border-4 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                            <label className="flex items-center justify-between p-4 bg-[#252525] rounded-xl border border-white/5 cursor-pointer hover:bg-white/5 transition-colors">
-                                <div>
-                                    <span className="text-sm font-bold text-white block">Dinner Only?</span>
-                                    <span className="text-xs text-gray-500">If checked, this store does not serve lunch.</span>
-                                </div>
-                                <div className={`w-12 h-6 rounded-full p-1 transition-colors ${!settings.is_lunch_enabled ? 'bg-[#C5A059]' : 'bg-gray-700'}`}>
-                                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${!settings.is_lunch_enabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                                </div>
-                                {/* Hidden input for accessibility/state binding */}
-                                <input
-                                    type="checkbox"
-                                    className="hidden"
-                                    checked={!settings.is_lunch_enabled}
-                                    onChange={(e) => setSettings({ ...settings, is_lunch_enabled: !e.target.checked })}
-                                />
-                            </label>
+                    {/* GENERAL CONFIG */}
+                    <div className="bg-[#1a1a1a] p-6 rounded-xl border border-white/5 shadow-xl space-y-6">
+                        <h2 className="text-lg font-bold text-[#C5A059] uppercase tracking-widest border-b border-white/10 pb-2 mb-4">Shift Setup</h2>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" /> Lunch Starts
-                                    </label>
-                                    <input
-                                        type="time"
-                                        value={settings.lunch_start_time || '11:00'}
-                                        onChange={e => setSettings({ ...settings, lunch_start_time: e.target.value })}
-                                        className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                        disabled={!settings.is_lunch_enabled}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" /> Lunch Ends
-                                    </label>
-                                    <input
-                                        type="time"
-                                        value={settings.lunch_end_time || '15:00'}
-                                        onChange={e => setSettings({ ...settings, lunch_end_time: e.target.value })}
-                                        className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                        disabled={!settings.is_lunch_enabled}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" /> Dinner Starts
-                                    </label>
-                                    <input
-                                        type="time"
-                                        value={settings.dinner_start_time || '15:00'}
-                                        onChange={e => setSettings({ ...settings, dinner_start_time: e.target.value })}
-                                        className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" /> Dinner Ends
-                                    </label>
-                                    <input
-                                        type="time"
-                                        value={settings.dinner_end_time || '22:00'}
-                                        onChange={e => setSettings({ ...settings, dinner_end_time: e.target.value })}
-                                        className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                    />
-                                </div>
+                        <label className="flex items-center justify-between p-4 bg-[#252525] rounded-xl border border-white/5 cursor-pointer hover:bg-white/5 transition-colors">
+                            <div>
+                                <span className="text-sm font-bold text-white block">Dinner Only?</span>
+                                <span className="text-xs text-gray-500">If checked, this store does not serve lunch.</span>
                             </div>
+                            <div className={`w-12 h-6 rounded-full p-1 transition-colors ${!settings.is_lunch_enabled ? 'bg-[#C5A059]' : 'bg-gray-700'}`}>
+                                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${!settings.is_lunch_enabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                            </div>
+                            {/* Hidden input for accessibility/state binding */}
+                            <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={!settings.is_lunch_enabled}
+                                onChange={(e) => setSettings({ ...settings, is_lunch_enabled: !e.target.checked })}
+                            />
+                        </label>
 
-                            <h2 className="text-lg font-bold text-[#C5A059] uppercase tracking-widest border-b border-white/10 pb-2 mb-4 mt-8">Financial Targets</h2>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                                        <DollarSign className="w-3 h-3" /> Lunch Rodizio Price
-                                    </label>
-                                    <input
-                                        type="number" step="0.01"
-                                        value={settings.lunch_price || 0}
-                                        onChange={e => setSettings({ ...settings, lunch_price: parseFloat(e.target.value) })}
-                                        className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                        disabled={!settings.is_lunch_enabled}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                                        <DollarSign className="w-3 h-3" /> Dinner Rodizio Price
-                                    </label>
-                                    <input
-                                        type="number" step="0.01"
-                                        value={settings.dinner_price || 0}
-                                        onChange={e => setSettings({ ...settings, dinner_price: parseFloat(e.target.value) })}
-                                        className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Lunch Target Lbs/Guest</label>
-                                    <input
-                                        type="number" step="0.01"
-                                        value={settings.lunch_target_lbs_guest || ''}
-                                        onChange={e => setSettings({ ...settings, lunch_target_lbs_guest: parseFloat(e.target.value) })}
-                                        placeholder="Optional (e.g. 1.45)"
-                                        className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                        disabled={!settings.is_lunch_enabled}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Dinner Target Lbs/Guest</label>
-                                    <input
-                                        type="number" step="0.01"
-                                        value={settings.target_lbs_guest || 1.76}
-                                        onChange={e => setSettings({ ...settings, target_lbs_guest: parseFloat(e.target.value) })}
-                                        className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                    />
-                                </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> Lunch Starts
+                                </label>
+                                <input
+                                    type="time"
+                                    value={settings.lunch_start_time || '11:00'}
+                                    onChange={e => setSettings({ ...settings, lunch_start_time: e.target.value })}
+                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                    disabled={!settings.is_lunch_enabled}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> Lunch Ends
+                                </label>
+                                <input
+                                    type="time"
+                                    value={settings.lunch_end_time || '15:00'}
+                                    onChange={e => setSettings({ ...settings, lunch_end_time: e.target.value })}
+                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                    disabled={!settings.is_lunch_enabled}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> Dinner Starts
+                                </label>
+                                <input
+                                    type="time"
+                                    value={settings.dinner_start_time || '15:00'}
+                                    onChange={e => setSettings({ ...settings, dinner_start_time: e.target.value })}
+                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> Dinner Ends
+                                </label>
+                                <input
+                                    type="time"
+                                    value={settings.dinner_end_time || '22:00'}
+                                    onChange={e => setSettings({ ...settings, dinner_end_time: e.target.value })}
+                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                />
                             </div>
                         </div>
 
-                        {/* EXCLUSIONS */}
-                        <div className="bg-[#1a1a1a] p-6 rounded-xl border border-white/5 shadow-xl space-y-6 flex flex-col">
-                            <h2 className="text-lg font-bold text-[#C5A059] uppercase tracking-widest border-b border-white/10 pb-2 mb-4">Menu Exclusions</h2>
+                        <h2 className="text-lg font-bold text-[#C5A059] uppercase tracking-widest border-b border-white/10 pb-2 mb-4 mt-8">Financial Targets</h2>
 
-                            <label className="flex items-center justify-between p-4 bg-[#252525] rounded-xl border border-white/5 cursor-pointer hover:bg-white/5 transition-colors mb-4">
-                                <div>
-                                    <span className="text-sm font-bold text-white block">Serves Lamb Chops in Rodizio?</span>
-                                    <span className="text-xs text-gray-500">Enable if Lamb Chops is a standard item on the dinner menu (Not just a VIP request).</span>
-                                </div>
-                                <div className={`w-12 h-6 rounded-full p-1 transition-colors ${settings.serves_lamb_chops_rodizio ? 'bg-[#C5A059]' : 'bg-gray-700'}`}>
-                                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${settings.serves_lamb_chops_rodizio ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                                </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                                    <DollarSign className="w-3 h-3" /> Lunch Rodizio Price
+                                </label>
                                 <input
-                                    type="checkbox"
-                                    className="hidden"
-                                    checked={settings.serves_lamb_chops_rodizio}
-                                    onChange={(e) => setSettings({ ...settings, serves_lamb_chops_rodizio: e.target.checked })}
+                                    type="number" step="0.01"
+                                    value={settings.lunch_price || 0}
+                                    onChange={e => setSettings({ ...settings, lunch_price: parseFloat(e.target.value) })}
+                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                    disabled={!settings.is_lunch_enabled}
                                 />
-                            </label>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                                    <DollarSign className="w-3 h-3" /> Dinner Rodizio Price
+                                </label>
+                                <input
+                                    type="number" step="0.01"
+                                    value={settings.dinner_price || 0}
+                                    onChange={e => setSettings({ ...settings, dinner_price: parseFloat(e.target.value) })}
+                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Lunch Target Lbs/Guest</label>
+                                <input
+                                    type="number" step="0.01"
+                                    value={settings.lunch_target_lbs_guest || ''}
+                                    onChange={e => setSettings({ ...settings, lunch_target_lbs_guest: parseFloat(e.target.value) })}
+                                    placeholder="Optional (e.g. 1.45)"
+                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                    disabled={!settings.is_lunch_enabled}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Dinner Target Lbs/Guest</label>
+                                <input
+                                    type="number" step="0.01"
+                                    value={settings.target_lbs_guest || 1.76}
+                                    onChange={e => setSettings({ ...settings, target_lbs_guest: parseFloat(e.target.value) })}
+                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
-                            <div className={`flex-1 ${!settings.is_lunch_enabled ? 'opacity-50 pointer-events-none' : ''}`}>
-                                <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
-                                    <Ban className="w-4 h-4 text-red-500" /> Lunch Excluded Proteins
-                                </h3>
-                                <p className="text-xs text-gray-400 mb-4">Select the premium meats that are NOT served during the lunch shift at this store to auto-remove them from the Smart Prep List.</p>
+                    {/* EXCLUSIONS */}
+                    <div className="bg-[#1a1a1a] p-6 rounded-xl border border-white/5 shadow-xl space-y-6 flex flex-col">
+                        <h2 className="text-lg font-bold text-[#C5A059] uppercase tracking-widest border-b border-white/10 pb-2 mb-4">Menu Exclusions</h2>
 
-                                <div className="bg-[#252525] rounded-lg border border-white/10 p-2 max-h-[300px] overflow-y-auto">
-                                    {ALL_PROTEINS.map(protein => {
-                                        const isExcluded = (settings.lunch_excluded_proteins || []).includes(protein);
-                                        return (
-                                            <button
-                                                key={protein}
-                                                onClick={() => toggleExclusion(protein)}
-                                                className={`w-full text-left px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-between mb-1
+                        <label className="flex items-center justify-between p-4 bg-[#252525] rounded-xl border border-white/5 cursor-pointer hover:bg-white/5 transition-colors mb-4">
+                            <div>
+                                <span className="text-sm font-bold text-white block">Serves Lamb Chops in Rodizio?</span>
+                                <span className="text-xs text-gray-500">Enable if Lamb Chops is a standard item on the dinner menu (Not just a VIP request).</span>
+                            </div>
+                            <div className={`w-12 h-6 rounded-full p-1 transition-colors ${settings.serves_lamb_chops_rodizio ? 'bg-[#C5A059]' : 'bg-gray-700'}`}>
+                                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${settings.serves_lamb_chops_rodizio ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                            </div>
+                            <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={settings.serves_lamb_chops_rodizio}
+                                onChange={(e) => setSettings({ ...settings, serves_lamb_chops_rodizio: e.target.checked })}
+                            />
+                        </label>
+
+                        <div className={`flex-1 ${!settings.is_lunch_enabled ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
+                                <Ban className="w-4 h-4 text-red-500" /> Lunch Excluded Proteins
+                            </h3>
+                            <p className="text-xs text-gray-400 mb-4">Select the premium meats that are NOT served during the lunch shift at this store to auto-remove them from the Smart Prep List.</p>
+
+                            <div className="bg-[#252525] rounded-lg border border-white/10 p-2 max-h-[300px] overflow-y-auto">
+                                {ALL_PROTEINS.map(protein => {
+                                    const isExcluded = (settings.lunch_excluded_proteins || []).includes(protein);
+                                    return (
+                                        <button
+                                            key={protein}
+                                            onClick={() => toggleExclusion(protein)}
+                                            className={`w-full text-left px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-between mb-1
                                                     ${isExcluded ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'text-gray-300 hover:bg-white/5'}
                                                 `}
-                                            >
-                                                <span className="flex items-center gap-2">
-                                                    <Beef className="w-4 h-4" /> {protein}
-                                                </span>
-                                                {isExcluded && <Ban className="w-3 h-3" />}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <Beef className="w-4 h-4" /> {protein}
+                                            </span>
+                                            {isExcluded && <Ban className="w-3 h-3" />}
+                                        </button>
+                                    );
+                                })}
                             </div>
-
                         </div>
-                    </div>
-                )}
 
-                {/* Save Button */}
-                {!loading && settings && (
-                    <div className="flex justify-end pt-4">
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className={`flex items-center justify-center gap-2 bg-[#C5A059] hover:bg-[#D4AF37] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            {saving ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="w-5 h-5" /> Save Configuration
-                                </>
-                            )}
-                        </button>
                     </div>
-                )}
-            </div>
-        </DashboardLayout>
+                </div>
+            )}
+
+            {/* Save Button */}
+            {!loading && settings && (
+                <div className="flex justify-end pt-4">
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className={`flex items-center justify-center gap-2 bg-[#C5A059] hover:bg-[#D4AF37] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {saving ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-5 h-5" /> Save Configuration
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
+        </div>
     );
 }
