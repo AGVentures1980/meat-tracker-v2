@@ -144,8 +144,19 @@ export class SmartPrepController {
 
             if (!store) return res.status(404).json({ error: 'Store not found' });
 
-            // DELETED: TARGET_OVERRIDES (Hardcoding removed for v3.0.0 Governance)
-            const targetLbsPerGuest = (store as any).target_lbs_guest || 1.76;
+            // Fetch Company Products to align with Governance standards
+            const products = await (prisma.companyProduct as any).findMany({
+                where: { company_id: store.company_id }
+            });
+
+            const isDinner = centralNow.getHours() >= 15; // Shift definition
+
+            // SHIFT-AWARE LBS TARGET
+            let targetLbsPerGuest = (store as any).target_lbs_guest || 1.76;
+            if (!isDinner && store.lunch_target_lbs_guest) {
+                targetLbsPerGuest = store.lunch_target_lbs_guest;
+            }
+
             const targetCostPerGuest = (store as any).target_cost_guest || 9.94;
 
             let forecast = 150;
@@ -157,7 +168,6 @@ export class SmartPrepController {
             }
 
             // APPLY SAFETY BUFFER (+20% for Dinner Walk-ins)
-            const isDinner = centralNow.getHours() >= 15; // Shift definition
             const bufferMultiplier = isDinner ? 1.20 : 1.0;
             const dineInMeatLbs = (forecast * bufferMultiplier) * targetLbsPerGuest;
 
@@ -188,7 +198,31 @@ export class SmartPrepController {
 
             // FILTER: Remove discontinued items (Alcatra, Bone-in Ribeye) as per Texas de Brazil standards
             const DISCONTINUED = ['Alcatra', 'Bone-in Ribeye'];
-            const proteins = Object.keys(MEAT_UNIT_WEIGHTS).filter(p => !DISCONTINUED.includes(p));
+
+            // Fetch global dinner-only exclusions from CompanyProduct
+            const DINNER_ONLY_MEATS = products.filter((p: any) => p.is_dinner_only).map((p: any) => p.name.toLowerCase());
+
+            // Store specific lunch exclusions (e.g. Tampa excluding Ribs at lunch)
+            const lunchExcluded = store.lunch_excluded_proteins || [];
+
+            // Compile the final list of proteins to prep for this shift
+            let proteins = Object.keys(MEAT_UNIT_WEIGHTS).filter(p => !DISCONTINUED.includes(p));
+
+            if (!isDinner) {
+                proteins = proteins.filter(p => {
+                    const lName = p.toLowerCase();
+                    // Exclude if it's marked as Dinner Only in the company ledger
+                    if (DINNER_ONLY_MEATS.includes(lName)) return false;
+                    // Exclude if this store specifically drops it at lunch
+                    if (lunchExcluded.includes(p)) return false;
+                    return true;
+                });
+            } else {
+                // Even if it's dinner, block Lamb Chops if the store doesn't serve them in Rodizio
+                if (store.serves_lamb_chops_rodizio === false) {
+                    proteins = proteins.filter(p => !p.toLowerCase().includes('lamb chops'));
+                }
+            }
 
             let totalPredictedCost = 0;
 

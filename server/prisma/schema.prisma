@@ -71,6 +71,8 @@ model Store {
 
   target_cost_guest         Float             @default(9.94)
   target_lbs_guest          Float             @default(1.76)
+  lunch_target_lbs_guest    Float? 
+  lunch_excluded_proteins   String[]          @default([])
   dinner_price              Float             @default(58.90)
   serves_lamb_chops_rodizio Boolean           @default(false) // true = Lamb Chops is part of dinner rodizio at this store
   is_lunch_enabled          Boolean           @default(false)
