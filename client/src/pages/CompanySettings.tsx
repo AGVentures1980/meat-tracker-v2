@@ -50,10 +50,16 @@ export const CompanySettings = () => {
                 });
                 if (res.ok) setProducts(await res.json());
             } else if (activeTab === 'stores') {
-                const res = await fetch(`${API_URL}/api/v1/dashboard/company/stores`, {
+                const resStores = await fetch(`${API_URL}/api/v1/dashboard/company/stores`, {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 });
-                if (res.ok) setStores(await res.json());
+                if (resStores.ok) setStores(await resStores.json());
+
+                // Fetch templates as well, because the Stores tab needs them for the Action dropdown
+                const resTemplates = await fetch(`${API_URL}/api/v1/dashboard/company/templates`, {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                if (resTemplates.ok) setTemplates(await resTemplates.json());
             } else {
                 const res = await fetch(`${API_URL}/api/v1/dashboard/company/templates`, {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
