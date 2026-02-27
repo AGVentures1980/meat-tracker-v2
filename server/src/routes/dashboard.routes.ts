@@ -44,11 +44,15 @@ router.post('/company/stores/:id/apply-template', requireAuth, TemplateControlle
 
 
 // Store Management
+import { StoreSettingsController } from '../controllers/StoreSettingsController';
+
 router.get('/settings/stores', requireAuth, SettingsController.getStores);
 router.post('/settings/stores', requireAuth, SettingsController.createStore);
 router.put('/settings/stores/:id', requireAuth, SettingsController.updateStore);
 router.post('/settings/no-delivery', requireAuth, SettingsController.setNoDeliveryFlag);
 router.get('/settings/company-products', requireAuth, SettingsController.getCompanyProducts);
+router.get('/store-settings/:id', requireAuth, StoreSettingsController.getStoreSettings);
+router.put('/store-settings/:id', requireAuth, StoreSettingsController.updateStoreSettings);
 
 // Smart Prep (Kitchen Intelligence)
 import { SmartPrepController } from '../controllers/SmartPrepController';

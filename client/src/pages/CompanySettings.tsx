@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
     Plus,
@@ -12,6 +13,7 @@ import {
 
 export const CompanySettings = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'products' | 'stores' | 'templates'>('products');
 
     // Data State
@@ -401,6 +403,12 @@ export const CompanySettings = () => {
                                     <td className="p-4 font-bold text-white">{s.store_name}</td>
                                     <td className="p-4 text-gray-400 text-xs">{s.location}</td>
                                     <td className="p-4 text-right flex items-center justify-end gap-2">
+                                        <button
+                                            onClick={() => navigate('/settings/store', { state: { storeId: s.id } })}
+                                            className="text-[#C5A059] hover:text-[#d6b579] transition-colors p-2 flex items-center gap-1 border border-[#C5A059]/30 rounded text-[10px] font-bold uppercase tracking-wider bg-[#C5A059]/10"
+                                        >
+                                            Edit Ops
+                                        </button>
                                         <select
                                             className="bg-[#111] border border-white/10 text-white text-[10px] p-1 rounded outline-none w-24"
                                             onChange={(e) => {

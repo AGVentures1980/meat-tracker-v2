@@ -23,6 +23,7 @@ import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
+import StoreSettings from './pages/StoreSettings';
 import { UsersPage } from './pages/UsersPage';
 import CFOReport from './pages/CFOReport';
 import { TrainingPage } from './pages/TrainingPage';
@@ -107,6 +108,7 @@ function AppContent() {
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/settings/company" element={<CompanySettings />} />
+                    <Route path="/settings/store" element={<StoreSettings />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
                     <Route path="/smart-prep" element={<GovernanceGuard><SmartPrepPage /></GovernanceGuard>} />
                     <Route path="/delivery" element={<DeliveryPage />} />

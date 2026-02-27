@@ -76,6 +76,10 @@ model Store {
   dinner_price              Float             @default(58.90)
   serves_lamb_chops_rodizio Boolean           @default(false) // true = Lamb Chops is part of dinner rodizio at this store
   is_lunch_enabled          Boolean           @default(false)
+  lunch_start_time          String?           @default("11:00") // Format HH:MM
+  lunch_end_time            String?           @default("15:00")
+  dinner_start_time         String?           @default("15:00")
+  dinner_end_time           String?           @default("22:00")
   lunch_price               Float             @default(29.90)
   olo_sales_target          Float             @default(0)
   active_template_id        String?

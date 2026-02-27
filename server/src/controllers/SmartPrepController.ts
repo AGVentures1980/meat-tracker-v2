@@ -149,7 +149,28 @@ export class SmartPrepController {
                 where: { company_id: store.company_id }
             });
 
-            const isDinner = centralNow.getHours() >= 15; // Shift definition
+            // SHIFT DEFINITION LOGIC
+            let isDinner = centralNow.getHours() >= 15; // Default fallback
+
+            if (store.is_lunch_enabled && store.lunch_start_time && store.lunch_end_time) {
+                const currentHour = centralNow.getHours();
+                const currentMinute = centralNow.getMinutes();
+                const currentTimeVal = currentHour + (currentMinute / 60);
+
+                const [lStartH, lStartM] = store.lunch_start_time.split(':').map(Number);
+                const [lEndH, lEndM] = store.lunch_end_time.split(':').map(Number);
+
+                const lunchStartVal = lStartH + ((lStartM || 0) / 60);
+                const lunchEndVal = lEndH + ((lEndM || 0) / 60);
+
+                if (currentTimeVal >= lunchStartVal && currentTimeVal < lunchEndVal) {
+                    isDinner = false;
+                } else {
+                    isDinner = true;
+                }
+            } else if (!store.is_lunch_enabled) {
+                isDinner = true;
+            }
 
             // SHIFT-AWARE LBS TARGET
             let targetLbsPerGuest = (store as any).target_lbs_guest || 1.76;
