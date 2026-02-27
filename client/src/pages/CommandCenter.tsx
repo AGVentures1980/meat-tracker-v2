@@ -72,6 +72,9 @@ export const CommandCenter = () => {
                     const pData = await prepRes.json();
                     setPrepData(pData);
                     if (pData.is_locked) setForecast(pData.forecast_guests);
+                } else {
+                    const err = await prepRes.json();
+                    alert("System Error: " + (err.error || "Failed to load Prep List"));
                 }
             }
 
