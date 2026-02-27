@@ -28,13 +28,14 @@ export const NetworkReportCard = () => {
 
         setLoading(true);
         try {
-            const baseUrl = '/api/v1';
+            const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            const baseUrl = `${API_URL}/api/v1`;
 
             // Use Real JWT from Auth Context
             const token = `Bearer ${user.token}`;
 
             // Correct Endpoint matching backend routes
-            const res = await fetch(`${baseUrl}/dashboard/report-card?year=${year}&week=${week}`, {
+            const res = await fetch(`${baseUrl}/dashboard/stats/report-card?year=${year}&week=${week}`, {
                 headers: { 'Authorization': token }
             });
 
