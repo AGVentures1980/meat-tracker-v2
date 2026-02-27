@@ -12,7 +12,8 @@ import {
     ArrowRight,
     Plus,
     X,
-    ChevronDown
+    ChevronDown,
+    Brain
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +26,8 @@ export const CommandCenter = () => {
     const [loading, setLoading] = useState(true);
     const [gateStatus, setGateStatus] = useState<any>(null);
     const [prepData, setPrepData] = useState<any>(null);
-    const [forecast, setForecast] = useState<number>(150);
+    const [lunchForecast, setLunchForecast] = useState<number>(0);
+    const [dinnerForecast, setDinnerForecast] = useState<number>(150);
     const [wasteItems, setWasteItems] = useState<any[]>([]);
     const [isSubmittingWaste, setIsSubmittingWaste] = useState(false);
     const [networkAccountability, setNetworkAccountability] = useState<any>(null);
@@ -34,7 +36,7 @@ export const CommandCenter = () => {
     const [isStoreDropdownOpen, setIsStoreDropdownOpen] = useState(false);
 
     // --- REASON LIST FOR WASTE ---
-    const WASTE_REASONS = ['Floor Drop', 'Over-Prep', 'Quality Check', 'Burnt/Cook Error', 'End of Shift'];
+    const WASTE_REASONS = ['Floor Drop', 'Over-Prep', 'Quality Check', 'Burnt/Cook Error', 'End of Shift', 'Staff Meals (Family Meal)'];
     const [proteins, setProteins] = useState<string[]>([]);
     const [villains, setVillains] = useState<string[]>([]);
 
@@ -45,7 +47,7 @@ export const CommandCenter = () => {
         return central.toISOString().split('T')[0];
     };
 
-    const selectedDate = getCentralDate();
+    const [selectedDate, setSelectedDate] = useState(getCentralDate());
 
     // --- FETCH DATA ---
     const fetchData = async () => {
@@ -66,7 +68,8 @@ export const CommandCenter = () => {
 
             if (!statusData.gate_locked) {
                 // 2. Fetch Prep Data if gate is open
-                urlParams.append('guests', forecast.toString());
+                urlParams.append('lunch_forecast', lunchForecast.toString());
+                urlParams.append('dinner_forecast', dinnerForecast.toString());
                 urlParams.append('date', selectedDate);
                 if (selectedStoreId) {
                     urlParams.append('store_id', selectedStoreId.toString());
@@ -80,7 +83,10 @@ export const CommandCenter = () => {
                     const pData = await prepRes.json();
                     setPrepData(pData);
                     if (pData.store_id && !selectedStoreId) setSelectedStoreId(pData.store_id);
-                    if (pData.is_locked) setForecast(pData.forecast_guests);
+                    if (pData.is_locked) {
+                        setLunchForecast(pData.lunch_forecast || 0);
+                        setDinnerForecast(pData.dinner_forecast || pData.forecast_guests || 150);
+                    }
                 } else {
                     const err = await prepRes.json();
                     alert("System Error: " + (err.error || "Failed to load Prep List"));
@@ -155,7 +161,16 @@ export const CommandCenter = () => {
         }
 
         return () => clearInterval(interval);
-    }, [user, forecast, selectedStoreId]);
+    }, [user, selectedStoreId, selectedDate]);
+
+    // Debounced fetch for forecast changes
+    useEffect(() => {
+        if (!prepData || prepData.is_locked) return;
+        const timer = setTimeout(() => {
+            fetchData();
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [lunchForecast, dinnerForecast]);
 
     // --- HANDLERS ---
     const handleSetNoDelivery = async () => {
@@ -183,12 +198,15 @@ export const CommandCenter = () => {
     };
 
     const lockPrepPlan = async () => {
-        if (!window.confirm(`Lock Shift Prep Plan for ${forecast} guests?`)) return;
+        const totalForecast = lunchForecast + dinnerForecast;
+        if (!window.confirm(`Lock Shift Prep Plan for ${totalForecast} guests?`)) return;
         try {
             const payload: any = {
                 store_id: selectedStoreId || user?.storeId || 1,
                 date: selectedDate,
-                forecast: forecast,
+                forecast: totalForecast,
+                lunch_forecast: prepData?.is_lunch_enabled ? lunchForecast : null,
+                dinner_forecast: dinnerForecast,
                 data: prepData
             };
 
@@ -363,14 +381,14 @@ export const CommandCenter = () => {
     return (
         <div className="max-w-[1600px] mx-auto p-4 space-y-6">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#1a1a1a] p-6 rounded-xl border border-white/5 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-[#C5A059]"></div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#1a1a1a] p-6 rounded-xl border border-white/5 shadow-xl relative print:border-none print:shadow-none print:p-0 print:bg-transparent print:mb-6">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#C5A059] print:hidden"></div>
                 <div>
                     <div className="flex items-center gap-3">
-                        <PlayCircle className="w-8 h-8 text-[#C5A059]" />
-                        <h1 className="text-3xl font-black text-white tracking-tight uppercase">Shift Command Center</h1>
+                        <PlayCircle className="w-8 h-8 text-[#C5A059] print:hidden" />
+                        <h1 className="text-3xl font-black text-white tracking-tight uppercase print:text-5xl print:text-black">Shift Command Center</h1>
                     </div>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center gap-3 mt-1 print:hidden">
                         {(user?.role === 'director' || user?.role === 'admin') && networkPrepStatus ? (
                             <div className="flex items-center gap-2 relative">
                                 <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">Commanding Store:</p>
@@ -423,8 +441,18 @@ export const CommandCenter = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex flex-col print:hidden">
+                        <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 ml-1">Historical View</span>
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            max={getCentralDate()}
+                            className="bg-black/40 text-[#C5A059] border border-[#C5A059]/30 rounded-lg p-2 text-sm font-mono outline-none focus:border-[#C5A059] hover:bg-[#C5A059]/10 transition-colors cursor-pointer"
+                        />
+                    </div>
                     {(user?.role === 'director' || user?.role === 'admin') && (
-                        <div className="flex items-center gap-3 px-4 py-2 bg-black/40 rounded-lg border border-white/5">
+                        <div className="flex items-center gap-3 px-4 py-2 bg-black/40 rounded-lg border border-white/5 print:hidden">
                             <div className="text-right">
                                 <span className="block text-[8px] text-gray-600 uppercase tracking-widest leading-none">Network Intake</span>
                                 <span className={`text-xs font-black ${networkAccountability?.critical_cases > 0 ? 'text-red-500' : 'text-[#00FF94]'}`}>
@@ -434,43 +462,84 @@ export const CommandCenter = () => {
                             <ShieldCheck className={`w-4 h-4 ${networkAccountability?.critical_cases > 0 ? 'text-red-500' : 'text-[#00FF94]'}`} />
                         </div>
                     )}
-                    <div className="flex flex-wrap items-center gap-6 bg-[#121212] p-4 rounded-lg border border-white/5">
-                        <div className="text-center px-4 border-r border-white/5">
-                            <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Forecast Guests</span>
-                            <div className="flex items-center gap-2">
-                                {user?.role === 'director' || user?.role === 'admin' ? (
-                                    <span className="text-xl font-black text-white px-2 py-1">{forecast}</span>
-                                ) : (
-                                    <>
-                                        <input
-                                            type="number"
-                                            value={forecast}
-                                            onChange={(e) => setForecast(parseInt(e.target.value) || 0)}
-                                            disabled={prepData?.is_locked}
-                                            className={`w-16 bg-transparent text-xl font-black outline-none border-b focus:border-[#C5A059] ${prepData?.is_locked ? 'text-gray-500 border-gray-800 cursor-not-allowed' : 'text-white border-[#333]'}`}
-                                        />
-                                        <button
-                                            onClick={prepData?.is_locked ? undefined : lockPrepPlan}
-                                            disabled={prepData?.is_locked}
-                                            title="Lock Forecast"
-                                            className={`ml-2 px-3 py-1 border rounded text-xs font-bold uppercase transition-colors ${prepData?.is_locked ? 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed' : 'bg-[#00FF94]/20 text-[#00FF94] border-[#00FF94]/30 hover:bg-[#00FF94]/30'}`}
-                                        >
-                                            {prepData?.is_locked ? 'Locked' : 'Lock'}
-                                        </button>
-                                    </>
-                                )}
-                                <Users className="w-4 h-4 text-gray-600" />
+
+                    {prepData?.holiday_insight && (
+                        <div className="bg-[#C5A059]/10 border border-[#C5A059]/30 rounded-lg p-3 flex items-start gap-3 print:hidden max-w-sm">
+                            <Brain className="w-5 h-5 text-[#C5A059] shrink-0 mt-0.5" />
+                            <div>
+                                <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-wider block mb-0.5">AI Holiday & Event Predictor</span>
+                                <p className="text-xs text-gray-300 leading-tight">{prepData.holiday_insight}</p>
                             </div>
                         </div>
-                        <div className="text-center px-4 border-r border-white/5">
-                            <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Projected Cost/G</span>
-                            <div className={`text-xl font-black ${prepData?.predicted_cost_guest > (prepData?.target_cost_guest || 9.94) ? 'text-red-500' : 'text-[#00FF94]'}`}>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-6 bg-[#121212] p-4 rounded-lg border border-white/5 print:border-none print:p-0 print:bg-transparent">
+                        <div className="text-center px-4 border-r border-white/5 print:border-gray-200">
+                            <span className="block text-[10px] text-gray-500 w-[100px] uppercase tracking-widest mb-1 print:text-gray-600">Total Forecast</span>
+                            <div className="flex justify-center items-center gap-2">
+                                {prepData?.is_lunch_enabled ? (
+                                    <div className="flex gap-2 text-sm print:text-black items-center">
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-[8px] text-gray-500 uppercase print:text-gray-600">Lunch</span>
+                                            {prepData?.is_locked ? (
+                                                <span className="font-bold text-[#00FF94] print:text-black">{lunchForecast}</span>
+                                            ) : (user?.role === 'director' || user?.role === 'admin' ? (
+                                                <span className="font-bold text-white print:text-black">{lunchForecast}</span>
+                                            ) : (
+                                                <input type="number" value={lunchForecast} onChange={(e) => setLunchForecast(parseInt(e.target.value) || 0)} className="w-12 bg-transparent text-center font-bold border-b border-[#333] focus:border-[#C5A059] outline-none" />
+                                            ))}
+                                        </div>
+                                        <span className="text-gray-600">+</span>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-[8px] text-gray-500 uppercase print:text-gray-600">Dinner</span>
+                                            {prepData?.is_locked ? (
+                                                <span className="font-bold text-[#00FF94] print:text-black">{dinnerForecast}</span>
+                                            ) : (user?.role === 'director' || user?.role === 'admin' ? (
+                                                <span className="font-bold text-white print:text-black">{dinnerForecast}</span>
+                                            ) : (
+                                                <input type="number" value={dinnerForecast} onChange={(e) => setDinnerForecast(parseInt(e.target.value) || 0)} className="w-12 bg-transparent text-center font-bold border-b border-[#333] focus:border-[#C5A059] outline-none" />
+                                            ))}
+                                        </div>
+                                        <span className="text-gray-600">=</span>
+                                        <span className="font-black text-xl">{lunchForecast + dinnerForecast}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        {prepData?.is_locked ? (
+                                            <span className="text-xl font-black text-[#00FF94] print:text-black">{dinnerForecast}</span>
+                                        ) : (user?.role === 'director' || user?.role === 'admin' ? (
+                                            <span className="text-xl font-black text-white px-2 py-1 print:text-black">{dinnerForecast}</span>
+                                        ) : (
+                                            <input type="number" value={dinnerForecast} onChange={(e) => setDinnerForecast(parseInt(e.target.value) || 0)} className="w-16 bg-transparent text-xl font-black text-center outline-none border-b border-[#333] focus:border-[#C5A059]" />
+                                        ))}
+                                    </div>
+                                )}
+
+                                {(!prepData?.is_locked && user?.role !== 'director' && user?.role !== 'admin') && (
+                                    <button
+                                        onClick={lockPrepPlan}
+                                        title="Lock Forecast"
+                                        className="ml-2 px-3 py-1 border rounded text-[10px] font-bold uppercase transition-colors bg-white/5 text-gray-300 border-white/10 hover:bg-[#00FF94]/20 hover:text-[#00FF94] hover:border-[#00FF94]/30 print:hidden"
+                                    >
+                                        Lock
+                                    </button>
+                                )}
+                                {(prepData?.is_locked) && (
+                                    <span title="Plan is Locked" className="ml-2 print:hidden">
+                                        <ShieldCheck className="w-4 h-4 text-[#00FF94]" />
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="text-center px-4 border-r border-white/5 print:border-gray-200">
+                            <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1 print:text-gray-600">Projected Cost/G</span>
+                            <div className={`text-xl font-black print:text-black ${prepData?.predicted_cost_guest > (prepData?.target_cost_guest || 9.94) ? 'text-red-500' : 'text-[#00FF94]'}`}>
                                 ${prepData?.predicted_cost_guest || '0.00'}
                             </div>
                         </div>
                         <div className="text-center px-4">
-                            <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Status</span>
-                            <span className="text-xs font-bold text-[#00FF94] animate-pulse">● LIVE OPS</span>
+                            <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1 print:text-gray-600">Status</span>
+                            <span className="text-xs font-bold text-[#00FF94] animate-pulse print:animate-none print:text-black">● LIVE OPS</span>
                         </div>
                     </div>
                 </div>
@@ -478,7 +547,7 @@ export const CommandCenter = () => {
 
             {/* Tactical Briefing */}
             {prepData?.tactical_briefing && (
-                <div className="bg-[#C5A059]/5 border border-[#C5A059]/20 p-4 rounded-lg flex gap-4 items-start shadow-inner">
+                <div className="bg-[#C5A059]/5 border border-[#C5A059]/20 p-4 rounded-lg flex gap-4 items-start shadow-inner print:hidden">
                     <Zap className="w-6 h-6 text-[#C5A059] shrink-0" />
                     <div>
                         <h3 className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.2em] mb-1">Pareto Optimization Briefing</h3>
@@ -487,26 +556,26 @@ export const CommandCenter = () => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:block">
 
                 {/* LEFT: SMART PREP (Operational Prep List) */}
-                <div className="lg:col-span-12 xl:col-span-5 space-y-4">
+                <div className="lg:col-span-12 xl:col-span-5 space-y-4 print:w-full print:block">
                     <div className="flex justify-between items-center px-2">
                         <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                             <ChefHat className="w-4 h-4" /> Shift Prep Requirements (+20% Buffer + Delivery)
                         </h2>
-                        <button onClick={() => window.print()} className="text-[10px] text-gray-500 hover:text-white uppercase transition-colors flex items-center gap-1">
+                        <button onClick={() => window.print()} className="text-[10px] text-gray-500 hover:text-white uppercase transition-colors flex items-center gap-1 print:hidden">
                             <Printer className="w-3 h-3" /> Print Guide
                         </button>
                     </div>
 
-                    <div className="bg-[#1a1a1a] rounded-xl border border-white/5 overflow-hidden shadow-xl">
-                        <div className="grid grid-cols-12 bg-[#252525] p-3 text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
+                    <div className="bg-[#1a1a1a] rounded-xl border border-white/5 overflow-hidden shadow-xl print:border-none print:shadow-none print:bg-transparent">
+                        <div className="grid grid-cols-12 bg-[#252525] p-3 text-[10px] font-bold text-gray-500 uppercase tracking-tighter print:bg-gray-100 print:text-black print:border-b print:border-gray-300">
                             <div className="col-span-6">Protein Item</div>
                             <div className="col-span-3 text-right">Prep Qty</div>
                             <div className="col-span-3 text-right">Weight (Lbs)</div>
                         </div>
-                        <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">
+                        <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto print:max-h-none print:overflow-visible print:divide-gray-200">
                             {prepData?.prep_list?.map((item: any) => {
                                 const isVillain = villains.some(v => item.protein.includes(v));
                                 return (
@@ -533,7 +602,7 @@ export const CommandCenter = () => {
                 </div>
 
                 {/* RIGHT: WASTE LOGGING (Operational Waste Terminal) */}
-                <div className="lg:col-span-12 xl:col-span-7 space-y-4">
+                <div className="lg:col-span-12 xl:col-span-7 space-y-4 print:hidden">
                     <div className="flex justify-between items-center px-2">
                         <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                             <Trash2 className="w-4 h-4" /> Shift Waste Recording

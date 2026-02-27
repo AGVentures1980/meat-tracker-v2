@@ -54,6 +54,9 @@ model Store {
   company_id String
   store_name String
   location   String
+  country    String   @default("USA")
+  city       String?
+  timezone   String   @default("America/Chicago")
   created_at DateTime @default(now())
 
   // Pilot & ROI Baseline

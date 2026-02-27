@@ -18,14 +18,19 @@ body {
 }
 
 @media print {
+
   /* Reset layout constraints for printing */
-  html, body, #root, div {
+  html,
+  body,
+  #root {
     height: auto !important;
     overflow: visible !important;
   }
-  
+
   /* Hide unnecessary elements */
-  nav, header, button.print-hide {
+  nav,
+  header,
+  button.print-hide {
     display: none !important;
   }
 
@@ -36,13 +41,22 @@ body {
   }
 
   /* Keep colors if printer allows, but avoid pure black backgrounds destroying ink */
-  .bg-\[\#050505\], .bg-brand-black, .bg-\[\#1a1a1a\], .bg-\[\#252525\], .bg-\[\#111\] {
+  .bg-\[\#050505\],
+  .bg-brand-black,
+  .bg-\[\#1a1a1a\],
+  .bg-\[\#252525\],
+  .bg-\[\#111\],
+  .bg-\[\#121212\],
+  .bg-\[\#222\] {
     background-color: transparent !important;
-    color: black !important;
-    border: 1px solid #ccc !important;
+    border: 1px solid #e5e7eb !important;
   }
-  
-  .text-white, .text-gray-300, .text-gray-400 {
+
+  .text-white,
+  .text-gray-300,
+  .text-gray-400,
+  .text-gray-500,
+  .text-gray-600 {
     color: black !important;
   }
 }

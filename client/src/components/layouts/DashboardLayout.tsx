@@ -166,11 +166,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     }, []);
 
     return (
-        <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden">
+        <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden print:h-auto print:overflow-visible">
             {/* Overlay for mobile/retractable mode */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:hidden"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:hidden print:hidden"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
@@ -289,7 +289,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col min-w-0 relative pb-20 md:pb-0">
+            <main className="flex-1 flex flex-col min-w-0 relative pb-20 md:pb-0 print:block print:pb-0">
                 {/* Ticker Header */}
                 <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between print:hidden">
                     <div className="flex items-center gap-4 overflow-hidden text-xs font-mono">
@@ -422,12 +422,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 </header >
 
                 {/* Page Content */}
-                < div className="flex-1 overflow-auto p-4 md:p-6 bg-[#121212]" onClick={() => setShowAlerts(false)}>
+                <div className="flex-1 overflow-auto p-4 md:p-6 bg-[#121212] print:overflow-visible print:p-0 print:bg-white" onClick={() => setShowAlerts(false)}>
                     {children}
-                </div >
+                </div>
 
                 {/* Mobile Bottom Navigation */}
-                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex justify-around p-2 z-[9999] pb-safe">
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex justify-around p-2 z-[9999] pb-safe print:hidden">
                     <button onClick={() => navigate('/dashboard')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/dashboard' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
                         <LayoutDashboard size={20} />
                         <span className="text-[10px] mt-1">Home</span>

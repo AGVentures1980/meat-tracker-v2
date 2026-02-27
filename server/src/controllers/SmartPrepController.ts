@@ -5,6 +5,8 @@ import { MEAT_UNIT_WEIGHTS } from '../config/meat_weights';
 import { MEAT_STANDARDS } from '../config/standards';
 import { MEAT_COSTS_LB, FINANCIAL_TARGET_GUEST, FINANCIAL_TOLERANCE_THRESHOLD } from '../config/costs';
 
+import { HolidayPredictorAgent } from '../agents/HolidayPredictorAgent';
+
 const prisma = new PrismaClient();
 
 const VILLAINS = ['Picanha', 'Picanha with Garlic', 'Lamb Picanha', 'Beef Ribs', 'Lamb Chops', 'Filet Mignon', 'Filet Mignon with Bacon', 'Fraldinha', 'Flap Steak'];
@@ -149,48 +151,75 @@ export class SmartPrepController {
                 where: { company_id: store.company_id }
             });
 
-            // SHIFT DEFINITION LOGIC
-            // The user prepares for the shift BEFORE it starts. Wait until Lunch ENDS to switch to Dinner prep.
-            let isDinner = centralNow.getHours() >= 15; // Default fallback
-
-            if (store.is_lunch_enabled && store.lunch_end_time) {
-                const currentHour = centralNow.getHours();
-                const currentMinute = centralNow.getMinutes();
-                const currentTimeVal = currentHour + (currentMinute / 60);
-
-                const [lEndH, lEndM] = store.lunch_end_time.split(':').map(Number);
-                const lunchEndVal = lEndH + ((lEndM || 0) / 60);
-
-                // If we are before Lunch ends, assume we are forecasting/prepping for Lunch.
-                // If we are after Lunch ends, assume Dinner.
-                if (currentTimeVal < lunchEndVal) {
-                    isDinner = false;
-                } else {
-                    isDinner = true;
-                }
-            } else if (!store.is_lunch_enabled) {
-                isDinner = true;
-            }
-
             // SHIFT-AWARE LBS TARGET
-            let targetLbsPerGuest = (store as any).target_lbs_guest || 1.76;
-            if (!isDinner && store.lunch_target_lbs_guest) {
-                targetLbsPerGuest = store.lunch_target_lbs_guest;
-            }
-
+            const targetLbsPerGuest = (store as any).target_lbs_guest || 1.76;
+            const lunchTargetLbsPerGuest = store.lunch_target_lbs_guest || 1.76;
             const targetCostPerGuest = (store as any).target_cost_guest || 9.94;
 
-            let forecast = 150;
-            if (req.query.guests) {
-                forecast = parseInt(req.query.guests as string);
-            } else {
-                const baseForecast = 120;
-                forecast = baseForecast + (dayOfWeek * 25);
+            // Auto-Suggest Logic (Historical Average for the same Day of Week)
+            const fourWeeksAgoHist = new Date(date);
+            fourWeeksAgoHist.setDate(fourWeeksAgoHist.getDate() - 28);
+
+            const historicalLogs = await (prisma as any).prepLog.findMany({
+                where: {
+                    store_id: storeId,
+                    date: { gte: fourWeeksAgoHist, lte: date }
+                }
+            });
+
+            // Filter by exact day of week, excluding today's date if it already exists
+            const sameDayLogs = historicalLogs.filter((log: any) => new Date(log.date).getDay() === dayOfWeek && log.date.getTime() !== date.getTime());
+
+            let sumLunch = 0, countLunch = 0;
+            let sumDinner = 0, countDinner = 0;
+
+            sameDayLogs.forEach((log: any) => {
+                const data = log.data || {};
+                if (data.lunch_forecast) { sumLunch += data.lunch_forecast; countLunch++; }
+                if (data.dinner_forecast) { sumDinner += data.dinner_forecast; countDinner++; }
+                // fallback for older logs
+                if (!data.lunch_forecast && !data.dinner_forecast && log.forecast) {
+                    sumDinner += log.forecast; countDinner++;
+                }
+            });
+
+            const baseForecast = 120 + (dayOfWeek * 25);
+            let suggestedLunch = countLunch > 0 ? Math.round(sumLunch / countLunch) : (store.is_lunch_enabled ? Math.round(baseForecast * 0.4) : 0);
+            let suggestedDinner = countDinner > 0 ? Math.round(sumDinner / countDinner) : Math.round(baseForecast * (store.is_lunch_enabled ? 0.6 : 1.0));
+
+            let holidayInsight = null;
+            const prediction = await HolidayPredictorAgent.getHolidayForecast({
+                country: store.country || 'USA',
+                city: store.city || null,
+                targetDate: dateStr,
+                historicalLunchAvg: suggestedLunch,
+                historicalDinnerAvg: suggestedDinner
+            });
+
+            if (prediction?.holiday_insight) {
+                suggestedLunch = prediction.suggested_lunch_guests;
+                suggestedDinner = prediction.suggested_dinner_guests;
+                holidayInsight = prediction.holiday_insight;
+            }
+
+            const lunchGuests = req.query.lunchGuests ? parseInt(req.query.lunchGuests as string) : suggestedLunch;
+            const dinnerGuests = req.query.dinnerGuests ? parseInt(req.query.dinnerGuests as string) : suggestedDinner;
+
+            // Total guests for backward compatibility in reporting
+            const forecast = lunchGuests + dinnerGuests;
+
+            // Rank current shift
+            let isDinner = true;
+            if (store.lunch_start_time && store.lunch_end_time) {
+                const hour = centralNow.getHours();
+                const lunchEndHour = parseInt(store.lunch_end_time.split(':')[0]);
+                if (hour < lunchEndHour) isDinner = false;
             }
 
             // APPLY SAFETY BUFFER (+20% for Dinner Walk-ins)
-            const bufferMultiplier = isDinner ? 1.20 : 1.0;
-            const dineInMeatLbs = (forecast * bufferMultiplier) * targetLbsPerGuest;
+            const lunchDineInLbs = (lunchGuests * 1.0) * lunchTargetLbsPerGuest; // Lunch uses 1.0 buffer (no 20% bump)
+            const dinnerDineInLbs = (dinnerGuests * 1.20) * targetLbsPerGuest; // Dinner uses 1.20 buffer
+            const dineInMeatLbs = lunchDineInLbs + dinnerDineInLbs;
 
             // [DELIVERY FORECAST BUFFER LOGIC]
             // We need to anticipate UberEats/OLO orders by looking at historical data
@@ -226,31 +255,22 @@ export class SmartPrepController {
             // Store specific lunch exclusions (e.g. Tampa excluding Ribs at lunch)
             const lunchExcluded = store.lunch_excluded_proteins || [];
 
-            // Compile the final list of proteins to prep for this shift
-            let proteins = Object.keys(MEAT_UNIT_WEIGHTS).filter(p => !DISCONTINUED.includes(p));
-
-            if (!isDinner) {
-                proteins = proteins.filter(p => {
-                    const lName = p.toLowerCase();
-                    // Exclude if it's marked as Dinner Only in the company ledger
-                    if (DINNER_ONLY_MEATS.includes(lName)) return false;
-                    // Exclude if this store specifically drops it at lunch
-                    // lunch_excluded_proteins may be stored as an array of strings
-                    if (Array.isArray(lunchExcluded) && lunchExcluded.includes(p)) return false;
-                    return true;
-                });
-            }
+            // Compile the final list of proteins
+            let allProteins = Object.keys(MEAT_UNIT_WEIGHTS).filter(p => !DISCONTINUED.includes(p));
 
             // Global exclusion: block Lamb Chops entirely if the store doesn't serve them in Rodizio
             if (store.serves_lamb_chops_rodizio === false) {
-                proteins = proteins.filter(p => !p.toLowerCase().includes('lamb chops'));
+                allProteins = allProteins.filter(p => !p.toLowerCase().includes('lamb chops'));
             }
 
             let totalPredictedCost = 0;
+            const meatTargets = (store as any).meat_targets || [];
 
-            for (const protein of proteins) {
+            for (const protein of allProteins) {
+                const lName = protein.toLowerCase();
+                const isDinnerOnly = DINNER_ONLY_MEATS.includes(lName) || (Array.isArray(lunchExcluded) && lunchExcluded.includes(protein));
+
                 let mixPercentage = 0;
-                const meatTargets = (store as any).meat_targets || [];
                 const specificOverride = meatTargets.find((t: any) => t.protein === protein);
 
                 if (specificOverride) {
@@ -263,7 +283,26 @@ export class SmartPrepController {
                 // PARETO TAGGING
                 const isVillain = VILLAINS.some(v => protein.includes(v));
 
-                const neededLbs = totalMeatLbs * mixPercentage;
+                let neededLbs = 0;
+
+                // Lunch Math
+                if (store.is_lunch_enabled && !isDinnerOnly) {
+                    let lunchMixPercentage = mixPercentage;
+                    if (specificOverride) {
+                        // Rescale override target relative to lunch target
+                        lunchMixPercentage = specificOverride.target / lunchTargetLbsPerGuest;
+                    }
+                    neededLbs += lunchDineInLbs * lunchMixPercentage;
+                }
+
+                // Dinner Math
+                neededLbs += dinnerDineInLbs * mixPercentage;
+
+                // Delivery Math (applies to mix)
+                neededLbs += deliveryBufferLbs * mixPercentage;
+
+                if (neededLbs <= 0) continue;
+
                 const costLb = MEAT_COSTS_LB[protein] || 6.00;
                 totalPredictedCost += neededLbs * costLb;
 
@@ -347,6 +386,11 @@ export class SmartPrepController {
                 store_name: store.store_name,
                 date: dateStr,
                 forecast_guests: forecast,
+                suggested_lunch_guests: suggestedLunch,
+                suggested_dinner_guests: suggestedDinner,
+                lunch_forecast: lunchGuests,
+                dinner_forecast: dinnerGuests,
+                is_lunch_enabled: store.is_lunch_enabled,
                 target_lbs_guest: targetLbsPerGuest,
                 predicted_cost_guest: parseFloat(predictedCostGuest.toFixed(2)),
                 financial_target: FINANCIAL_TARGET_GUEST,
@@ -370,13 +414,14 @@ export class SmartPrepController {
         try {
             const user = (req as any).user;
             const userId = user.userId;
-            const { store_id, date, forecast, data } = req.body;
+            const { store_id, date, forecast, lunch_forecast, dinner_forecast, data } = req.body;
 
-            if (!store_id || !date || !forecast || !data) {
+            if (!store_id || !date || (!forecast && Number.isNaN(lunch_forecast + dinner_forecast)) || !data) {
                 return res.status(400).json({ error: 'Missing required fields' });
             }
 
             const targetStoreId = parseInt(store_id);
+            const totalForecast = parseInt(forecast) || (parseInt(lunch_forecast || 0) + parseInt(dinner_forecast || 0));
 
             // Date parsing fix (must match exactly the zero-time UTC object created in getDailyPrep)
             const targetDateStr = String(date).split('T')[0];
@@ -408,8 +453,10 @@ export class SmartPrepController {
                 data: {
                     store_id: targetStoreId,
                     date: targetDate,
-                    forecast: parseInt(forecast),
+                    forecast: totalForecast,
                     data: {
+                        lunch_forecast: lunch_forecast ? parseInt(lunch_forecast) : null,
+                        dinner_forecast: dinner_forecast ? parseInt(dinner_forecast) : null,
                         prep_list: data.prep_list,
                         target_lbs_guest: data.target_lbs_guest,
                         predicted_cost_guest: data.predicted_cost_guest,
