@@ -121,7 +121,11 @@ export const CommandCenter = () => {
                 headers: {
                     'Authorization': `Bearer ${user?.token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    storeId: selectedStoreId || user?.storeId || 1,
+                    enabled: true
+                })
             });
             if (res.ok) {
                 fetchData();
