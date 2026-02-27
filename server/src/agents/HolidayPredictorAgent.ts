@@ -30,7 +30,7 @@ Baseline historical traffic for this day of the week:
 - Dinner: ${context.historicalDinnerAvg}
 
 Your task:
-1. Identify if ${context.targetDate} falls on or within ~3 days of a major holiday or cultural event in ${context.country}. 
+1. Identify if ${context.targetDate} falls on or within ~7 days (1 week) of a major holiday or cultural event in ${context.country}. 
    - Note: Holidays vary by country! (e.g., Valentine's Day in Brazil is June 12, not Feb 14. Mother's Day dates vary).
 2. If there is a major event, estimate the impact on restaurant traffic (e.g. +40% for Mother's Day lunch, +20% for Valentine's dinner).
 3. If there is NO significant event, return the baseline numbers and set holiday_insight to null.

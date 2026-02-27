@@ -228,9 +228,15 @@ export class SupportController {
 
     static async getActiveTickets(req: Request, res: Response) {
         try {
-            // Admin only
+            const user = (req as any).user;
+            const whereClause: any = { status: 'OPEN', is_escalated: true };
+
+            if (user.role === 'director' && user.companyId) {
+                whereClause.store = { company_id: user.companyId };
+            }
+
             const tickets = await prisma.supportTicket.findMany({
-                where: { status: 'OPEN', is_escalated: true },
+                where: whereClause,
                 include: {
                     store: { select: { store_name: true, location: true } },
                     user: { select: { first_name: true, last_name: true, email: true } },
@@ -304,8 +310,15 @@ export class SupportController {
 
     static async getCompanyRatings(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
+            const whereClause: any = {};
+            if (user.role === 'director' && user.companyId) {
+                whereClause.id = user.companyId;
+            }
+
             // Calculate aggregate ratings per company using grouped prisma queries
             const companies = await prisma.company.findMany({
+                where: whereClause,
                 include: {
                     stores: {
                         include: {

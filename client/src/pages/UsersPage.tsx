@@ -28,6 +28,7 @@ export const UsersPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isMasterOrAdmin = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co';
+    const API_URL = (import.meta as any).env?.VITE_API_URL || '';
 
     useEffect(() => {
         fetchUsers();
@@ -39,7 +40,7 @@ export const UsersPage = () => {
             const token = user?.token;
             if (!token) return;
 
-            const res = await fetch('/api/v1/users/store', {
+            const res = await fetch(`${API_URL}/api/v1/users/store`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -65,7 +66,7 @@ export const UsersPage = () => {
         setIsSubmitting(true);
         try {
             const token = user?.token;
-            const res = await fetch('/api/v1/users/store', {
+            const res = await fetch(`${API_URL}/api/v1/users/store`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,7 +108,7 @@ export const UsersPage = () => {
 
         try {
             const token = user?.token;
-            const res = await fetch(`/api/v1/users/store/${targetId}`, {
+            const res = await fetch(`${API_URL}/api/v1/users/store/${targetId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

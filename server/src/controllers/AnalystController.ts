@@ -7,9 +7,18 @@ export class AnalystController {
 
     static async getRoiReport(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
+
+            const whereClause: any = { is_pilot: true };
+            if (user.role === 'director' && user.companyId) {
+                whereClause.company_id = user.companyId;
+            } else if (user.role !== 'admin' && user.role !== 'director') {
+                whereClause.id = user.storeId;
+            }
+
             // 1. Fetch Pilot Stores with their Baselines
             const pilotStores = await prisma.store.findMany({
-                where: { is_pilot: true },
+                where: whereClause,
                 include: {
                     meat_usage: true,
                     waste_logs: true,
@@ -21,7 +30,15 @@ export class AnalystController {
             // If no pilot stores defined yet, fallback to looking for specific names or just first 3
             let selectedStores = pilotStores;
             if (pilotStores.length === 0) {
+                const fallbackWhere: any = {};
+                if (user.role === 'director' && user.companyId) {
+                    fallbackWhere.company_id = user.companyId;
+                } else if (user.role !== 'admin' && user.role !== 'director') {
+                    fallbackWhere.id = user.storeId;
+                }
+
                 selectedStores = await prisma.store.findMany({
+                    where: fallbackWhere,
                     take: 3,
                     include: {
                         meat_usage: true,

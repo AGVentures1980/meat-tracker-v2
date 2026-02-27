@@ -70,7 +70,8 @@ export const DataAnalyst = () => {
 
     const fetchReport = async () => {
         try {
-            const res = await fetch('/api/v1/analyst/roi', {
+            const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            const res = await fetch(`${API_URL}/api/v1/analyst/roi`, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const jsonData = await res.json();
@@ -100,7 +101,8 @@ export const DataAnalyst = () => {
 
     const handleSave = async (storeId: number) => {
         try {
-            await fetch(`/api/v1/analyst/roi/${storeId}/baselines`, {
+            const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            await fetch(`${API_URL}/api/v1/analyst/roi/${storeId}/baselines`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -120,7 +122,7 @@ export const DataAnalyst = () => {
             });
             setEditingStoreId(null);
             // Reload data
-            const res = await fetch('/api/v1/analyst/roi', {
+            const res = await fetch(`${API_URL}/api/v1/analyst/roi`, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const jsonData = await res.json();

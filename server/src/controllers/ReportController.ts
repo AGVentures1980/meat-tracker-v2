@@ -66,8 +66,14 @@ export class ReportController {
             const start = startOfDay(now);
             const end = endOfDay(now);
 
+            const whereClause: any = user.role === 'admin'
+                ? {}
+                : user.role === 'director'
+                    ? { company_id: user.companyId }
+                    : { id: user.storeId };
+
             const stores = await prisma.store.findMany({
-                where: user.role !== 'admin' && user.role !== 'director' ? { id: user.storeId } : {},
+                where: whereClause,
                 include: {
                     orders: {
                         where: {
@@ -113,8 +119,16 @@ export class ReportController {
                 return res.status(400).json({ error: 'Store ID required for variance analysis' });
             }
 
-            const targetId = id || (await prisma.store.findFirst())?.id;
-            if (!targetId) return res.status(404).json({ error: 'No stores found' });
+            let targetId = id;
+            if (!targetId && (user.role === 'admin' || user.role === 'director')) {
+                // Fetch the first store that belongs to their company
+                const firstStore = await prisma.store.findFirst({
+                    where: user.role === 'director' ? { company_id: user.companyId } : {}
+                });
+                targetId = firstStore?.id;
+            }
+
+            if (!targetId) return res.status(404).json({ error: 'No stores found in your company' });
 
             const stats = await MeatEngine.getDashboardStats(targetId, start, end);
             console.log(`[ReportController] Variance Analysis for store ${targetId} generated ${stats.topMeats.length} items.`);
@@ -150,7 +164,16 @@ export class ReportController {
                 return res.status(400).json({ error: 'Store ID required' });
             }
 
-            const targetId = id || (await prisma.store.findFirst())?.id;
+            let targetId = id;
+            if (!targetId && (user.role === 'admin' || user.role === 'director')) {
+                const firstStore = await prisma.store.findFirst({
+                    where: user.role === 'director' ? { company_id: user.companyId } : {}
+                });
+                targetId = firstStore?.id;
+            }
+
+            if (!targetId) return res.status(404).json({ error: 'No stores found in your company' });
+
             const history = await MeatEngine.getInventoryHistory(targetId, start, end);
             console.log(`[ReportController] Inventory History for store ${targetId}: Purchases: ${history.purchases.length}, Counts: ${history.counts.length}`);
 

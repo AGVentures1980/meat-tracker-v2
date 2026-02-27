@@ -32,6 +32,7 @@ export const ForecastPage = () => {
 
         const fetchForecast = async () => {
             setLoading(true);
+            setMessage(null); // Clear previous success/error messages when date changes
             try {
                 const storeParam = externalStoreId ? `&storeId=${externalStoreId}` : '';
                 const res = await fetch(`/api/v1/forecast/next-week?date=${selectedDate}${storeParam}`, {

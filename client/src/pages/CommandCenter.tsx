@@ -390,9 +390,9 @@ export const CommandCenter = () => {
                     </div>
                     <div className="flex items-center gap-3 mt-1 print:hidden">
                         {(user?.role === 'director' || user?.role === 'admin') && networkPrepStatus ? (
-                            <div className="flex items-center gap-2 relative">
+                            <div className="flex items-center gap-2 relative z-50">
                                 <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">Commanding Store:</p>
-                                <div className="relative">
+                                <div className="relative z-50">
                                     <button
                                         onClick={() => setIsStoreDropdownOpen(!isStoreDropdownOpen)}
                                         className="bg-black/40 border border-white/10 text-white text-sm font-bold py-1 px-3 rounded flex items-center justify-between min-w-[160px] hover:border-[#C5A059] transition-colors"
