@@ -90,7 +90,7 @@ export class SmartPrepController {
             }
 
             let storeId = userStoreId;
-            if ((userRole === 'admin' || userRole === 'director') && req.query.store_id) {
+            if (['admin', 'director', 'owner'].includes(userRole) && req.query.store_id) {
                 storeId = parseInt(req.query.store_id as string);
             }
 
@@ -111,11 +111,11 @@ export class SmartPrepController {
             const today = new Date();
             const centralNow = SmartPrepController.getCentralDateTime(today);
             const dateStr = req.query.date as string || centralNow.toISOString().split('T')[0];
-            const date = new Date(dateStr);
+            const date = new Date(dateStr + 'T00:00:00Z');
             const dayOfWeek = date.getDay();
 
-            const savedLog = await (prisma as any).prepLog.findUnique({
-                where: { store_id_date: { store_id: storeId, date: date } }
+            const savedLog = await (prisma as any).prepLog.findFirst({
+                where: { store_id: storeId, date: date }
             });
 
             if (savedLog) {
@@ -322,17 +322,26 @@ export class SmartPrepController {
 
             const targetStoreId = parseInt(store_id);
 
+            // Date parsing fix (must match exactly the zero-time UTC object created in getDailyPrep)
+            const targetDateStr = String(date).split('T')[0];
+            const targetDate = new Date(targetDateStr + 'T00:00:00Z');
+
             // Verify store belongs to company
-            const store = await prisma.store.findFirst({
-                where: { id: targetStoreId, company_id: user.companyId }
-            });
+            let store = null;
+            if (user.role === 'admin') {
+                store = await prisma.store.findFirst({ where: { id: targetStoreId } });
+            } else {
+                store = await prisma.store.findFirst({
+                    where: { id: targetStoreId, company_id: user.companyId }
+                });
+            }
 
             if (!store) {
                 return res.status(403).json({ error: 'Access Denied: Store not found or belongs to another company.' });
             }
 
-            const existing = await (prisma as any).prepLog.findUnique({
-                where: { store_id_date: { store_id: targetStoreId, date: new Date(date) } }
+            const existing = await (prisma as any).prepLog.findFirst({
+                where: { store_id: targetStoreId, date: targetDate }
             });
 
             if (existing) {
@@ -341,8 +350,8 @@ export class SmartPrepController {
 
             await (prisma as any).prepLog.create({
                 data: {
-                    store_id: parseInt(store_id),
-                    date: new Date(date),
+                    store_id: targetStoreId,
+                    date: targetDate,
                     forecast: parseInt(forecast),
                     data: {
                         prep_list: data.prep_list,

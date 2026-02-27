@@ -66,6 +66,11 @@ export const CommandCenter = () => {
                 // 2. Fetch Prep Data if gate is open
                 urlParams.append('guests', forecast.toString());
                 urlParams.append('date', selectedDate);
+                if (selectedStoreId) {
+                    urlParams.append('store_id', selectedStoreId.toString());
+                } else if (user?.storeId) {
+                    urlParams.append('store_id', user.storeId.toString());
+                }
                 const prepRes = await fetch(`/api/v1/dashboard/smart-prep?${urlParams.toString()}`, {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 });
