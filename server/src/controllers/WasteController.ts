@@ -610,13 +610,20 @@ export class WasteController {
     }
 
     private static async checkAccountabilityGateDetails(storeId: number, dateStr: string): Promise<{ has_accountability: boolean, source: string }> {
+        // Parse the target date locally
+        const [year, month, day] = dateStr.split('-').map(Number);
+
+        // Define exact boundaries for the local day in UTC
+        const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+
         // 1. Check if any invoice was logged today for this store
         const invoices = await prisma.invoiceRecord.findMany({
             where: {
                 store_id: storeId,
                 date: {
-                    gte: new Date(dateStr),
-                    lt: new Date(new Date(dateStr).getTime() + 86400000)
+                    gte: startOfDay,
+                    lte: endOfDay
                 }
             }
         });
@@ -636,8 +643,8 @@ export class WasteController {
                 location: storeId.toString(),
                 action: 'NO_DELIVERY_FLAG',
                 created_at: {
-                    gte: new Date(dateStr),
-                    lt: new Date(new Date(dateStr).getTime() + 86400000)
+                    gte: startOfDay,
+                    lte: endOfDay
                 }
             }
         });
