@@ -610,43 +610,42 @@ export class WasteController {
     }
 
     private static async checkAccountabilityGateDetails(storeId: number, dateStr: string): Promise<{ has_accountability: boolean, source: string }> {
-        // Parse the target date locally
-        const [year, month, day] = dateStr.split('-').map(Number);
-
-        // Define exact boundaries for the local day in UTC
-        const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-        const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
-
-        // 1. Check if any invoice was logged today for this store
-        const invoices = await prisma.invoiceRecord.findMany({
-            where: {
-                store_id: storeId,
-                date: {
-                    gte: startOfDay,
-                    lte: endOfDay
-                }
-            }
+        // 1. Fetch recent invoices and filter by target Central date
+        const recentInvoices = await prisma.invoiceRecord.findMany({
+            where: { store_id: storeId },
+            orderBy: { date: 'desc' },
+            take: 20
         });
 
-        if (invoices.length > 0) {
+        const todayInvoices = recentInvoices.filter(inv => {
+            const invCentral = WasteController.getCentralDateTime(inv.date);
+            const invDateStr = invCentral.toISOString().split('T')[0];
+            return invDateStr === dateStr;
+        });
+
+        if (todayInvoices.length > 0) {
             // Determine source based on invoice records
-            const has365 = invoices.some(inv => inv.source === '365' || inv.source === 'OLO');
+            const has365 = todayInvoices.some(inv => inv.source === '365' || inv.source === 'OLO');
             return {
                 has_accountability: true,
                 source: has365 ? '365' : 'Manual'
             };
         }
 
-        // 2. Check for manual "No Delivery" flag in AuditLog
-        const noDeliveryFlag = await prisma.auditLog.findFirst({
+        // 2. Fetch recent manual "No Delivery" flags in AuditLog and filter by target Central date
+        const recentFlags = await prisma.auditLog.findMany({
             where: {
                 location: storeId.toString(),
-                action: 'NO_DELIVERY_FLAG',
-                created_at: {
-                    gte: startOfDay,
-                    lte: endOfDay
-                }
-            }
+                action: 'NO_DELIVERY_FLAG'
+            },
+            orderBy: { created_at: 'desc' },
+            take: 10
+        });
+
+        const noDeliveryFlag = recentFlags.find(flag => {
+            const flagCentral = WasteController.getCentralDateTime(flag.created_at);
+            const flagDateStr = flagCentral.toISOString().split('T')[0];
+            return flagDateStr === dateStr;
         });
 
         if (noDeliveryFlag) {
