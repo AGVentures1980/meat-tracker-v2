@@ -74,7 +74,7 @@ export class SmartPrepController {
 
         } catch (error) {
             console.error('Network Prep Status Error:', error);
-            return res.status(500).json({ error: 'Failed to fetch network prep status' });
+            return res.status(500).json({ error: 'Failed to fetch network prep status', details: String(error) });
         }
     }
 
@@ -280,18 +280,23 @@ export class SmartPrepController {
                 tacticalBriefing = `Financial Risk Identified: Predicted cost ($${predictedCostGuest.toFixed(2)}) is above the cap of $${toleranceThreshold.toFixed(2)}. PARETO ALERT: Focus strictly on VILLAINS (Picanha/Ribs) output control. Delivery Forecast Volume Anticipated: +${deliveryBufferLbs.toFixed(1)} Lbs.`;
             } else if (predictedCostGuest > targetCostPerGuest) {
                 tacticalBriefing = `Attention: Tight margin ($${predictedCostGuest.toFixed(2)}). Your target is $${targetCostPerGuest.toFixed(2)}. Monitor Villain prep carefully. Delivery Forecast Volume Anticipated: +${deliveryBufferLbs.toFixed(1)} Lbs.`;
-                return res.json({
-                    store_id: storeId,
-                    store_name: store.store_name,
-                    date: dateStr,
-                    forecast_guests: forecast,
-                    target_lbs_guest: targetLbsPerGuest,
-                    predicted_cost_guest: parseFloat(predictedCostGuest.toFixed(2)),
-                    financial_target: FINANCIAL_TARGET_GUEST,
-                    tactical_briefing: tacticalBriefing,
-                    prep_list: prepList
-                });
+            } else {
+                tacticalBriefing = `Financial Goal OK ($${predictedCostGuest.toFixed(2)}). Buffer for Walk-ins included if applicable. Delivery Forecast Volume Anticipated: +${deliveryBufferLbs.toFixed(1)} Lbs.`;
             }
+
+            prepList.sort((a, b) => b.recommended_lbs - a.recommended_lbs);
+
+            return res.json({
+                store_id: storeId,
+                store_name: store.store_name,
+                date: dateStr,
+                forecast_guests: forecast,
+                target_lbs_guest: targetLbsPerGuest,
+                predicted_cost_guest: parseFloat(predictedCostGuest.toFixed(2)),
+                financial_target: FINANCIAL_TARGET_GUEST,
+                tactical_briefing: tacticalBriefing,
+                prep_list: prepList
+            });
 
             // The catch block should be outside the if/else if/else structure
             // but still within the try block of the method.

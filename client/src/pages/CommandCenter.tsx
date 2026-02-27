@@ -91,8 +91,19 @@ export const CommandCenter = () => {
                     })
                 ]);
 
-                if (networkRes.ok) setNetworkAccountability(await networkRes.json());
-                if (prepStatusRes.ok) setNetworkPrepStatus(await prepStatusRes.json());
+                if (networkRes.ok) {
+                    setNetworkAccountability(await networkRes.json());
+                } else {
+                    console.error("Network Accountability failed", await networkRes.text());
+                }
+
+                if (prepStatusRes.ok) {
+                    setNetworkPrepStatus(await prepStatusRes.json());
+                } else {
+                    const errText = await prepStatusRes.text();
+                    alert("Network Prep Status failed: " + errText);
+                    console.error("Network Prep Status failed", errText);
+                }
             }
 
             // 4. Fetch Products
