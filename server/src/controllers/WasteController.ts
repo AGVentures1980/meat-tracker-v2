@@ -20,13 +20,17 @@ export class WasteController {
             const dateStr = centralNow.toISOString().split('T')[0];
 
             // 0. Security Check: Ensure Store belongs to User's Company
-            const storeCheck = await prisma.store.findFirst({
-                where: {
-                    id: storeId,
-                    company_id: companyId
-                }
-            });
-
+            let storeCheck = null;
+            if (user.role === 'admin') {
+                storeCheck = await prisma.store.findFirst({ where: { id: storeId } });
+            } else {
+                storeCheck = await prisma.store.findFirst({
+                    where: {
+                        id: storeId,
+                        company_id: companyId
+                    }
+                });
+            }
             if (!storeCheck) {
                 return res.status(403).json({ error: 'Access Denied: Store not found in your company context.' });
             }

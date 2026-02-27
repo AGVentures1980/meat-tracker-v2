@@ -336,7 +336,7 @@ export const CommandCenter = () => {
                 <div className="lg:col-span-12 xl:col-span-5 space-y-4">
                     <div className="flex justify-between items-center px-2">
                         <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                            <ChefHat className="w-4 h-4" /> Shift Prep Requirements (+20% Buffer)
+                            <ChefHat className="w-4 h-4" /> Shift Prep Requirements (+20% Buffer + Delivery)
                         </h2>
                         <button onClick={() => window.print()} className="text-[10px] text-gray-500 hover:text-white uppercase transition-colors flex items-center gap-1">
                             <Printer className="w-3 h-3" /> Print Guide
