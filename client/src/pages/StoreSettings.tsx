@@ -6,7 +6,6 @@ import {
     Store,
     Clock,
     Ban,
-    DollarSign,
     Beef,
     AlertCircle
 } from 'lucide-react';
@@ -39,11 +38,9 @@ export default function StoreSettings() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    // List of standard proteins to pick exclusions from
-    const ALL_PROTEINS = [
-        "Picanha", "Garlic Picanha", "Filet Mignon", "Filet with Bacon",
-        "Beef Ribs", "Lamb Chops", "Lamb Picanha", "Pork Loin",
-        "Pork Ribs", "Sausage", "Chicken Breast", "Chicken Drumstick", "Fraldinha"
+    // Standard proteins that are always excluded from lunch
+    const LUNCH_EXCLUDED = [
+        "Filet Mignon", "Filet with Bacon", "Beef Ribs", "Lamb Chops"
     ];
 
     useEffect(() => {
@@ -130,14 +127,9 @@ export default function StoreSettings() {
         }
     };
 
-    const toggleExclusion = (protein: string) => {
+    const applyDefaultExclusions = () => {
         if (!settings) return;
-        const excluded = settings.lunch_excluded_proteins || [];
-        if (excluded.includes(protein)) {
-            setSettings({ ...settings, lunch_excluded_proteins: excluded.filter(p => p !== protein) });
-        } else {
-            setSettings({ ...settings, lunch_excluded_proteins: [...excluded, protein] });
-        }
+        setSettings({ ...settings, lunch_excluded_proteins: LUNCH_EXCLUDED });
     };
 
     if (error && !settings) {
@@ -171,7 +163,6 @@ export default function StoreSettings() {
                             </option>
                         ))}
                     </select>
-                    <Store className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
             </div>
 
@@ -269,29 +260,6 @@ export default function StoreSettings() {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                                    <DollarSign className="w-3 h-3" /> Lunch Rodizio Price
-                                </label>
-                                <input
-                                    type="number" step="0.01"
-                                    value={settings.lunch_price || 0}
-                                    onChange={e => setSettings({ ...settings, lunch_price: parseFloat(e.target.value) })}
-                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                    disabled={!settings.is_lunch_enabled}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                                    <DollarSign className="w-3 h-3" /> Dinner Rodizio Price
-                                </label>
-                                <input
-                                    type="number" step="0.01"
-                                    value={settings.dinner_price || 0}
-                                    onChange={e => setSettings({ ...settings, dinner_price: parseFloat(e.target.value) })}
-                                    className="w-full bg-[#252525] text-white p-3 border border-white/10 rounded-lg focus:outline-none focus:border-[#C5A059]"
-                                />
-                            </div>
-                            <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Lunch Target Lbs/Guest</label>
                                 <input
                                     type="number" step="0.01"
@@ -338,27 +306,28 @@ export default function StoreSettings() {
                             <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
                                 <Ban className="w-4 h-4 text-red-500" /> Lunch Excluded Proteins
                             </h3>
-                            <p className="text-xs text-gray-400 mb-4">Select the premium meats that are NOT served during the lunch shift at this store to auto-remove them from the Smart Prep List.</p>
+                            <p className="text-xs text-gray-400 mb-4">The following premium meats are <strong className="text-white">always</strong> auto-removed from the Lunch Smart Prep List across all stores (Corporate Standard).</p>
 
-                            <div className="bg-[#252525] rounded-lg border border-white/10 p-2 max-h-[300px] overflow-y-auto">
-                                {ALL_PROTEINS.map(protein => {
-                                    const isExcluded = (settings.lunch_excluded_proteins || []).includes(protein);
-                                    return (
-                                        <button
-                                            key={protein}
-                                            onClick={() => toggleExclusion(protein)}
-                                            className={`w-full text-left px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-between mb-1
-                                                    ${isExcluded ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'text-gray-300 hover:bg-white/5'}
-                                                `}
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <Beef className="w-4 h-4" /> {protein}
-                                            </span>
-                                            {isExcluded && <Ban className="w-3 h-3" />}
-                                        </button>
-                                    );
-                                })}
+                            <div className="bg-[#111] border border-white/5 rounded-lg p-2 max-h-[300px] overflow-y-auto">
+                                {LUNCH_EXCLUDED.map(protein => (
+                                    <div
+                                        key={protein}
+                                        className="w-full text-left px-4 py-2 rounded-md text-sm font-bold text-gray-500 flex items-center justify-between mb-1"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <Beef className="w-4 h-4 text-gray-600" /> {protein}
+                                        </span>
+                                        <Ban className="w-3 h-3 text-red-500/50" />
+                                    </div>
+                                ))}
                             </div>
+
+                            {/* Hidden helper button to ensure the DB state matches the UI visual if they ever saved a different array in the past */}
+                            {settings.lunch_excluded_proteins?.length !== LUNCH_EXCLUDED.length && (
+                                <button onClick={applyDefaultExclusions} className="mt-4 w-full bg-red-500/10 text-red-500 text-xs p-2 rounded border border-red-500/20 font-bold uppercase hover:bg-red-500/20 transition-colors">
+                                    Sync Corporate Exclusions to DB
+                                </button>
+                            )}
                         </div>
 
                     </div>
