@@ -11,7 +11,7 @@ export class StoreSettingsController {
      */
     static async getStoreSettings(req: Request, res: Response) {
         try {
-            const userRole = req.user?.role;
+            const userRole = (req as any).user?.role;
             if (!['admin', 'director', 'owner'].includes(userRole || '')) {
                 return res.status(403).json({ error: 'Access denied. Elevate privileges required to view Store Operations Settings.' });
             }
@@ -59,7 +59,7 @@ export class StoreSettingsController {
      */
     static async updateStoreSettings(req: Request, res: Response) {
         try {
-            const userRole = req.user?.role;
+            const userRole = (req as any).user?.role;
             if (!['admin', 'director', 'owner'].includes(userRole || '')) {
                 return res.status(403).json({ error: 'Access denied. Elevate privileges required to modify Store Operations Settings.' });
             }

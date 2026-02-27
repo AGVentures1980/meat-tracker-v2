@@ -9,7 +9,6 @@ import {
     Beef,
     AlertCircle
 } from 'lucide-react';
-import DashboardLayout from '../components/layouts/DashboardLayout';
 
 interface StoreSetting {
     id: number;
