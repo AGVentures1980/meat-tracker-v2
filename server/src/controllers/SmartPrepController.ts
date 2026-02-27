@@ -19,11 +19,19 @@ export class SmartPrepController {
             const dateStr = req.query.date as string || centralNow.toISOString().split('T')[0];
             const date = new Date(dateStr);
 
-            const stores = await prisma.store.findMany({
-                where: { company_id: user.companyId },
-                select: { id: true, store_name: true, location: true },
-                orderBy: { store_name: 'asc' }
-            });
+            let stores = [];
+            if (user.role === 'admin') {
+                stores = await prisma.store.findMany({
+                    select: { id: true, store_name: true, location: true },
+                    orderBy: { store_name: 'asc' }
+                });
+            } else {
+                stores = await prisma.store.findMany({
+                    where: { company_id: user.companyId },
+                    select: { id: true, store_name: true, location: true },
+                    orderBy: { store_name: 'asc' }
+                });
+            }
 
             const logs = await (prisma as any).prepLog.findMany({
                 where: { date: date },

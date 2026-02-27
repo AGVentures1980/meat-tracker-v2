@@ -28,6 +28,8 @@ export const CommandCenter = () => {
     const [wasteItems, setWasteItems] = useState<any[]>([]);
     const [isSubmittingWaste, setIsSubmittingWaste] = useState(false);
     const [networkAccountability, setNetworkAccountability] = useState<any>(null);
+    const [networkPrepStatus, setNetworkPrepStatus] = useState<any>(null);
+    const [selectedStoreId, setSelectedStoreId] = useState<number | null>(user?.storeId || 1);
 
     // --- REASON LIST FOR WASTE ---
     const WASTE_REASONS = ['Floor Drop', 'Over-Prep', 'Quality Check', 'Burnt/Cook Error', 'End of Shift'];
@@ -47,8 +49,13 @@ export const CommandCenter = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
+            const urlParams = new URLSearchParams();
+            if (user?.role === 'director' || user?.role === 'admin') {
+                if (selectedStoreId) urlParams.append('store_id', selectedStoreId.toString());
+            }
+
             // 1. Fetch gate status
-            const statusRes = await fetch('/api/v1/dashboard/waste/status', {
+            const statusRes = await fetch(`/api/v1/dashboard/waste/status?${urlParams.toString()}`, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const statusData = await statusRes.json();
@@ -56,7 +63,9 @@ export const CommandCenter = () => {
 
             if (!statusData.gate_locked) {
                 // 2. Fetch Prep Data if gate is open
-                const prepRes = await fetch(`/api/v1/dashboard/smart-prep?guests=${forecast}&date=${selectedDate}`, {
+                urlParams.append('guests', forecast.toString());
+                urlParams.append('date', selectedDate);
+                const prepRes = await fetch(`/api/v1/dashboard/smart-prep?${urlParams.toString()}`, {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 });
                 if (prepRes.ok) {
@@ -66,14 +75,19 @@ export const CommandCenter = () => {
                 }
             }
 
-            // 3. Fetch Network Accountability if Director/Admin
+            // 3. Fetch Network Accountability and Prep Status if Director/Admin
             if (user?.role === 'director' || user?.role === 'admin') {
-                const networkRes = await fetch('/api/v1/dashboard/waste/network-accountability', {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
-                });
-                if (networkRes.ok) {
-                    setNetworkAccountability(await networkRes.json());
-                }
+                const [networkRes, prepStatusRes] = await Promise.all([
+                    fetch('/api/v1/dashboard/waste/network-accountability', {
+                        headers: { 'Authorization': `Bearer ${user?.token}` }
+                    }),
+                    fetch('/api/v1/dashboard/smart-prep/network-status', {
+                        headers: { 'Authorization': `Bearer ${user?.token}` }
+                    })
+                ]);
+
+                if (networkRes.ok) setNetworkAccountability(await networkRes.json());
+                if (prepStatusRes.ok) setNetworkPrepStatus(await prepStatusRes.json());
             }
 
             // 4. Fetch Products
@@ -96,7 +110,7 @@ export const CommandCenter = () => {
 
     useEffect(() => {
         fetchData();
-    }, [user, forecast]);
+    }, [user, forecast, selectedStoreId]);
 
     // --- HANDLERS ---
     const handleSetNoDelivery = async () => {
@@ -143,17 +157,23 @@ export const CommandCenter = () => {
         setIsSubmittingWaste(true);
         try {
             const shift = gateStatus?.today?.can_input_lunch ? 'LUNCH' : 'DINNER';
+
+            const payload: any = {
+                date: selectedDate,
+                shift: shift,
+                items: wasteItems
+            };
+            if (user?.role === 'director' || user?.role === 'admin') {
+                payload.store_id = selectedStoreId;
+            }
+
             const res = await fetch('/api/v1/dashboard/waste', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${user?.token}`
                 },
-                body: JSON.stringify({
-                    date: selectedDate,
-                    shift: shift,
-                    items: wasteItems
-                })
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
@@ -271,7 +291,25 @@ export const CommandCenter = () => {
                         <h1 className="text-3xl font-black text-white tracking-tight uppercase">Shift Command Center</h1>
                     </div>
                     <div className="flex items-center gap-3 mt-1">
-                        <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">Store {gateStatus?.storeId || '...'} | Shift: {gateStatus?.today?.can_input_lunch ? 'LUNCH' : (gateStatus?.today?.can_input_dinner ? 'DINNER' : 'ALL DAY')}</p>
+                        {(user?.role === 'director' || user?.role === 'admin') && networkPrepStatus ? (
+                            <div className="flex items-center gap-2">
+                                <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">Commanding Store:</p>
+                                <select
+                                    className="bg-black/40 border border-white/10 text-white text-sm font-bold py-1 px-2 rounded cursor-pointer outline-none hover:border-[#C5A059] transition-colors"
+                                    value={selectedStoreId || 1}
+                                    onChange={(e) => setSelectedStoreId(parseInt(e.target.value))}
+                                    title="Store Selector"
+                                >
+                                    {networkPrepStatus.stores.map((store: any) => (
+                                        <option key={store.id} value={store.id}>
+                                            {store.is_locked ? '🟢' : '🔴'} {store.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">Store {gateStatus?.storeId || '...'} | Shift: {gateStatus?.today?.can_input_lunch ? 'LUNCH' : (gateStatus?.today?.can_input_dinner ? 'DINNER' : 'ALL DAY')}</p>
+                        )}
                         <span className="px-2 py-0.5 bg-white/5 rounded text-[8px] text-gray-600 font-bold uppercase tracking-tighter border border-white/5">Source: {gateStatus?.source || '365'}</span>
                     </div>
                 </div>
