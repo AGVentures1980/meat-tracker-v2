@@ -38,7 +38,7 @@ export class WasteController {
             // --- ACCOUNTABILITY GATE (OZ PRINCIPLE) ---
             const accountability = await WasteController.checkAccountabilityGateDetails(storeId, dateStr);
 
-            if (!accountability.has_accountability) {
+            if (!accountability.has_accountability && user.role !== 'admin' && user.role !== 'director') {
                 return res.json({
                     gate_locked: true,
                     message: "Accountability Gate Locked: Invoice input or 'No Delivery Today' flag required for today's shift.",
