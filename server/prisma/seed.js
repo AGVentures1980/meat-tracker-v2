@@ -370,6 +370,53 @@ async function main() {
         }
         console.log(`Synced: ${storeName}`);
     }
+    // --- DEMO SCENARIOS FOR PILOT STORES ---
+    console.log('🎬 Injecting Demo Scenarios for Pilot Stores...');
+    const PILOT_STORES = [20, 120, 140]; // Addison, Miami Beach, Vegas
+
+    // Clear out existing reports for these to ensure clean state
+    await prisma.report.deleteMany({ where: { store_id: { in: PILOT_STORES } } });
+
+    // Scenario A: Addison (20) - High waste Wk7/8 -> drops in Wk9
+    for (const week of [7, 8, 9]) {
+        const isBadWeek = week < 9;
+        const guests = 1200;
+        const lbsPerGuest = isBadWeek ? 2.15 : 1.78;
+        const totalLbs = guests * lbsPerGuest;
+        await prisma.report.create({
+            data: { store_id: 20, month: `2026-W${week}`, total_lbs: totalLbs, extra_customers: guests, dine_in_guests: guests }
+        });
+    }
+
+    // Scenario B: Miami Beach (120) - Delivery Firewall (Stable Dine-in)
+    for (const week of [7, 8, 9]) {
+        const guests = 900;
+        const deliveryGuests = 250;
+        const targetLbs = guests * 1.75; // Stayed exactly on target
+        await prisma.report.create({
+            data: { store_id: 120, month: `2026-W${week}`, total_lbs: targetLbs, extra_customers: guests, dine_in_guests: guests, delivery_guests: deliveryGuests }
+        });
+    }
+
+    // Scenario C: Las Vegas (140) - Idea Vault Alert (Over-prepping Picanha)
+    for (const week of [7, 8, 9]) {
+        const guests = 1000;
+        const lbsPerGuest = week === 9 ? 1.77 : 1.95; // Fixed in W9
+        const totalLbs = guests * lbsPerGuest;
+        await prisma.report.create({
+            data: { store_id: 140, month: `2026-W${week}`, total_lbs: totalLbs, extra_customers: guests, dine_in_guests: guests }
+        });
+    }
+
+    // Add specifically timed Idea Vault Message
+    await prisma.ownerVaultMessage.create({
+        data: {
+            text: "🚨 Alert for Las Vegas: Picanha prep exceeded daily forecast by 45 lbs for the last 3 days. Recommend reviewing shift prep sheets immediately to correct variance and lower food cost.",
+            sender: "AI",
+            is_read: false
+        }
+    });
+
     console.log('✅ Seed Complete!');
 }
 

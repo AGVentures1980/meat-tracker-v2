@@ -11,10 +11,10 @@ const router = Router();
 router.get('/stats/network', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkStats);
 router.get('/stats/audit-logs', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getAuditLogAnalysis);
 router.get('/stats/villain-deep-dive', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getVillainDeepDive);
-router.get('/stats/report-card', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkReportCard);
+router.get('/stats/report-card', requireAuth, DashboardController.getNetworkReportCard);
 router.get('/stats/:storeId', requireAuth, DashboardController.getStats);
 router.get('/performance-audit', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getPerformanceAudit);
-router.get('/bi-report-card', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkReportCard); // Alias for Stale Frontend
+router.get('/bi-report-card', requireAuth, DashboardController.getNetworkReportCard); // Alias for Stale Frontend
 // company-stats is used by Dashboard.tsx for all users (managers included), so we remove requireRole
 router.get('/company-stats', requireAuth, DashboardController.getCompanyStats);
 router.post('/targets', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.updateStoreTargets);

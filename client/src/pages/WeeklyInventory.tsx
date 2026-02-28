@@ -57,6 +57,11 @@ export const WeeklyInventory = () => {
                             ) : (
                                 <span className="text-[#FF2A6D]">Offline Mode (Cold Storage)</span>
                             )}
+                            {isOnline && !hasPendingSync && (
+                                <span className="ml-3 text-xs font-mono text-gray-500 font-normal border-l border-[#333] pl-3">
+                                    Last synced: Just now
+                                </span>
+                            )}
                         </div>
                     </div>
                     {hasPendingSync && isOnline && (
@@ -125,8 +130,8 @@ export const WeeklyInventory = () => {
                                                 </div>
                                                 <div className="md:col-span-1 text-right mt-2 md:mt-0">
                                                     {counts[item.id] !== undefined && counts[item.id] !== '' && (
-                                                        <div className={`font-mono font-bold text-sm md:text-base bg-black/40 px-3 py-2 rounded border border-[#333] inline-block ${isNegative ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
-                                                            {isNegative ? '' : '+'}{variance.toFixed(1)} <span className="text-[10px] text-gray-500 uppercase tracking-wider">VAR</span>
+                                                        <div className={`font-mono font-bold text-sm md:text-base px-3 py-2 rounded border inline-block ${isNegative ? 'bg-[#FF2A6D]/10 border-[#FF2A6D]/50 text-[#FF2A6D]' : 'bg-[#00FF94]/10 border-[#00FF94]/50 text-[#00FF94]'}`}>
+                                                            {isNegative ? '' : '+'}{variance.toFixed(1)} <span className={`text-[10px] uppercase tracking-wider ${isNegative ? 'text-[#FF2A6D]/80' : 'text-[#00FF94]/80'}`}>VAR</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -163,9 +168,9 @@ export const WeeklyInventory = () => {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="bg-[#1a1a1a] border border-[#FF2A6D]/30 p-4 rounded-lg">
+                            <div className="bg-[#1a1a1a] border-2 border-[#FF2A6D]/50 p-4 rounded-lg shadow-[0_0_15px_rgba(255,42,109,0.15)]">
                                 <h3 className="text-[#FF2A6D] font-bold text-sm tracking-widest uppercase mb-3 flex items-center gap-2">
-                                    <AlertTriangle className="w-4 h-4" />
+                                    <AlertTriangle className="w-5 h-5 animate-pulse" />
                                     The Garcia Rule
                                 </h3>
                                 <p className="text-sm text-gray-400 mb-4 leading-relaxed">

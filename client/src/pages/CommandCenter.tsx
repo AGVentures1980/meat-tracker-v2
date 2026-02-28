@@ -464,11 +464,14 @@ export const CommandCenter = () => {
                     )}
 
                     {prepData?.holiday_insight && (
-                        <div className="bg-[#C5A059]/10 border border-[#C5A059]/30 rounded-lg p-3 flex items-start gap-3 print:hidden max-w-sm">
-                            <Brain className="w-5 h-5 text-[#C5A059] shrink-0 mt-0.5" />
+                        <div className="bg-[#C5A059]/20 border-2 border-[#C5A059]/50 rounded-lg p-4 flex items-start gap-3 print:hidden max-w-sm shadow-[0_0_15px_rgba(197,160,89,0.2)]">
+                            <div className="relative">
+                                <Brain className="w-6 h-6 text-[#C5A059] shrink-0" />
+                                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#FF2A6D] rounded-full animate-pulse border border-black"></div>
+                            </div>
                             <div>
-                                <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-wider block mb-0.5">AI Holiday & Event Predictor</span>
-                                <p className="text-xs text-gray-300 leading-tight">{prepData.holiday_insight}</p>
+                                <span className="text-xs font-black text-[#C5A059] uppercase tracking-wider block mb-1">AI Event Insight</span>
+                                <p className="text-sm text-white font-medium leading-snug">{prepData.holiday_insight}</p>
                             </div>
                         </div>
                     )}

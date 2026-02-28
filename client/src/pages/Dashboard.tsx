@@ -227,7 +227,7 @@ export const Dashboard = () => {
                                 </div>
                             ) : (
                                 <div className="h-24 flex items-center justify-center border border-dashed border-[#333] bg-[#121212]">
-                                    <p className="text-[9px] text-gray-600 font-mono uppercase text-center px-2">Equilíbrio Ativo: Nenhum desvio.</p>
+                                    <p className="text-[9px] text-gray-600 font-mono uppercase text-center px-2">ACTIVE EQUILIBRIUM: NO DEVIATION.</p>
                                 </div>
                             )}
                         </div>
