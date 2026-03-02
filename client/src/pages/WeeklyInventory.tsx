@@ -181,7 +181,7 @@ export const WeeklyInventory = () => {
 
                                                                 handleCountChange(item.id, newRaw);
                                                             }}
-                                                            className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-[#C5A059] hover:bg-[#C5A059]/10 rounded transition-colors md:hidden"
+                                                            className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-[#C5A059] hover:bg-[#C5A059]/10 rounded transition-colors lg:hidden"
                                                             title="Scan Barcode ( Mobile Only)"
                                                         >
                                                             <ScanLine className="w-5 h-5" />
