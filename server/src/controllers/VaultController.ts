@@ -77,13 +77,53 @@ export class VaultController {
                 }
             });
 
-            // --- PITCH SIMULATION: Immediate Synchronous AI Response ---
-            const aiResponseText = `Analisando sua ideia no contexto da operação atual...
-            
-1. **Impacto no CMV:** O controle estrito via Garcia Rule já reduziu as margens de erro na picanha. Sua ideia pode otimizar ainda mais o rendimento da desossa.
-2. **Viabilidade (Spoilage):** Se aplicarmos isso na rede toda, a projeção indica uma economia de até $1.2k/mês por loja, sem afetar o shelf-life.
-            
-Gostaria que eu gerasse um relatório detalhado e enviasse para a gerência da loja de Las Vegas testar no próximo ciclo de Prep?`;
+            // --- REAL AI INTEGRATION: Conversation History & OpenAI API ---
+            let aiResponseText = "Estou processando sua ideia. (A chave da OpenAI não está disponível no servidor.)";
+
+            if (process.env.OPENAI_API_KEY) {
+                try {
+                    // Fetch last 6 messages to provide conversational context
+                    const recentMessages = await prisma.ownerVaultMessage.findMany({
+                        take: 6,
+                        orderBy: { created_at: 'desc' }
+                    });
+
+                    const chatHistory = recentMessages.reverse().map(msg => ({
+                        role: msg.sender === 'OWNER' ? 'user' : 'assistant',
+                        content: msg.text || '(Attachment sent)'
+                    }));
+
+                    const systemPrompt = {
+                        role: "system",
+                        content: "Você é o 'AGV AI OS', um conselheiro executivo especializado na operação, CMV e fluxo de caixa da rede de restaurantes de carnes Brasa. O usuário, Alexandre Garcia, é o dono. Discuta ideias táticas sobre o restaurante de forma sucinta, focando em redução de custos (Food Cost), Garcia Rule, e shelf-life das proteínas. Responda interativamente como um chat rápido."
+                    };
+
+                    const openAiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-4o-mini",
+                            messages: [systemPrompt, ...chatHistory],
+                            temperature: 0.7,
+                            max_tokens: 250
+                        })
+                    });
+
+                    if (openAiRes.ok) {
+                        const aiData: any = await openAiRes.json();
+                        aiResponseText = aiData.choices[0].message.content;
+                    } else {
+                        console.error("OpenAI Error:", await openAiRes.text());
+                        aiResponseText = "Houve um problema ao conectar com a minha base de dados central (Erro OpenAI). Vamos focar no básico por enquanto.";
+                    }
+                } catch (aiErr) {
+                    console.error("AI Fetch execution failed", aiErr);
+                    aiResponseText = "Não consegui concluir a análise agora. O sistema pode estar offline.";
+                }
+            }
 
             const aiMessage = await prisma.ownerVaultMessage.create({
                 data: {
