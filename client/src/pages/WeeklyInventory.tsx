@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize } from 'lucide-react';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
 
 const FULL_PROTEIN_LIST = [
@@ -21,9 +21,51 @@ const FULL_PROTEIN_LIST = [
 export const WeeklyInventory = () => {
     const { counts, updateCount, isOnline, hasPendingSync, isSyncing, queueForSync } = useOfflineInventory();
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
+    const [lastScanned, setLastScanned] = useState<{ name: string, weight: number, status: 'success' | 'unknown' | 'duplicate' } | null>(null);
 
     const handleCountChange = (id: string, value: string) => {
         updateCount(id, value);
+    };
+
+    const simulateContinuousScan = () => {
+        if (!window.sessionStorage.getItem('scannedBarcodes')) {
+            window.sessionStorage.setItem('scannedBarcodes', JSON.stringify([]));
+        }
+        const scannedList = JSON.parse(window.sessionStorage.getItem('scannedBarcodes') || '[]');
+
+        const isDuplicate = Math.random() > 0.85 && scannedList.length > 0;
+        const mockBarcodeId = isDuplicate ? scannedList[0] : `BOX-${Math.floor(Math.random() * 10000)}`;
+
+        if (scannedList.includes(mockBarcodeId)) {
+            setLastScanned({ name: 'Unknown', weight: 0, status: 'duplicate' });
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            setTimeout(() => setLastScanned(null), 3000);
+            return;
+        }
+
+        scannedList.push(mockBarcodeId);
+        window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
+
+        const isUnknown = Math.random() > 0.9;
+        if (isUnknown) {
+            setLastScanned({ name: 'Unknown', weight: 0, status: 'unknown' });
+            if (navigator.vibrate) navigator.vibrate([500]);
+            setTimeout(() => setLastScanned(null), 3500);
+            return;
+        }
+
+        const randomProtein = FULL_PROTEIN_LIST[Math.floor(Math.random() * FULL_PROTEIN_LIST.length)];
+        const weight = parseFloat((Math.random() * (45 - 20) + 20).toFixed(1));
+
+        const currentRaw = String(counts[randomProtein.id] || '');
+        const newRaw = currentRaw.trim() === '' ? String(weight) : `${currentRaw}+${weight}`;
+
+        updateCount(randomProtein.id, newRaw);
+
+        setLastScanned({ name: randomProtein.name, weight, status: 'success' });
+        if (navigator.vibrate) navigator.vibrate(100);
+        setTimeout(() => setLastScanned(null), 2500);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -94,9 +136,19 @@ export const WeeklyInventory = () => {
                                         <Scale className="w-4 h-4 text-[#C5A059]" />
                                         Physical Count Entry
                                     </h2>
-                                    <span className="text-xs font-mono text-gray-500 bg-[#121212] px-2 py-1 rounded">
-                                        Due: Monday, 11:00 AM
-                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs font-mono text-gray-500 bg-[#121212] px-2 py-1 rounded hidden sm:inline-block">
+                                            Due: Mon 11AM
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsCameraOpen(true)}
+                                            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-[#C5A059] text-black px-3 py-1.5 rounded active:scale-95 transition-transform shadow-lg"
+                                        >
+                                            <Camera className="w-4 h-4" />
+                                            Scanner
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -130,62 +182,6 @@ export const WeeklyInventory = () => {
                                                                 handleCountChange(item.id, val);
                                                             }}
                                                         />
-                                                        {/* Mobile-Only Barcode Scanner Simulation with Deduplication */}
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-
-                                                                // Simulated Session Store for Anti-Duplication
-                                                                if (!window.sessionStorage.getItem('scannedBarcodes')) {
-                                                                    window.sessionStorage.setItem('scannedBarcodes', JSON.stringify([]));
-                                                                }
-                                                                const scannedList = JSON.parse(window.sessionStorage.getItem('scannedBarcodes') || '[]');
-
-                                                                const isDuplicateSim = Math.random() > 0.9 && scannedList.length > 0;
-                                                                const mockBarcodeId = isDuplicateSim ? scannedList[0] : `BOX-${Math.floor(Math.random() * 10000)}`;
-
-                                                                const inputEl = e.currentTarget.previousElementSibling as HTMLInputElement;
-
-                                                                if (scannedList.includes(mockBarcodeId)) {
-                                                                    if (inputEl) {
-                                                                        inputEl.style.borderColor = '#FF2A6D';
-                                                                        inputEl.style.backgroundColor = 'rgba(255, 42, 109, 0.1)';
-                                                                        alert("Bloqueio Anti-Duplicidade: Esta caixa já foi lida nesta sessão.");
-                                                                        setTimeout(() => {
-                                                                            inputEl.style.borderColor = '';
-                                                                            inputEl.style.backgroundColor = '';
-                                                                        }, 800);
-                                                                    }
-                                                                    return;
-                                                                }
-
-                                                                scannedList.push(mockBarcodeId);
-                                                                window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
-
-                                                                // Simulated Box Weight
-                                                                const simulatedBoxWeight = parseFloat((Math.random() * (45 - 35) + 35).toFixed(1));
-
-                                                                // Append to current expression
-                                                                const currentRaw = String(counts[item.id] || '');
-                                                                const newRaw = currentRaw.trim() === '' ? String(simulatedBoxWeight) : `${currentRaw}+${simulatedBoxWeight}`;
-
-                                                                if (inputEl) {
-                                                                    inputEl.style.borderColor = '#00FF94';
-                                                                    inputEl.style.backgroundColor = 'rgba(0, 255, 148, 0.1)';
-                                                                    setTimeout(() => {
-                                                                        inputEl.style.borderColor = '';
-                                                                        inputEl.style.backgroundColor = '';
-                                                                    }, 500);
-                                                                }
-
-                                                                handleCountChange(item.id, newRaw);
-                                                            }}
-                                                            className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-[#C5A059] hover:bg-[#C5A059]/10 rounded transition-colors lg:hidden"
-                                                            title="Scan Barcode ( Mobile Only)"
-                                                        >
-                                                            <ScanLine className="w-5 h-5" />
-                                                        </button>
                                                     </div>
                                                 </div>
 
@@ -275,6 +271,68 @@ export const WeeklyInventory = () => {
                         </div>
                     </div>
                 )}
-        </div >
+
+            {/* Global Continuous Camera Overlay */}
+            {isCameraOpen && (
+                <div className="fixed inset-0 bg-black/95 z-[999] flex flex-col backdrop-blur-sm">
+                    <div className="p-4 flex justify-between items-center border-b border-[#333]/50 bg-black">
+                        <div className="flex items-center gap-2 text-[#00FF94]">
+                            <div className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse" />
+                            <span className="font-mono tracking-widest text-sm uppercase">AI Vision Active</span>
+                        </div>
+                        <button type="button" onClick={() => setIsCameraOpen(false)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+                        {/* Camera Viewfinder UI */}
+                        <div className="w-72 h-72 relative">
+                            {/* Brackets */}
+                            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#C5A059] rounded-tl-lg" />
+                            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#C5A059] rounded-tr-lg" />
+                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#C5A059] rounded-bl-lg" />
+                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#C5A059] rounded-br-lg" />
+
+                            {/* Scanning Laser */}
+                            <div className="absolute left-4 right-4 h-[2px] bg-[#FF2A6D] top-1/2 -translate-y-1/2 shadow-[0_0_15px_#FF2A6D] animate-pulse" />
+
+                            <div className="absolute -bottom-8 left-0 right-0 text-center text-xs text-gray-400 font-mono tracking-widest uppercase">
+                                Point at Box Barcode
+                            </div>
+                        </div>
+
+                        {/* Status Toasts */}
+                        {lastScanned && (
+                            <div className={`absolute top-10 left-1/2 -translate-x-1/2 w-11/12 max-w-sm px-4 py-3 rounded text-sm font-bold shadow-2xl flex items-center gap-3 transition-all transform animate-in slide-in-from-top-4 ${lastScanned.status === 'success' ? 'bg-[#00FF94] text-black' :
+                                    lastScanned.status === 'duplicate' ? 'bg-[#FF2A6D] text-white' :
+                                        'bg-[#C5A059] text-black'
+                                }`}>
+                                {lastScanned.status === 'success' && <CheckCircle2 className="w-5 h-5 flex-shrink-0" />}
+                                {lastScanned.status === 'duplicate' && <ShieldAlert className="w-5 h-5 flex-shrink-0" />}
+                                {lastScanned.status === 'unknown' && <AlertTriangle className="w-5 h-5 flex-shrink-0" />}
+
+                                <span className="font-mono leading-tight">
+                                    {lastScanned.status === 'success' ? `ALLOCATED: ${lastScanned.weight} LBS ➔ ${lastScanned.name.toUpperCase()}` :
+                                        lastScanned.status === 'duplicate' ? `ERROR: BOX ALREADY SCANNED` :
+                                            `UNKNOWN BARCODE: REQUIRES MANUAL MATCH`}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-8 pb-12 bg-black border-t border-[#333]/50">
+                        <button
+                            type="button"
+                            onClick={simulateContinuousScan}
+                            className="w-full bg-white/5 hover:bg-white/10 border border-[#333] text-white font-mono tracking-widest py-5 rounded-lg flex items-center justify-center gap-3 active:scale-95 transition-all text-sm"
+                        >
+                            <Maximize className="w-5 h-5 text-[#C5A059]" />
+                            SIMULATE SCAN [PITCH DEMO]
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
