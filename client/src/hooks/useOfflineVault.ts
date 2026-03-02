@@ -158,6 +158,15 @@ export function useOfflineVault() {
                     remainingQueue = remainingQueue.filter(m => m.id !== msg.id);
                     await localforage.setItem('pending_vault_messages', remainingQueue);
                     setPendingMessages(remainingQueue);
+
+                    // If the backend generated an immediate AI response (Pitch Demo)
+                    if (data.ai_message) {
+                        setMessages(prev => {
+                            const updated = [...prev, data.ai_message];
+                            localforage.setItem('cached_vault_messages', updated).catch(console.error);
+                            return updated;
+                        });
+                    }
                 } else {
                     console.error('Vault generic sync error', data.error);
                     break; // Stop syncing this batch if we hit an error

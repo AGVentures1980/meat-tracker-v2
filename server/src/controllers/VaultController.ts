@@ -77,7 +77,25 @@ export class VaultController {
                 }
             });
 
-            return res.json({ success: true, message });
+            // --- PITCH SIMULATION: Immediate Synchronous AI Response ---
+            const aiResponseText = `Analisando sua ideia no contexto da operação atual...
+            
+1. **Impacto no CMV:** O controle estrito via Garcia Rule já reduziu as margens de erro na picanha. Sua ideia pode otimizar ainda mais o rendimento da desossa.
+2. **Viabilidade (Spoilage):** Se aplicarmos isso na rede toda, a projeção indica uma economia de até $1.2k/mês por loja, sem afetar o shelf-life.
+            
+Gostaria que eu gerasse um relatório detalhado e enviasse para a gerência da loja de Las Vegas testar no próximo ciclo de Prep?`;
+
+            const aiMessage = await prisma.ownerVaultMessage.create({
+                data: {
+                    text: aiResponseText,
+                    file_url: null,
+                    file_name: null,
+                    file_type: null,
+                    sender: 'AI_AGENT'
+                }
+            });
+
+            return res.json({ success: true, message, ai_message: aiMessage });
         } catch (error) {
             console.error('Error posting vault message:', error);
             return res.status(500).json({ success: false, error: 'Internal Server Error' });

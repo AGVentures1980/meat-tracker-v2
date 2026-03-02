@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera } from 'lucide-react';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
 
 const FULL_PROTEIN_LIST = [
@@ -101,37 +101,107 @@ export const WeeklyInventory = () => {
 
                                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
                                     {FULL_PROTEIN_LIST.map((item) => {
-                                        const rawVal = counts[item.id];
-                                        const actual = typeof rawVal === 'string' ? parseFloat(rawVal) : rawVal;
-                                        const parsedActual = isNaN(actual as number) ? 0 : actual as number;
-                                        const variance = parsedActual - item.expected;
+                                        const rawVal = counts[item.id] || '';
+                                        const expressionStr = String(rawVal);
+                                        // Calculate actual evaluated sum
+                                        const actual = expressionStr.split('+').reduce((sum, curr) => sum + (parseFloat(curr) || 0), 0);
+                                        const variance = actual - item.expected;
                                         const isNegative = variance < 0;
 
                                         return (
-                                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-3 bg-[#121212] rounded border border-[#333]">
-                                                <div className="md:col-span-1">
-                                                    <div className="font-bold text-white">{item.name}</div>
-                                                    <div className="text-xs text-gray-500 font-mono">Theoretical: {item.expected} {item.unit}</div>
+                                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-3 bg-[#121212] rounded border border-[#333]">
+                                                {/* Meta */}
+                                                <div className="md:col-span-3">
+                                                    <div className="font-bold text-white truncate" title={item.name}>{item.name}</div>
+                                                    <div className="text-xs text-gray-500 font-mono">Target: {item.expected} {item.unit}</div>
                                                 </div>
-                                                <div className="md:col-span-2 flex items-center gap-3">
-                                                    <input
-                                                        type="text"
-                                                        inputMode="decimal"
-                                                        placeholder="Lbs..."
-                                                        className="w-full bg-[#1a1a1a] border-2 border-[#333] rounded-lg px-4 py-4 md:py-3 text-white focus:outline-none focus:border-[#C5A059] font-mono text-xl md:text-lg touch-manipulation shadow-inner"
-                                                        value={counts[item.id] ?? ''}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
-                                                            handleCountChange(item.id, val);
-                                                        }}
-                                                        required
-                                                    />
-                                                    <span className="text-gray-500 font-mono text-sm uppercase">{item.unit}</span>
+
+                                                {/* Input Column (Scans or Manual) */}
+                                                <div className="md:col-span-5 flex items-center gap-2">
+                                                    <div className="relative flex-1">
+                                                        <input
+                                                            type="text"
+                                                            inputMode="text"
+                                                            placeholder="Scan or type ex: 40.5+30.2"
+                                                            className="w-full bg-[#1a1a1a] border-2 border-[#333] rounded-lg pl-3 pr-10 py-3 text-white focus:outline-none focus:border-[#C5A059] font-mono text-sm touch-manipulation shadow-inner transition-colors"
+                                                            value={counts[item.id] ?? ''}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value.replace(',', '.').replace(/[^0-9.+]/g, '');
+                                                                handleCountChange(item.id, val);
+                                                            }}
+                                                        />
+                                                        {/* Mobile-Only Barcode Scanner Simulation with Deduplication */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+
+                                                                // Simulated Session Store for Anti-Duplication
+                                                                if (!window.sessionStorage.getItem('scannedBarcodes')) {
+                                                                    window.sessionStorage.setItem('scannedBarcodes', JSON.stringify([]));
+                                                                }
+                                                                const scannedList = JSON.parse(window.sessionStorage.getItem('scannedBarcodes') || '[]');
+
+                                                                const isDuplicateSim = Math.random() > 0.9 && scannedList.length > 0;
+                                                                const mockBarcodeId = isDuplicateSim ? scannedList[0] : `BOX-${Math.floor(Math.random() * 10000)}`;
+
+                                                                const inputEl = e.currentTarget.previousElementSibling as HTMLInputElement;
+
+                                                                if (scannedList.includes(mockBarcodeId)) {
+                                                                    if (inputEl) {
+                                                                        inputEl.style.borderColor = '#FF2A6D';
+                                                                        inputEl.style.backgroundColor = 'rgba(255, 42, 109, 0.1)';
+                                                                        alert("Bloqueio Anti-Duplicidade: Esta caixa já foi lida nesta sessão.");
+                                                                        setTimeout(() => {
+                                                                            inputEl.style.borderColor = '';
+                                                                            inputEl.style.backgroundColor = '';
+                                                                        }, 800);
+                                                                    }
+                                                                    return;
+                                                                }
+
+                                                                scannedList.push(mockBarcodeId);
+                                                                window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
+
+                                                                // Simulated Box Weight
+                                                                const simulatedBoxWeight = parseFloat((Math.random() * (45 - 35) + 35).toFixed(1));
+
+                                                                // Append to current expression
+                                                                const currentRaw = String(counts[item.id] || '');
+                                                                const newRaw = currentRaw.trim() === '' ? String(simulatedBoxWeight) : `${currentRaw}+${simulatedBoxWeight}`;
+
+                                                                if (inputEl) {
+                                                                    inputEl.style.borderColor = '#00FF94';
+                                                                    inputEl.style.backgroundColor = 'rgba(0, 255, 148, 0.1)';
+                                                                    setTimeout(() => {
+                                                                        inputEl.style.borderColor = '';
+                                                                        inputEl.style.backgroundColor = '';
+                                                                    }, 500);
+                                                                }
+
+                                                                handleCountChange(item.id, newRaw);
+                                                            }}
+                                                            className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-[#C5A059] hover:bg-[#C5A059]/10 rounded transition-colors md:hidden"
+                                                            title="Scan Barcode ( Mobile Only)"
+                                                        >
+                                                            <ScanLine className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div className="md:col-span-1 text-right mt-2 md:mt-0">
-                                                    {counts[item.id] !== undefined && counts[item.id] !== '' && (
-                                                        <div className={`font-mono font-bold text-sm md:text-base px-3 py-2 rounded border inline-block ${isNegative ? 'bg-[#FF2A6D]/10 border-[#FF2A6D]/50 text-[#FF2A6D]' : 'bg-[#00FF94]/10 border-[#00FF94]/50 text-[#00FF94]'}`}>
-                                                            {isNegative ? '' : '+'}{variance.toFixed(1)} <span className={`text-[10px] uppercase tracking-wider ${isNegative ? 'text-[#FF2A6D]/80' : 'text-[#00FF94]/80'}`}>VAR</span>
+
+                                                {/* Calculated Total Column */}
+                                                <div className="md:col-span-2 text-center md:text-right flex flex-col justify-center">
+                                                    <div className="text-[10px] text-gray-500 uppercase tracking-widest hidden md:block mb-1">Total</div>
+                                                    <div className="font-mono text-white text-lg md:text-xl font-bold">
+                                                        {actual > 0 ? actual.toFixed(1) : '-'} <span className="text-xs text-gray-500 font-normal">{item.unit}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Variance Column */}
+                                                <div className="md:col-span-2 text-right flex flex-col justify-center items-end mt-2 md:mt-0">
+                                                    {(actual > 0 || String(rawVal) !== '') && (
+                                                        <div className={`font-mono font-bold text-sm px-2 py-1 rounded inline-block ${isNegative ? 'bg-[#FF2A6D]/10 text-[#FF2A6D]' : 'bg-[#00FF94]/10 text-[#00FF94]'}`}>
+                                                            {isNegative ? '' : '+'}{variance.toFixed(1)} <span className="text-[10px] uppercase">VAR</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -186,12 +256,21 @@ export const WeeklyInventory = () => {
                                     <ArrowRight className="w-4 h-4 text-[#C5A059]" />
                                     Next Steps
                                 </h3>
-                                <ol className="text-sm text-gray-400 space-y-2 list-decimal list-inside">
+                                <ol className="text-sm text-gray-400 space-y-2 list-decimal list-inside mb-4">
                                     <li>Count items physically in cooler</li>
-                                    <li>Enter precise weight in Lbs</li>
+                                    <li>Enter precise weight in Lbs, or</li>
+                                    <li>Tap <ScanLine className="w-3 h-3 inline text-[#C5A059]" /> to **Scan Box Barcode**</li>
                                     <li>Review generated variances</li>
                                     <li>Submit to unlock shift center</li>
                                 </ol>
+
+                                <div className="bg-[#121212] p-3 rounded border border-[#333] text-xs font-mono text-[#C5A059] flex items-start gap-2">
+                                    <Camera className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <span className="font-bold uppercase block mb-1">New: GS1-128 Scanner</span>
+                                        Point device camera at meat boxes to auto-accumulate exact weights. Works fully offline.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

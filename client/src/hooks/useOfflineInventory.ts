@@ -66,8 +66,11 @@ export function useOfflineInventory() {
         // Parse everything to numbers before queueing for final backend sync
         const sanitizedCounts: Record<string, number> = {};
         for (const [key, val] of Object.entries(finalCounts)) {
-            const parsed = typeof val === 'string' ? parseFloat(val) : val;
-            sanitizedCounts[key] = isNaN(parsed) ? 0 : parsed;
+            let parsed = val;
+            if (typeof val === 'string') {
+                parsed = val.split('+').reduce((sum, curr) => sum + (parseFloat(curr) || 0), 0);
+            }
+            sanitizedCounts[key] = isNaN(parsed as number) ? 0 : parsed as number;
         }
 
         const payload: PendingSyncData = {
