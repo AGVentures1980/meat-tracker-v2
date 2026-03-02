@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize } from 'lucide-react';
+import { useZxing } from 'react-zxing';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
 
 const FULL_PROTEIN_LIST = [
@@ -26,6 +27,80 @@ export const WeeklyInventory = () => {
 
     const handleCountChange = (id: string, value: string) => {
         updateCount(id, value);
+    };
+
+    const { ref: zxingRef } = useZxing({
+        onDecodeResult(result: any) {
+            handleBarcodeScanned(result.getText());
+        },
+        paused: !isCameraOpen,
+    });
+
+    const handleBarcodeScanned = (barcodeString: string) => {
+        // Minimal anti-bounce / anti-duplication
+        if (!window.sessionStorage.getItem('scannedBarcodes')) {
+            window.sessionStorage.setItem('scannedBarcodes', JSON.stringify([]));
+        }
+        const scannedList = JSON.parse(window.sessionStorage.getItem('scannedBarcodes') || '[]');
+
+        if (scannedList.includes(barcodeString)) {
+            // Already scanned in this session
+            if (lastScanned?.status !== 'duplicate') {
+                setLastScanned({ name: 'Unknown', weight: 0, status: 'duplicate' });
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                setTimeout(() => setLastScanned(null), 3000);
+            }
+            return;
+        }
+
+        scannedList.push(barcodeString);
+        window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
+
+        // GS1-128 Parsing Logic for Brasa Meat Tracker
+        // Example: (01)900123(3102)004550 -> 45.50 lbs, Product 900123
+        // For testing, we look for '3102' (weight in lbs, 2 decimal places) or just fallback to simple string matching
+        let parsedWeight = 0;
+        let matchedProtein = null;
+
+        // Extract weight: look for 3102 followed by 6 digits
+        const weightMatch = barcodeString.match(/3102(\d{6})/);
+        if (weightMatch) {
+            parsedWeight = parseInt(weightMatch[1], 10) / 100;
+        } else {
+            // Fallback for demo test barcodes
+            const demoWeightMatch = barcodeString.match(/W(\d{4})/);
+            if (demoWeightMatch) {
+                parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
+            }
+        }
+
+        // Extract Product mapping (Simulated mapping based on strings for the pitch)
+        if (barcodeString.includes('PICANHA') || barcodeString.includes('01900001')) {
+            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '1');
+        } else if (barcodeString.includes('FRALDINHA') || barcodeString.includes('01900003')) {
+            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '3');
+        } else if (barcodeString.includes('TRITIP') || barcodeString.includes('01900004')) {
+            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '4');
+        } else if (parsedWeight > 0) {
+            // If we got a weight but no known product, pick the first one just for the demo fallback if needed, or mark unknown
+            matchedProtein = null;
+        }
+
+        if (!matchedProtein || parsedWeight === 0) {
+            setLastScanned({ name: 'Unknown', weight: 0, status: 'unknown' });
+            if (navigator.vibrate) navigator.vibrate([500]);
+            setTimeout(() => setLastScanned(null), 3500);
+            return;
+        }
+
+        const currentRaw = String(counts[matchedProtein.id] || '');
+        const newRaw = currentRaw.trim() === '' ? String(parsedWeight) : `${currentRaw}+${parsedWeight}`;
+
+        updateCount(matchedProtein.id, newRaw);
+
+        setLastScanned({ name: matchedProtein.name, weight: parsedWeight, status: 'success' });
+        if (navigator.vibrate) navigator.vibrate(100);
+        setTimeout(() => setLastScanned(null), 2500);
     };
 
     const simulateContinuousScan = () => {
@@ -137,18 +212,21 @@ export const WeeklyInventory = () => {
                                         Physical Count Entry
                                     </h2>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-xs font-mono text-gray-500 bg-[#121212] px-2 py-1 rounded hidden sm:inline-block">
+                                        <span className="text-xs font-mono text-gray-500 bg-[#121212] px-2 py-1 rounded">
                                             Due: Mon 11AM
                                         </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsCameraOpen(true)}
-                                            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-[#C5A059] text-black px-3 py-1.5 rounded active:scale-95 transition-transform shadow-lg"
-                                        >
-                                            <Camera className="w-4 h-4" />
-                                            Scanner
-                                        </button>
                                     </div>
+                                </div>
+
+                                <div className="p-4 bg-[#121212] border-b border-[#333]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCameraOpen(true)}
+                                        className="w-full bg-[#C5A059] hover:bg-[#D4AF37] text-black font-bold uppercase tracking-widest py-4 rounded-lg flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[0_0_15px_rgba(197,160,89,0.3)]"
+                                    >
+                                        <Camera className="w-6 h-6" />
+                                        abrir leitor de caixas (scanner)
+                                    </button>
                                 </div>
 
                                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -173,9 +251,9 @@ export const WeeklyInventory = () => {
                                                     <div className="relative flex-1">
                                                         <input
                                                             type="text"
-                                                            inputMode="text"
-                                                            placeholder="Scan or type ex: 40.5+30.2"
-                                                            className="w-full bg-[#1a1a1a] border-2 border-[#333] rounded-lg pl-3 pr-10 py-3 text-white focus:outline-none focus:border-[#C5A059] font-mono text-sm touch-manipulation shadow-inner transition-colors"
+                                                            inputMode="decimal"
+                                                            placeholder="Lbs"
+                                                            className="w-full bg-[#1a1a1a] border-2 border-[#333] rounded-lg pl-3 pr-3 py-3 text-white focus:outline-none focus:border-[#C5A059] font-mono text-sm touch-manipulation shadow-inner transition-colors"
                                                             value={counts[item.id] ?? ''}
                                                             onChange={(e) => {
                                                                 const val = e.target.value.replace(',', '.').replace(/[^0-9.+]/g, '');
@@ -286,18 +364,21 @@ export const WeeklyInventory = () => {
                     </div>
 
                     <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+                        {/* Real Camera Feed */}
+                        <video ref={zxingRef} className="absolute inset-0 w-full h-full object-cover" />
+
                         {/* Camera Viewfinder UI */}
-                        <div className="w-72 h-72 relative">
+                        <div className="w-72 h-72 relative z-10 box-border border border-white/10 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
                             {/* Brackets */}
-                            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#C5A059] rounded-tl-lg" />
-                            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#C5A059] rounded-tr-lg" />
-                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#C5A059] rounded-bl-lg" />
-                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#C5A059] rounded-br-lg" />
+                            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#C5A059]" />
+                            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#C5A059]" />
+                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#C5A059]" />
+                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#C5A059]" />
 
                             {/* Scanning Laser */}
                             <div className="absolute left-4 right-4 h-[2px] bg-[#FF2A6D] top-1/2 -translate-y-1/2 shadow-[0_0_15px_#FF2A6D] animate-pulse" />
 
-                            <div className="absolute -bottom-8 left-0 right-0 text-center text-xs text-gray-400 font-mono tracking-widest uppercase">
+                            <div className="absolute -bottom-8 left-0 right-0 text-center text-xs text-white font-mono tracking-widest uppercase bg-black/50 py-1 rounded">
                                 Point at Box Barcode
                             </div>
                         </div>
@@ -305,8 +386,8 @@ export const WeeklyInventory = () => {
                         {/* Status Toasts */}
                         {lastScanned && (
                             <div className={`absolute top-10 left-1/2 -translate-x-1/2 w-11/12 max-w-sm px-4 py-3 rounded text-sm font-bold shadow-2xl flex items-center gap-3 transition-all transform animate-in slide-in-from-top-4 ${lastScanned.status === 'success' ? 'bg-[#00FF94] text-black' :
-                                    lastScanned.status === 'duplicate' ? 'bg-[#FF2A6D] text-white' :
-                                        'bg-[#C5A059] text-black'
+                                lastScanned.status === 'duplicate' ? 'bg-[#FF2A6D] text-white' :
+                                    'bg-[#C5A059] text-black'
                                 }`}>
                                 {lastScanned.status === 'success' && <CheckCircle2 className="w-5 h-5 flex-shrink-0" />}
                                 {lastScanned.status === 'duplicate' && <ShieldAlert className="w-5 h-5 flex-shrink-0" />}
