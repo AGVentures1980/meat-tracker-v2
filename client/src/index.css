@@ -60,3 +60,57 @@ body {
     color: black !important;
   }
 }
+
+/* Custom UI Overrides for Html5QrcodeScanner */
+#reader {
+  border: none !important;
+  background: transparent !important;
+}
+
+#reader__dashboard_section_csr span {
+  color: white !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.875rem !important;
+}
+
+#reader button {
+  background-color: #1a1a1a !important;
+  color: #C5A059 !important;
+  border: 1px solid #333 !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.5rem !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  font-size: 0.75rem !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  margin: 0.5rem 0 !important;
+  display: inline-block !important;
+}
+
+#reader button:hover,
+#reader button:active {
+  background-color: #252525 !important;
+  border-color: #C5A059 !important;
+}
+
+#reader__dashboard_section_swaplink {
+  color: white !important;
+  text-decoration: underline !important;
+  text-decoration-color: #333 !important;
+  margin-top: 1rem !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.875rem !important;
+}
+
+#reader select {
+  background-color: #1a1a1a !important;
+  color: white !important;
+  border: 1px solid #333 !important;
+  padding: 0.5rem !important;
+  border-radius: 0.25rem !important;
+  margin-bottom: 0.5rem !important;
+  font-family: inherit !important;
+}
