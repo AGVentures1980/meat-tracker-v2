@@ -62,6 +62,32 @@ const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
                     }
                 );
 
+                // iOS Safari fix: Force playsinline on the injected video element
+                // so it doesn't open the native full-screen video player/recorder dialogue
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.addedNodes) {
+                            mutation.addedNodes.forEach((node) => {
+                                if (node.nodeName === 'VIDEO') {
+                                    const videoNode = node as HTMLVideoElement;
+                                    videoNode.setAttribute('playsinline', 'true');
+                                    videoNode.setAttribute('webkit-playsinline', 'true');
+                                    videoNode.setAttribute('muted', 'true');
+                                    videoNode.setAttribute('autoplay', 'true');
+                                    videoNode.style.objectFit = 'cover';
+                                }
+                            });
+                        }
+                    });
+                });
+
+                const readerElement = document.getElementById('reader');
+                if (readerElement) {
+                    observer.observe(readerElement, { childList: true, subtree: true });
+                    // Store the observer on the ref so we can clean it up
+                    (scannerRef as any).currentObserver = observer;
+                }
+
                 if (isMounted) setIsStarting(false);
             } catch (err: any) {
                 console.error("Camera start failed:", err);
@@ -76,6 +102,9 @@ const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
 
         return () => {
             isMounted = false;
+            if ((scannerRef as any).currentObserver) {
+                (scannerRef as any).currentObserver.disconnect();
+            }
             // Cleanup the scanner if it was started
             if (scannerRef.current && scannerRef.current.isScanning) {
                 scannerRef.current.stop().catch(console.error).finally(() => {
