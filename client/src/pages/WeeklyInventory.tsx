@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize } from 'lucide-react';
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize, AlertCircle } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
 
 const FULL_PROTEIN_LIST = [
@@ -20,50 +20,106 @@ const FULL_PROTEIN_LIST = [
 ];
 
 const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
-    useEffect(() => {
-        const scanner = new Html5QrcodeScanner(
-            "reader",
-            {
-                fps: 10,
-                qrbox: { width: 300, height: 150 },
-                aspectRatio: 1.0,
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.QR_CODE
-                ]
-            },
-            false
-        );
+    const [cameraError, setCameraError] = useState<string | null>(null);
+    const [isStarting, setIsStarting] = useState(true);
+    const scannerRef = useRef<Html5Qrcode | null>(null);
 
+    useEffect(() => {
+        let isMounted = true;
         let lastScannedText = '';
 
-        scanner.render(
-            (decodedText) => {
-                // Ignore rapid successions of the exact same read to prevent flooding
-                if (decodedText !== lastScannedText) {
-                    lastScannedText = decodedText;
-                    onScan(decodedText);
-                    setTimeout(() => { lastScannedText = ''; }, 2000); // Clear anti-flood after 2s
+        const startScanner = async () => {
+            try {
+                // Initialize raw Html5Qrcode engine (bypasses the file-upload fallback UI)
+                const html5QrCode = new Html5Qrcode("reader");
+                scannerRef.current = html5QrCode;
+
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 300, height: 150 },
+                    aspectRatio: 1.0,
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.QR_CODE
+                    ]
+                };
+
+                // Explicitly request the back camera
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    (decodedText) => {
+                        if (decodedText !== lastScannedText) {
+                            lastScannedText = decodedText;
+                            onScan(decodedText);
+                            setTimeout(() => { lastScannedText = ''; }, 2000);
+                        }
+                    },
+                    () => {
+                        // Ignored: Constant stream of frame no-reads
+                    }
+                );
+
+                if (isMounted) setIsStarting(false);
+            } catch (err: any) {
+                console.error("Camera start failed:", err);
+                if (isMounted) {
+                    setIsStarting(false);
+                    setCameraError("Camera permission denied or hardware unavailable.");
                 }
-            },
-            () => {
-                // Html5Qrcode floods this with "Not found" every frame, so we ignore it quietly
             }
-        );
+        };
+
+        startScanner();
 
         return () => {
-            scanner.clear().catch(error => {
-                console.error("Failed to clear html5QrcodeScanner. ", error);
-            });
+            isMounted = false;
+            // Cleanup the scanner if it was started
+            if (scannerRef.current && scannerRef.current.isScanning) {
+                scannerRef.current.stop().catch(console.error).finally(() => {
+                    scannerRef.current?.clear();
+                });
+            }
         };
     }, [onScan]);
 
+    if (cameraError) {
+        return (
+            <div className="w-full h-[350px] bg-black/90 flex flex-col items-center justify-center p-6 text-center border-4 border-[#FF2A6D] rounded-xl shadow-[0_0_30px_rgba(255,42,109,0.2)]">
+                <AlertCircle className="w-12 h-12 text-[#FF2A6D] mb-4" />
+                <h3 className="text-[#FF2A6D] font-bold text-lg mb-2">Camera Access Blocked</h3>
+                <p className="text-gray-400 text-sm">{cameraError}</p>
+                <p className="text-[#C5A059] text-xs font-mono mt-4">Please allow camera permissions in Safari/Chrome settings and reload.</p>
+            </div>
+        );
+    }
+
     return (
-        <div id="reader" className="w-full bg-black rounded-xl overflow-hidden shadow-2xl [&>div]:!border-none [&_video]:!object-cover [&_#reader__scan_region]:!min-h-[350px]"></div>
+        <div className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-black border-4 border-[#C5A059] shadow-[0_0_30px_rgba(197,160,89,0.2)]">
+            {isStarting && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
+                    <div className="w-8 h-8 border-4 border-[#C5A059] border-t-transparent rounded-full animate-spin mb-4" />
+                    <span className="text-[#C5A059] font-mono text-sm tracking-widest animate-pulse">Initializing Optics...</span>
+                </div>
+            )}
+            {/* Note: Html5Qrcode needs this exact ID to mount the <video> element */}
+            <div id="reader" className="w-full [&>video]:!object-cover [&>video]:!min-h-[350px]"></div>
+
+            {/* Target Recticle Overlay */}
+            {!isStarting && !cameraError && (
+                <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
+                    <div className="w-64 h-32 border-2 border-white/20 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] box-border">
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-[#00FF94]" />
+                        <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-[#00FF94]" />
+                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-[#00FF94]" />
+                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-[#00FF94]" />
+                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2px] bg-[#FF2A6D]/80 animate-pulse shadow-[0_0_10px_#FF2A6D]" />
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 
