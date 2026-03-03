@@ -30,10 +30,15 @@ export const WeeklyInventory = () => {
     };
 
     const { ref: zxingRef } = useZxing({
-        onDecodeResult(result: any) {
+        onResult(result: any) {
             handleBarcodeScanned(result.getText());
         },
         paused: !isCameraOpen,
+        constraints: {
+            video: {
+                facingMode: 'environment'
+            }
+        }
     });
 
     const handleBarcodeScanned = (barcodeString: string) => {
