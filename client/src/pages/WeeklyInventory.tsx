@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize } from 'lucide-react';
 import { useZxing } from 'react-zxing';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
 
 const FULL_PROTEIN_LIST = [
@@ -29,11 +30,18 @@ export const WeeklyInventory = () => {
         updateCount(id, value);
     };
 
+    const hints = useMemo(() => {
+        const hintsMap = new Map();
+        hintsMap.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128, BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E, BarcodeFormat.QR_CODE]);
+        return hintsMap;
+    }, []);
+
     const { ref: zxingRef } = useZxing({
         onResult(result: any) {
             handleBarcodeScanned(result.getText());
         },
         paused: !isCameraOpen,
+        hints,
         constraints: {
             video: {
                 facingMode: 'environment'
