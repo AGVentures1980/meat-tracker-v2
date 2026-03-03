@@ -98,30 +98,54 @@ export const WeeklyInventory = () => {
         window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
 
         // GS1-128 Parsing Logic for Brasa Meat Tracker
+        // Remove parens, spaces, and FNC1 invisible chars from raw scanner output
+        const cleanBarcode = barcodeString.replace(/[\(\)\s\u001D]/g, '');
+
         let parsedWeight = 0;
         let matchedProtein = null;
 
-        // Extract weight: look for 3102 followed by 6 digits
-        const weightMatch = barcodeString.match(/3102(\d{6})/);
+        // Extract weight using GS1 Application Identifiers
+        // 310n (Net Weight in Kg) or 320n (Net Weight in Lbs)
+        // Group 1: 310 or 320 | Group 2: decimals (0-5) | Group 3: 6 digits raw weight
+        const weightMatch = cleanBarcode.match(/(310|320)(\d)(\d{6})/);
         if (weightMatch) {
-            parsedWeight = parseInt(weightMatch[1], 10) / 100;
+            const isLbs = weightMatch[1] === '320';
+            const decimals = parseInt(weightMatch[2], 10);
+            const rawWeight = parseInt(weightMatch[3], 10);
+
+            let weight = rawWeight / Math.pow(10, decimals);
+
+            if (!isLbs) {
+                // System runs entirely on Lbs -> dynamically convert Kg to Lbs
+                weight = weight * 2.20462;
+            }
+            // Round to 2 decimal places to match operational scale accuracy
+            parsedWeight = parseFloat(weight.toFixed(2));
         } else {
-            // Fallback for demo test barcodes
-            const demoWeightMatch = barcodeString.match(/W(\d{4})/);
+            // Fallback for pitch demo barcodes
+            const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
             if (demoWeightMatch) {
                 parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
             }
         }
 
-        // Extract Product mapping (Simulated mapping based on strings for the pitch)
-        if (barcodeString.includes('PICANHA') || barcodeString.includes('01900001')) {
+        // Map GTIN to Protein List (Simulating actual product DB lookup)
+        // Including real GTINs from actual US Foods/JBS boxes
+        if (cleanBarcode.includes('PICANHA') || cleanBarcode.includes('01900001') || cleanBarcode.includes('90079338217464')) {
+            // JBS Top Sirloin Butt Cap => Picanha
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '1');
-        } else if (barcodeString.includes('FRALDINHA') || barcodeString.includes('01900003')) {
+        } else if (cleanBarcode.includes('FRALDINHA') || cleanBarcode.includes('01900003')) {
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '3');
-        } else if (barcodeString.includes('TRITIP') || barcodeString.includes('01900004')) {
+        } else if (cleanBarcode.includes('TRITIP') || cleanBarcode.includes('01900004')) {
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '4');
+        } else if (cleanBarcode.includes('90758188398912')) {
+            // US Foods Beef Tenderloin PSMO => Filet Mignon
+            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '6');
+        } else if (cleanBarcode.includes('90627577078145')) {
+            // Clear River Farms Beef Rib Bone In => Beef Ribs
+            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '8');
         } else if (parsedWeight > 0) {
-            // If we got a weight but no known product, pick the first one just for the demo fallback if needed, or mark unknown
+            // Unmapped product scanned
             matchedProtein = null;
         }
 
@@ -397,7 +421,7 @@ export const WeeklyInventory = () => {
                             <div className="w-2 h-2 rounded-full bg-[#C5A059] animate-pulse" />
                             <span className="font-mono tracking-widest text-sm uppercase">PMA Active Scanner</span>
                         </div>
-                        <button type="button" onClick={() => setIsCameraOpen(false)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
+                        <button type="button" title="Close scanner" aria-label="Close scanner" onClick={() => setIsCameraOpen(false)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
