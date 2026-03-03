@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize } from 'lucide-react';
-import { useZxing } from 'react-zxing';
-import { BarcodeFormat, DecodeHintType } from '@zxing/library';
+import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
 
 const FULL_PROTEIN_LIST = [
@@ -20,6 +19,54 @@ const FULL_PROTEIN_LIST = [
     { id: '16', name: 'Sausage', expected: 22.0, unit: 'Lbs' }
 ];
 
+const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
+    useEffect(() => {
+        const scanner = new Html5QrcodeScanner(
+            "reader",
+            {
+                fps: 10,
+                qrbox: { width: 300, height: 150 },
+                aspectRatio: 1.0,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.QR_CODE
+                ]
+            },
+            false
+        );
+
+        let lastScannedText = '';
+
+        scanner.render(
+            (decodedText) => {
+                // Ignore rapid successions of the exact same read to prevent flooding
+                if (decodedText !== lastScannedText) {
+                    lastScannedText = decodedText;
+                    onScan(decodedText);
+                    setTimeout(() => { lastScannedText = ''; }, 2000); // Clear anti-flood after 2s
+                }
+            },
+            () => {
+                // Html5Qrcode floods this with "Not found" every frame, so we ignore it quietly
+            }
+        );
+
+        return () => {
+            scanner.clear().catch(error => {
+                console.error("Failed to clear html5QrcodeScanner. ", error);
+            });
+        };
+    }, [onScan]);
+
+    return (
+        <div id="reader" className="w-full bg-black rounded-xl overflow-hidden shadow-2xl [&>div]:!border-none [&_video]:!object-cover [&_#reader__scan_region]:!min-h-[350px]"></div>
+    );
+};
+
 export const WeeklyInventory = () => {
     const { counts, updateCount, isOnline, hasPendingSync, isSyncing, queueForSync } = useOfflineInventory();
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -29,25 +76,6 @@ export const WeeklyInventory = () => {
     const handleCountChange = (id: string, value: string) => {
         updateCount(id, value);
     };
-
-    const hints = useMemo(() => {
-        const hintsMap = new Map();
-        hintsMap.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128, BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E, BarcodeFormat.QR_CODE]);
-        return hintsMap;
-    }, []);
-
-    const { ref: zxingRef } = useZxing({
-        onResult(result: any) {
-            handleBarcodeScanned(result.getText());
-        },
-        paused: !isCameraOpen,
-        hints,
-        constraints: {
-            video: {
-                facingMode: 'environment'
-            }
-        }
-    });
 
     const handleBarcodeScanned = (barcodeString: string) => {
         // Minimal anti-bounce / anti-duplication
@@ -70,8 +98,6 @@ export const WeeklyInventory = () => {
         window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
 
         // GS1-128 Parsing Logic for Brasa Meat Tracker
-        // Example: (01)900123(3102)004550 -> 45.50 lbs, Product 900123
-        // For testing, we look for '3102' (weight in lbs, 2 decimal places) or just fallback to simple string matching
         let parsedWeight = 0;
         let matchedProtein = null;
 
@@ -367,38 +393,23 @@ export const WeeklyInventory = () => {
             {isCameraOpen && (
                 <div className="fixed inset-0 bg-black/95 z-[999] flex flex-col backdrop-blur-sm">
                     <div className="p-4 flex justify-between items-center border-b border-[#333]/50 bg-black">
-                        <div className="flex items-center gap-2 text-[#00FF94]">
-                            <div className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse" />
-                            <span className="font-mono tracking-widest text-sm uppercase">AI Vision Active</span>
+                        <div className="flex items-center gap-2 text-[#C5A059]">
+                            <div className="w-2 h-2 rounded-full bg-[#C5A059] animate-pulse" />
+                            <span className="font-mono tracking-widest text-sm uppercase">PMA Active Scanner</span>
                         </div>
                         <button type="button" onClick={() => setIsCameraOpen(false)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
 
-                    <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-                        {/* Real Camera Feed */}
-                        <video ref={zxingRef} className="absolute inset-0 w-full h-full object-cover" />
-
-                        {/* Camera Viewfinder UI */}
-                        <div className="w-72 h-72 relative z-10 box-border border border-white/10 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
-                            {/* Brackets */}
-                            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#C5A059]" />
-                            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#C5A059]" />
-                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#C5A059]" />
-                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#C5A059]" />
-
-                            {/* Scanning Laser */}
-                            <div className="absolute left-4 right-4 h-[2px] bg-[#FF2A6D] top-1/2 -translate-y-1/2 shadow-[0_0_15px_#FF2A6D] animate-pulse" />
-
-                            <div className="absolute -bottom-8 left-0 right-0 text-center text-xs text-white font-mono tracking-widest uppercase bg-black/50 py-1 rounded">
-                                Point at Box Barcode
-                            </div>
+                    <div className="flex-1 relative flex flex-col justify-center w-full px-4 overflow-hidden pt-12">
+                        <div className="w-full max-w-md mx-auto relative z-10 box-border rounded-xl border-4 border-[#C5A059] shadow-[0_0_30px_rgba(197,160,89,0.2)] bg-black">
+                            <ScannerComponent onScan={handleBarcodeScanned} />
                         </div>
 
                         {/* Status Toasts */}
                         {lastScanned && (
-                            <div className={`absolute top-10 left-1/2 -translate-x-1/2 w-11/12 max-w-sm px-4 py-3 rounded text-sm font-bold shadow-2xl flex items-center gap-3 transition-all transform animate-in slide-in-from-top-4 ${lastScanned.status === 'success' ? 'bg-[#00FF94] text-black' :
+                            <div className={`absolute top-4 left-1/2 -translate-x-1/2 w-11/12 max-w-sm px-4 py-3 rounded text-sm font-bold shadow-2xl flex items-center gap-3 transition-all transform animate-in slide-in-from-top-4 z-50 ${lastScanned.status === 'success' ? 'bg-[#00FF94] text-black' :
                                 lastScanned.status === 'duplicate' ? 'bg-[#FF2A6D] text-white' :
                                     'bg-[#C5A059] text-black'
                                 }`}>
@@ -415,7 +426,10 @@ export const WeeklyInventory = () => {
                         )}
                     </div>
 
-                    <div className="p-8 pb-12 bg-black border-t border-[#333]/50">
+                    <div className="p-8 pb-12 bg-black border-t border-[#333]/50 mt-auto shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
+                        <div className="text-center text-xs text-gray-500 font-mono tracking-widest uppercase mb-4">
+                            ALIGN BOX BARCODE WITHIN CAMERA VIEW
+                        </div>
                         <button
                             type="button"
                             onClick={simulateContinuousScan}
