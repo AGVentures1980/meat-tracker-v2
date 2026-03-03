@@ -35,13 +35,15 @@ const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
                 scannerRef.current = html5QrCode;
 
                 const config = {
-                    fps: 10,
-                    qrbox: { width: 300, height: 150 },
-                    aspectRatio: 1.0,
+                    fps: 15,
+                    disableFlip: false,
                     formatsToSupport: [
                         Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.CODE_39,
                         Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
                         Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
                         Html5QrcodeSupportedFormats.QR_CODE
                     ]
                 };
@@ -136,14 +138,14 @@ const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
             {/* Note: Html5Qrcode needs this exact ID to mount the <video> element */}
             <div id="reader" className="w-full [&>video]:!object-cover [&>video]:!min-h-[350px]"></div>
 
-            {/* Target Recticle Overlay */}
+            {/* Target Recticle Overlay (Wide for GS1-128) */}
             {!isStarting && !cameraError && (
                 <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
-                    <div className="w-64 h-32 border-2 border-white/20 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] box-border">
-                        <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-[#00FF94]" />
-                        <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-[#00FF94]" />
-                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-[#00FF94]" />
-                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-[#00FF94]" />
+                    <div className="w-11/12 max-w-sm h-40 border-2 border-white/20 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] box-border">
+                        <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#00FF94] transition-all" />
+                        <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#00FF94] transition-all" />
+                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#00FF94] transition-all" />
+                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#00FF94] transition-all" />
                         <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2px] bg-[#FF2A6D]/80 animate-pulse shadow-[0_0_10px_#FF2A6D]" />
                     </div>
                 </div>
