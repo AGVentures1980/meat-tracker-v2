@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize, AlertCircle } from 'lucide-react';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
 
 const FULL_PROTEIN_LIST = [
@@ -78,134 +78,71 @@ export const playBeep = (type: 'success' | 'warning' | 'error') => {
 };
 
 const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
+    const [isProcessing, setIsProcessing] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
-    const [isStarting, setIsStarting] = useState(true);
-    const scannerRef = useRef<Html5Qrcode | null>(null);
 
-    useEffect(() => {
-        let isMounted = true;
-        let lastScannedText = '';
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
 
-        const startScanner = async () => {
-            try {
-                // Initialize raw Html5Qrcode engine (bypasses the file-upload fallback UI)
-                const html5QrCode = new Html5Qrcode("reader");
-                scannerRef.current = html5QrCode;
+        setIsProcessing(true);
+        setCameraError(null);
+        const file = e.target.files[0];
+        const html5QrCode = new Html5Qrcode("reader");
 
-                const config = {
-                    fps: 15,
-                    disableFlip: false,
-                    formatsToSupport: [
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.CODE_39,
-                        Html5QrcodeSupportedFormats.EAN_13,
-                        Html5QrcodeSupportedFormats.EAN_8,
-                        Html5QrcodeSupportedFormats.UPC_A,
-                        Html5QrcodeSupportedFormats.UPC_E,
-                        Html5QrcodeSupportedFormats.QR_CODE
-                    ]
-                };
-
-                // Explicitly request the back camera
-                await html5QrCode.start(
-                    { facingMode: "environment" },
-                    config,
-                    (decodedText) => {
-                        if (decodedText !== lastScannedText) {
-                            lastScannedText = decodedText;
-                            onScan(decodedText);
-                            setTimeout(() => { lastScannedText = ''; }, 2000);
-                        }
-                    },
-                    () => {
-                        // Ignored: Constant stream of frame no-reads
-                    }
-                );
-
-                // iOS Safari fix: Force playsinline on the injected video element
-                // so it doesn't open the native full-screen video player/recorder dialogue
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        if (mutation.addedNodes) {
-                            mutation.addedNodes.forEach((node) => {
-                                if (node.nodeName === 'VIDEO') {
-                                    const videoNode = node as HTMLVideoElement;
-                                    videoNode.setAttribute('playsinline', 'true');
-                                    videoNode.setAttribute('webkit-playsinline', 'true');
-                                    videoNode.setAttribute('muted', 'true');
-                                    videoNode.setAttribute('autoplay', 'true');
-                                    videoNode.style.objectFit = 'cover';
-                                }
-                            });
-                        }
-                    });
-                });
-
-                const readerElement = document.getElementById('reader');
-                if (readerElement) {
-                    observer.observe(readerElement, { childList: true, subtree: true });
-                    // Store the observer on the ref so we can clean it up
-                    (scannerRef as any).currentObserver = observer;
-                }
-
-                if (isMounted) setIsStarting(false);
-            } catch (err: any) {
-                console.error("Camera start failed:", err);
-                if (isMounted) {
-                    setIsStarting(false);
-                    setCameraError("Camera permission denied or hardware unavailable.");
-                }
-            }
-        };
-
-        startScanner();
-
-        return () => {
-            isMounted = false;
-            if ((scannerRef as any).currentObserver) {
-                (scannerRef as any).currentObserver.disconnect();
-            }
-            // Cleanup the scanner if it was started
-            if (scannerRef.current && scannerRef.current.isScanning) {
-                scannerRef.current.stop().catch(console.error).finally(() => {
-                    scannerRef.current?.clear();
-                });
-            }
-        };
-    }, [onScan]);
-
-    if (cameraError) {
-        return (
-            <div className="w-full h-[350px] bg-black/90 flex flex-col items-center justify-center p-6 text-center border-4 border-[#FF2A6D] rounded-xl shadow-[0_0_30px_rgba(255,42,109,0.2)]">
-                <AlertCircle className="w-12 h-12 text-[#FF2A6D] mb-4" />
-                <h3 className="text-[#FF2A6D] font-bold text-lg mb-2">Camera Access Blocked</h3>
-                <p className="text-gray-400 text-sm">{cameraError}</p>
-                <p className="text-[#C5A059] text-xs font-mono mt-4">Please allow camera permissions in Safari/Chrome settings and reload.</p>
-            </div>
-        );
-    }
+        try {
+            // Using the new scanFile API
+            const decodedText = await html5QrCode.scanFile(file, true);
+            onScan(decodedText);
+        } catch (err: any) {
+            console.error("File scanning error", err);
+            setCameraError("Nenhum código encontrado na imagem. Tente chegar mais perto ou focar na barra GS1.");
+            // We only play error beep via the parent component usually, but this is a specific image fail
+        } finally {
+            setIsProcessing(false);
+            html5QrCode.clear();
+        }
+    };
 
     return (
-        <div className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-black border-4 border-[#C5A059] shadow-[0_0_30px_rgba(197,160,89,0.2)]">
-            {isStarting && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-                    <div className="w-8 h-8 border-4 border-[#C5A059] border-t-transparent rounded-full animate-spin mb-4" />
-                    <span className="text-[#C5A059] font-mono text-sm tracking-widest animate-pulse">Initializing Optics...</span>
-                </div>
-            )}
-            {/* Note: Html5Qrcode needs this exact ID to mount the <video> element */}
-            <div id="reader" className="w-full [&>video]:!object-cover [&>video]:!min-h-[350px]"></div>
+        <div className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-black border-4 border-[#C5A059] shadow-[0_0_30px_rgba(197,160,89,0.2)] flex flex-col items-center justify-center min-h-[300px] p-6 text-center">
 
-            {/* Target Recticle Overlay (Wide for GS1-128) */}
-            {!isStarting && !cameraError && (
-                <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
-                    <div className="w-11/12 max-w-sm h-40 border-2 border-white/20 relative shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] box-border">
-                        <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#00FF94] transition-all" />
-                        <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#00FF94] transition-all" />
-                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#00FF94] transition-all" />
-                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#00FF94] transition-all" />
-                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2px] bg-[#FF2A6D]/80 animate-pulse shadow-[0_0_10px_#FF2A6D]" />
-                    </div>
+            {/* Hidden div needed to instantiate Html5Qrcode temporarily */}
+            <div id="reader" style={{ display: 'none' }}></div>
+
+            <Camera className="w-16 h-16 text-[#C5A059] mb-4 opacity-50" />
+            <h3 className="text-[#C5A059] font-bold text-lg mb-2 tracking-widest">HIGH-RES PHOTO SCAN</h3>
+            <p className="text-gray-400 text-sm mb-6 max-w-[250px]">
+                Capture a clear, focused photo of the barcode for analysis.
+            </p>
+
+            <label className="relative cursor-pointer group">
+                <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={isProcessing}
+                />
+                <div className={`px-8 py-4 bg-[#C5A059]/10 border-2 border-[#C5A059] rounded-lg font-mono tracking-widest text-[#C5A059] transition-all flex items-center gap-3 ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#C5A059]/20'}`}>
+                    {isProcessing ? (
+                        <>
+                            <RefreshCw className="w-5 h-5 animate-spin" />
+                            PROCESSING...
+                        </>
+                    ) : (
+                        <>
+                            <ScanLine className="w-5 h-5" />
+                            TAKE PHOTO
+                        </>
+                    )}
+                </div>
+            </label>
+
+            {cameraError && (
+                <div className="mt-6 flex items-start gap-2 text-left bg-[#FF2A6D]/10 p-3 rounded border border-[#FF2A6D]/30">
+                    <AlertCircle className="w-5 h-5 text-[#FF2A6D] shrink-0 mt-0.5" />
+                    <p className="text-[#FF2A6D] text-xs leading-relaxed">{cameraError}</p>
                 </div>
             )}
         </div>
