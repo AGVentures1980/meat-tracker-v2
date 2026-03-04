@@ -287,10 +287,10 @@ export const WeeklyInventory = () => {
 
         // Map GTIN to Protein List (Simulating actual product DB lookup)
         // Including real GTINs from actual US Foods/JBS boxes
-        if (cleanBarcode.includes('PICANHA') || cleanBarcode.includes('01900001') || cleanBarcode.includes('90079338217464')) {
+        if (cleanBarcode.includes('PICANHA') || cleanBarcode.includes('01900001') || cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477')) {
             // JBS Top Sirloin Butt Cap => Picanha
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '1');
-        } else if (cleanBarcode.includes('FRALDINHA') || cleanBarcode.includes('01900003') || cleanBarcode.includes('90075338888514')) {
+        } else if (cleanBarcode.includes('FRALDINHA') || cleanBarcode.includes('01900003') || cleanBarcode.includes('90076338888514') || cleanBarcode.includes('90627577091328')) {
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '3');
         } else if (cleanBarcode.includes('TRITIP') || cleanBarcode.includes('01900004')) {
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '4');
