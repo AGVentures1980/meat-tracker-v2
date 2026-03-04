@@ -19,6 +19,64 @@ const FULL_PROTEIN_LIST = [
     { id: '16', name: 'Sausage', expected: 22.0, unit: 'Lbs' }
 ];
 
+// --- Web Audio API Beep System ---
+// Unlocks on first user interaction to ensure iOS Safari playback
+let audioCtx: AudioContext | null = null;
+const initAudio = () => {
+    if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => { });
+            }
+        }
+    }
+};
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('touchstart', initAudio, { once: true });
+    window.addEventListener('click', initAudio, { once: true });
+}
+
+export const playBeep = (type: 'success' | 'warning' | 'error') => {
+    if (!audioCtx) return;
+    try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'success') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.exponentialRampToValueAtTime(1760, now + 0.1);
+            gain.gain.setValueAtTime(1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc.start(now);
+            osc.stop(now + 0.15);
+        } else if (type === 'error') {
+            osc.type = 'sawtooth';
+            // Low buzz
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.setValueAtTime(250, now + 0.1);
+            gain.gain.setValueAtTime(1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (type === 'warning') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(500, now);
+            gain.gain.setValueAtTime(1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        }
+    } catch (e) { console.error('Beep sound error:', e); }
+};
+
 const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [isStarting, setIsStarting] = useState(true);
@@ -176,6 +234,7 @@ export const WeeklyInventory = () => {
             if (lastScanned?.status !== 'duplicate') {
                 setLastScanned({ name: 'Unknown', weight: 0, status: 'duplicate' });
                 if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                playBeep('warning');
                 setTimeout(() => setLastScanned(null), 3000);
             }
             return;
@@ -213,6 +272,16 @@ export const WeeklyInventory = () => {
             const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
             if (demoWeightMatch) {
                 parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
+            } else {
+                // New Zealand Lamb Rack (Taylor Preston) specific fixed-length pattern
+                // Example: 19065337 0864 0086353360 (22 digits, weight in kg at indices 8-11)
+                const lambMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})$/);
+                // Also safety check some known patterns or lengths
+                if (lambMatch && cleanBarcode.length === 22) {
+                    const rawKg = parseInt(lambMatch[2], 10) / 100;
+                    const lbs = rawKg * 2.20462;
+                    parsedWeight = parseFloat(lbs.toFixed(2));
+                }
             }
         }
 
@@ -221,7 +290,7 @@ export const WeeklyInventory = () => {
         if (cleanBarcode.includes('PICANHA') || cleanBarcode.includes('01900001') || cleanBarcode.includes('90079338217464')) {
             // JBS Top Sirloin Butt Cap => Picanha
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '1');
-        } else if (cleanBarcode.includes('FRALDINHA') || cleanBarcode.includes('01900003')) {
+        } else if (cleanBarcode.includes('FRALDINHA') || cleanBarcode.includes('01900003') || cleanBarcode.includes('90075338888514')) {
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '3');
         } else if (cleanBarcode.includes('TRITIP') || cleanBarcode.includes('01900004')) {
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '4');
@@ -231,6 +300,9 @@ export const WeeklyInventory = () => {
         } else if (cleanBarcode.includes('90627577078145')) {
             // Clear River Farms Beef Rib Bone In => Beef Ribs
             matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '8');
+        } else if (cleanBarcode.length === 22 && parsedWeight > 0) {
+            // The Taylor Preston Lamb Racks (based on length and generic Lamb Chops grouping)
+            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '13'); // Lamb Chops
         } else if (parsedWeight > 0) {
             // Unmapped product scanned
             matchedProtein = null;
@@ -239,9 +311,13 @@ export const WeeklyInventory = () => {
         if (!matchedProtein || parsedWeight === 0) {
             setLastScanned({ name: 'Unknown', weight: 0, status: 'unknown' });
             if (navigator.vibrate) navigator.vibrate([500]);
+            playBeep('error');
             setTimeout(() => setLastScanned(null), 3500);
             return;
         }
+
+        // Ensure successful scan plays the beep!
+        playBeep('success');
 
         const currentRaw = String(counts[matchedProtein.id] || '');
         const newRaw = currentRaw.trim() === '' ? String(parsedWeight) : `${currentRaw}+${parsedWeight}`;
