@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize, AlertCircle } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
@@ -159,7 +159,7 @@ export const WeeklyInventory = () => {
         updateCount(id, value);
     };
 
-    const handleBarcodeScanned = (barcodeString: string) => {
+    const handleBarcodeScanned = useCallback((barcodeString: string) => {
         // Minimal anti-bounce / anti-duplication
         if (!window.sessionStorage.getItem('scannedBarcodes')) {
             window.sessionStorage.setItem('scannedBarcodes', JSON.stringify([]));
@@ -249,22 +249,60 @@ export const WeeklyInventory = () => {
             setLastScanned({ name: 'Unknown', weight: 0, status: 'unknown' });
             if (navigator.vibrate) navigator.vibrate([500]);
             playBeep('error');
-            setTimeout(() => setLastScanned(null), 3500);
+            setTimeout(() => setLastScanned(null), 3000);
             return;
         }
 
-        // Ensure successful scan plays the beep!
+        setLastScanned({ name: matchedProtein.name, weight: parsedWeight, status: 'success' });
+
+        // Save to offline storage instantly
+        updateCount(matchedProtein.id, String(parsedWeight));
+
+        if (navigator.vibrate) navigator.vibrate([100]);
         playBeep('success');
 
-        const currentRaw = String(counts[matchedProtein.id] || '');
-        const newRaw = currentRaw.trim() === '' ? String(parsedWeight) : `${currentRaw}+${parsedWeight}`;
+        setTimeout(() => setLastScanned(null), 3000);
+    }, [updateCount, lastScanned]);
 
-        updateCount(matchedProtein.id, newRaw);
+    // Invisible Bluetooth HID Keyboard Listener
+    // Maps physical hardware scanners acting as keyboards seamlessly into the App
+    useEffect(() => {
+        let barcodeBuffer = '';
+        let lastKeyTime = Date.now();
 
-        setLastScanned({ name: matchedProtein.name, weight: parsedWeight, status: 'success' });
-        if (navigator.vibrate) navigator.vibrate(100);
-        setTimeout(() => setLastScanned(null), 2500);
-    };
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore events if user is typing in an actual input field (we don't have inputs on this specific view, but safety first)
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            const currentTime = Date.now();
+
+            // If more than 50ms has passed since the last keystroke, it's likely a human typing slowly or accidental press.
+            // Hardware scanners usually 'type' characters with less than 20ms between them.
+            // Reset the buffer to avoid false positives.
+            if (currentTime - lastKeyTime > 50) {
+                barcodeBuffer = '';
+            }
+
+            if (e.key === 'Enter') {
+                if (barcodeBuffer.length > 5) { // GS1 codes are at least 14+ chars, safety threshold
+                    e.preventDefault();
+                    handleBarcodeScanned(barcodeBuffer);
+                }
+                barcodeBuffer = '';
+            } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                // Only capture printable characters (numbers, letters, parentheses) representing the GS1 string
+                barcodeBuffer += e.key;
+            }
+
+            lastKeyTime = currentTime;
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleBarcodeScanned]);
 
     const simulateContinuousScan = () => {
         if (!window.sessionStorage.getItem('scannedBarcodes')) {
