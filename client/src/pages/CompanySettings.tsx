@@ -43,6 +43,10 @@ export const CompanySettings = () => {
     // Area Manager Form State
     const [selectedAreaManager, setSelectedAreaManager] = useState<string | null>(null);
     const [selectedStores, setSelectedStores] = useState<number[]>([]);
+    const [newAmEmail, setNewAmEmail] = useState('');
+    const [newAmPassword, setNewAmPassword] = useState('');
+    const [newAmFirstName, setNewAmFirstName] = useState('');
+    const [newAmLastName, setNewAmLastName] = useState('');
 
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
 
@@ -155,7 +159,7 @@ export const CompanySettings = () => {
         if (!newItemName) return;
 
         try {
-            const endpointBase = activeTab === 'products' ? '/company/products' : '/company/stores';
+            const endpointBase = activeTab === 'products' ? '/company/products' : (activeTab === 'stores' ? '/company/stores' : '/company/area-managers');
             const body = activeTab === 'products' ? {
                 name: newItemName,
                 protein_group: newProteinGroup || null,
@@ -166,6 +170,11 @@ export const CompanySettings = () => {
             } : activeTab === 'stores' ? {
                 store_name: newItemName,
                 location: newItemLocation || newItemName
+            } : activeTab === 'areaManagers' ? {
+                email: newAmEmail,
+                password: newAmPassword,
+                first_name: newAmFirstName,
+                last_name: newAmLastName
             } : {
                 name: newItemName,
                 description: newItemLocation, // Reuse location field for desc
@@ -195,6 +204,10 @@ export const CompanySettings = () => {
                 setNewItemName('');
                 setNewItemLocation('');
                 setNewProteinGroup('');
+                setNewAmEmail('');
+                setNewAmPassword('');
+                setNewAmFirstName('');
+                setNewAmLastName('');
                 fetchData();
             } else {
                 alert('Failed to add item');
@@ -208,7 +221,7 @@ export const CompanySettings = () => {
         if (!window.confirm('Are you sure you want to delete this item? This action is logged.')) return;
 
         try {
-            const endpoint = activeTab === 'products' ? `/company/products/${id}` : `/company/stores/${id}`;
+            const endpoint = activeTab === 'products' ? `/company/products/${id}` : (activeTab === 'stores' ? `/company/stores/${id}` : `/company/area-managers/${id}`);
             const res = await fetch(`${API_URL}/api/v1/dashboard${endpoint}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${user?.token}` }
@@ -261,14 +274,12 @@ export const CompanySettings = () => {
 
             {/* ACTION BAR */}
             <div className="flex justify-end">
-                {activeTab !== 'areaManagers' && (
-                    <button
-                        onClick={() => setIsAdding(true)}
-                        className="px-6 py-3 bg-[#0F0F0F] border border-[#C5A059]/30 text-[#C5A059] rounded hover:bg-[#C5A059] hover:text-black transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" /> Add {activeTab === 'products' ? 'Product' : 'Store'}
-                    </button>
-                )}
+                <button
+                    onClick={() => setIsAdding(true)}
+                    className="px-6 py-3 bg-[#0F0F0F] border border-[#C5A059]/30 text-[#C5A059] rounded hover:bg-[#C5A059] hover:text-black transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2"
+                >
+                    <Plus className="w-4 h-4" /> Add {activeTab === 'products' ? 'Product' : activeTab === 'stores' ? 'Store' : activeTab === 'areaManagers' ? 'Area Manager' : 'Template'}
+                </button>
             </div>
 
             {/* ADD MODAL / FORM OVERLAY */}
@@ -280,20 +291,22 @@ export const CompanySettings = () => {
                         </button>
                         <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <Plus className="w-6 h-6 text-[#C5A059]" />
-                            Add New {activeTab === 'products' ? 'Product' : 'Store'}
+                            Add New {activeTab === 'products' ? 'Product' : activeTab === 'stores' ? 'Store' : activeTab === 'areaManagers' ? 'Area Manager' : 'Template'}
                         </h2>
 
                         <div className="space-y-4">
-                            <div>
-                                <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Name</label>
-                                <input
-                                    type="text"
-                                    className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
-                                    placeholder={activeTab === 'products' ? "e.g., Wagyu Ribeye" : "e.g., Miami Beach"}
-                                    value={newItemName}
-                                    onChange={(e) => setNewItemName(e.target.value)}
-                                />
-                            </div>
+                            {activeTab !== 'areaManagers' && (
+                                <div>
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
+                                        placeholder={activeTab === 'products' ? "e.g., Wagyu Ribeye" : "e.g., Miami Beach"}
+                                        value={newItemName}
+                                        onChange={(e) => setNewItemName(e.target.value)}
+                                    />
+                                </div>
+                            )}
 
                             {activeTab === 'stores' && (
                                 <div>
@@ -355,6 +368,53 @@ export const CompanySettings = () => {
                                 </>
                             )}
 
+                            {activeTab === 'areaManagers' && (
+                                <>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">First Name</label>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
+                                                placeholder="e.g., Carlos"
+                                                value={newAmFirstName}
+                                                onChange={(e) => setNewAmFirstName(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Last Name</label>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
+                                                placeholder="e.g., Restrepo"
+                                                value={newAmLastName}
+                                                onChange={(e) => setNewAmLastName(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Email <span className="text-gray-600 normal-case">(Login)</span></label>
+                                        <input
+                                            type="email"
+                                            className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
+                                            placeholder="e.g., carlos@texasdebrazil.com"
+                                            value={newAmEmail}
+                                            onChange={(e) => setNewAmEmail(e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Initial Password</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
+                                            placeholder="e.g., areaManager2026! (They will be forced to change)"
+                                            value={newAmPassword}
+                                            onChange={(e) => setNewAmPassword(e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
+
                             {activeTab === 'templates' && (
                                 <div className="space-y-4">
                                     <div>
@@ -394,7 +454,8 @@ export const CompanySettings = () => {
 
                             <button
                                 onClick={handleAdd}
-                                className="w-full py-4 bg-[#C5A059] text-black font-black uppercase tracking-widest rounded hover:bg-[#d6b579] transition-all mt-4"
+                                disabled={activeTab === 'areaManagers' && (!newAmEmail || !newAmPassword || !newAmFirstName)}
+                                className="w-full py-4 bg-[#C5A059] text-black font-black uppercase tracking-widest rounded hover:bg-[#d6b579] disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-4"
                             >
                                 Create Item
                             </button>
@@ -573,12 +634,15 @@ export const CompanySettings = () => {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="p-4 text-right">
+                                    <td className="p-4 text-right flex justify-end gap-2">
                                         <button
                                             onClick={() => openAssignModal(am)}
                                             className="px-3 py-1 bg-[#1a1a1a] border border-[#C5A059]/30 text-[#C5A059] hover:bg-[#C5A059] hover:text-black transition-colors rounded text-[10px] font-bold uppercase tracking-wider"
                                         >
                                             Manage Stores
+                                        </button>
+                                        <button title="Delete Area Manager" onClick={() => handleDelete(am.id)} className="text-gray-600 hover:text-red-500 transition-colors px-3 py-1 bg-black border border-white/10 rounded flex items-center justify-center">
+                                            <Trash2 className="w-3 h-3" />
                                         </button>
                                     </td>
                                 </tr>

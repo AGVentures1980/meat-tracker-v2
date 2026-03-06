@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../services/AuditService';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -248,6 +249,85 @@ export class CompanyController {
         } catch (error) {
             console.error('Assign Stores Error:', error);
             return res.status(500).json({ error: 'Failed to assign stores' });
+        }
+    }
+
+    static async addAreaManager(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const { email, password, first_name, last_name } = req.body;
+
+            if (user.role !== 'admin' && user.role !== 'director') {
+                return res.status(403).json({ error: 'Access Denied' });
+            }
+
+            const existing = await prisma.user.findUnique({ where: { email } });
+            if (existing) {
+                return res.status(400).json({ error: 'Email already in use' });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            const am = await prisma.user.create({
+                data: {
+                    email,
+                    password_hash: hashedPassword,
+                    first_name,
+                    last_name,
+                    role: 'area_manager',
+                    // Optional: link directly to company if schema supports it, for now using role boundary
+                }
+            });
+
+            await AuditService.logAction(
+                user.id,
+                'CREATE',
+                'Area Manager',
+                `Added Area Manager: ${first_name} ${last_name} (${email})`,
+                0
+            );
+
+            return res.json({ success: true, user: { id: am.id, email: am.email, first_name: am.first_name, last_name: am.last_name } });
+        } catch (error) {
+            console.error('Add Area Manager Error:', error);
+            return res.status(500).json({ error: 'Failed to add area manager' });
+        }
+    }
+
+    static async deleteAreaManager(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const { id } = req.params;
+
+            if (user.role !== 'admin' && user.role !== 'director') {
+                return res.status(403).json({ error: 'Access Denied' });
+            }
+
+            const am = await prisma.user.findUnique({ where: { id } });
+            if (!am || am.role !== 'area_manager') {
+                return res.status(404).json({ error: 'Area manager not found' });
+            }
+
+            // Unassign stores
+            await prisma.store.updateMany({
+                where: { area_manager_id: id },
+                data: { area_manager_id: null }
+            });
+
+            await prisma.user.delete({ where: { id } });
+
+            await AuditService.logAction(
+                user.id,
+                'DELETE',
+                'Area Manager',
+                `Deleted Area Manager: ${am.first_name} ${am.last_name}`,
+                0
+            );
+
+            return res.json({ success: true });
+        } catch (error) {
+            console.error('Delete Area Manager Error:', error);
+            return res.status(500).json({ error: 'Failed to delete area manager' });
         }
     }
 }
