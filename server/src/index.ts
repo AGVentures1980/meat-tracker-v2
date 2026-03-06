@@ -61,6 +61,7 @@ import ownerRoutes from './routes/owner.routes';
 import userRoutes from './routes/user.routes';
 import supportRoutes from './routes/support.routes';
 import vaultRoutes from './routes/vault.routes';
+import themeRoutes from './routes/theme.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
@@ -69,6 +70,7 @@ import path from 'path';
 
 // Auth Routes (Public)
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/theme', themeRoutes); // Public theme fetching
 
 // Protected Routes
 app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);

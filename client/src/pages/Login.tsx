@@ -4,9 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { PasswordResetModal } from '../components/auth/PasswordResetModal';
 import { Eye, EyeOff, Lock, User, ArrowRight, Smartphone, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { useThemeContext } from '../context/ThemeContext';
 
 export const Login = () => {
     const { login } = useAuth();
+    const { theme } = useThemeContext();
     const navigate = useNavigate();
     const location = useLocation();
     const fromPath = location.state?.from?.pathname;
@@ -73,19 +75,22 @@ export const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
             {/* Background Effects */}
-            <div className="absolute inset-0 bg-[url('/background_clean.jpeg')] opacity-60 bg-cover bg-center"></div>
+            <div
+                className="absolute inset-0 opacity-60 bg-cover bg-center"
+                style={{ backgroundImage: `url('${theme?.bgUrl || '/background_clean.jpeg'}')` }}
+            ></div>
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
             <div className="relative z-10 w-full max-w-md p-10 bg-black/50 backdrop-blur-sm border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500">
                 <div className="text-center mb-8">
                     <img
-                        src="/brasa-logo-v3.png"
-                        alt="Brasa Meat Intelligence"
+                        src={theme?.logoUrl || "/brasa-logo-v3.png"}
+                        alt={theme?.companyName || "Brasa Meat Intelligence"}
                         // Maximum proximity
-                        className="w-64 mx-auto -mb-6 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow"
+                        className="w-64 mx-auto -mb-6 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain h-32"
                     />
                     <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
-                    <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">Meat Intelligence</p>
+                    <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">{theme?.companyName || "Meat Intelligence"}</p>
                 </div>
 
                 {error && (

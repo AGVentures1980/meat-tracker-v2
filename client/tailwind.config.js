@@ -10,7 +10,7 @@ export default {
                 brand: {
                     black: '#0a0a0a',
                     gold: '#C5A059',
-                    red: '#8B0000',
+                    red: 'var(--color-brand-red, #8B0000)',
                     surface: '#121212',
                 }
             },

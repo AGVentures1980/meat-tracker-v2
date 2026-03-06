@@ -26,6 +26,12 @@ model Company {
   baseline_ruptura_pct        Float @default(5.0)
   contract_savings_fee_pct    Float @default(5.0) // 5% fee on savings
 
+  // Multi-Tenant & Whitelabel Settings
+  subdomain           String? @unique // e.g., "tdb", "fdc"
+  theme_primary_color String? // Hex color e.g., "#cc0000"
+  theme_logo_url      String? // Public URL to logo
+  theme_bg_url        String? // Public URL to login background
+
   stores    Store[]
   invoices  SysInvoice[]
   products  CompanyProduct[]
@@ -74,7 +80,7 @@ model Store {
 
   target_cost_guest         Float             @default(9.94)
   target_lbs_guest          Float             @default(1.76)
-  lunch_target_lbs_guest    Float? 
+  lunch_target_lbs_guest    Float?
   lunch_excluded_proteins   String[]          @default([])
   dinner_price              Float             @default(58.90)
   serves_lamb_chops_rodizio Boolean           @default(false) // true = Lamb Chops is part of dinner rodizio at this store
@@ -149,7 +155,7 @@ model User {
   is_trial             Boolean            @default(false)
   trial_expires_at     DateTime?
   eula_accepted_at     DateTime?
-  position             String?            // e.g., 'GM', 'Manager', 'Kitchen Manager', 'Carver Leader'
+  position             String? // e.g., 'GM', 'Manager', 'Kitchen Manager', 'Carver Leader'
   store                Store?             @relation(fields: [store_id], references: [id])
   training_progress    TrainingProgress[]
   support_tickets      SupportTicket[]
@@ -491,10 +497,10 @@ model FAQ {
 }
 
 model SupportTicket {
-  id         String           @id @default(uuid())
-  store_id   Int
-  user_id    String
-  title        String
+  id              String           @id @default(uuid())
+  store_id        Int
+  user_id         String
+  title           String
   status          TicketStatus     @default(OPEN)
   is_escalated    Boolean          @default(false)
   rating          Int?

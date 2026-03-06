@@ -136,14 +136,17 @@ function AppContent() {
 }
 
 import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
     return (
-        <AuthProvider>
-            <LanguageProvider>
-                <AppContent />
-            </LanguageProvider>
-        </AuthProvider>
+        <ThemeProvider>
+            <AuthProvider>
+                <LanguageProvider>
+                    <AppContent />
+                </LanguageProvider>
+            </AuthProvider>
+        </ThemeProvider>
     );
 }
 
