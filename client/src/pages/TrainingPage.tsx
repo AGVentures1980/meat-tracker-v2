@@ -204,7 +204,7 @@ const MODULES: Module[] = [
                 title: 'What is a Template?',
                 body: [
                     'Pre-configured set of targets: LBS/guest, cost/guest, protein mix.',
-                    '6 System Templates: Rodízio Padrão, Volume Alto, Premium Mix, Evento Especial, etc.',
+                    '6 System Templates: Standard Rodizio, High Volume, Premium Mix, Special Event, etc.',
                     'Default set by Director. Request temp change for special events.',
                     'Applied in Settings → Company → Templates.',
                 ],
@@ -213,24 +213,24 @@ const MODULES: Module[] = [
             {
                 title: 'Template Use Cases',
                 body: [
-                    'RODÍZIO PADRÃO — Everyday standard.',
-                    'VOLUME ALTO — High traffic (Holidays). Higher LBS target.',
+                    'STANDARD RODIZIO — Everyday standard.',
+                    'HIGH VOLUME — High traffic (Holidays). Higher LBS target.',
                     'PREMIUM MIX — Includes Lamb Chops. Higher cost target.',
                     'EVENTO ESPECIAL — Valentine\'s/NYE. Highest cost tolerance.',
                 ],
-                highlight: 'Always revert to Rodízio Padrão after special events.',
+                highlight: 'Always revert to Standard Rodizio after special events.',
             },
         ],
         quiz: [
             {
                 q: 'Template for Valentine\'s Day?',
-                options: ['Rodízio Padrão', 'Volume Alto', 'Evento Especial', 'Branco'],
+                options: ['Standard Rodizio', 'High Volume', 'Special Event', 'Blank'],
                 correct: 2,
                 explanation: 'Evento Especial is for premium occasions with high cost tolerance.',
             },
             {
                 q: 'After special event ends?',
-                options: ['Keep premium active', 'Revert to Rodízio Padrão', 'Apply Volume Alto', 'Delete template'],
+                options: ['Keep premium active', 'Revert to Standard Rodizio', 'Apply High Volume', 'Delete template'],
                 correct: 1,
                 explanation: 'Leaving premium templates active masks real cost problems on normal weeks.',
             },

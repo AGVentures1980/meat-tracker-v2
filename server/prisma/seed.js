@@ -77,8 +77,8 @@ async function main() {
     console.log('📋 Seeding Store Templates...');
     const SYSTEM_TEMPLATES = [
         {
-            name: 'Template em Branco',
-            description: 'Ponto de partida para criar um template customizado do zero.',
+            name: 'Blank Template',
+            description: 'Starting point to create a custom template from scratch.',
             is_system: true,
             config: {
                 target_lbs_guest: null, target_cost_guest: null,
@@ -88,8 +88,8 @@ async function main() {
             }
         },
         {
-            name: 'Rodízio Padrão',
-            description: 'Baseline para semanas normais. Todos os valores padrão calibrados.',
+            name: 'Standard Rodizio',
+            description: 'Baseline for normal weeks. All standard values calibrated.',
             is_system: true,
             config: {
                 target_lbs_guest: 1.76, target_cost_guest: 9.94,
@@ -103,8 +103,8 @@ async function main() {
             }
         },
         {
-            name: 'Volume Alto',
-            description: 'Finais de semana movimentados, feriados. +20% no target de LBS.',
+            name: 'High Volume',
+            description: 'Busy weekends, holidays. +20% on LBS target.',
             is_system: true,
             config: {
                 target_lbs_guest: 2.10, target_cost_guest: 11.50,
@@ -119,7 +119,7 @@ async function main() {
         },
         {
             name: 'Ribs-Heavy',
-            description: 'Verão / grilling season. Alta demanda de costela.',
+            description: 'Summer / grilling season. High demand for ribs.',
             is_system: true,
             config: {
                 target_lbs_guest: 1.95, target_cost_guest: 10.80,
@@ -134,7 +134,7 @@ async function main() {
         },
         {
             name: 'Premium Mix',
-            description: 'Eventos corporativos, noites de alto ticket. Mais Filet e Picanha.',
+            description: 'Corporate events, high ticket nights. More Filet and Picanha.',
             is_system: true,
             config: {
                 target_lbs_guest: 1.65, target_cost_guest: 12.50,
@@ -148,8 +148,8 @@ async function main() {
             }
         },
         {
-            name: 'Evento Especial',
-            description: "Valentine's Day, NYE, Mother's Day. 4x volume, mix premium, tolerância apertada.",
+            name: 'Special Event',
+            description: "Valentine's Day, NYE, Mother's Day. 4x volume, premium mix, tight tolerance.",
             is_system: true,
             config: {
                 target_lbs_guest: 1.55, target_cost_guest: 13.50,

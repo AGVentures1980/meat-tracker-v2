@@ -10,7 +10,7 @@ export const MobileActionCenter = ({ onSwitchToDesktop }: { onSwitchToDesktop: (
         {
             id: 'invoice',
             label: 'Scan Invoice',
-            sub: 'Lançar Compra',
+            sub: 'Log Purchase',
             icon: Camera,
             path: '/prices',
             color: 'text-brand-gold',
@@ -20,7 +20,7 @@ export const MobileActionCenter = ({ onSwitchToDesktop }: { onSwitchToDesktop: (
         {
             id: 'delivery',
             label: 'Delivery (OLO)',
-            sub: 'Lançar Venda',
+            sub: 'Log Sale',
             icon: Truck,
             path: '/delivery',
             color: 'text-blue-400',
@@ -30,7 +30,7 @@ export const MobileActionCenter = ({ onSwitchToDesktop }: { onSwitchToDesktop: (
         {
             id: 'waste',
             label: 'Log Waste',
-            sub: 'Lançar Perda',
+            sub: 'Log Waste',
             icon: Trash2,
             path: '/waste',
             color: 'text-red-500',
@@ -40,7 +40,7 @@ export const MobileActionCenter = ({ onSwitchToDesktop }: { onSwitchToDesktop: (
         {
             id: 'prep',
             label: 'Smart Prep',
-            sub: 'Plano de Corte',
+            sub: 'Prep Plan',
             icon: UtensilsCrossed,
             path: '/smart-prep',
             color: 'text-green-500',
@@ -55,7 +55,7 @@ export const MobileActionCenter = ({ onSwitchToDesktop }: { onSwitchToDesktop: (
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-serif text-white font-bold">
-                        Olá, {user?.name?.split(' ')[0]}
+                        Hello, {user?.name?.split(' ')[0]}
                     </h1>
                     <p className="text-brand-gold/80 text-sm font-mono uppercase tracking-widest">
                         {user?.storeName || 'Brasa Store'}
@@ -75,10 +75,10 @@ export const MobileActionCenter = ({ onSwitchToDesktop }: { onSwitchToDesktop: (
                     {new Date().getDate()}
                 </div>
                 <p className="text-zinc-500 text-xs uppercase tracking-[0.2em] mb-1">
-                    {new Date().toLocaleDateString('pt-BR', { weekday: 'long' })}
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
                 </p>
                 <p className="text-white text-3xl font-light">
-                    {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
+                    {new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'long' })}
                 </p>
             </div>
 
@@ -112,7 +112,7 @@ export const MobileActionCenter = ({ onSwitchToDesktop }: { onSwitchToDesktop: (
                     className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm font-medium p-2"
                 >
                     <LayoutDashboard className="w-4 h-4" />
-                    Ver Painel Completo
+                    View Full Dashboard
                 </button>
             </div>
         </div>
