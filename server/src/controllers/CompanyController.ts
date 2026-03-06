@@ -176,4 +176,78 @@ export class CompanyController {
             return res.status(500).json({ error: 'Failed to delete store' });
         }
     }
+
+    // --- AREA MANAGERS ---
+
+    static async getAreaManagers(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+
+            if (user.role !== 'admin' && user.role !== 'director') {
+                return res.status(403).json({ error: 'Access Denied' });
+            }
+
+            // Find users in this company (assuming company context via stores or direct id)
+            // Currently User isn't strictly bound to Company directly, but tied via Store.
+            // For directors/admins, they might not have a store_id. But Area Managers can be created 
+            // and assigned stores. Let's fetch users with role 'area_manager' and their stores.
+
+            // To properly scope to the company: find all stores for this company, 
+            // then find area managers assigned to those stores. Or, just list all area managers
+            // (in a multi-tenant DB without Company on User, this requires fetching via store relation or domain)
+
+            // For MVP: Fetch users with role area_manager (simplification: assuming admin manages their own)
+            const areaManagers = await prisma.user.findMany({
+                where: { role: 'area_manager' }, // TODO: Add company filter if Users are strictly tenant-bound
+                include: { area_stores: true },
+                orderBy: { first_name: 'asc' }
+            });
+
+            // Also fetch all stores to show available vs assigned
+            const allStores = await prisma.store.findMany({
+                where: { company_id: user.companyId },
+                orderBy: { store_name: 'asc' }
+            });
+
+            return res.json({ areaManagers, allStores });
+        } catch (error) {
+            console.error('Fetch Area Managers Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch Area Managers' });
+        }
+    }
+
+    static async assignStoresToAreaManager(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const { areaManagerId, storeIds } = req.body;
+
+            if (user.role !== 'admin' && user.role !== 'director') {
+                return res.status(403).json({ error: 'Access Denied' });
+            }
+
+            // Start a transaction: clear existing assignments for these stores (to ensure 1-to-N is maintained)
+            // Then set the new area_manager_id
+
+            await prisma.$transaction(async (tx) => {
+                // First, disassociate this area manager from all their current stores
+                await tx.store.updateMany({
+                    where: { area_manager_id: areaManagerId },
+                    data: { area_manager_id: null }
+                });
+
+                // Now associate them with the new list of stores
+                if (storeIds && storeIds.length > 0) {
+                    await tx.store.updateMany({
+                        where: { id: { in: storeIds }, company_id: user.companyId },
+                        data: { area_manager_id: areaManagerId }
+                    });
+                }
+            });
+
+            return res.json({ success: true, message: 'Stores assigned successfully' });
+        } catch (error) {
+            console.error('Assign Stores Error:', error);
+            return res.status(500).json({ error: 'Failed to assign stores' });
+        }
+    }
 }

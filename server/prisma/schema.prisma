@@ -105,6 +105,8 @@ model Store {
   sales_forecasts           SalesForecast[]
   inventory_cycles          InventoryCycle[]
   company                   Company           @relation(fields: [company_id], references: [id])
+  area_manager_id           String?
+  area_manager              User?             @relation("AreaManager", fields: [area_manager_id], references: [id])
   meat_targets              StoreMeatTarget[]
   uploads                   Upload[]
   users                     User[]
@@ -157,6 +159,7 @@ model User {
   eula_accepted_at     DateTime?
   position             String? // e.g., 'GM', 'Manager', 'Kitchen Manager', 'Carver Leader'
   store                Store?             @relation(fields: [store_id], references: [id])
+  area_stores          Store[]            @relation("AreaManager")
   training_progress    TrainingProgress[]
   support_tickets      SupportTicket[]
 }
@@ -465,6 +468,7 @@ enum CycleStatus {
 enum Role {
   admin
   manager
+  area_manager
   viewer
   director
 }

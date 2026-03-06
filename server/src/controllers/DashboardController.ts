@@ -405,8 +405,13 @@ export class DashboardController {
             const baselineYield = company?.baseline_yield || 65.0;
 
             // 2. Fetch Stores with relevant data
+            const where: any = { company_id: user.companyId };
+            if (user.role === 'area_manager') {
+                where.area_manager_id = user.userId;
+            }
+
             const stores = await prisma.store.findMany({
-                where: { company_id: user.companyId },
+                where,
                 include: {
                     users: {
                         include: { training_progress: true }

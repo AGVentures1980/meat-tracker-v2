@@ -75,10 +75,15 @@ export const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
             {/* Background Effects */}
-            <div
-                className="absolute inset-0 opacity-60 bg-cover bg-center"
-                style={{ backgroundImage: `url('${theme?.bgUrl || '/background_clean.jpeg'}')` }}
-            ></div>
+            {theme?.bgUrl && (
+                <div
+                    className="absolute inset-0 opacity-60 bg-cover bg-center"
+                    style={{ backgroundImage: `url('${theme.bgUrl}')` }}
+                ></div>
+            )}
+            {!theme?.bgUrl && (
+                <div className="absolute inset-0 opacity-60 bg-cover bg-center bg-[url('/background_clean.jpeg')]"></div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
             <div className="relative z-10 w-full max-w-md p-10 bg-black/50 backdrop-blur-sm border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500">
@@ -133,6 +138,7 @@ export const Login = () => {
                             />
                             <button
                                 type="button"
+                                title={showPassword ? "Hide password" : "Show password"}
                                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                                 onClick={() => setShowPassword(!showPassword)}
                             >
@@ -197,6 +203,7 @@ export const Login = () => {
                     <div className="relative w-full max-w-[320px] bg-[#1a1a1a] border border-brand-gold/30 p-8 shadow-[0_0_50px_rgba(197,160,89,0.15)] animate-in zoom-in-95 duration-300">
                         <button
                             onClick={() => setShowQR(false)}
+                            title="Close QR Code"
                             className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
                         >
                             <X className="w-4 h-4" />
@@ -243,6 +250,7 @@ export const Login = () => {
                     <div className="relative w-full max-w-[400px] bg-[#1a1a1a] border border-brand-gold/30 p-10 shadow-[0_0_60px_rgba(197,160,89,0.2)] animate-in zoom-in-95 duration-300">
                         <button
                             onClick={() => { setShowDemoModal(false); setDemoSuccess(null); }}
+                            title="Close Demo Modal"
                             className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
                         >
                             <X className="w-4 h-4" />

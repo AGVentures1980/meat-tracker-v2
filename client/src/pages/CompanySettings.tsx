@@ -14,12 +14,13 @@ import {
 export const CompanySettings = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'products' | 'stores' | 'templates'>('products');
+    const [activeTab, setActiveTab] = useState<'products' | 'stores' | 'templates' | 'areaManagers'>('products');
 
     // Data State
     const [products, setProducts] = useState<any[]>([]);
     const [stores, setStores] = useState<any[]>([]);
     const [templates, setTemplates] = useState<any[]>([]);
+    const [areaManagers, setAreaManagers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Form State
@@ -38,6 +39,10 @@ export const CompanySettings = () => {
     const [tplDinner, setTplDinner] = useState('58.90');
     const [tplLunch, setTplLunch] = useState('29.90');
     const [tplLamb, setTplLamb] = useState(false);
+
+    // Area Manager Form State
+    const [selectedAreaManager, setSelectedAreaManager] = useState<string | null>(null);
+    const [selectedStores, setSelectedStores] = useState<number[]>([]);
 
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
 
@@ -60,6 +65,15 @@ export const CompanySettings = () => {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 });
                 if (resTemplates.ok) setTemplates(await resTemplates.json());
+            } else if (activeTab === 'areaManagers') {
+                const res = await fetch(`${API_URL}/api/v1/dashboard/company/area-managers`, {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setAreaManagers(data.areaManagers);
+                    setStores(data.allStores); // We need all stores to assign them
+                }
             } else {
                 const res = await fetch(`${API_URL}/api/v1/dashboard/company/templates`, {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
@@ -94,6 +108,43 @@ export const CompanySettings = () => {
         } catch (error) {
             console.error('Apply Template Error:', error);
         }
+    };
+
+    const handleAssignStores = async () => {
+        if (!selectedAreaManager) return;
+        try {
+            const res = await fetch(`${API_URL}/api/v1/dashboard/company/area-managers/assign`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user?.token}`
+                },
+                body: JSON.stringify({ areaManagerId: selectedAreaManager, storeIds: selectedStores })
+            });
+
+            if (res.ok) {
+                alert('Stores assigned successfully!');
+                setSelectedAreaManager(null);
+                setSelectedStores([]);
+                fetchData();
+            } else {
+                alert('Failed to assign stores');
+            }
+        } catch (error) {
+            console.error('Assign Stores Error:', error);
+            alert('Error assigning stores');
+        }
+    };
+
+    const openAssignModal = (am: any) => {
+        setSelectedAreaManager(am.id);
+        setSelectedStores(am.area_stores?.map((s: any) => s.id) || []);
+    };
+
+    const toggleStoreSelection = (storeId: number) => {
+        setSelectedStores(prev =>
+            prev.includes(storeId) ? prev.filter(id => id !== storeId) : [...prev, storeId]
+        );
     };
 
     useEffect(() => {
@@ -199,17 +250,25 @@ export const CompanySettings = () => {
                     >
                         <Plus className="w-4 h-4" /> templates
                     </button>
+                    <button
+                        onClick={() => setActiveTab('areaManagers')}
+                        className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'areaManagers' ? 'bg-[#C5A059] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        <UtensilsCrossed className="w-4 h-4" /> Area Mgrs
+                    </button>
                 </div>
             </div>
 
             {/* ACTION BAR */}
             <div className="flex justify-end">
-                <button
-                    onClick={() => setIsAdding(true)}
-                    className="px-6 py-3 bg-[#0F0F0F] border border-[#C5A059]/30 text-[#C5A059] rounded hover:bg-[#C5A059] hover:text-black transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2"
-                >
-                    <Plus className="w-4 h-4" /> Add {activeTab === 'products' ? 'Product' : 'Store'}
-                </button>
+                {activeTab !== 'areaManagers' && (
+                    <button
+                        onClick={() => setIsAdding(true)}
+                        className="px-6 py-3 bg-[#0F0F0F] border border-[#C5A059]/30 text-[#C5A059] rounded hover:bg-[#C5A059] hover:text-black transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2"
+                    >
+                        <Plus className="w-4 h-4" /> Add {activeTab === 'products' ? 'Product' : 'Store'}
+                    </button>
+                )}
             </div>
 
             {/* ADD MODAL / FORM OVERLAY */}
@@ -344,6 +403,51 @@ export const CompanySettings = () => {
                 </div>
             )}
 
+            {/* ASSIGN AREA MANAGER MODAL */}
+            {selectedAreaManager && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#1a1a1a] border border-[#C5A059]/30 rounded-xl p-8 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col">
+                        <button onClick={() => setSelectedAreaManager(null)} className="absolute top-4 right-4 text-gray-500 hover:text-white">
+                            <X className="w-6 h-6" />
+                        </button>
+                        <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                            Assign Stores
+                        </h2>
+                        <p className="text-gray-500 text-xs mb-6">Select the stores this Area Manager will oversee. Stores currently assigned to other managers are shown, checking them will reassign them.</p>
+
+                        <div className="space-y-2 overflow-y-auto flex-1 pr-2 mb-6 border border-white/10 rounded-lg p-2 bg-black/50">
+                            {stores.map(store => {
+                                const isSelected = selectedStores.includes(store.id);
+                                const currentlyAssignedToOther = store.area_manager_id && store.area_manager_id !== selectedAreaManager;
+                                const otherManager = areaManagers.find(am => am.id === store.area_manager_id);
+                                return (
+                                    <label key={store.id} className={`flex items-center gap-3 p-3 border rounded cursor-pointer transition-colors ${isSelected ? 'border-[#C5A059] bg-[#C5A059]/10' : 'border-white/10 bg-black hover:border-white/30'}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={() => toggleStoreSelection(store.id)}
+                                            className="accent-[#C5A059]"
+                                        />
+                                        <div className="flex flex-col flex-1">
+                                            <span className="text-sm font-bold text-gray-200">{store.store_name}</span>
+                                            {currentlyAssignedToOther && !isSelected && (
+                                                <span className="text-[10px] text-gray-500">Currently: {otherManager?.first_name} {otherManager?.last_name}</span>
+                                            )}
+                                        </div>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                        <button
+                            onClick={handleAssignStores}
+                            className="w-full py-4 bg-[#C5A059] text-black font-black uppercase tracking-widest rounded hover:bg-[#d6b579] transition-all"
+                        >
+                            Save Assignments
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* LIST */}
             <div className="bg-[#1a1a1a] border border-white/5 rounded-xl overflow-hidden shadow-2xl">
                 {activeTab === 'products' ? (
@@ -416,6 +520,7 @@ export const CompanySettings = () => {
                                             Edit Ops
                                         </button>
                                         <select
+                                            title="Apply Template"
                                             className="bg-[#111] border border-white/10 text-white text-[10px] p-1 rounded outline-none w-24"
                                             onChange={(e) => {
                                                 if (e.target.value) handleApplyTemplate(s.id, e.target.value);
@@ -427,8 +532,53 @@ export const CompanySettings = () => {
                                                 <option key={t.id} value={t.id}>{t.name}</option>
                                             ))}
                                         </select>
-                                        <button onClick={() => handleDelete(s.id)} className="text-gray-600 hover:text-red-500 transition-colors p-2">
+                                        <button title="Delete Store" onClick={() => handleDelete(s.id)} className="text-gray-600 hover:text-red-500 transition-colors p-2">
                                             <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : activeTab === 'areaManagers' ? (
+                    <table className="w-full">
+                        <thead className="bg-black text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                            <tr>
+                                <th className="p-4 text-left">Manager Name</th>
+                                <th className="p-4 text-left">Email</th>
+                                <th className="p-4 text-left">Assigned Stores</th>
+                                <th className="p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {areaManagers.map((am: any) => (
+                                <tr key={am.id} className="hover:bg-white/5 transition-colors group">
+                                    <td className="p-4 font-bold text-white flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-[#C5A059]/20 flex items-center justify-center text-[#C5A059] text-xs font-bold">
+                                            {am.first_name[0]}{am.last_name[0]}
+                                        </div>
+                                        {am.first_name} {am.last_name}
+                                    </td>
+                                    <td className="p-4 text-gray-400 text-xs">{am.email}</td>
+                                    <td className="p-4">
+                                        <div className="flex flex-wrap gap-1">
+                                            {am.area_stores && am.area_stores.length > 0 ? (
+                                                am.area_stores.map((store: any) => (
+                                                    <span key={store.id} className="text-[10px] bg-white/10 text-gray-300 px-2 py-1 rounded">
+                                                        {store.store_name}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-[10px] text-gray-500 italic">No stores assigned</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <button
+                                            onClick={() => openAssignModal(am)}
+                                            className="px-3 py-1 bg-[#1a1a1a] border border-[#C5A059]/30 text-[#C5A059] hover:bg-[#C5A059] hover:text-black transition-colors rounded text-[10px] font-bold uppercase tracking-wider"
+                                        >
+                                            Manage Stores
                                         </button>
                                     </td>
                                 </tr>

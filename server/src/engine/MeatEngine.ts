@@ -340,7 +340,9 @@ export class MeatEngine {
         // 1. Determine which stores to fetch
         const where: any = {};
         if (user.role !== 'admin' && user.role !== 'director') {
-            if (user.storeId) {
+            if (user.role === 'area_manager') {
+                where.area_manager_id = user.userId;
+            } else if (user.storeId) {
                 where.id = user.storeId;
             } else if (user.companyId) {
                 // If user is Trial/Demo, restrict to their company's stores or Demo Playground
@@ -554,7 +556,11 @@ export class MeatEngine {
         // 1. Fetch all stores (or subset based on permissions)
         const where: any = {};
         if (user.role !== 'admin' && user.role !== 'director') {
-            if (user.storeId) where.id = user.storeId;
+            if (user.role === 'area_manager') {
+                where.area_manager_id = user.userId;
+            } else if (user.storeId) {
+                where.id = user.storeId;
+            }
         }
 
         const stores = await prisma.store.findMany({

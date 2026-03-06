@@ -8,12 +8,12 @@ import { Role } from '@prisma/client';
 const router = Router();
 
 // Dashboard Stats
-router.get('/stats/network', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getNetworkStats);
-router.get('/stats/audit-logs', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getAuditLogAnalysis);
-router.get('/stats/villain-deep-dive', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getVillainDeepDive);
+router.get('/stats/network', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), DashboardController.getNetworkStats);
+router.get('/stats/audit-logs', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), DashboardController.getAuditLogAnalysis);
+router.get('/stats/villain-deep-dive', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), DashboardController.getVillainDeepDive);
 router.get('/stats/report-card', requireAuth, DashboardController.getNetworkReportCard);
 router.get('/stats/:storeId', requireAuth, DashboardController.getStats);
-router.get('/performance-audit', requireAuth, requireRole([Role.admin, Role.director]), DashboardController.getPerformanceAudit);
+router.get('/performance-audit', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), DashboardController.getPerformanceAudit);
 router.get('/bi-report-card', requireAuth, DashboardController.getNetworkReportCard); // Alias for Stale Frontend
 // company-stats is used by Dashboard.tsx for all users (managers included), so we remove requireRole
 router.get('/company-stats', requireAuth, DashboardController.getCompanyStats);
@@ -35,6 +35,9 @@ router.delete('/company/products/:id', requireAuth, requireRole([Role.admin, Rol
 router.get('/company/stores', requireAuth, CompanyController.getStores);
 router.post('/company/stores', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.addStore);
 router.delete('/company/stores/:id', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.deleteStore);
+
+router.get('/company/area-managers', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.getAreaManagers);
+router.post('/company/area-managers/assign', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.assignStoresToAreaManager);
 
 // Store Templates (Phase 12)
 import { TemplateController } from '../controllers/TemplateController';
@@ -71,13 +74,13 @@ import { TrainingController } from '../controllers/TrainingController';
 router.get('/training/status', requireAuth, TrainingController.getStatus);
 router.post('/training/progress', requireAuth, TrainingController.saveProgress);
 router.post('/training/exam-attempt', requireAuth, TrainingController.submitExam);
-router.get('/training/audit', requireAuth, requireRole([Role.admin, Role.director]), TrainingController.getAudit);
+router.get('/training/audit', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), TrainingController.getAudit);
 router.post('/training/reset', requireAuth, requireRole([Role.admin, Role.director]), TrainingController.resetProgress);
 
 // Waste Management (The Garcia Rule)
 router.get('/waste/status', requireAuth, WasteController.getStatus);
 router.get('/waste/network-status', requireAuth, WasteController.getNetworkWasteStatus);
-router.get('/waste/network-accountability', requireAuth, requireRole([Role.admin, Role.director]), WasteController.getNetworkAccountabilityStatus);
+router.get('/waste/network-accountability', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), WasteController.getNetworkAccountabilityStatus);
 router.get('/waste/history', requireAuth, WasteController.getHistory);
 router.get('/waste/history/details', requireAuth, WasteController.getDetailedHistory);
 router.post('/waste/log', requireAuth, WasteController.logWaste);

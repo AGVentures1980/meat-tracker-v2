@@ -10,7 +10,7 @@ const ACCOUNTS = {
     "annarbor@texasdebrazil.com": { "pass": "TDB-AnnArbor-79", "name": "AnnArbor", "id": "79", "company": "Texas de Brazil" },
     "buffalo@texasdebrazil.com": { "pass": "TDB-Buffalo-300", "name": "Buffalo", "id": "300", "company": "Texas de Brazil" },
     "cincinnati@texasdebrazil.com": { "pass": "TDB-Cinci-901", "name": "Cinci", "id": "901", "company": "Texas de Brazil" },
-    "dallas@texasdebrazil.com": { "pass": "Dallas2026", "name": "Dallas", "id": "30", "company": "Texas de Brazil", "role": "director" },
+    "dallas@texasdebrazil.com": { "pass": "Dallas2026", "name": "Dallas", "id": "30", "company": "Texas de Brazil", "role": "manager" },
     "fairfax@texasdebrazil.com": { "pass": "TDB-FairOak-110", "name": "FairOak", "id": "110", "company": "Texas de Brazil" },
     "fortworth@texasdebrazil.com": { "pass": "TDB-FtWorth-40", "name": "FtWorth", "id": "40", "company": "Texas de Brazil" },
     "greenville@texasdebrazil.com": { "pass": "TDB-Gville-800", "name": "Gville", "id": "800", "company": "Texas de Brazil" },
@@ -59,7 +59,9 @@ const ACCOUNTS = {
     "miamibeach@texasdebrazil.com": { "pass": "TDB-MiamiB-120", "name": "MiamiB", "id": "120", "company": "Texas de Brazil" },
     "palmbeachgardens@texasdebrazil.com": { "pass": "TDB-PBG-230", "name": "PBG", "id": "230", "company": "Texas de Brazil" },
     "hartford@texasdebrazil.com": { "pass": "TDB-WHart-550", "name": "WHart", "id": "550", "company": "Texas de Brazil" },
-    "cleveland@texasdebrazil.com": { "pass": "TDB-Crocker-400", "name": "Crocker", "id": "400", "company": "Texas de Brazil" }
+    "cleveland@texasdebrazil.com": { "pass": "TDB-Crocker-400", "name": "Crocker", "id": "400", "company": "Texas de Brazil" },
+    "rodrigodavila@texasdebrazil.com": { "pass": "TDB-Dir-2026", "name": "Rodrigo Davila", "first_name": "Rodrigo", "last_name": "Davila", "id": "DIRECTOR", "company": "Texas de Brazil", "role": "director" },
+    "carlosrestrepo@texasdebrazil.com": { "pass": "TDB-AM-2026", "name": "Carlos Restrepo", "first_name": "Carlos", "last_name": "Restrepo", "id": "AREA_MGR", "company": "Texas de Brazil", "role": "area_manager" }
 };
 
 async function main() {
@@ -267,8 +269,8 @@ async function main() {
         if (isNaN(parseInt(account.id))) {
             await prisma.user.upsert({
                 where: { email: email },
-                update: { password_hash: hashedPassword, force_change: false, last_password_change: new Date() },
-                create: { email: email, password_hash: hashedPassword, role: account.role || 'viewer', store_id: null, force_change: false, last_password_change: new Date() }
+                update: { password_hash: hashedPassword, force_change: false, last_password_change: new Date(), role: account.role || 'viewer', first_name: account.first_name, last_name: account.last_name },
+                create: { email: email, password_hash: hashedPassword, role: account.role || 'viewer', store_id: null, force_change: false, last_password_change: new Date(), first_name: account.first_name, last_name: account.last_name }
             });
             continue;
         }
@@ -416,6 +418,16 @@ async function main() {
             is_read: false
         }
     });
+
+    // Assign Pilot Stores to Carlos Restrepo
+    const carlos = await prisma.user.findUnique({ where: { email: "carlosrestrepo@texasdebrazil.com" } });
+    if (carlos) {
+        await prisma.store.updateMany({
+            where: { id: { in: PILOT_STORES } },
+            data: { area_manager_id: carlos.id }
+        });
+        console.log(`✅ Assigned Pilot Stores [${PILOT_STORES.join(', ')}] to Area Manager Carlos Restrepo`);
+    }
 
     console.log('✅ Seed Complete!');
 }
