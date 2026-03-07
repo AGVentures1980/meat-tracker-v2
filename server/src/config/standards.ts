@@ -7,7 +7,7 @@ export const MEAT_STANDARDS: Record<string, number> = {
     "Spicy Sirloin": 0.05,
     "Filet Mignon": 0.05,
     "Filet Bacon": 0.05,
-    "Beef Ribs": 0.08,
+    "Beef Ribs": 0.16,
     "Pork Ribs": 0.12,
     "Pork Loin": 0.06,
     "Chicken Drumstick": 0.13,

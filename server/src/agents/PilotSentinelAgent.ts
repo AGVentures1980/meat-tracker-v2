@@ -132,13 +132,25 @@ export class PilotSentinelAgent {
         }
     }
 
-    /**
-     * Dispatch alerts securely via the Idea Vault directly to the AGV Master Admin or Director level
-     */
     private static async triggerAlert(message: string) {
         console.warn(`[QA Sentinel Alert Issued]: ${message}`);
 
         try {
+            // Deduplication logic: Check if this exact message has been sent recently
+            const duplicateCount = await prisma.ownerVaultMessage.count({
+                where: {
+                    text: `[QA SENTINEL WARNING] ${message}`,
+                    created_at: {
+                        gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
+                    }
+                }
+            });
+
+            if (duplicateCount >= 2) {
+                console.log(`[QA Sentinel] 🤫 Suppressing duplicate alert (already sent ${duplicateCount} times recently).`);
+                return;
+            }
+
             await prisma.ownerVaultMessage.create({
                 data: {
                     text: `[QA SENTINEL WARNING] ${message}`,

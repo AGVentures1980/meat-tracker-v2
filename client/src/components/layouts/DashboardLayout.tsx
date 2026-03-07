@@ -111,40 +111,75 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     useEffect(() => {
         const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
         if (user?.role === 'admin' || user?.role === 'director' || user?.email?.toLowerCase().includes('admin') || isMaster) {
-            const fetchEscalations = async () => {
+            const fetchEscalationsAndVault = async () => {
                 try {
                     const token = user?.token;
                     if (!token) return;
+
+                    let escalationAlerts: any[] = [];
                     const res = await fetch('/api/v1/support/tickets', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (res.ok) {
                         const tickets = await res.json();
-                        if (tickets.length > 0) {
-                            const escalationAlerts = tickets.map((t: any) => ({
-                                id: `escalation-${t.id}`,
-                                type: 'ESCALATION',
-                                time: 'Just now',
-                                message: `Store ${t.store.store_name} reported an issue: ${t.title}`,
-                                path: '/admin-support',
-                                color: '#FF2A6D'
-                            }));
+                        escalationAlerts = tickets.map((t: any) => ({
+                            id: `escalation-${t.id}`,
+                            type: 'ESCALATION',
+                            time: 'Just now',
+                            message: `Store ${t.store.store_name} reported an issue: ${t.title}`,
+                            path: '/admin-support',
+                            color: '#FF2A6D'
+                        }));
+                    }
 
-                            setAlerts(prev => {
-                                const systemAlerts = prev.filter(a => typeof a.id === 'number');
-                                return [...escalationAlerts, ...systemAlerts];
-                            });
-                        } else {
-                            setAlerts(prev => prev.filter(a => typeof a.id === 'number'));
+                    let vaultAlerts: any[] = [];
+                    if (isMaster) {
+                        if ('Notification' in window && Notification.permission === 'default') {
+                            Notification.requestPermission();
+                        }
+
+                        const vRes = await fetch('/api/v1/vault/unread', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (vRes.ok) {
+                            const vData = await vRes.json();
+                            if (vData.count > 0) {
+                                vaultAlerts.push({
+                                    id: 'vault-unread',
+                                    type: 'VAULT ALERT',
+                                    time: 'Just now',
+                                    message: `You have ${vData.count} unread message(s) in the Idea Vault. Click to view.`,
+                                    path: '/vault',
+                                    color: '#00FF94'
+                                });
+
+                                const lastCount = parseInt(localStorage.getItem('lastNotifiedVaultCount') || '0');
+                                if (vData.count > lastCount) {
+                                    if ('Notification' in window && Notification.permission === 'granted') {
+                                        new Notification('AGV Idea Vault', {
+                                            body: `New Sentinel Alert! You have ${vData.count} unread messages.`,
+                                            icon: '/favicon.ico'
+                                        });
+                                    }
+                                    localStorage.setItem('lastNotifiedVaultCount', vData.count.toString());
+                                }
+                            } else {
+                                localStorage.setItem('lastNotifiedVaultCount', '0');
+                            }
                         }
                     }
+
+                    setAlerts(prev => {
+                        const systemAlerts = prev.filter(a => typeof a.id === 'number');
+                        return [...vaultAlerts, ...escalationAlerts, ...systemAlerts];
+                    });
                 } catch (error) {
-                    console.error('Failed to fetch escalations', error);
+                    console.error('Failed to fetch alerts', error);
                 }
             };
 
-            fetchEscalations();
-            const interval = setInterval(fetchEscalations, 15000);
+            fetchEscalationsAndVault();
+            const interval = setInterval(fetchEscalationsAndVault, 15000);
             return () => clearInterval(interval);
         }
     }, [user]);

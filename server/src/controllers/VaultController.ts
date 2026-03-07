@@ -27,7 +27,7 @@ export class VaultController {
 
     /**
      * GET /api/v1/vault/messages
-     * Fetches all vault messages.
+     * Fetches all vault messages and marks them as read by the OWNER.
      */
     static async getMessages(req: Request, res: Response) {
         try {
@@ -35,9 +35,31 @@ export class VaultController {
                 orderBy: { created_at: 'asc' }
             });
 
+            // Mark any unread system/AI messages as read since the vault is now open
+            await prisma.ownerVaultMessage.updateMany({
+                where: { is_read: false, sender: { not: 'OWNER' } },
+                data: { is_read: true }
+            });
+
             return res.json({ success: true, messages });
         } catch (error) {
             console.error('Error fetching vault messages:', error);
+            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+        }
+    }
+
+    /**
+     * GET /api/v1/vault/unread
+     * Fetches the count of unread system/AI messages.
+     */
+    static async getUnreadCount(req: Request, res: Response) {
+        try {
+            const count = await prisma.ownerVaultMessage.count({
+                where: { is_read: false, sender: { not: 'OWNER' } }
+            });
+            return res.json({ success: true, count });
+        } catch (error) {
+            console.error('Error counting unread vault messages:', error);
             return res.status(500).json({ success: false, error: 'Internal Server Error' });
         }
     }

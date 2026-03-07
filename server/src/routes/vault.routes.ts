@@ -9,6 +9,7 @@ const router = Router();
 
 // Require user to be logged in to even attempt PIN validation
 router.post('/verify', requireAuth, VaultController.verifyPin);
+router.get('/unread', requireAuth, VaultController.getUnreadCount);
 router.get('/messages', requireAuth, VaultController.getMessages);
 router.post('/messages', requireAuth, upload.single('file'), VaultController.postMessage);
 

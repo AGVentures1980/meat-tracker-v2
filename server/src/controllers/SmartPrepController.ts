@@ -337,9 +337,12 @@ export class SmartPrepController {
                 } else if (protein.includes('Pork Loin')) {
                     unitWeight = 1.8;
                     unitName = 'Skewers';
-                } else if (protein.includes('Ribs')) {
-                    unitWeight = protein.includes('Beef') ? 4.0 : 3.0;
-                    unitName = protein.includes('Beef') ? 'Ribs' : 'Skewers';
+                } else if (protein.includes('Pork Ribs')) {
+                    unitWeight = 3.0;
+                    unitName = 'Skewers';
+                } else if (protein.includes('Beef Ribs')) {
+                    unitWeight = MEAT_UNIT_WEIGHTS['Beef Ribs'] || 5.0; // Dynamic from weights
+                    unitName = 'Ribs';
                 } else if (protein.includes('Fraldinha') || protein.includes('Flap')) {
                     unitWeight = 2.5;
                     unitName = 'Skewers';

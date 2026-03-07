@@ -316,6 +316,20 @@ export class DashboardController {
 
     static async getAuditLogAnalysis(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
+
+            const whereStore: any = { company_id: user.companyId };
+            if (user.role === 'area_manager') {
+                whereStore.area_manager_id = user.userId;
+            }
+
+            const validStores = await prisma.store.findMany({
+                where: whereStore,
+                select: { store_name: true, location: true }
+            });
+            // Audit logs sometimes use store_name or location
+            const validNames = validStores.map(s => s.store_name);
+
             // Find recent gate overrides ('No Delivery' flags)
             const today = new Date();
             const lastWeek = new Date(today);
@@ -326,7 +340,8 @@ export class DashboardController {
                     action: 'NO_DELIVERY_FLAG',
                     created_at: {
                         gte: lastWeek
-                    }
+                    },
+                    location: { in: validNames }
                 },
                 orderBy: { created_at: 'desc' }
             });
@@ -352,6 +367,7 @@ export class DashboardController {
 
     static async getVillainDeepDive(req: Request, res: Response) {
         try {
+            const user = (req as any).user;
             // Aggregate waste for VILLAIN items across the network
             const VILLAINS = ['Picanha', 'Picanha with Garlic', 'Lamb Picanha', 'Beef Ribs', 'Lamb Chops', 'Filet Mignon', 'Filet Mignon with Bacon', 'Fraldinha', 'Flap Steak'];
 
@@ -359,8 +375,16 @@ export class DashboardController {
             const lastWeek = new Date(today);
             lastWeek.setDate(today.getDate() - 7);
 
+            const whereStore: any = { company_id: user.companyId };
+            if (user.role === 'area_manager') {
+                whereStore.area_manager_id = user.userId;
+            }
+
             const wasteLogs = await prisma.wasteLog.findMany({
-                where: { date: { gte: lastWeek.toISOString().split('T')[0] } },
+                where: {
+                    date: { gte: lastWeek.toISOString().split('T')[0] },
+                    store: whereStore
+                },
                 include: { store: true }
             });
 
