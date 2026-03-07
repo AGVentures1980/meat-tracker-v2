@@ -4,6 +4,17 @@ import { PrismaClient } from '@prisma/client';
 const router = Router();
 const prisma = new PrismaClient();
 
+// Temporary route to inject tenant domain config directly into production DB
+router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> => {
+    try {
+        await prisma.company.updateMany({ where: { name: 'Texas de Brazil' }, data: { subdomain: 'tdb' } });
+        await prisma.company.updateMany({ where: { name: 'Fogo de Chão' }, data: { subdomain: 'fogo' } });
+        res.send('Tenants configured in Production database');
+    } catch (e: any) {
+        res.status(500).send(e.message);
+    }
+});
+
 // GET /api/v1/theme/:subdomain
 router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => {
     try {
