@@ -12,12 +12,22 @@ const PORT = process.env.PORT || 3002;
 // Middleware
 app.use(express.json());
 app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'https://meat-intelligence.up.railway.app',
-        'https://meat-intelligence-final.up.railway.app'
-    ],
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        const allowedOrigins = [
+            'http://localhost:3000',
+            'http://localhost:5173',
+            'https://meat-intelligence.up.railway.app',
+            'https://meat-intelligence-final.up.railway.app',
+            'https://brasameat.com',
+            'https://www.brasameat.com'
+        ];
+        if (allowedOrigins.includes(origin) || origin.endsWith('.brasameat.com')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(helmet({
