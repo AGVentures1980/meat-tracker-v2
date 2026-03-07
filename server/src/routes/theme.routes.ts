@@ -7,9 +7,25 @@ const prisma = new PrismaClient();
 // Temporary route to inject tenant domain config directly into production DB
 router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> => {
     try {
-        await prisma.company.updateMany({ where: { name: 'Texas de Brazil' }, data: { subdomain: 'tdb' } });
-        await prisma.company.updateMany({ where: { name: 'Fogo de Chão' }, data: { subdomain: 'fogo' } });
-        res.send('Tenants configured in Production database');
+        await prisma.company.updateMany({
+            where: { name: 'Texas de Brazil' },
+            data: {
+                subdomain: 'tdb',
+                theme_primary_color: '#7e1518',
+                theme_logo_url: 'https://texasdebrazil.com/wp-content/uploads/2018/01/tdb-logo-light.svg',
+                theme_bg_url: 'https://texasdebrazil.com/wp-content/uploads/2018/02/DSC04135-2-1200x800.jpg'
+            }
+        });
+        await prisma.company.updateMany({
+            where: { name: 'Fogo de Chão' },
+            data: {
+                subdomain: 'fogo',
+                theme_primary_color: '#A31D21',
+                theme_logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Fogo_de_Ch%C3%A3o_logo.svg/1024px-Fogo_de_Ch%C3%A3o_logo.svg.png',
+                theme_bg_url: 'https://images.unsplash.com/photo-1544025162-8111142125bb?q=80&w=1200&auto=format&fit=crop'
+            }
+        });
+        res.send('Tenants and Themes configured in Production database');
     } catch (e: any) {
         res.status(500).send(e.message);
     }
