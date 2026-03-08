@@ -12,8 +12,8 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
             data: {
                 subdomain: 'tdb',
                 theme_primary_color: '#7e1518',
-                theme_logo_url: 'https://texasdebrazil.com/wp-content/uploads/2018/01/tdb-logo-light.svg',
-                theme_bg_url: 'https://texasdebrazil.com/wp-content/uploads/2018/02/DSC04135-2-1200x800.jpg'
+                theme_logo_url: 'https://upload.wikimedia.org/wikipedia/commons/7/71/Texas_de_Brazil_logo.svg',
+                theme_bg_url: '/background_clean.jpeg'
             }
         });
         await prisma.company.updateMany({
