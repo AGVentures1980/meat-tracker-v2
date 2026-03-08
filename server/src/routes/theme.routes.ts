@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 // Temporary route to inject tenant domain config directly into production DB
 router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> => {
     try {
-        await prisma.company.updateMany({
+        const tdbUpdate = await prisma.company.updateMany({
             where: { name: 'Texas de Brazil' },
             data: {
                 subdomain: 'tdb',
@@ -16,7 +16,7 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
                 theme_bg_url: '/background_clean.jpeg'
             }
         });
-        await prisma.company.updateMany({
+        const fogoUpdate = await prisma.company.updateMany({
             where: { name: 'Fogo de Chão' },
             data: {
                 subdomain: 'fogo',
@@ -25,7 +25,7 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
                 theme_bg_url: 'https://images.unsplash.com/photo-1544025162-8111142125bb?q=80&w=1200&auto=format&fit=crop'
             }
         });
-        res.send('Tenants and Themes configured in Production database');
+        res.json({ message: 'Tenants configured', tdbCount: tdbUpdate.count, fogoCount: fogoUpdate.count });
     } catch (e: any) {
         res.status(500).send(e.message);
     }
