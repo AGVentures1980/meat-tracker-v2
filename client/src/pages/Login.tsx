@@ -100,7 +100,7 @@ export const Login = () => {
             <div className={`relative z-10 w-full max-w-md p-10 bg-black/50 backdrop-blur-sm border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500 ${theme?.companyName === 'Texas de Brazil' ? '-mt-[10vh]' : ''}`}>
                 <div className="text-center mb-8">
                     {theme?.companyName === 'Texas de Brazil' ? (
-                        <div className="relative w-full max-w-[340px] h-[140px] mx-auto mb-4">
+                        <div className="relative w-full max-w-[420px] h-[200px] mx-auto mb-6 -mt-8">
                             <img
                                 src={theme?.logoUrl || ""}
                                 alt="Texas de Brazil bg layer"
