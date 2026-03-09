@@ -99,16 +99,28 @@ export const Login = () => {
 
             <div className={`relative z-10 w-full max-w-md p-10 bg-black/50 backdrop-blur-sm border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500 ${theme?.companyName === 'Texas de Brazil' ? '-mt-[10vh]' : ''}`}>
                 <div className="text-center mb-8">
-                    <img
-                        src={theme?.logoUrl || "/brasa-logo-v3.png"}
-                        alt={theme?.companyName || "Brasa Meat Intelligence"}
-                        // Maximum proximity blending
-                        className={theme?.companyName === 'Texas de Brazil'
-                            ? "w-[85%] max-w-[340px] mx-auto mb-6 drop-shadow-[0_0_15px_rgba(197,160,89,0.5)] animate-pulse-slow object-contain h-auto"
-                            : "w-56 mx-auto -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain h-24"}
-                    />
-                    <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
-                    <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">{theme?.companyName || "Meat Intelligence"}</p>
+                    {theme?.companyName === 'Texas de Brazil' ? (
+                        <div className="relative w-full max-w-[340px] h-[140px] mx-auto mb-4">
+                            <img
+                                src={theme?.logoUrl || ""}
+                                alt="Texas de Brazil bg layer"
+                                className="absolute inset-0 w-full h-full object-contain filter brightness-[100] drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]"
+                            />
+                        </div>
+                    ) : (
+                        <img
+                            src={theme?.logoUrl || "/brasa-logo-v3.png"}
+                            alt={theme?.companyName || "Brasa Meat Intelligence"}
+                            // Maximum proximity blending
+                            className="w-56 mx-auto -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain h-24"
+                        />
+                    )}
+                    {theme?.companyName !== 'Texas de Brazil' && (
+                        <>
+                            <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
+                            <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">{theme?.companyName || "Meat Intelligence"}</p>
+                        </>
+                    )}
                 </div>
 
                 {error && (
