@@ -40,6 +40,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     const navigate = useNavigate();
 
+    const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
+
     let navItems: any[] = [];
 
     if (selectedCompany) {
@@ -77,19 +79,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         ];
 
         // Add Company Settings for Directors/Admins/Master/Owners
-        const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
         if (user?.role === 'director' || user?.role === 'admin' || user?.role === 'owner' || isMaster) {
 
             const manageItems = [
                 { icon: Activity, label: 'Network Command Center', path: '/owner' },
                 { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' }
             ];
-
-            // Only show Corp Procurement to the exact owner login
-            if (isMaster) {
-                manageItems.push({ icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' });
-                manageItems.push({ icon: BrainCircuit, label: 'A.I. Procurement (Shadow)', path: '/intelligence/procurement-shadow' });
-            }
 
             manageItems.push(
                 { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
@@ -102,6 +97,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 items: manageItems
             });
         }
+    }
+
+    // Global Executive Items (Always visible for Master, even without a selected company)
+    if (isMaster) {
+        navItems.push({
+            section: 'EXECUTIVE STEALTH',
+            items: [
+                { icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' },
+                { icon: BrainCircuit, label: 'A.I. Procurement (Shadow)', path: '/intelligence/procurement-shadow' }
+            ]
+        });
     }
 
     const [alerts, setAlerts] = useState<any[]>([]);
