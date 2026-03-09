@@ -103,7 +103,7 @@ export const Login = () => {
                         src={theme?.logoUrl || "/brasa-logo-v3.png"}
                         alt={theme?.companyName || "Brasa Meat Intelligence"}
                         // Maximum proximity blending
-                        className="w-full max-w-[320px] mx-auto mb-2 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain h-auto"
+                        className="w-56 mx-auto -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain h-24"
                     />
                     <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
                     <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">{theme?.companyName || "Meat Intelligence"}</p>
