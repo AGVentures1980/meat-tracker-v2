@@ -44,8 +44,20 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     let navItems: any[] = [];
 
+    // Global Executive Items (Always visible for Master, even without a selected company)
+    if (isMaster) {
+        navItems.push({
+            section: 'EXECUTIVE STEALTH',
+            items: [
+                { icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' },
+                { icon: BrainCircuit, label: 'A.I. Procurement (Shadow)', path: '/intelligence/procurement-shadow' }
+            ]
+        });
+    }
+
     if (selectedCompany) {
-        navItems = [
+        // Standard Store Navigation (Only visible when a store is selected)
+        navItems.push(
             {
                 section: t('nav.section_gate') || 'GATE (Accountability)', items: [
                     { icon: ArrowUpRight, label: t('nav.invoices') || 'Meat Prices / Invoices', path: '/prices' },
@@ -76,7 +88,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
                 ]
             }
-        ];
+        );
 
         // Add Company Settings for Directors/Admins/Master/Owners
         if (user?.role === 'director' || user?.role === 'admin' || user?.role === 'owner' || isMaster) {
@@ -97,17 +109,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 items: manageItems
             });
         }
-    }
-
-    // Global Executive Items (Always visible for Master, even without a selected company)
-    if (isMaster) {
-        navItems.push({
-            section: 'EXECUTIVE STEALTH',
-            items: [
-                { icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' },
-                { icon: BrainCircuit, label: 'A.I. Procurement (Shadow)', path: '/intelligence/procurement-shadow' }
-            ]
-        });
     }
 
     const [alerts, setAlerts] = useState<any[]>([]);
