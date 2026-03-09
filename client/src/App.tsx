@@ -36,6 +36,7 @@ import { AdminSupport } from './pages/AdminSupport';
 import { EulaAgreement } from './pages/EulaAgreement';
 import { IdeaVault } from './pages/IdeaVault';
 import { CorpProcurement } from './pages/CorpProcurement';
+import { ProcurementShadowDashboard } from './pages/Intelligence/ProcurementShadowDashboard';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -124,6 +125,7 @@ function AppContent() {
                     <Route path="/owner" element={<OwnerDashboard />} />
                     <Route path="/admin-support" element={<AdminSupport />} />
                     <Route path="/procurement" element={<CorpProcurement />} />
+                    <Route path="/intelligence/procurement-shadow" element={<ProcurementShadowDashboard />} />
                     <Route path="/support" element={<SupportHub />} />
                     <Route path="/vault" element={<IdeaVault />} />
                 </Route>

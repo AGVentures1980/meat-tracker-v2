@@ -19,7 +19,8 @@ import {
     GraduationCap,
     FileText,
     Activity,
-    ShieldAlert
+    ShieldAlert,
+    BrainCircuit
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -87,6 +88,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             // Only show Corp Procurement to the exact owner login
             if (isMaster) {
                 manageItems.push({ icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' });
+                manageItems.push({ icon: BrainCircuit, label: 'A.I. Procurement (Shadow)', path: '/intelligence/procurement-shadow' });
             }
 
             manageItems.push(
