@@ -12,7 +12,7 @@ export class ProcurementIntelligenceController {
             const user = (req as any).user;
 
             // SECURITY GATE: Only allow Alexandre
-            if (user.email?.toLowerCase().trim() !== 'alexandre@alexgarciaventures.co') {
+            if (!user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') && !user.email?.toLowerCase().includes('alexandre@garciaventures.co')) {
                 return res.status(403).json({ error: 'Access Denied: Exclusive Feature.' });
             }
 
@@ -132,7 +132,7 @@ export class ProcurementIntelligenceController {
             const user = (req as any).user;
 
             // SECURITY GATE: Only allow Alexandre
-            if (user.email?.toLowerCase().trim() !== 'alexandre@alexgarciaventures.co') {
+            if (!user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') && !user.email?.toLowerCase().includes('alexandre@garciaventures.co')) {
                 return res.status(403).json({ error: 'Access Denied: Exclusive Feature.' });
             }
 
