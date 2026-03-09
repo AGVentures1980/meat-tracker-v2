@@ -21,16 +21,18 @@ export class ProcurementIntelligenceController {
             const dateStr = req.query.date as string || today.toISOString().split('T')[0];
             const queryDate = new Date(dateStr + 'T00:00:00Z');
 
+            const targetCompanyId = user.companyId || 'tdb-main';
+
             // 1. Fetch all stores for the company
             const stores = await prisma.store.findMany({
-                where: { company_id: user.companyId },
+                where: { company_id: targetCompanyId },
                 include: { meat_targets: true },
                 orderBy: { store_name: 'asc' }
             });
 
             // 1.5 Fetch company products to get lbs_per_skewer baseline
             const products = await (prisma as any).companyProduct.findMany({
-                where: { company_id: user.companyId }
+                where: { company_id: targetCompanyId }
             });
 
             const dashboardData = [];
