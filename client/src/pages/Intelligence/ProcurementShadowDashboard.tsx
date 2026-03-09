@@ -20,7 +20,7 @@ export const ProcurementShadowDashboard: React.FC = () => {
         try {
             const companyParam = selectedCompany ? `&companyId=${selectedCompany}` : '';
             const response = await fetch(`/api/v1/intelligence/procurement-shadow?date=${date}${companyParam}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             if (response.ok) {
                 const result = await response.json();
@@ -70,7 +70,7 @@ export const ProcurementShadowDashboard: React.FC = () => {
             const response = await fetch('/api/v1/intelligence/procurement-feedback', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${user?.token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
