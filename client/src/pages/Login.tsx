@@ -163,7 +163,9 @@ export const Login = () => {
 
                     <div className="flex items-center justify-between pt-2">
                         <div className="mt-8 text-center">
-                            <p className="text-[#C5A059]/40 text-[10px] font-mono uppercase tracking-[0.2em]">v3.2.0-SHIFT-AWARE System Engine</p>
+                            <p className="text-[#C5A059]/40 text-[10px] font-mono uppercase tracking-[0.2em]">
+                                {theme?.companyName === 'Texas de Brazil' ? 'v3.2.0' : 'v3.2.0-SHIFT-AWARE SYSTEM ENGINE'}
+                            </p>
                         </div>
                         <button
                             type="button"
@@ -183,15 +185,17 @@ export const Login = () => {
                         {!loading && <ArrowRight className="w-4 h-4" />}
                     </button>
 
-                    <div className="text-center pt-4">
-                        <button
-                            type="button"
-                            onClick={() => setShowDemoModal(true)}
-                            className="text-xs text-gray-400 hover:text-brand-gold transition-colors font-bold uppercase tracking-widest border-b border-transparent hover:border-brand-gold pb-1"
-                        >
-                            Start 30-Day Free Demo
-                        </button>
-                    </div>
+                    {theme?.companyName !== 'Texas de Brazil' && (
+                        <div className="text-center pt-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowDemoModal(true)}
+                                className="text-xs text-gray-400 hover:text-brand-gold transition-colors font-bold uppercase tracking-widest border-b border-transparent hover:border-brand-gold pb-1"
+                            >
+                                Start 30-Day Free Demo
+                            </button>
+                        </div>
+                    )}
                 </form>
 
                 {/* Mobile Access Trigger */}
