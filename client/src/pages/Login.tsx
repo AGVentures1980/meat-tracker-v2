@@ -104,7 +104,7 @@ export const Login = () => {
                             <img
                                 src={theme?.logoUrl || ""}
                                 alt="Texas de Brazil bg layer"
-                                className="absolute inset-0 w-full h-full object-contain filter brightness-[100] drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]"
+                                className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]"
                             />
                         </div>
                     ) : (

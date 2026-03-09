@@ -12,7 +12,7 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
             data: {
                 subdomain: 'tdb',
                 theme_primary_color: '#7e1518',
-                theme_logo_url: '/tdb-logo-custom.svg',
+                theme_logo_url: '/tdb-logo-white.svg',
                 theme_bg_url: '/tdb-hero.mp4'
             }
         });
