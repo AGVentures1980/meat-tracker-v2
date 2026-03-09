@@ -43,8 +43,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     let navItems: any[] = [];
 
-    // Global Executive Items (Always visible for Master, even without a selected company)
-    if (isMaster) {
+    // Global Executive Items (Always visible for Master, but require a selected company for context)
+    if (isMaster && selectedCompany) {
         navItems.push({
             section: 'EXECUTIVE STEALTH',
             items: [
@@ -297,8 +297,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         </>
                     )}
 
-                    {/* Switch Company (Master Owner Only) */}
-                    {user?.email === 'alexandre@alexgarciaventures.co' && (
+                    {/* Switch Company (Admin/Director/Master Only) */}
+                    {(user?.role === 'admin' || user?.role === 'director' || isMaster) && (
                         <Link
                             to="/select-company"
                             className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"

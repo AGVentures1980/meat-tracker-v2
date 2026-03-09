@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { BrainCircuit, User as UserIcon, CheckCircle2, AlertCircle, Scale } from 'lucide-react';
 
 export const ProcurementShadowDashboard: React.FC = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     // Use native JS date for today's initialization
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [data, setData] = useState<any>(null);
@@ -18,7 +18,8 @@ export const ProcurementShadowDashboard: React.FC = () => {
     const fetchDashboardData = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`/api/v1/intelligence/procurement-shadow?date=${date}`, {
+            const companyParam = selectedCompany ? `&companyId=${selectedCompany}` : '';
+            const response = await fetch(`/api/v1/intelligence/procurement-shadow?date=${date}${companyParam}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             if (response.ok) {

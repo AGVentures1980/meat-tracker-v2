@@ -21,14 +21,20 @@ export class ProcurementIntelligenceController {
             const dateStr = req.query.date as string || today.toISOString().split('T')[0];
             const queryDate = new Date(dateStr + 'T00:00:00Z');
 
-            // 1. Fetch all stores for the company (Removed CompanyID constraint for Master Admin)
+            const targetCompanyId = req.query.companyId as string;
+            const whereClause = targetCompanyId ? { company_id: targetCompanyId } : {};
+
+            // 1. Fetch stores (Filter by CompanyID if requested)
             const stores = await prisma.store.findMany({
+                where: whereClause,
                 include: { meat_targets: true },
                 orderBy: { store_name: 'asc' }
             });
 
             // 1.5 Fetch company products to get lbs_per_skewer baseline
-            const products = await (prisma as any).companyProduct.findMany();
+            const products = await (prisma as any).companyProduct.findMany({
+                where: whereClause
+            });
 
             const dashboardData = [];
 

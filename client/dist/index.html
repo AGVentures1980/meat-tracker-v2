@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/brasa-logo-v3-dark.png">
+    <link rel="icon" type="image/png" href="/brasa-logo-v3-dark.png">
     <style>
         body {
             background-color: #0a0a0a;
@@ -16,12 +17,22 @@
             margin: 0;
         }
     </style>
-  <script type="module" crossorigin src="/assets/index-BFZSf8IS.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BhYHILKa.css">
+  <script type="module" crossorigin src="/assets/index-CRUk4hux.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-NNjMywLS.css">
 <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
 
 <body>
     <div id="root"></div>
+    <script>
+        // Force unregister service workers to break aggressive PWA caching loop
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

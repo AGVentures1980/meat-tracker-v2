@@ -55,10 +55,7 @@ const ProtectedRoute = () => {
         path !== '/select-company' &&
         path !== '/saas-admin' &&
         path !== '/owner-terminal' &&
-        path !== '/owner' &&
-        path !== '/executive' &&
-        path !== '/vault' &&
-        path !== '/dashboard') {
+        path !== '/owner') {
         return <Navigate to="/select-company" replace />;
     }
 
