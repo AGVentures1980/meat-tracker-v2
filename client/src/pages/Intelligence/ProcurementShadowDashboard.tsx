@@ -94,7 +94,7 @@ export const ProcurementShadowDashboard: React.FC = () => {
         }));
     };
 
-    if (user?.email?.toLowerCase().trim() !== 'alexandre@alexgarciaventures.co') {
+    if (!user?.email?.toLowerCase().includes('alexandre@garciaventures.co') && !user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co')) {
         return (
             <div className="flex h-[80vh] items-center justify-center">
                 <div className="text-center">
@@ -107,7 +107,7 @@ export const ProcurementShadowDashboard: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" >
             <div className="flex justify-between items-center bg-gray-900 text-white p-6 rounded-xl border border-brand-gold/20 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                     <BrainCircuit className="w-48 h-48" />
@@ -282,6 +282,6 @@ export const ProcurementShadowDashboard: React.FC = () => {
                     ))}
                 </div>
             )}
-        </div>
+        </div >
     );
 };
