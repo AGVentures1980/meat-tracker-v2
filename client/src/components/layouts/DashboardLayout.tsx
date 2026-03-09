@@ -239,7 +239,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
                                 {section.items.map((item: any) => {
                                     const active = location.pathname === item.path || (item.path === '/settings/company' && location.pathname.startsWith('/settings/'));
-                                    const isLocked = !selectedCompany && item.path !== '/dashboard';
+                                    const isGlobalExecutivePath = item.path === '/procurement' || item.path === '/intelligence/procurement-shadow';
+                                    const isLocked = !selectedCompany && item.path !== '/dashboard' && !isGlobalExecutivePath;
 
                                     return (
                                         <Link

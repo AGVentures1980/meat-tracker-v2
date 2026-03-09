@@ -1,6 +1,3 @@
-// Copyright (c) 2023-2026 AGV VENTURES / Alexandre Garcia. All rights reserved.
-// This code is proprietary and confidential. An AGV VENTURES Product.
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
@@ -12,44 +9,39 @@ datasource db {
 }
 
 model Company {
-  id                 String   @id @default(uuid())
-  name               String
-  plan               String   @default("enterprise")
-  created_at         DateTime @default(now())
-  owner_id           String?
-  annual_growth_rate Float    @default(5.0)
-
-  // Baseline Metrics for ROI (The "Before" Picture)
-  baseline_loss_pct           Float @default(15.0) // 15% loss before system
-  baseline_yield              Float @default(65.0) // 65% yield before system
-  baseline_overproduction_pct Float @default(8.0)
-  baseline_ruptura_pct        Float @default(5.0)
-  contract_savings_fee_pct    Float @default(5.0) // 5% fee on savings
-
-  // Multi-Tenant & Whitelabel Settings
-  subdomain           String? @unique // e.g., "tdb", "fdc"
-  theme_primary_color String? // Hex color e.g., "#cc0000"
-  theme_logo_url      String? // Public URL to logo
-  theme_bg_url        String? // Public URL to login background
-
-  stores    Store[]
-  invoices  SysInvoice[]
-  products  CompanyProduct[]
-  templates StoreTemplate[]
+  id                          String           @id @default(uuid())
+  name                        String
+  plan                        String           @default("enterprise")
+  created_at                  DateTime         @default(now())
+  owner_id                    String?
+  annual_growth_rate          Float            @default(5.0)
+  baseline_loss_pct           Float            @default(15.0)
+  baseline_yield              Float            @default(65.0)
+  baseline_overproduction_pct Float            @default(8.0)
+  baseline_ruptura_pct        Float            @default(5.0)
+  contract_savings_fee_pct    Float            @default(5.0)
+  subdomain                   String?          @unique
+  theme_bg_url                String?
+  theme_logo_url              String?
+  theme_primary_color         String?
+  products                    CompanyProduct[]
+  stores                      Store[]
+  templates                   StoreTemplate[]
+  invoices                    SysInvoice[]
 }
 
 model CompanyProduct {
   id                  String          @id @default(uuid())
   company_id          String
   name                String
-  protein_group       String? // Canonical group for LB/financial aggregation (e.g. "Filet Mignon" for both variants)
+  protein_group       String?
   category            String?
   is_villain          Boolean         @default(false)
   is_dinner_only      Boolean         @default(false)
   include_in_delivery Boolean         @default(false)
   standard_target     Float?
-  lbs_per_skewer      Float? // How many LBs make up 1 typical skewer of this protein
   created_at          DateTime        @default(now())
+  lbs_per_skewer      Float?
   company             Company         @relation(fields: [company_id], references: [id])
   inventory_items     InventoryItem[]
 
@@ -57,64 +49,61 @@ model CompanyProduct {
 }
 
 model Store {
-  id         Int      @id @default(autoincrement())
-  company_id String
-  store_name String
-  location   String
-  country    String   @default("USA")
-  city       String?
-  timezone   String   @default("America/Chicago")
-  created_at DateTime @default(now())
-
-  // Pilot & ROI Baseline
-  is_pilot                   Boolean   @default(false)
+  id                         Int                     @id @default(autoincrement())
+  company_id                 String
+  store_name                 String
+  location                   String
+  country                    String                  @default("USA")
+  city                       String?
+  timezone                   String                  @default("America/Chicago")
+  created_at                 DateTime                @default(now())
+  is_pilot                   Boolean                 @default(false)
   pilot_start_date           DateTime?
-  baseline_loss_rate         Float     @default(20.0)
-  baseline_yield_ribs        Float     @default(74.0)
-  baseline_overproduction    Float     @default(18.0)
-  baseline_forecast_accuracy Float     @default(62.0)
-  baseline_consumption_pax   Float     @default(1.72)
-  baseline_cost_per_lb       Float     @default(9.50)
-  annual_volume_lbs          Int       @default(180000)
-  baseline_yoy_pax           Float     @default(1.88)
-  baseline_trailing_pax      Float     @default(1.85)
-
-  target_cost_guest         Float                   @default(9.94)
-  target_lbs_guest          Float                   @default(1.76)
-  lunch_target_lbs_guest    Float?
-  lunch_excluded_proteins   String[]                @default([])
-  dinner_price              Float                   @default(58.90)
-  serves_lamb_chops_rodizio Boolean                 @default(false) // true = Lamb Chops is part of dinner rodizio at this store
-  is_lunch_enabled          Boolean                 @default(false)
-  lunch_start_time          String?                 @default("11:00") // Format HH:MM
-  lunch_end_time            String?                 @default("15:00")
-  dinner_start_time         String?                 @default("15:00")
-  dinner_end_time           String?                 @default("22:00")
-  lunch_price               Float                   @default(29.90)
-  olo_sales_target          Float                   @default(0)
-  active_template_id        String?
-  active_template           StoreTemplate?          @relation("ActiveTemplate", fields: [active_template_id], references: [id])
-  delivery_sales            DeliverySale[]
-  inventory_records         InventoryRecord[]
-  invoices                  InvoiceRecord[]
-  meat_usage                MeatUsage[]
-  orders                    Order[]
-  prep_logs                 PrepLog[]
-  product_aliases           ProductAlias[]
-  purchase_records          PurchaseRecord[]
-  reports                   Report[]
-  sales_forecasts           SalesForecast[]
-  inventory_cycles          InventoryCycle[]
-  company                   Company                 @relation(fields: [company_id], references: [id])
-  area_manager_id           String?
-  area_manager              User?                   @relation("AreaManager", fields: [area_manager_id], references: [id])
-  meat_targets              StoreMeatTarget[]
-  uploads                   Upload[]
-  users                     User[]
-  waste_compliance          WasteCompliance[]
-  waste_logs                WasteLog[]
-  support_tickets           SupportTicket[]
-  ProcurementAIFeedback     ProcurementAIFeedback[]
+  baseline_loss_rate         Float                   @default(20.0)
+  baseline_yield_ribs        Float                   @default(74.0)
+  baseline_overproduction    Float                   @default(18.0)
+  baseline_forecast_accuracy Float                   @default(62.0)
+  baseline_consumption_pax   Float                   @default(1.72)
+  baseline_cost_per_lb       Float                   @default(9.50)
+  annual_volume_lbs          Int                     @default(180000)
+  baseline_yoy_pax           Float                   @default(1.88)
+  baseline_trailing_pax      Float                   @default(1.85)
+  target_cost_guest          Float                   @default(9.94)
+  target_lbs_guest           Float                   @default(1.76)
+  lunch_target_lbs_guest     Float?
+  lunch_excluded_proteins    String[]                @default([])
+  dinner_price               Float                   @default(58.90)
+  serves_lamb_chops_rodizio  Boolean                 @default(false)
+  is_lunch_enabled           Boolean                 @default(false)
+  lunch_start_time           String?                 @default("11:00")
+  lunch_end_time             String?                 @default("15:00")
+  dinner_start_time          String?                 @default("15:00")
+  dinner_end_time            String?                 @default("22:00")
+  lunch_price                Float                   @default(29.90)
+  olo_sales_target           Float                   @default(0)
+  active_template_id         String?
+  area_manager_id            String?
+  delivery_sales             DeliverySale[]
+  inventory_cycles           InventoryCycle[]
+  inventory_records          InventoryRecord[]
+  invoices                   InvoiceRecord[]
+  meat_usage                 MeatUsage[]
+  orders                     Order[]
+  prep_logs                  PrepLog[]
+  ProcurementAIFeedback      ProcurementAIFeedback[]
+  product_aliases            ProductAlias[]
+  purchase_records           PurchaseRecord[]
+  reports                    Report[]
+  sales_forecasts            SalesForecast[]
+  active_template            StoreTemplate?          @relation("ActiveTemplate", fields: [active_template_id], references: [id])
+  area_manager               User?                   @relation("AreaManager", fields: [area_manager_id], references: [id])
+  company                    Company                 @relation(fields: [company_id], references: [id])
+  meat_targets               StoreMeatTarget[]
+  support_tickets            SupportTicket[]
+  uploads                    Upload[]
+  users                      User[]
+  waste_compliance           WasteCompliance[]
+  waste_logs                 WasteLog[]
 
   @@unique([company_id, store_name])
 }
@@ -124,11 +113,11 @@ model StoreTemplate {
   company_id  String
   name        String
   description String?
-  config      Json // { target_lbs_guest, target_cost_guest, lunch_price, dinner_price, serves_lamb_chops_rodizio, protein_targets: {} }
-  is_system   Boolean  @default(false) // true = seeded by system, read-only for non-admins
+  config      Json
+  is_system   Boolean  @default(false)
   created_at  DateTime @default(now())
-  company     Company  @relation(fields: [company_id], references: [id])
   stores      Store[]  @relation("ActiveTemplate")
+  company     Company  @relation(fields: [company_id], references: [id])
 
   @@unique([company_id, name])
 }
@@ -159,11 +148,11 @@ model User {
   is_trial             Boolean            @default(false)
   trial_expires_at     DateTime?
   eula_accepted_at     DateTime?
-  position             String? // e.g., 'GM', 'Manager', 'Kitchen Manager', 'Carver Leader'
-  store                Store?             @relation(fields: [store_id], references: [id])
+  position             String?
   area_stores          Store[]            @relation("AreaManager")
-  training_progress    TrainingProgress[]
   support_tickets      SupportTicket[]
+  training_progress    TrainingProgress[]
+  store                Store?             @relation(fields: [store_id], references: [id])
 }
 
 model OwnerVaultMessage {
@@ -172,7 +161,7 @@ model OwnerVaultMessage {
   file_url   String?
   file_name  String?
   file_type  String?
-  sender     String   @default("OWNER") // "OWNER" or "AI"
+  sender     String   @default("OWNER")
   created_at DateTime @default(now())
   is_read    Boolean  @default(false)
 }
@@ -180,8 +169,8 @@ model OwnerVaultMessage {
 model TrainingProgress {
   id           String   @id @default(uuid())
   user_id      String
-  module_id    String // '1', '2', '3', '4', '5' or 'exam'
-  score        Int // 0-100
+  module_id    String
+  score        Int
   attempts     Int      @default(1)
   completed_at DateTime @default(now())
   user         User     @relation(fields: [user_id], references: [id])
@@ -429,10 +418,10 @@ model SystemMetric {
 model InventoryCycle {
   id           String          @id @default(uuid())
   store_id     Int
-  cycle_type   CycleType // WEEKLY or MONTHLY
+  cycle_type   CycleType
   start_date   DateTime        @db.Date
   end_date     DateTime        @db.Date
-  status       CycleStatus     @default(PENDING) // PENDING, SUBMITTED, LOCKED
+  status       CycleStatus     @default(PENDING)
   submitted_by String?
   submitted_at DateTime?
   store        Store           @relation(fields: [store_id], references: [id])
@@ -445,15 +434,71 @@ model InventoryItem {
   id            String         @id @default(uuid())
   cycle_id      String
   protein_id    String
-  expected_lbs  Float          @default(0) // Theoretical Stock
-  actual_lbs    Float          @default(0) // Physical Count
-  variance_lbs  Float          @default(0) // Actual - Expected
-  variance_cost Float          @default(0) // Financial Impact
+  expected_lbs  Float          @default(0)
+  actual_lbs    Float          @default(0)
+  variance_lbs  Float          @default(0)
+  variance_cost Float          @default(0)
   notes         String?
   cycle         InventoryCycle @relation(fields: [cycle_id], references: [id])
   product       CompanyProduct @relation(fields: [protein_id], references: [id])
 
   @@unique([cycle_id, protein_id])
+}
+
+model FAQ {
+  id              String   @id @default(uuid())
+  question        String
+  answer          String
+  frequency_count Int      @default(0)
+  category        String   @default("General")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model SupportTicket {
+  id              String           @id @default(uuid())
+  store_id        Int
+  user_id         String
+  title           String
+  status          TicketStatus     @default(OPEN)
+  is_escalated    Boolean          @default(false)
+  rating          Int?
+  rating_feedback String?
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+  messages        SupportMessage[]
+  store           Store            @relation(fields: [store_id], references: [id])
+  user            User             @relation(fields: [user_id], references: [id])
+
+  @@index([store_id, status])
+}
+
+model SupportMessage {
+  id          String        @id @default(uuid())
+  ticket_id   String
+  sender_type SenderType    @default(USER)
+  content     String
+  created_at  DateTime      @default(now())
+  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+}
+
+model ProcurementAIFeedback {
+  id                     String   @id @default(uuid())
+  store_id               Int
+  date                   DateTime @db.Date
+  protein                String
+  manager_prep_lbs       Float
+  ai_predicted_lbs       Float
+  chosen_winner          String
+  custom_correct_lbs     Float?
+  notes                  String?
+  created_at             DateTime @default(now())
+  ai_predicted_skewers   Float?
+  custom_correct_skewers Float?
+  manager_prep_skewers   Float?
+  store                  Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, date, protein])
 }
 
 enum CycleType {
@@ -470,9 +515,9 @@ enum CycleStatus {
 enum Role {
   admin
   manager
-  area_manager
   viewer
   director
+  area_manager
 }
 
 enum OrderSource {
@@ -488,47 +533,6 @@ enum FileType {
   Image
 }
 
-// ==========================================
-// AI Agent Support Hub Models
-// ==========================================
-
-model FAQ {
-  id              String   @id @default(uuid())
-  question        String
-  answer          String   @db.Text
-  frequency_count Int      @default(0)
-  category        String   @default("General")
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-}
-
-model SupportTicket {
-  id              String           @id @default(uuid())
-  store_id        Int
-  user_id         String
-  title           String
-  status          TicketStatus     @default(OPEN)
-  is_escalated    Boolean          @default(false)
-  rating          Int?
-  rating_feedback String?          @db.Text
-  created_at      DateTime         @default(now())
-  updated_at      DateTime         @updatedAt
-  store           Store            @relation(fields: [store_id], references: [id])
-  user            User             @relation(fields: [user_id], references: [id])
-  messages        SupportMessage[]
-
-  @@index([store_id, status])
-}
-
-model SupportMessage {
-  id          String        @id @default(uuid())
-  ticket_id   String
-  sender_type SenderType    @default(USER)
-  content     String        @db.Text
-  created_at  DateTime      @default(now())
-  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
-}
-
 enum TicketStatus {
   OPEN
   RESOLVED
@@ -539,27 +543,4 @@ enum SenderType {
   USER
   AI
   ADMIN
-}
-
-// ==========================================
-// Procurement AI (Shadow Mode)
-// ==========================================
-
-model ProcurementAIFeedback {
-  id                     String   @id @default(uuid())
-  store_id               Int
-  date                   DateTime @db.Date
-  protein                String
-  manager_prep_lbs       Float
-  ai_predicted_lbs       Float
-  manager_prep_skewers   Float? // Optional field for skewer-based tracking
-  ai_predicted_skewers   Float? // Optional field for skewer-based tracking
-  chosen_winner          String // "MANAGER", "AI", or "CUSTOM"
-  custom_correct_lbs     Float?
-  custom_correct_skewers Float? // Optional custom correct skewers
-  notes                  String?
-  created_at             DateTime @default(now())
-  store                  Store    @relation(fields: [store_id], references: [id])
-
-  @@unique([store_id, date, protein])
 }
