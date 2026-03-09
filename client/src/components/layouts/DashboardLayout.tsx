@@ -77,7 +77,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         ];
 
         // Add Company Settings for Directors/Admins/Master/Owners
-        const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co' || user?.email?.toLowerCase().trim() === 'dallas@texasdebrazil.com';
+        const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
         if (user?.role === 'director' || user?.role === 'admin' || user?.role === 'owner' || isMaster) {
 
             const manageItems = [
@@ -111,7 +111,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     ]);
 
     useEffect(() => {
-        const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co' || user?.email?.toLowerCase().trim() === 'dallas@texasdebrazil.com';
+        const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
         if (user?.role === 'admin' || user?.role === 'director' || user?.email?.toLowerCase().includes('admin') || isMaster) {
             const fetchEscalationsAndVault = async () => {
                 try {
@@ -295,7 +295,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     )}
 
                     {/* Switch Company (Master Owner Only) */}
-                    {(user?.email === 'alexandre@alexgarciaventures.co' || user?.email === 'dallas@texasdebrazil.com') && (
+                    {user?.email === 'alexandre@alexgarciaventures.co' && (
                         <Link
                             to="/select-company"
                             className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"

@@ -94,8 +94,7 @@ export const ProcurementShadowDashboard: React.FC = () => {
         }));
     };
 
-    const allowedEmails = ['alexandre@alexgarciaventures.co', 'dallas@texasdebrazil.com'];
-    if (!allowedEmails.includes(user?.email?.toLowerCase().trim())) {
+    if (user?.email?.toLowerCase().trim() !== 'alexandre@alexgarciaventures.co') {
         return (
             <div className="flex h-[80vh] items-center justify-center">
                 <div className="text-center">
