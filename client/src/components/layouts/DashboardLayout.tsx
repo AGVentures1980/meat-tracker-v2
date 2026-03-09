@@ -104,11 +104,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         }
     }
 
-    const [alerts, setAlerts] = useState<any[]>([
-        { id: 1, type: 'WARNING', time: '2m ago', message: 'Inventory Variance Detected: Dallas (1.89 vs 1.76 Target). Action Required.', path: '/dashboard/1', color: '#FF9F1C' },
-        { id: 2, type: 'INFO', time: '15m ago', message: 'OLO Sync Latency &gt; 300ms. Operations normal but monitoring.', path: '/reports', color: 'gray-400' },
-        { id: 3, type: 'REMINDER', time: '1h ago', message: 'Weekly Close Pending for 3 Stores. Due by 5:00 PM EST.', path: '/dashboard', color: 'gray-400' }
-    ]);
+    const [alerts, setAlerts] = useState<any[]>([]);
 
     useEffect(() => {
         const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
