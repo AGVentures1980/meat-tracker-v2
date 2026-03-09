@@ -13,7 +13,7 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
                 subdomain: 'tdb',
                 theme_primary_color: '#7e1518',
                 theme_logo_url: 'https://upload.wikimedia.org/wikipedia/commons/7/71/Texas_de_Brazil_logo.svg',
-                theme_bg_url: '/background_clean.jpeg'
+                theme_bg_url: '/tdb_bg_premium.png'
             }
         });
         const fogoUpdate = await prisma.company.updateMany({
