@@ -75,7 +75,18 @@ export const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
             {/* Background Effects */}
-            {theme?.bgUrl && (
+            {theme?.bgUrl && theme.bgUrl.endsWith('.mp4') && (
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover opacity-60"
+                >
+                    <source src={theme.bgUrl} type="video/mp4" />
+                </video>
+            )}
+            {theme?.bgUrl && !theme.bgUrl.endsWith('.mp4') && (
                 <div
                     className="absolute inset-0 opacity-60 bg-cover bg-center"
                     style={{ backgroundImage: `url('${theme.bgUrl}')` }}
