@@ -48,6 +48,7 @@ model CompanyProduct {
   is_dinner_only      Boolean         @default(false)
   include_in_delivery Boolean         @default(false)
   standard_target     Float?
+  lbs_per_skewer      Float? // How many LBs make up 1 typical skewer of this protein
   created_at          DateTime        @default(now())
   company             Company         @relation(fields: [company_id], references: [id])
   inventory_items     InventoryItem[]
@@ -78,21 +79,21 @@ model Store {
   baseline_yoy_pax           Float     @default(1.88)
   baseline_trailing_pax      Float     @default(1.85)
 
-  target_cost_guest         Float             @default(9.94)
-  target_lbs_guest          Float             @default(1.76)
+  target_cost_guest         Float                   @default(9.94)
+  target_lbs_guest          Float                   @default(1.76)
   lunch_target_lbs_guest    Float?
-  lunch_excluded_proteins   String[]          @default([])
-  dinner_price              Float             @default(58.90)
-  serves_lamb_chops_rodizio Boolean           @default(false) // true = Lamb Chops is part of dinner rodizio at this store
-  is_lunch_enabled          Boolean           @default(false)
-  lunch_start_time          String?           @default("11:00") // Format HH:MM
-  lunch_end_time            String?           @default("15:00")
-  dinner_start_time         String?           @default("15:00")
-  dinner_end_time           String?           @default("22:00")
-  lunch_price               Float             @default(29.90)
-  olo_sales_target          Float             @default(0)
+  lunch_excluded_proteins   String[]                @default([])
+  dinner_price              Float                   @default(58.90)
+  serves_lamb_chops_rodizio Boolean                 @default(false) // true = Lamb Chops is part of dinner rodizio at this store
+  is_lunch_enabled          Boolean                 @default(false)
+  lunch_start_time          String?                 @default("11:00") // Format HH:MM
+  lunch_end_time            String?                 @default("15:00")
+  dinner_start_time         String?                 @default("15:00")
+  dinner_end_time           String?                 @default("22:00")
+  lunch_price               Float                   @default(29.90)
+  olo_sales_target          Float                   @default(0)
   active_template_id        String?
-  active_template           StoreTemplate?    @relation("ActiveTemplate", fields: [active_template_id], references: [id])
+  active_template           StoreTemplate?          @relation("ActiveTemplate", fields: [active_template_id], references: [id])
   delivery_sales            DeliverySale[]
   inventory_records         InventoryRecord[]
   invoices                  InvoiceRecord[]
@@ -104,15 +105,16 @@ model Store {
   reports                   Report[]
   sales_forecasts           SalesForecast[]
   inventory_cycles          InventoryCycle[]
-  company                   Company           @relation(fields: [company_id], references: [id])
+  company                   Company                 @relation(fields: [company_id], references: [id])
   area_manager_id           String?
-  area_manager              User?             @relation("AreaManager", fields: [area_manager_id], references: [id])
+  area_manager              User?                   @relation("AreaManager", fields: [area_manager_id], references: [id])
   meat_targets              StoreMeatTarget[]
   uploads                   Upload[]
   users                     User[]
   waste_compliance          WasteCompliance[]
   waste_logs                WasteLog[]
   support_tickets           SupportTicket[]
+  ProcurementAIFeedback     ProcurementAIFeedback[]
 
   @@unique([company_id, store_name])
 }
@@ -537,4 +539,27 @@ enum SenderType {
   USER
   AI
   ADMIN
+}
+
+// ==========================================
+// Procurement AI (Shadow Mode)
+// ==========================================
+
+model ProcurementAIFeedback {
+  id                     String   @id @default(uuid())
+  store_id               Int
+  date                   DateTime @db.Date
+  protein                String
+  manager_prep_lbs       Float
+  ai_predicted_lbs       Float
+  manager_prep_skewers   Float? // Optional field for skewer-based tracking
+  ai_predicted_skewers   Float? // Optional field for skewer-based tracking
+  chosen_winner          String // "MANAGER", "AI", or "CUSTOM"
+  custom_correct_lbs     Float?
+  custom_correct_skewers Float? // Optional custom correct skewers
+  notes                  String?
+  created_at             DateTime @default(now())
+  store                  Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, date, protein])
 }
