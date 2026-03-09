@@ -236,4 +236,120 @@ export class AuthController {
             return res.status(500).json({ error: 'Failed to generate demo access' });
         }
     }
+
+    static async forgotPassword(req: Request, res: Response) {
+        try {
+            const { email } = req.body;
+            if (!email) return res.status(400).json({ error: 'Email is required' });
+
+            const user = await prisma.user.findUnique({
+                where: { email: email.toLowerCase() }
+            });
+
+            if (!user) {
+                // Don't leak whether the email exists, just return success
+                return res.json({ success: true, message: 'If the email exists, an OTP was sent.' });
+            }
+
+            // Generate 4 digit OTP
+            const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+            const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+            // Store in SystemSettings
+            const key = `otp_reset_${user.email}`;
+            const value = JSON.stringify({ code: otpCode, expiresAt: expiresAt.toISOString() });
+
+            await prisma.systemSettings.upsert({
+                where: { key },
+                update: { value, type: 'otp_code' },
+                create: { key, value, type: 'otp_code' }
+            });
+
+            // Send via EmailJS REST API from backend for security
+            const emailjsPayload = {
+                service_id: "service_v5fsxwr",
+                template_id: "4mq0hxz",
+                user_id: "15yzEVB4O5kIXWLUS",
+                template_params: {
+                    to_email: user.email,
+                    subject: "Brasa Meat Intelligence - Secure Password Reset",
+                    message: `Your critical security OTP for password recovery is: ${otpCode}. This code is strictly confidential and expires in 15 minutes.`,
+                    otp_code: otpCode
+                }
+            };
+
+            const emailRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(emailjsPayload)
+            });
+
+            if (!emailRes.ok) {
+                console.error("EmailJS backend send failed:", await emailRes.text());
+                return res.status(500).json({ error: 'Failed to send OTP email.' });
+            }
+
+            return res.json({ success: true, message: 'If the email exists, an OTP was sent.' });
+        } catch (error) {
+            console.error('Forgot Password Error:', error);
+            return res.status(500).json({ error: 'Failed to process request' });
+        }
+    }
+
+    static async resetPasswordWithOtp(req: Request, res: Response) {
+        try {
+            const { email, otp, newPassword } = req.body;
+            if (!email || !otp || !newPassword) {
+                return res.status(400).json({ error: 'Missing required fields' });
+            }
+
+            if (newPassword.length < 8) {
+                return res.status(400).json({ error: 'Password must be at least 8 characters' });
+            }
+
+            const cleanEmail = email.toLowerCase();
+            const key = `otp_reset_${cleanEmail}`;
+
+            const setting = await prisma.systemSettings.findUnique({
+                where: { key }
+            });
+
+            if (!setting) {
+                return res.status(400).json({ error: 'Invalid or expired OTP' });
+            }
+
+            const data = JSON.parse(setting.value);
+
+            if (data.code !== otp.trim()) {
+                // To prevent brute force, we could log attempts, but for MVP:
+                return res.status(400).json({ error: 'Invalid OTP' });
+            }
+
+            if (new Date() > new Date(data.expiresAt)) {
+                await prisma.systemSettings.delete({ where: { key } });
+                return res.status(400).json({ error: 'OTP has expired. Request a new one.' });
+            }
+
+            // OTP is valid!
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            await prisma.user.update({
+                where: { email: cleanEmail },
+                data: {
+                    password_hash: hashedPassword,
+                    last_password_change: new Date(),
+                    force_change: false
+                }
+            });
+
+            // Consume OTP
+            await prisma.systemSettings.delete({ where: { key } });
+
+            return res.json({ success: true, message: 'Password updated successfully' });
+
+        } catch (error) {
+            console.error('Reset Password OTP Error:', error);
+            return res.status(500).json({ error: 'Failed to reset password' });
+        }
+    }
 }

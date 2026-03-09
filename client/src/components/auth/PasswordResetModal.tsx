@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { X, Lock, ArrowRight, Check } from 'lucide-react';
-import { ACCOUNTS } from '../../lib/constants';
-import { sendEmail } from '../../lib/email';
-import { cn } from '../../lib/utils';
+// Note: We no longer import sendEmail from lib/email directly, 
+// as the backend securely handles the EmailJS dispatch.
+// as the backend securely handles the EmailJS dispatch.
 
 interface PasswordResetModalProps {
     isOpen: boolean;
@@ -17,7 +17,6 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ isOpen, 
     const [step, setStep] = useState<'email' | 'otp' | 'newpass' | 'success'>('email');
     const [otpInput, setOtpInput] = useState('');
     const [newPassword, setNewPassword] = useState('');
-    const [generatedOtp, setGeneratedOtp] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
     const [statusMsg, setStatusMsg] = useState('');
 
@@ -28,28 +27,27 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ isOpen, 
             return;
         }
 
-        if (!ACCOUNTS[cleanEmail]) {
-            setStatusMsg("Email not found in system.");
-            return;
-        }
-
         setLoading(true);
         setStatusMsg("");
 
-        // Generate Code
-        const code = Math.floor(1000 + Math.random() * 9000);
-        setGeneratedOtp(code);
-
         try {
-            await sendEmail(
-                cleanEmail,
-                "Brasa Meat Intelligence - Password Reset OTP",
-                `Your security code is: ${code}`,
-                { otp_code: code }
-            );
+            const res = await fetch('/api/v1/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: cleanEmail })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setStatusMsg(data.error || "Failed to process request.");
+                return;
+            }
+
+            // OTP is sent by the backend. Move to next step.
             setStep('otp');
         } catch (err) {
-            setStatusMsg("Failed to send email. Check API Keys.");
+            setStatusMsg("Network error. Please try again.");
             console.error(err);
         } finally {
             setLoading(false);
@@ -57,28 +55,55 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ isOpen, 
     };
 
     const verifyOtp = () => {
-        setLoading(true);
-        // Small delay to show UX feedback
-        setTimeout(() => {
-            const inputStr = String(otpInput).trim();
-            const genStr = String(generatedOtp).trim();
-
-            if (inputStr === genStr || inputStr === "1234") {
-                setStep('newpass');
-                setStatusMsg("");
-            } else {
-                setStatusMsg("Invalid OTP Code.");
-            }
-            setLoading(false);
-        }, 500);
-    };
-
-    const handleSavePassword = () => {
-        if (newPassword.length < 4) {
-            setStatusMsg("Password too short");
+        if (otpInput.trim().length !== 4) {
+            setStatusMsg("Please enter the 4-digit code.");
             return;
         }
-        setStep('success');
+        // Instead of verifying locally, we advance to the New Password screen
+        // and both OTP and New Password will be sent to the backend together.
+        setStep('newpass');
+        setStatusMsg("");
+    };
+
+    const handleSavePassword = async () => {
+        if (newPassword.length < 8) {
+            setStatusMsg("Password must be at least 8 characters");
+            return;
+        }
+
+        setLoading(true);
+        setStatusMsg("");
+
+        try {
+            const cleanEmail = resetEmail.trim().toLowerCase();
+            const res = await fetch('/api/v1/auth/reset-password-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: cleanEmail,
+                    otp: otpInput.trim(),
+                    newPassword
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setStatusMsg(data.error || "Failed to update password.");
+                // If OTP expired or invalid, send back to OTP or Email step
+                if (data.error?.includes('OTP')) {
+                    setStep('otp');
+                }
+                return;
+            }
+
+            setStep('success');
+        } catch (err) {
+            setStatusMsg("Network error. Please try again.");
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -97,7 +122,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ isOpen, 
                         </div>
                         <span className="text-xs text-brand-gold font-bold ml-2 uppercase tracking-wider">Reset Password</span>
                     </div>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white">
+                    <button onClick={onClose} title="Close" className="text-gray-500 hover:text-white">
                         <X className="w-4 h-4" />
                     </button>
                 </div>
@@ -183,9 +208,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({ isOpen, 
                             </div>
                             <button
                                 onClick={handleSavePassword}
-                                className="w-full bg-brand-gold hover:bg-yellow-600 text-black font-bold py-3 rounded-lg uppercase tracking-wider transition-all"
+                                disabled={loading}
+                                className="w-full bg-brand-gold hover:bg-yellow-600 disabled:opacity-50 text-black font-bold py-3 rounded-lg uppercase tracking-wider transition-all"
                             >
-                                Update Password
+                                {loading ? 'Updating...' : 'Update Password'}
                             </button>
                         </div>
                     )}

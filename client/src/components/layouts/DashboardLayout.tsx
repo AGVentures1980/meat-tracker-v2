@@ -297,8 +297,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         </>
                     )}
 
-                    {/* Switch Company (Admin/Director/Master Only) */}
-                    {(user?.role === 'admin' || user?.role === 'director' || isMaster) && (
+                    {/* Switch Company (Master Owner Only) */}
+                    {isMaster && (
                         <Link
                             to="/select-company"
                             className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"

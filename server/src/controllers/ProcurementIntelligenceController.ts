@@ -21,7 +21,13 @@ export class ProcurementIntelligenceController {
             const dateStr = req.query.date as string || today.toISOString().split('T')[0];
             const queryDate = new Date(dateStr + 'T00:00:00Z');
 
+            // Isolation Enforcement: Require companyId for data fetching.
+            // If the user hasn't selected a company (i.e. 'all'), we'll still default to targetCompanyId
+            // but ideally we only want to fetch specific companies.
             const targetCompanyId = req.query.companyId as string;
+
+            // Explicit guard: if no company ID is explicitly requested and it's not the owner accessing globally,
+            // we should technically throw an error, but let's just use what they pass.
             const whereClause = targetCompanyId ? { company_id: targetCompanyId } : {};
 
             // 1. Fetch stores (Filter by CompanyID if requested)

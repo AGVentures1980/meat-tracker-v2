@@ -51,6 +51,8 @@ const ProtectedRoute = () => {
     const isOwnerRole = user.role === 'director' || user.role === 'admin';
     const path = window.location.pathname;
 
+    // Enforce Company Lobby Selection for all global routes
+    // Only these extremely low-level SaaS or Owner components bypass the lobby.
     if (isOwnerRole && !selectedCompany &&
         path !== '/select-company' &&
         path !== '/saas-admin' &&

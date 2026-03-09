@@ -31,13 +31,17 @@ export class VaultController {
      */
     static async getMessages(req: Request, res: Response) {
         try {
+            const companyId = req.query.companyId as string;
+            if (!companyId) return res.status(400).json({ success: false, error: 'Company ID required' });
+
             const messages = await prisma.ownerVaultMessage.findMany({
+                where: { company_id: companyId },
                 orderBy: { created_at: 'asc' }
             });
 
             // Mark any unread system/AI messages as read since the vault is now open
             await prisma.ownerVaultMessage.updateMany({
-                where: { is_read: false, sender: { not: 'OWNER' } },
+                where: { company_id: companyId, is_read: false, sender: { not: 'OWNER' } },
                 data: { is_read: true }
             });
 
@@ -54,8 +58,11 @@ export class VaultController {
      */
     static async getUnreadCount(req: Request, res: Response) {
         try {
+            const companyId = req.query.companyId as string;
+            if (!companyId) return res.status(400).json({ success: false, error: 'Company ID required' });
+
             const count = await prisma.ownerVaultMessage.count({
-                where: { is_read: false, sender: { not: 'OWNER' } }
+                where: { company_id: companyId, is_read: false, sender: { not: 'OWNER' } }
             });
             return res.json({ success: true, count });
         } catch (error) {
@@ -70,8 +77,10 @@ export class VaultController {
      */
     static async postMessage(req: Request, res: Response) {
         try {
-            const { text } = req.body;
+            const { text, companyId } = req.body;
             const file = req.file;
+
+            if (!companyId) return res.status(400).json({ success: false, error: 'Company ID required' });
 
             if ((!text || text.trim() === '') && !file) {
                 return res.status(400).json({ success: false, error: 'Message text or file is required' });
@@ -91,6 +100,7 @@ export class VaultController {
 
             const message = await prisma.ownerVaultMessage.create({
                 data: {
+                    company_id: companyId,
                     text: text ? text.trim() : null,
                     file_url,
                     file_name,
@@ -106,6 +116,7 @@ export class VaultController {
                 try {
                     // Fetch last 6 messages to provide conversational context
                     const recentMessages = await prisma.ownerVaultMessage.findMany({
+                        where: { company_id: companyId },
                         take: 6,
                         orderBy: { created_at: 'desc' }
                     });
@@ -155,6 +166,7 @@ Comporte-se como um co-piloto focado em lucro, identificando gargalos antes que 
 
             const aiMessage = await prisma.ownerVaultMessage.create({
                 data: {
+                    company_id: companyId,
                     text: aiResponseText,
                     file_url: null,
                     file_name: null,
@@ -189,7 +201,11 @@ Comporte-se como um co-piloto focado em lucro, identificando gargalos antes que 
                 return res.status(403).json({ success: false, error: 'Forbidden' });
             }
 
+            const companyId = req.query.companyId as string;
+            if (!companyId) return res.status(400).json({ success: false, error: 'Company ID required for Sync' });
+
             const messages = await prisma.ownerVaultMessage.findMany({
+                where: { company_id: companyId },
                 orderBy: { created_at: 'asc' }
             });
 

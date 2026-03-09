@@ -3,8 +3,8 @@ import emailjs from '@emailjs/browser';
 // Configuration keys - In production these should be env vars
 // For now matching prototype.html values
 const EMAIL_CONFIG = {
-    SERVICE_ID: "service_937191d",
-    TEMPLATE_ID: "template_6m070jo",
+    SERVICE_ID: "service_v5fsxwr",
+    TEMPLATE_ID: "4mq0hxz",
     PUBLIC_KEY: "15yzEVB4O5kIXWLUS"
 };
 
