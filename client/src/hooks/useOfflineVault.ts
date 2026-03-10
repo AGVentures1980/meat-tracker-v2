@@ -12,7 +12,8 @@ export interface VaultMessageData {
 }
 
 export function useOfflineVault() {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
+    const activeCompanyId = selectedCompany || 'tdb-main';
     const [messages, setMessages] = useState<any[]>([]);
     const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
     const [pendingMessages, setPendingMessages] = useState<VaultMessageData[]>([]);
@@ -55,7 +56,7 @@ export function useOfflineVault() {
         if (!isOnline) return; // rely on cache
 
         try {
-            const res = await fetch('/api/v1/vault/messages', {
+            const res = await fetch(`/api/v1/vault/messages?companyId=${activeCompanyId}`, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await res.json();
@@ -134,6 +135,8 @@ export function useOfflineVault() {
                 // but the current VaultController uses multer. Let's send a fake file blob.
 
                 const formData = new FormData();
+                formData.append('companyId', activeCompanyId);
+
                 if (msg.text) formData.append('text', msg.text);
 
                 if (msg.file_url) {

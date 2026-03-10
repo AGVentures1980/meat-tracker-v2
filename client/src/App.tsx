@@ -51,6 +51,8 @@ const ProtectedRoute = () => {
     const isOwnerRole = user.role === 'director' || user.role === 'admin';
     const path = window.location.pathname;
 
+    const isMaster = user.email.toLowerCase().includes('alexandre@alexgarciaventures.co');
+
     // Enforce Company Lobby Selection for all global routes
     // Only these extremely low-level SaaS or Owner components bypass the lobby.
     if (isOwnerRole && !selectedCompany &&
@@ -58,7 +60,13 @@ const ProtectedRoute = () => {
         path !== '/saas-admin' &&
         path !== '/owner-terminal' &&
         path !== '/owner') {
-        return <Navigate to="/select-company" replace />;
+
+        // Allow the Master to access the global Vault directly from the Lobby
+        if (path === '/vault' && isMaster) {
+            // allow bypass
+        } else {
+            return <Navigate to="/select-company" replace />;
+        }
     }
 
     // EULA Enforcement: If EULA is not accepted, force them to the agreement page.
