@@ -31,6 +31,57 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
     }
 });
 
+// Master FDC Prod Sync Route
+router.get('/setup/fdc-deploy', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { exec } = require('child_process');
+
+        // 1. First ensure the FDC Company exists under the correct production Admin
+        let admin = await prisma.user.findFirst({ where: { role: 'admin' } });
+        if (!admin) {
+            res.status(500).send('No admin user found to link to FDC.');
+            return;
+        }
+
+        const FDC_COMPANY_ID = '43670635-c205-4b19-99d4-445c7a683730';
+        await prisma.company.upsert({
+            where: { id: FDC_COMPANY_ID },
+            update: { owner_id: admin.id },
+            create: { id: FDC_COMPANY_ID, name: 'Fogo de Chão', owner_id: admin.id, plan: 'enterprise', subdomain: 'fogo' }
+        });
+
+        // 2. Execute all the seeders we wrote using npx ts-node (works in Railway's container)
+        // Note: Running sequentially to avoid db lockups
+        const commands = [
+            'npx ts-node seed_fdc_directors.ts',
+            'npx ts-node seed_fdc_stores.ts',
+            'npx ts-node update_fdc_cuts_and_bar.ts',
+            'npx ts-node update_fdc_2025_metrics.ts',
+            'npx ts-node seed_fdc_area_managers.ts',
+            'npx ts-node update_fdc_theme.ts'
+        ];
+
+        let outputLog = 'Linked FDC to Admin ID: ' + admin.id + '\n\n';
+
+        const runCommand = (cmd: string): Promise<string> => {
+            return new Promise((resolve, reject) => {
+                exec(cmd, { cwd: process.cwd() }, (err: any, stdout: string, stderr: string) => {
+                    if (err) resolve(`[ERROR] ${cmd}: ${stderr || err.message}`);
+                    else resolve(`[SUCCESS] ${cmd}:\n${stdout}`);
+                });
+            });
+        };
+
+        for (const cmd of commands) {
+            outputLog += await runCommand(cmd) + '\n';
+        }
+
+        res.send(`<pre>${outputLog}</pre>`);
+    } catch (e: any) {
+        res.status(500).send(e.message);
+    }
+});
+
 // GET /api/v1/theme/:subdomain
 router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => {
     try {
