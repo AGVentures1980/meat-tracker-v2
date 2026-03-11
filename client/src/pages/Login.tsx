@@ -126,7 +126,7 @@ export const Login = () => {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
-            <div className={`relative z-10 w-full max-w-md p-10 ${theme?.companyName === 'Fogo de Chão' ? 'bg-transparent' : 'bg-black/50 backdrop-blur-sm'} border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500 ${theme?.companyName === 'Texas de Brazil' ? '-mt-[10vh]' : ''}`}>
+            <div className="relative z-10 w-full max-w-[420px] p-10 bg-black/60 backdrop-blur-[12px] border border-white/5 border-y-brand-gold/30 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-500">
                 <div className="text-center mb-8">
                     {theme?.companyName === 'Texas de Brazil' ? (
                         <div className="relative w-full h-[140px] mx-auto mb-8 -mt-4">
