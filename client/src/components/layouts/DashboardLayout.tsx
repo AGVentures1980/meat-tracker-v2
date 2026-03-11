@@ -55,20 +55,27 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     }
 
     if (selectedCompany) {
-        // Standard Store Navigation (Only visible when a store is selected)
+        const isStoreLevel = !['admin', 'director', 'owner', 'area_manager'].includes(user?.role || '');
+
         navItems.push(
             {
-                section: t('nav.section_gate') || 'GATE (Accountability)', items: [
-                    { icon: ArrowUpRight, label: t('nav.invoices') || 'Meat Prices / Invoices', path: '/prices' },
-                    { icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' },
+                section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Accountability)' : 'MARKET DATA'), items: [
+                    { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Meat Prices / Invoices') : 'Protein Market Cost', path: '/prices' },
+                    ...(isStoreLevel ? [{ icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' }] : []),
                 ]
-            },
-            {
+            }
+        );
+
+        if (isStoreLevel) {
+            navItems.push({
                 section: t('nav.section_run') || 'RUN (Shift Command)', items: [
                     { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
                     { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
                 ]
-            },
+            });
+        }
+
+        navItems.push(
             {
                 section: t('nav.section_view') || 'VIEW (Performance)', items: [
                     { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
