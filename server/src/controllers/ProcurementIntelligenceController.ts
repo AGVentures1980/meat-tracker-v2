@@ -21,14 +21,17 @@ export class ProcurementIntelligenceController {
             const dateStr = req.query.date as string || today.toISOString().split('T')[0];
             const queryDate = new Date(dateStr + 'T00:00:00Z');
 
-            // Isolation Enforcement: Require companyId for data fetching.
-            // If the user hasn't selected a company (i.e. 'all'), we'll still default to targetCompanyId
-            // but ideally we only want to fetch specific companies.
+            // Isolation Enforcement: Respect targetCompanyId for admins, otherwise enforce user.companyId
             const targetCompanyId = req.query.companyId as string;
+            const whereClause: any = {};
 
-            // Explicit guard: if no company ID is explicitly requested and it's not the owner accessing globally,
-            // we should technically throw an error, but let's just use what they pass.
-            const whereClause = targetCompanyId ? { company_id: targetCompanyId } : {};
+            if (user.role === 'admin' && targetCompanyId) {
+                whereClause.company_id = targetCompanyId;
+            } else if (user.companyId) {
+                whereClause.company_id = user.companyId;
+            } else if (targetCompanyId) { // Fallback if user.companyId is missing for some reason
+                whereClause.company_id = targetCompanyId;
+            }
 
             // 1. Fetch stores (Filter by CompanyID if requested)
             const stores = await prisma.store.findMany({
@@ -41,6 +44,25 @@ export class ProcurementIntelligenceController {
             const products = await (prisma as any).companyProduct.findMany({
                 where: whereClause
             });
+
+            let expectedVendor = "";
+            let providerSpecificRules = "";
+
+            if (targetCompanyId === 'fdc-main') {
+                expectedVendor = "US Foods";
+                providerSpecificRules = `
+CRITICAL US FOODS INVOICE RULES (FDC Environment):
+1. **THE CATCH WEIGHT RULE**: US Foods prints the exact total weight on the line immediately BELOW the item description (e.g., if the line says 'CS: 0001 43.75 LBS', the exact weight is 43.75 lbs). You MUST use this exact weight line instead of the estimated pack size (e.g. 5/10 LBA). ALWAYS look for this 'CS:' line for the true weight.
+2. If it's a piece count AND no exact weight line is present underneath, calculate the total weight (e.g. 4 * 10 = 40 lbs).
+3. Be aware of abbreviations: 'CH' (Choice), 'BNLS' (Boneless), 'TXDB' (Texas Double Branded/similar), 'PSMO' (Peeled Side Muscle On - usually Tenderloin/Filet Mignon), 'STRIP' (Strip Loin), 'BUTT CAP' or 'COULOTTE' (Picanha).`;
+            } else if (targetCompanyId === 'tdb-main') {
+                expectedVendor = "Sysco";
+                providerSpecificRules = `
+CRITICAL SYSCO INVOICE RULES (TDB Environment):
+1. Look for Catch Weights explicitly listed next to 'CW' or 'LBS' column. Note that Sysco often lists Case Count and Avg Weight per Case.
+2. Pay attention to "Split" status, which might mean a partial case.
+3. Common Abbreviations: 'Picanha' is often 'Sirloin Cap' or 'Culotte'. 'Flank' is often 'Flap Meat' or 'Fraldinha'. 'Beef Rib' might be 'Ribs Back Beef'.`;
+            }
 
             const dashboardData = [];
 
