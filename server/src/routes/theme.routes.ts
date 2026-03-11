@@ -31,6 +31,27 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
     }
 });
 
+// GET /api/v1/theme/setup/inspect-users
+router.get('/setup/inspect-users', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const directors = await prisma.user.findMany({
+            where: { role: 'director' },
+            select: { id: true, email: true, first_name: true, last_name: true, role: true }
+        });
+        
+        const areaManagers = await prisma.user.findMany({
+            where: { role: 'area_manager' },
+            select: { id: true, email: true, first_name: true, last_name: true, role: true }
+        });
+
+        res.json({ directors, areaManagers });
+        return;
+    } catch (error) {
+        res.status(500).json({ error: String(error) });
+        return;
+    }
+});
+
 // Hotfix for TDB and Director Regions executed in production
 router.get('/setup/production-hotfix', async (req: Request, res: Response): Promise<void> => {
     try {
@@ -74,7 +95,7 @@ router.get('/setup/production-hotfix', async (req: Request, res: Response): Prom
         if (tdb) {
             const allStores = await prisma.store.findMany({ where: { company_id: tdb.id }, orderBy: { id: 'asc' } });
             const mustKeepNames = ['Tampa', 'Memphis', 'Louis', 'Lexing', 'Dallas'];
-            const storesToKeep = [];
+            const storesToKeep: any[] = [];
             
             for (const store of allStores) {
                 if (mustKeepNames.some(name => store.store_name.includes(name) || store.location.includes(name))) {
@@ -232,25 +253,6 @@ router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => 
     }
 });
 
-// GET /api/v1/theme/setup/inspect-users
-router.get('/setup/inspect-users', async (req: Request, res: Response): Promise<void> => {
-    try {
-        const directors = await prisma.user.findMany({
-            where: { role: 'director' },
-            select: { id: true, email: true, first_name: true, last_name: true, role: true }
-        });
-        
-        const areaManagers = await prisma.user.findMany({
-            where: { role: 'area_manager' },
-            select: { id: true, email: true, first_name: true, last_name: true, role: true }
-        });
-
-        res.json({ directors, areaManagers });
-        return;
-    } catch (error) {
-        res.status(500).json({ error: String(error) });
-        return;
-    }
-});
+// deleted
 
 export default router;
