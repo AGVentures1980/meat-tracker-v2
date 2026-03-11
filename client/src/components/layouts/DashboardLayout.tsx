@@ -367,6 +367,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <span className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse"></span>
                             <span className="hidden md:inline">{t('system_online')}</span>
                         </div>
+                        {selectedCompany && (
+                            <div className="hidden lg:flex items-center gap-2 ml-4 px-3 py-1 bg-[#C5A059]/10 border border-[#C5A059]/30 rounded-full">
+                                <Building2 className="w-3 h-3 text-[#C5A059]" />
+                                <span className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest">{selectedCompany}</span>
+                            </div>
+                        )}
                         {/* Ticker */}
                         <div className="hidden md:flex items-center space-x-6 ml-4">
                             <div className="flex items-center space-x-2 px-3 py-1 bg-[#222] rounded-full border border-[#333]">

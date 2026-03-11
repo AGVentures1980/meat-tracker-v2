@@ -208,7 +208,13 @@ export class CompanyController {
             
             // Master admin explicitly should not leak their own domain users as fallback orphans
             if (companyDomain === 'alexgarciaventures.co') {
-                companyDomain = 'NONE_MASTER_FALLBACK'; 
+                if (company?.name.toLowerCase().includes('fogo')) {
+                    companyDomain = 'fogo.com';
+                } else if (company?.name.toLowerCase().includes('texas')) {
+                    companyDomain = 'texasdebrazil.com';
+                } else {
+                    companyDomain = 'NONE_MASTER_FALLBACK'; 
+                }
             }
 
             const areaManagers = await prisma.user.findMany({
