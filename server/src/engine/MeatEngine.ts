@@ -345,6 +345,9 @@ export class MeatEngine {
             } else if (user.storeId) {
                 where.id = user.storeId;
             }
+        } else if (user && user.role === 'director' && user.director_region) {
+            // Apply regional scope shield for Directors
+            where.region = user.director_region;
         }
 
         const stores = await prisma.store.findMany({ where });
@@ -419,6 +422,9 @@ export class MeatEngine {
             } else if (user.storeId) {
                 where.id = user.storeId;
             }
+        } else if (user.role === 'director' && user.director_region) {
+            // Apply regional scope shield for Directors
+            where.region = user.director_region;
         }
 
         // Fetch Stores

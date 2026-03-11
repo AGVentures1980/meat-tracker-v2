@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Users, Plus, Trash2, Mail, User as UserIcon, Shield, Search, Building2, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Network, Search, User as UserIcon, Shield, Building2, ChevronDown, Plus, Trash2 } from 'lucide-react';
 
 interface NetworkUser {
     id: string;
@@ -10,9 +10,22 @@ interface NetworkUser {
     role: string;
     position: string | null;
     created_at: string;
-    area_stores?: any[];
     training_progress?: any[];
-    store?: { id: number; store_name: string };
+}
+
+// A simple interface for the pre-defined hierarchy tree
+interface HierarchyStore {
+    id: number;
+    store_name: string;
+    location: string;
+    gms: NetworkUser[]; // Primary Managers of this store
+    staff: NetworkUser[]; // Secondary staff / Chefs
+}
+
+interface HierarchyNode {
+    areaManagerId: string;
+    areaManagerName: string;
+    stores: HierarchyStore[];
 }
 
 export const UsersPage = () => {
@@ -21,190 +34,158 @@ export const UsersPage = () => {
     // Auth levels
     const isMasterOrAdmin = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co';
     const isAreaManager = user?.role === 'area_manager';
-    const isStoreLevel = !isMasterOrAdmin && !isAreaManager;
 
     const [isLoading, setIsLoading] = useState(true);
 
-    // Level 1: Area Managers
-    const [areaManagers, setAreaManagers] = useState<NetworkUser[]>([]);
+    // Context Data
+    const [hierarchy, setHierarchy] = useState<HierarchyNode[]>([]);
     
-    // Level 2: Store Managers / GMs
-    const [storeManagers, setStoreManagers] = useState<NetworkUser[]>([]);
-
-    // Level 3: Store Team
+    // UI State: Tab / Focus
+    const [expandedAmId, setExpandedAmId] = useState<string | null>(null);
+    const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
     const [storeTeam, setStoreTeam] = useState<NetworkUser[]>([]);
     
-    // Store Context
-    const [availableStores, setAvailableStores] = useState<any[]>([]);
-    const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
-
-    // Modals
-    const [activeModal, setActiveModal] = useState<'NONE' | 'AREA_MANAGER' | 'STORE_MANAGER' | 'STAFF'>('NONE');
+    const [isAddingUser, setIsAddingUser] = useState(false);
     
-    // Form State
+    // Form State (Add User)
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [position, setPosition] = useState('Assistant Manager');
+    const [position, setPosition] = useState('Manager');
+    const [isPrimary, setIsPrimary] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const API_URL = (import.meta as any).env?.VITE_API_URL || '';
 
+    // ================== DATA FETCHING ================== //
+    
     useEffect(() => {
-        fetchAllLayers();
+        fetchHierarchy();
     }, [user]);
 
     useEffect(() => {
         if (selectedStoreId) {
-            fetchStoreTeam(selectedStoreId);
+            fetchStoreTeam(selectedStoreId as number);
+        } else {
+            setStoreTeam([]);
         }
     }, [selectedStoreId]);
 
-    const fetchAllLayers = async () => {
+    const fetchHierarchy = async () => {
         setIsLoading(true);
         try {
             const token = user?.token;
             if (!token) return;
 
-            // 1. Fetch Area Managers & Stores Context (If permitted)
+            // Fetch Area Managers & Stores
             if (isMasterOrAdmin || isAreaManager) {
-                const res = await fetch(`${API_URL}/api/v1/company/area-managers`, {
+                const res = await fetch(`${API_URL}/api/v1/dashboard/company/area-managers`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
                 if (res.ok) {
                     const data = await res.json();
+                    const ams = data.areaManagers || [];
                     
-                    if (isMasterOrAdmin) {
-                        setAreaManagers(data.areaManagers || []);
-                    }
-
-                    // Define user's authorized stores
-                    let authorizedStores = [];
-                    if (isMasterOrAdmin) {
-                        authorizedStores = data.allStores || [];
-                    } else if (isAreaManager) {
-                        const me = data.areaManagers?.find((am: any) => am.id === user.userId);
-                        authorizedStores = me?.area_stores || [];
+                    // Build local Tree Representation
+                    let tree: HierarchyNode[] = [];
+                    
+                    if (isAreaManager) {
+                       // Filter ONLY to my node
+                       const me = ams.find((a: any) => a.id === user.userId);
+                       if (me) {
+                           tree.push({
+                               areaManagerId: me.id,
+                               areaManagerName: `${me.first_name || ''} ${me.last_name || ''}`.trim() || me.email,
+                               stores: me.area_stores.map((s: any) => ({ ...s, gms: [], staff: [] }))
+                           });
+                           setExpandedAmId(me.id); // Auto expand myself
+                       }
+                    } else {
+                        // Admins see everyone
+                        tree = ams.map((am: any) => ({
+                            areaManagerId: am.id,
+                            areaManagerName: `${am.first_name || ''} ${am.last_name || ''}`.trim() || am.email,
+                            stores: am.area_stores.map((s: any) => ({ ...s, gms: [], staff: [] }))
+                        }));
                     }
                     
-                    setAvailableStores(authorizedStores);
-                    if (authorizedStores.length > 0) {
-                        setSelectedStoreId(authorizedStores[0].id);
-                    }
+                    setHierarchy(tree);
                 }
-
-                // 2. Fetch all related Store Managers / GMs for authorized network
-                const gmRes = await fetch(`${API_URL}/api/v1/users/hierarchy?layer=gms`, {
-                     headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (gmRes.ok) {
-                    const gmData = await gmRes.json();
-                    setStoreManagers(gmData.managers || []);
-                }
-            } else if (isStoreLevel) {
-                // Just use the user's primary store
-                if (user.storeId) {
+            } else {
+                // If regular Store Manager, they just manage their own store
+                if (user?.storeId) {
                     setSelectedStoreId(user.storeId);
                 }
             }
-
         } catch (error) {
-            console.error('Failed to fetch hierarchy layers:', error);
+            console.error('Failed to fetch context:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const fetchStoreTeam = async (storeId: number) => {
+    const fetchStoreTeam = async (sId: number) => {
         try {
             const token = user?.token;
-            const res = await fetch(`${API_URL}/api/v1/users/store?storeId=${storeId}`, {
+            if (!token) return;
+
+            const res = await fetch(`${API_URL}/api/v1/users/store?storeId=${sId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
             if (res.ok) {
                 const data = await res.json();
                 setStoreTeam(data.users || []);
             }
-        } catch (e) { }
-    };
-
-    const handleDeleteUser = async (targetId: string, userEmail: string, layer: 'am' | 'gm' | 'staff') => {
-        if (!window.confirm(`Are you sure you want to remove ${userEmail}?`)) return;
-
-        try {
-            const token = user?.token;
-            let endpoint = '';
-            
-            if (layer === 'am') {
-                endpoint = `${API_URL}/api/v1/company/area-managers/${targetId}`;
-            } else {
-                endpoint = `${API_URL}/api/v1/users/store/${targetId}`;
-            }
-
-            const res = await fetch(endpoint, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                fetchAllLayers();
-                if (selectedStoreId) fetchStoreTeam(selectedStoreId);
-            } else {
-                const data = await res.json();
-                alert(data.error || 'Failed to delete user');
-            }
         } catch (error) {
-            alert('Failed to delete user');
+            console.error('Failed to fetch store team:', error);
         }
     };
+
+
+    // ================== STORE TEAM ACTIONS ================== //
 
     const handleAddUser = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!email || !password || !firstName || !lastName) {
-            alert('Please fill out all fields.');
+        if (!selectedStoreId) {
+            alert('Error: Please select a target store first.');
             return;
         }
 
         setIsSubmitting(true);
         try {
             const token = user?.token;
-            let endpoint = '';
-            let payload: any = {
-                first_name: firstName,
-                last_name: lastName,
-                email,
-                password
-            };
-
-            if (activeModal === 'AREA_MANAGER') {
-                endpoint = `${API_URL}/api/v1/company/area-managers`;
-            } else if (activeModal === 'STORE_MANAGER' || activeModal === 'STAFF') {
-                endpoint = `${API_URL}/api/v1/users/store`;
-                payload.store_id = selectedStoreId;
-                payload.position = activeModal === 'STORE_MANAGER' ? 'General Manager' : position;
-                payload.is_primary = activeModal === 'STORE_MANAGER';
-            }
-
-            const res = await fetch(endpoint, {
+            const res = await fetch(`${API_URL}/api/v1/users/store`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    first_name: firstName,
+                    last_name: lastName,
+                    email,
+                    password,
+                    position,
+                    is_primary: isPrimary,
+                    store_id: selectedStoreId
+                })
             });
 
             const data = await res.json();
 
             if (res.ok && data.success) {
-                setFirstName(''); setLastName(''); setEmail(''); setPassword('');
-                setPosition('Assistant Manager');
-                setActiveModal('NONE');
-                fetchAllLayers();
-                if (selectedStoreId) fetchStoreTeam(selectedStoreId);
+                setFirstName('');
+                setLastName('');
+                setEmail('');
+                setPassword('');
+                setPosition('Manager');
+                setIsPrimary(false);
+                setIsAddingUser(false);
+                fetchStoreTeam(selectedStoreId as number);
             } else {
                 alert(`Error: ${data.error || 'Failed to add user'}`);
             }
@@ -216,299 +197,344 @@ export const UsersPage = () => {
         }
     };
 
+    const handleDeleteUser = async (targetId: string, userEmail: string) => {
+        if (!window.confirm(`Are you sure you want to remove ${userEmail}?`)) return;
+
+        try {
+            const token = user?.token;
+            const res = await fetch(`${API_URL}/api/v1/users/store/${targetId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                if (selectedStoreId) fetchStoreTeam(selectedStoreId as number);
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to delete user');
+            }
+        } catch (error) {
+            alert('Failed to delete user');
+        }
+    };
+
     const isCertified = (u: NetworkUser) => {
         const exam = u.training_progress?.find(p => p.module_id === 'exam');
         return !!(exam && exam.score >= 80);
     };
 
+    // Helper to get store name easily
+    const getStoreName = (sId: number) => {
+        for (const node of hierarchy) {
+            const store = node.stores.find(s => s.id === sId);
+            if (store) return store.store_name;
+        }
+        return 'Unknown Store';
+    };
+
+    if (isLoading) {
+        return <div className="p-8 text-center text-gray-500 font-mono text-sm uppercase">Loading Corporate Structure...</div>;
+    }
+
     return (
-        <div className="p-8 pb-32 max-w-7xl mx-auto space-y-8 animate-in fade-in relative">
+        <div className="p-8 pb-32 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+            
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#333] pb-6">
                 <div>
                     <h1 className="text-4xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
-                        <Users className="w-8 h-8 text-brand-gold" />
-                        Network Team Command
+                        <Network className="w-8 h-8 text-[#C5A059]" />
+                        Team Command
                     </h1>
                     <p className="text-gray-500 text-sm mt-2 max-w-2xl font-mono">
-                        Hierarchical organizational management. Manage Area Managers, Store Directors (GMs), and localized Assistant Staff with secure tier-based restrictions.
+                        {isMasterOrAdmin ? `Active Director: ${user?.firstName} ${user?.lastName}` : 'Manage your pre-defined hierarchy.'}
                     </p>
                 </div>
             </div>
 
-            {isLoading ? (
-                <div className="flex justify-center py-20">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
-                </div>
-            ) : (
-                <div className="space-y-12">
-                    {/* LEVEL 1: Area Managers (Visible to Master/Admin only) */}
-                    {isMasterOrAdmin && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between border-b border-[#333]/50 pb-2">
-                                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-brand-gold"></div>
-                                    LEVEL 1: REGIONAL DIRECTORS (AREA MANAGERS)
-                                </h2>
-                                <button
-                                    onClick={() => setActiveModal('AREA_MANAGER')}
-                                    className="px-3 py-1.5 bg-[#C5A059] hover:bg-[#D4AF37] text-black text-xs font-bold rounded uppercase tracking-wider flex items-center gap-2 transition-colors"
-                                >
-                                    <Plus className="w-3 h-3" /> Add Area Manager
-                                </button>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {areaManagers.length === 0 ? (
-                                    <p className="text-gray-600 text-sm italic font-mono col-span-full">No Area Managers found.</p>
-                                ) : areaManagers.map(am => (
-                                    <div key={am.id} className="bg-[#1a1a1a] border border-[#333] p-4 rounded flex flex-col gap-3 hover:border-brand-gold/50 transition-colors">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded bg-[#252525] flex items-center justify-center border border-[#333]">
-                                                    <span className="text-brand-gold font-bold">{am.first_name?.[0]}{am.last_name?.[0]}</span>
-                                                </div>
-                                                <div>
-                                                    <p className="text-white font-bold text-sm">{am.first_name} {am.last_name}</p>
-                                                    <p className="text-gray-500 text-xs font-mono">{am.email}</p>
-                                                </div>
-                                            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
+                
+                {/* LEFT COL: THE PRE-DEFINED TREE */}
+                {isMasterOrAdmin || isAreaManager ? (
+                    <div className="lg:col-span-4 space-y-4">
+                        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-2 border-l-2 border-[#C5A059]">
+                            {isMasterOrAdmin ? 'Network Area Managers' : 'My Supervised Area'}
+                        </h2>
+                        
+                        <div className="bg-[#121212] border border-[#333] rounded-sm overflow-hidden shadow-2xl">
+                            {hierarchy.length === 0 ? (
+                                <div className="p-8 text-center text-gray-500 text-xs font-mono uppercase">
+                                    No designated regions found.
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-[#333]">
+                                    {hierarchy.map(node => (
+                                        <div key={node.areaManagerId} className="flex flex-col">
+                                            {/* Area Manager Row */}
                                             <button 
-                                                onClick={() => handleDeleteUser(am.id, am.email, 'am')}
-                                                className="text-gray-600 hover:text-red-500 transition-colors"
+                                                onClick={() => setExpandedAmId(expandedAmId === node.areaManagerId ? null : node.areaManagerId)}
+                                                className={`flex items-center justify-between p-4 w-full text-left transition-colors ${expandedAmId === node.areaManagerId ? 'bg-[#1a1a1a]' : 'hover:bg-white/5'}`}
                                             >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                        <div className="p-2 bg-[#121212] rounded text-xs text-gray-400 font-mono border border-[#222]">
-                                            Assigned Stores: {am.area_stores?.length || 0}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* LEVEL 2: Store Managers / GMs (Visible to Admin + Area Managers) */}
-                    {(isMasterOrAdmin || isAreaManager) && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between border-b border-[#333]/50 pb-2">
-                                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                    LEVEL 2: STORE DIRECTORS (GMs)
-                                </h2>
-                                <button
-                                    onClick={() => setActiveModal('STORE_MANAGER')}
-                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded uppercase tracking-wider flex items-center gap-2 transition-colors"
-                                >
-                                    <Plus className="w-3 h-3" /> Add Store Manager
-                                </button>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {storeManagers.length === 0 ? (
-                                    <p className="text-gray-600 text-sm italic font-mono col-span-full">No Store Managers found in your network.</p>
-                                ) : storeManagers.map(gm => (
-                                    <div key={gm.id} className="bg-[#1a1a1a] border border-[#333] p-4 rounded flex flex-col gap-3 hover:border-blue-500/30 transition-colors relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-1 bg-blue-500 text-[9px] font-bold px-2 rounded-bl text-white uppercase tracking-widest">{gm.store?.store_name}</div>
-                                        <div className="flex justify-between items-start mt-2">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded bg-[#252525] flex items-center justify-center border border-[#333]">
-                                                    <span className="text-blue-400 font-bold">{gm.first_name?.[0]}{gm.last_name?.[0]}</span>
-                                                </div>
-                                                <div>
-                                                    <p className="text-white font-bold text-sm tracking-tight">{gm.first_name} {gm.last_name}</p>
-                                                    <p className="text-gray-500 text-xs font-mono">{gm.email}</p>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                onClick={() => handleDeleteUser(gm.id, gm.email, 'gm')}
-                                                className="text-gray-600 hover:text-red-500 transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* LEVEL 3: Store Team (Staff) */}
-                    <div className="space-y-4">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#333]/50 pb-2 gap-4">
-                            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                LEVEL 3: LOCAL STORE TEAM (STAFF)
-                            </h2>
-                            <div className="flex items-center gap-3">
-                                {(isMasterOrAdmin || isAreaManager) && availableStores.length > 0 && (
-                                    <select
-                                        value={selectedStoreId || ''}
-                                        onChange={(e) => setSelectedStoreId(Number(e.target.value))}
-                                        className="bg-[#1a1a1a] border border-[#333] rounded-sm p-1.5 text-white focus:border-brand-gold outline-none text-xs uppercase tracking-widest transition-colors font-mono"
-                                    >
-                                        <option value="" disabled>Select Target Store</option>
-                                        {availableStores.map(store => (
-                                            <option key={store.id} value={store.id}>{store.store_name}</option>
-                                        ))}
-                                    </select>
-                                )}
-                                <button
-                                    onClick={() => setActiveModal('STAFF')}
-                                    disabled={!selectedStoreId}
-                                    className={`px-3 py-1.5 text-black text-xs font-bold rounded uppercase tracking-wider flex items-center gap-2 transition-colors ${!selectedStoreId ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-500 hover:bg-green-400'}`}
-                                >
-                                    <Plus className="w-3 h-3" /> Add Staff Profile
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Staff List Table */}
-                        <div className="bg-[#1a1a1a] border border-[#333] rounded overflow-hidden">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-[#222] border-b border-[#333] text-[10px] text-gray-500 uppercase tracking-widest font-mono">
-                                        <th className="p-3">Profile</th>
-                                        <th className="p-3">Email</th>
-                                        <th className="p-3">Position</th>
-                                        <th className="p-3">Compliance</th>
-                                        <th className="p-3 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {storeTeam.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={5} className="p-6 text-center text-sm text-gray-500 italic font-mono">
-                                                No staff profiles found for this location.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        storeTeam.filter(u => user?.role === 'manager' ? !u.role.includes('primary') : true).map((u) => (
-                                            <tr key={u.id} className="border-b border-[#333]/50 hover:bg-white/5 transition-colors">
-                                                <td className="p-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-[#252525] flex items-center justify-center border border-[#333]">
-                                                            <UserIcon className="w-4 h-4 text-gray-400" />
-                                                        </div>
-                                                        <span className="text-sm font-bold text-white">{u.first_name} {u.last_name}</span>
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${expandedAmId === node.areaManagerId ? 'bg-[#C5A059]/10 border-[#C5A059]/30' : 'bg-[#222] border-[#333]'}`}>
+                                                        <UserIcon className={`w-4 h-4 ${expandedAmId === node.areaManagerId ? 'text-[#C5A059]' : 'text-gray-400'}`} />
                                                     </div>
-                                                </td>
-                                                <td className="p-3 text-sm text-gray-400 font-mono">{u.email}</td>
-                                                <td className="p-3">
-                                                    <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">{u.position || 'Staff'}</span>
-                                                </td>
-                                                <td className="p-3">
-                                                    {isCertified(u) ? (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-black bg-[#00FF94] px-2 py-0.5 rounded">
-                                                            <CheckCircle2 className="w-3 h-3" /> CERTIFIED
-                                                        </span>
+                                                    <div>
+                                                        <span className="text-sm font-bold text-white block">{node.areaManagerName}</span>
+                                                        <span className="text-[10px] text-gray-500 font-mono block">Region: {node.stores.length} Stores</span>
+                                                    </div>
+                                                </div>
+                                                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${expandedAmId === node.areaManagerId ? 'rotate-180' : ''}`} />
+                                            </button>
+                                            
+                                            {/* Stores Row (Expandable) */}
+                                            {expandedAmId === node.areaManagerId && (
+                                                <div className="bg-[#0f0f0f] border-t border-[#333]">
+                                                    {node.stores.length === 0 ? (
+                                                        <div className="p-4 pl-14 text-[10px] text-gray-500 font-mono uppercase">
+                                                            No stores pre-assigned to this Area Manager.
+                                                        </div>
                                                     ) : (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#FF9F1C] bg-[#FF9F1C]/20 border border-[#FF9F1C]/30 px-2 py-0.5 rounded">
-                                                            PENDING TRAINING
-                                                        </span>
+                                                        <div className="divide-y divide-[#222]">
+                                                            {node.stores.map(store => (
+                                                                <button
+                                                                    key={store.id}
+                                                                    onClick={() => setSelectedStoreId(store.id)}
+                                                                    className={`w-full flex items-center justify-between p-3 pl-14 text-left transition-colors ${selectedStoreId === store.id ? 'bg-[#C5A059]/10' : 'hover:bg-[#1a1a1a]'}`}
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Building2 className={`w-3 h-3 ${selectedStoreId === store.id ? 'text-[#C5A059]' : 'text-gray-600'}`} />
+                                                                        <span className={`text-xs font-bold ${selectedStoreId === store.id ? 'text-[#C5A059]' : 'text-gray-400'}`}>
+                                                                            {store.store_name}
+                                                                        </span>
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     )}
-                                                </td>
-                                                <td className="p-3 text-right">
-                                                    <button 
-                                                        onClick={() => handleDeleteUser(u.id, u.email, 'staff')}
-                                                        className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
+                    </div>
+                ) : null}
 
+
+                {/* RIGHT COL: LOCAL STORE TEAM / GMS */}
+                <div className={`space-y-4 ${isMasterOrAdmin || isAreaManager ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
+                    <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-2 border-l-2 border-[#C5A059]">
+                        {selectedStoreId ? `Active Duty Roster: ${getStoreName(selectedStoreId)}` : 'Local Store Roster'}
+                    </h2>
+
+                    <div className="bg-[#121212] border border-[#333] rounded-sm overflow-hidden shadow-2xl relative min-h-[400px]">
+                        {!selectedStoreId ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center text-gray-500 bg-[#1a1a1a]">
+                                <Network className="w-12 h-12 text-[#333] mb-4" />
+                                <span className="text-sm font-bold uppercase tracking-widest">Awaiting Local Store Selection</span>
+                                <span className="text-xs font-mono mt-2 opacity-50 max-w-xs leading-relaxed">Please select a store from the pre-defined hierarchy menu to view and manage its General Managers and local staff.</span>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col h-full">
+                                {/* Action Bar */}
+                                <div className="p-4 border-b border-[#333] bg-[#1a1a1a] flex justify-between items-center">
+                                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                                        <Shield className="w-4 h-4 text-[#C5A059]" />
+                                        Unit Command Center
+                                    </h3>
+                                    <button
+                                        onClick={() => setIsAddingUser(true)}
+                                        className="bg-[#C5A059] hover:bg-[#d6b579] text-black px-4 py-1.5 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 relative z-20"
+                                    >
+                                        <Plus className="w-3 h-3" /> Add Staff Profile
+                                    </button>
+                                </div>
+
+                                {/* Table */}
+                                <div className="overflow-x-auto flex-1 bg-[#121212]">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-[#333] bg-[#0f0f0f]">
+                                                <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest pl-6">Profile Name</th>
+                                                <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">Login / Email</th>
+                                                <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">Local Title</th>
+                                                <th className="p-4 text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest text-right pr-6">Status / Cert</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[#333]">
+                                            {storeTeam.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={4} className="p-16 text-center text-gray-500 text-xs font-mono uppercase tracking-widest">
+                                                        No local profiles exist for this target store.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                storeTeam.map((u) => {
+                                                    const cert = isCertified(u);
+                                                    const isSelf = u.id === user?.userId;
+
+                                                    return (
+                                                        <tr key={u.id} className="hover:bg-[#1a1a1a] transition-colors group">
+                                                            <td className="p-4 pl-6">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${u.role === 'admin' ? 'bg-[#C5A059]/10 border-[#C5A059]/30' : 'bg-[#222] border-[#333]'}`}>
+                                                                        <UserIcon className={`w-4 h-4 ${u.role === 'admin' ? 'text-[#C5A059]' : 'text-gray-400'}`} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-sm font-bold text-white group-hover:text-[#C5A059] transition-colors flex items-center gap-2">
+                                                                            {u.first_name || u.last_name ? `${u.first_name || ''} ${u.last_name || ''}`.trim() : 'System Default'}
+                                                                            {u.role === 'admin' && <Shield className="w-3 h-3 text-[#C5A059]" />}
+                                                                        </p>
+                                                                        {isSelf && <span className="text-[9px] bg-[#C5A059]/10 text-[#C5A059] px-1.5 py-0.5 rounded uppercase tracking-wider mt-1 inline-block">Current User</span>}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-4 text-xs text-gray-400 font-mono">
+                                                                {u.email}
+                                                            </td>
+                                                            <td className="p-4">
+                                                                <div className="flex flex-col">
+                                                                    <div className="flex items-center gap-2">
+                                                                        {/* If the user is flagged as primary GM show star or specific color */}
+                                                                        {u.position === 'General Manager (GM)' || u.position?.includes('GM') ? (
+                                                                             <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-sm font-bold uppercase tracking-widest whitespace-nowrap border border-blue-500/20">{u.position || 'GM'}</span>   
+                                                                        ) : (
+                                                                             <span className="text-[10px] text-[#C5A059] font-bold uppercase tracking-wider whitespace-nowrap">{u.position || 'Local Staff'}</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-4 pr-6 text-right">
+                                                                <div className="flex items-center justify-end gap-4 relative z-20">
+                                                                    {cert ? (
+                                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-green-500/10 text-green-400 text-[9px] font-bold uppercase tracking-widest border border-green-500/20 pointer-events-none">
+                                                                            Certified
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-orange-500/10 text-orange-400 text-[9px] font-bold uppercase tracking-widest border border-orange-500/20 pointer-events-none">
+                                                                            Pending
+                                                                        </span>
+                                                                    )}
+
+                                                                    {!isSelf && (
+                                                                        <button
+                                                                            onClick={() => handleDeleteUser(u.id, u.email)}
+                                                                            className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-all"
+                                                                            title="Remove User"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-            )}
 
-            {/* Universal Add User Modal */}
-            {activeModal !== 'NONE' && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-lg max-w-md w-full overflow-hidden shadow-2xl">
-                        <div className={`p-4 border-b border-[#333] flex justify-between items-center ${
-                            activeModal === 'AREA_MANAGER' ? 'bg-[#C5A059]/10 border-b-[#C5A059]/30' : 
-                            activeModal === 'STORE_MANAGER' ? 'bg-blue-900/20 border-b-blue-500/30' : 
-                            'bg-green-900/20 border-b-green-500/30'
-                        }`}>
-                            <div>
-                                <h3 className={`text-lg font-black tracking-tight uppercase ${
-                                    activeModal === 'AREA_MANAGER' ? 'text-[#C5A059]' : 
-                                    activeModal === 'STORE_MANAGER' ? 'text-blue-500' : 'text-green-500'
-                                }`}>
-                                    ADD {activeModal.replace('_', ' ')}
-                                </h3>
-                                <p className="text-[10px] text-gray-400 font-mono tracking-widest mt-1">
-                                    {activeModal === 'AREA_MANAGER' ? 'Regional Leadership Level' :
-                                     activeModal === 'STORE_MANAGER' ? 'Store Director Level' : 'Local Staff Level'}
-                                </p>
-                            </div>
-                            <button onClick={() => setActiveModal('NONE')} className="text-gray-400 hover:text-white">&times;</button>
+            </div>
+
+            {/* MODAL: ADD STORE TEAM MEMBER */}
+            {isAddingUser && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#121212] border border-[#C5A059]/30 rounded-sm max-w-md w-full shadow-2xl relative overflow-hidden">
+                        <div className="h-1 w-full bg-gradient-to-r from-[#C5A059] to-yellow-600" />
+                        <div className="p-8">
+                            <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-wide">Add Local Staff Profile</h3>
+                            <p className="text-xs text-[#C5A059] font-bold mb-4 uppercase tracking-widest bg-[#C5A059]/10 p-2 rounded border border-[#C5A059]/20 inline-block">
+                                Target Store: {getStoreName(selectedStoreId!)}
+                            </p>
+                            <p className="text-xs text-gray-500 font-mono mb-6">
+                                Users are bound strictly to this store's operational boundaries.
+                            </p>
+
+                            <form onSubmit={handleAddUser} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="firstName" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">First Name</label>
+                                        <input
+                                            id="firstName" title="First Name"
+                                            type="text" required autoFocus
+                                            value={firstName} onChange={e => setFirstName(e.target.value)}
+                                            className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-[#C5A059] outline-none text-sm transition-colors"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="lastName" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Last Name</label>
+                                        <input
+                                            id="lastName" title="Last Name"
+                                            type="text" required
+                                            value={lastName} onChange={e => setLastName(e.target.value)}
+                                            className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-[#C5A059] outline-none text-sm transition-colors"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="email" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Corporate Email</label>
+                                    <input
+                                        id="email" title="Email"
+                                        type="email" required autoComplete="off"
+                                        value={email} onChange={e => setEmail(e.target.value)}
+                                        className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-[#C5A059] outline-none text-sm transition-colors font-mono"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="position" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Role Designation</label>
+                                        <select
+                                            id="position" title="Position"
+                                            value={position} onChange={e => setPosition(e.target.value)}
+                                            className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-[#C5A059] outline-none text-sm transition-colors"
+                                        >
+                                            <option value="General Manager (GM)">General Manager (GM)</option>
+                                            <option value="Assistant Manager">Assistant Manager</option>
+                                            <option value="Chef">Chef</option>
+                                            <option value="Carver Leader">Carver Leader</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="password" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Initial Password</label>
+                                        <input
+                                            id="password" title="Password"
+                                            type="password" required autoComplete="new-password"
+                                            value={password} onChange={e => setPassword(e.target.value)}
+                                            className="w-full bg-[#1a1a1a] border border-[#333] rounded-sm p-3 text-white focus:border-[#C5A059] outline-none text-sm transition-colors font-mono"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 justify-end pt-6 mt-4 border-t border-[#333]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddingUser(false)}
+                                        className="px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="bg-[#C5A059] hover:bg-[#d6b579] text-black px-6 py-2.5 rounded-sm font-bold text-xs uppercase tracking-widest transition-all shadow-lg flex items-center justify-center disabled:opacity-50 min-w-[140px]"
+                                    >
+                                        {isSubmitting ? 'Creating...' : 'Provision Staff'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        
-                        <form onSubmit={handleAddUser} className="p-6 space-y-4">
-                            {/* Staff creation specific warning */}
-                            {(activeModal === 'STORE_MANAGER' || activeModal === 'STAFF') && !selectedStoreId && (
-                                <div className="p-3 bg-red-900/20 border border-red-500/30 text-red-500 text-xs rounded mb-4">
-                                    Error: No store selected. Please close and select a target store from the dropdown first.
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">First Name</label>
-                                    <input required value={firstName} onChange={e => setFirstName(e.target.value)}
-                                        className="w-full bg-[#121212] border border-[#333] text-white text-sm rounded p-2.5 focus:border-brand-gold outline-none" placeholder="First" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Last Name</label>
-                                    <input required value={lastName} onChange={e => setLastName(e.target.value)}
-                                        className="w-full bg-[#121212] border border-[#333] text-white text-sm rounded p-2.5 focus:border-brand-gold outline-none" placeholder="Last" />
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Corporate Email</label>
-                                <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
-                                    className="w-full bg-[#121212] border border-[#333] text-white text-sm rounded p-2.5 focus:border-brand-gold outline-none" placeholder="email@company.com" />
-                            </div>
-
-                            {activeModal === 'STAFF' && (
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Position / Job Title</label>
-                                    <input value={position} onChange={e => setPosition(e.target.value)}
-                                        className="w-full bg-[#121212] border border-[#333] text-white text-sm rounded p-2.5 focus:border-brand-gold outline-none" placeholder="e.g. Kitchen Manager" />
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Temporary Password</label>
-                                <input required type="password" value={password} onChange={e => setPassword(e.target.value)}
-                                    className="w-full bg-[#121212] border border-[#333] text-white text-sm rounded p-2.5 focus:border-brand-gold outline-none font-mono tracking-wider" placeholder="••••••••" />
-                            </div>
-
-                            <div className="pt-4 flex justify-end gap-3 border-t border-[#333]">
-                                <button type="button" onClick={() => setActiveModal('NONE')} className="px-4 py-2 text-sm text-gray-400 hover:text-white uppercase font-bold tracking-wider">Cancel</button>
-                                <button type="submit" disabled={isSubmitting || ((activeModal === 'STORE_MANAGER' || activeModal === 'STAFF') && !selectedStoreId)}
-                                    className={`px-6 py-2 text-sm font-bold uppercase tracking-wider rounded ${
-                                        activeModal === 'AREA_MANAGER' ? 'bg-[#C5A059] text-black hover:bg-[#D4AF37]' : 
-                                        activeModal === 'STORE_MANAGER' ? 'bg-blue-600 text-white hover:bg-blue-500' : 
-                                        'bg-green-600 text-white hover:bg-green-500'
-                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                                >
-                                    {isSubmitting ? 'Creating...' : `Create ${activeModal.replace('_', ' ')}`}
-                                </button>
-                            </div>
-                        </form>
                     </div>
                 </div>
             )}
         </div>
     );
-}
+};

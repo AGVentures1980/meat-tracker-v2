@@ -84,6 +84,7 @@ model Store {
   olo_sales_target           Float                   @default(0)
   active_template_id         String?
   area_manager_id            String?
+  region                     String?                 @default("Global")
   delivery_sales             DeliverySale[]
   inventory_cycles           InventoryCycle[]
   inventory_records          InventoryRecord[]
@@ -150,6 +151,7 @@ model User {
   trial_expires_at     DateTime?
   eula_accepted_at     DateTime?
   position             String?
+  director_region      String?
   area_stores          Store[]            @relation("AreaManager")
   support_tickets      SupportTicket[]
   training_progress    TrainingProgress[]

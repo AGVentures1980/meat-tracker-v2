@@ -13,6 +13,10 @@ router.delete('/store/:id', requireAuth, requireRole([Role.manager, Role.admin, 
 
 // Area Manager Stores
 router.get('/area-stores', requireAuth, requireRole([Role.area_manager]), UserController.getAreaStores);
+
+// Global Company Name Resolver
+router.get('/company-name/:id', requireAuth, UserController.getCompanyName);
+
 // EULA Acceptance
 router.post('/accept-eula', requireAuth, UserController.acceptEula);
 

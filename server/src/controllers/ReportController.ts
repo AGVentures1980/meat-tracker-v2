@@ -72,6 +72,9 @@ export class ReportController {
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 whereClause.id = user.storeId;
+            } else if (user.role === 'director' && user.director_region) {
+                // Director scope filtering
+                whereClause.region = user.director_region;
             }
 
             const stores = await prisma.store.findMany({
@@ -204,6 +207,10 @@ export class ReportController {
             };
             if (user.companyId) {
                 companyWhere.store = { company_id: user.companyId };
+            }
+            if (user.role === 'director' && user.director_region) {
+                if (!companyWhere.store) companyWhere.store = {};
+                companyWhere.store.region = user.director_region;
             }
 
             const allPurchases = await prisma.purchaseRecord.findMany({

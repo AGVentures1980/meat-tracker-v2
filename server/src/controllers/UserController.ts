@@ -291,6 +291,18 @@ export const UserController = {
         }
     },
 
+    getCompanyName: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const company = await prisma.company.findUnique({ where: { id }, select: { name: true } });
+            if (!company) return res.status(404).json({ error: 'Company not found' });
+            return res.json({ name: company.name });
+        } catch (error) {
+            console.error('getCompanyName error:', error);
+            return res.status(500).json({ error: 'Failed to fetch company name' });
+        }
+    },
+
     setupFdcDirectors: async (req: Request, res: Response) => {
         try {
             const hash = await bcrypt.hash('Fogo2026@', 10);

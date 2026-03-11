@@ -90,7 +90,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 ]
             },
             {
-                section: t('nav.section_team') || 'TEAM (Store)', items: [
+                section: t('nav.section_team') || 'TEAM (Store)', 
+                hideOnMobile: true,
+                items: [
                     { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
                 ]
             }
@@ -119,13 +121,32 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     const [networkStats, setNetworkStats] = useState<{ totalStores: number, activeReporting: number } | null>(null);
     const [alerts, setAlerts] = useState<any[]>([]);
+    const [companyName, setCompanyName] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (selectedCompany && user?.token) {
+            fetch(`/api/v1/users/company-name/${selectedCompany}`, {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.name) setCompanyName(data.name);
+            })
+            .catch(err => console.error('Failed to fetch company name:', err));
+        } else {
+            setCompanyName(null);
+        }
+    }, [selectedCompany, user?.token]);
 
     useEffect(() => {
         const fetchNetworkStats = async () => {
             if (!user?.token) return;
             try {
                 const res = await fetch('/api/v1/dashboard/stats/network', {
-                    headers: { 'Authorization': `Bearer ${user.token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${user.token}`,
+                        'x-company-id': selectedCompany || ''
+                    }
                 });
                 if (res.ok) {
                     const data = await res.json();
@@ -134,7 +155,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             } catch (err) { }
         };
         fetchNetworkStats();
-    }, [user]);
+    }, [user, selectedCompany]);
 
     useEffect(() => {
         const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
@@ -258,8 +279,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <p className="text-xs text-gray-500 mt-2">Please select a store from the top menu to view the operational command center.</p>
                         </div>
                     ) : (
-                        navItems.map((section) => (
-                            <div key={section.section} className="space-y-1">
+                        navItems.map((section: any) => (
+                            <div key={section.section} className={`space-y-1 ${section.hideOnMobile ? 'hidden md:block' : ''}`}>
                                 <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
                                 {section.items.map((item: any) => {
                                     const active = location.pathname === item.path || (item.path === '/settings/company' && location.pathname.startsWith('/settings/'));

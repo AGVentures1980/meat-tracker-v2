@@ -55,8 +55,10 @@ export class DashboardController {
             const y = year ? parseInt(year as string) : undefined;
             const w = week ? parseInt(week as string) : undefined;
 
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+
             // Enforcement: Network stats must be filtered by companyId
-            const stats = await MeatEngine.getNetworkBiStats(y, w, user.companyId, user);
+            const stats = await MeatEngine.getNetworkBiStats(y, w, activeCompanyId, user);
 
             return res.json(stats);
         } catch (error) {
