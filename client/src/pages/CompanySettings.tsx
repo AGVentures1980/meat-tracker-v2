@@ -8,7 +8,8 @@ import {
     Store as StoreIcon,
     X,
     Truck,
-    UtensilsCrossed
+    UtensilsCrossed,
+    Users
 } from 'lucide-react';
 
 export const CompanySettings = () => {
