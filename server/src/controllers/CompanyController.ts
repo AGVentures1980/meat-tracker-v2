@@ -200,15 +200,28 @@ export class CompanyController {
             // Fetch users with role area_manager who are EITHER assigned to at least one store in this company,
             // OR have an email matching the company domain as a fallback (since we don't have company_id on User directly)
             
-            // Assuming users are scoped by their email domain if they have no stores yet
-            const domain = user.email.split('@')[1];
+            // To ensure strict multi-tenant boundary even for master admins who can switch companies:
+            const company = await prisma.company.findUnique({ where: { id: user.companyId } });
+            
+            let companyDomain = user.email.split('@')[1]; // Default to caller's domain
+            if (company?.name.toLowerCase().includes('fogo')) {
+                companyDomain = 'fogo.com';
+            } else if (company?.name.toLowerCase().includes('texas')) {
+                companyDomain = 'texasdebrazil.com';
+            }
+            
+            // Master admin explicitly should not leak their own domain users as fallback orphans
+            if (companyDomain === 'alexgarciaventures.co') {
+                companyDomain = 'NONE_MASTER_FALLBACK'; 
+            }
 
             const areaManagers = await prisma.user.findMany({
                 where: { 
                     role: 'area_manager',
                     OR: [
-                        { area_stores: { some: { id: { in: storeIds } } } },
-                        { email: { endsWith: '@' + domain } } // Fallback for newly created unassigned managers
+                        { store_id: { in: storeIds } }, // Primary store belongs to company
+                        { area_stores: { some: { id: { in: storeIds } } } }, // Managing a store belonging to company
+                        { email: { endsWith: '@' + companyDomain } } // Unassigned managers mapped by domain
                     ]
                 },
                 include: { area_stores: true },
