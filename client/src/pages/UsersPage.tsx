@@ -45,6 +45,12 @@ export const UsersPage = () => {
     const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
     const [storeTeam, setStoreTeam] = useState<NetworkUser[]>([]);
     
+    // Area Manager Assign Logic
+    const [allCompanyStores, setAllCompanyStores] = useState<any[]>([]);
+    const [isAssigningStores, setIsAssigningStores] = useState(false);
+    const [targetAmId, setTargetAmId] = useState<string | null>(null);
+    const [assignedStoreIds, setAssignedStoreIds] = useState<number[]>([]);
+    
     const [isAddingUser, setIsAddingUser] = useState(false);
     
     // Form State (Add User)
@@ -93,6 +99,7 @@ export const UsersPage = () => {
                     
                     // Build local Tree Representation
                     let tree: HierarchyNode[] = [];
+                    setAllCompanyStores(data.allStores || []);
                     
                     if (isAreaManager) {
                        // Filter ONLY to my node
@@ -235,6 +242,44 @@ export const UsersPage = () => {
         return 'Unknown Store';
     };
 
+    const openAssignModal = (amId: string, currentStores: any[]) => {
+        setTargetAmId(amId);
+        setAssignedStoreIds(currentStores.map(s => s.id));
+        setIsAssigningStores(true);
+    };
+
+    const handleAssignStoresSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            setIsSubmitting(true);
+            const token = user?.token;
+            const res = await fetch(`${API_URL}/api/v1/dashboard/company/area-managers/assign`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    areaManagerId: targetAmId,
+                    storeIds: assignedStoreIds
+                })
+            });
+            
+            if (res.ok) {
+                setIsAssigningStores(false);
+                fetchHierarchy();
+            } else {
+                const errData = await res.json();
+                alert(errData.error || 'Failed to assign stores');
+            }
+        } catch (error) {
+            console.error('Assigning Stores Failed:', error);
+            alert('Encountered an error while assigning stores.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     if (isLoading) {
         return <div className="p-8 text-center text-gray-500 font-mono text-sm uppercase">Loading Corporate Structure...</div>;
     }
@@ -250,7 +295,9 @@ export const UsersPage = () => {
                         Team Command
                     </h1>
                     <p className="text-gray-500 text-sm mt-2 max-w-2xl font-mono">
-                        {isMasterOrAdmin ? `Active Director: ${user?.firstName} ${user?.lastName}` : 'Manage your pre-defined hierarchy.'}
+                        {isMasterOrAdmin 
+                            ? `Active Director: ${user?.firstName || user?.lastName ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim() : user?.email}` 
+                            : 'Manage your pre-defined hierarchy.'}
                     </p>
                 </div>
             </div>
@@ -287,7 +334,17 @@ export const UsersPage = () => {
                                                         <span className="text-[10px] text-gray-500 font-mono block">Region: {node.stores.length} Stores</span>
                                                     </div>
                                                 </div>
-                                                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${expandedAmId === node.areaManagerId ? 'rotate-180' : ''}`} />
+                                                <div className="flex items-center gap-3">
+                                                    {isMasterOrAdmin && (
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); openAssignModal(node.areaManagerId, node.stores); }}
+                                                            className="text-[9px] bg-[#C5A059]/10 text-[#C5A059] px-2 py-1 rounded font-bold uppercase tracking-widest hover:bg-[#C5A059]/20 transition-colors border border-[#C5A059]/20"
+                                                        >
+                                                            Assign Stores
+                                                        </button>
+                                                    )}
+                                                    <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${expandedAmId === node.areaManagerId ? 'rotate-180' : ''}`} />
+                                                </div>
                                             </button>
                                             
                                             {/* Stores Row (Expandable) */}
@@ -531,6 +588,70 @@ export const UsersPage = () => {
                                         className="bg-[#C5A059] hover:bg-[#d6b579] text-black px-6 py-2.5 rounded-sm font-bold text-xs uppercase tracking-widest transition-all shadow-lg flex items-center justify-center disabled:opacity-50 min-w-[140px]"
                                     >
                                         {isSubmitting ? 'Creating...' : 'Provision Staff'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* MODAL: ASSIGN STORES TO AREA MANAGER */}
+            {isAssigningStores && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#121212] border border-[#C5A059]/30 rounded-sm max-w-2xl w-full shadow-2xl relative overflow-hidden max-h-[90vh] flex flex-col">
+                        <div className="h-1 w-full bg-gradient-to-r from-[#C5A059] to-yellow-600 shrink-0" />
+                        <div className="p-8 flex flex-col flex-1 overflow-hidden">
+                            <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-wide">Assign Regional Stores</h3>
+                            <p className="text-xs text-gray-500 font-mono mb-6">
+                                Select all store locations that should be under the jurisdiction of this Area Manager. 
+                                Removing a store immediately revokes their regional access to that unit's data.
+                            </p>
+
+                            <form onSubmit={handleAssignStoresSubmit} className="flex flex-col flex-1 overflow-hidden">
+                                <div className="flex-1 overflow-y-auto pr-2 space-y-2 mb-6 border border-[#333] p-4 bg-[#0a0a0a] rounded-sm">
+                                    {allCompanyStores.length === 0 ? (
+                                        <p className="text-xs text-gray-500 text-center p-4">No stores available for association.</p>
+                                    ) : (
+                                        allCompanyStores.map(store => {
+                                            const isChecked = assignedStoreIds.includes(store.id);
+                                            return (
+                                                <label 
+                                                    key={store.id} 
+                                                    className={`flex items-center gap-3 p-3 border rounded-sm cursor-pointer transition-colors ${isChecked ? 'bg-[#C5A059]/10 border-[#C5A059]/30' : 'bg-[#1a1a1a] border-[#333] hover:border-gray-500'}`}
+                                                >
+                                                    <input 
+                                                        type="checkbox"
+                                                        checked={isChecked}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) setAssignedStoreIds([...assignedStoreIds, store.id]);
+                                                            else setAssignedStoreIds(assignedStoreIds.filter(id => id !== store.id));
+                                                        }}
+                                                        className="w-4 h-4 accent-[#C5A059] bg-[#222] border-[#444] rounded"
+                                                    />
+                                                    <div className="flex flex-col">
+                                                        <span className={`text-sm font-bold ${isChecked ? 'text-white' : 'text-gray-400'}`}>{store.store_name}</span>
+                                                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">{store.location}</span>
+                                                    </div>
+                                                </label>
+                                            )
+                                        })
+                                    )}
+                                </div>
+
+                                <div className="flex gap-3 justify-end pt-4 border-t border-[#333] shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAssigningStores(false)}
+                                        className="px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="bg-[#C5A059] hover:bg-[#d6b579] text-black px-6 py-2.5 rounded-sm font-bold text-xs uppercase tracking-widest transition-all shadow-lg flex items-center justify-center disabled:opacity-50 min-w-[160px]"
+                                    >
+                                        {isSubmitting ? 'Updating Policy...' : 'Commit Assignment'}
                                     </button>
                                 </div>
                             </form>

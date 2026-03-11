@@ -107,7 +107,9 @@ export class AuthController {
 
                     isPrimary: user.is_primary,
                     eula_accepted: !!user.eula_accepted_at,
-                    position: user.position
+                    position: user.position,
+                    firstName: user.first_name,
+                    lastName: user.last_name
                 },
                 JWT_SECRET,
                 { expiresIn: '12h' }
@@ -125,7 +127,9 @@ export class AuthController {
                     companyId: defaultCompanyId || 'tdb-main',
                     isPrimary: user.is_primary,
                     eula_accepted: !!user.eula_accepted_at,
-                    position: user.position
+                    position: user.position,
+                    firstName: user.first_name,
+                    lastName: user.last_name
                 },
                 redirectPath,
                 defaultCompanyId,
