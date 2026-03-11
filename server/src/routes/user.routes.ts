@@ -6,6 +6,7 @@ import { Role } from '@prisma/client';
 const router = Router();
 
 // Store Managers and Area Managers can manage users for their store
+router.get('/hierarchy', requireAuth, requireRole([Role.admin, Role.director, Role.area_manager]), UserController.getHierarchy);
 router.get('/store', requireAuth, requireRole([Role.manager, Role.admin, Role.director, Role.area_manager]), UserController.getStoreUsers);
 router.post('/store', requireAuth, requireRole([Role.manager, Role.admin, Role.director, Role.area_manager]), UserController.createStoreUser);
 router.delete('/store/:id', requireAuth, requireRole([Role.manager, Role.admin, Role.director, Role.area_manager]), UserController.deleteStoreUser);
