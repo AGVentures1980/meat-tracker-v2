@@ -21,7 +21,7 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
             data: {
                 subdomain: 'fogo',
                 theme_primary_color: '#A31D21',
-                theme_logo_url: '/fdc-logo.svg',
+                theme_logo_url: '/fdc-logo.png',
                 theme_bg_url: '/background_fdc.jpg'
             }
         });

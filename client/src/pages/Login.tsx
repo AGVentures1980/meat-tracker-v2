@@ -140,8 +140,10 @@ export const Login = () => {
                         <img
                             src={theme?.logoUrl || "/brasa-logo-v3.png"}
                             alt={theme?.companyName || "Brasa Meat Intelligence"}
-                            // Maximum proximity blending
-                            className={`mx-auto -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain ${theme?.companyName === 'Fogo de Chão' ? 'w-[140%] -ml-[20%] h-36 mb-2 invert mix-blend-screen' : 'w-56 h-24'}`}
+                            className={`mx-auto object-contain ${theme?.companyName === 'Fogo de Chão'
+                                    ? 'w-72 h-40 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]'
+                                    : 'w-56 h-24 -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
+                                }`}
                         />
                     )}
                     {theme?.companyName !== 'Texas de Brazil' && theme?.companyName !== 'Fogo de Chão' && (
