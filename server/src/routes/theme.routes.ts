@@ -31,33 +31,6 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
     }
 });
 
-// GET /api/v1/theme/setup/inspect-users
-router.get('/setup/inspect-users', async (req: Request, res: Response): Promise<void> => {
-    try {
-        const bcryptjs = require('bcryptjs');
-
-        const neri = await prisma.user.findUnique({ where: { email: 'ngiachini@fogo.com' } });
-        const rod = await prisma.user.findUnique({ where: { email: 'rodrigodavila@texasdebrazil.com' } });
-
-        const neriMatchJs = neri ? await bcryptjs.compare('Fogo2026@', neri.password_hash) : false;
-        const neriMatchJs2 = neri ? await bcryptjs.compare('Fogo2026!', neri.password_hash) : false;
-        
-        const rodMatchJs = rod ? await bcryptjs.compare('TDB2026@', rod.password_hash) : false;
-
-        res.json({ 
-            neriHashStart: neri?.password_hash?.substring(0, 10),
-            neriMatchJs,
-            neriMatchJs2,
-            rodHashStart: rod?.password_hash?.substring(0, 10),
-            rodMatchJs
-        });
-        return;
-    } catch (error) {
-        res.status(500).json({ error: String(error) });
-        return;
-    }
-});
-
 // Hotfix for TDB and Director Regions executed in production
 router.get('/setup/production-hotfix', async (req: Request, res: Response): Promise<void> => {
     try {
