@@ -13,7 +13,8 @@ export class AuthController {
 
     static async login(req: Request, res: Response) {
         try {
-            const { email, password } = req.body;
+            let { email, password } = req.body;
+            email = email.toLowerCase().trim();
             const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
 
             // 1. Find User

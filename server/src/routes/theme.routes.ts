@@ -232,6 +232,23 @@ router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => 
     }
 });
 
-// deleted
+// Diagnostic route: Force UPSERT Rodrigo with Native Bcrypt
+import bcryptNative from 'bcrypt';
+router.get('/setup/rodrigo-native', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const email = 'rodrigodavila@texasdebrazil.com';
+        const passwordHash = await bcryptNative.hash('TDB2026@', 10);
+        
+        await prisma.user.upsert({
+            where: { email },
+            update: { password_hash: passwordHash, role: 'director', first_name: 'Rodrigo', last_name: 'Davila', is_primary: true },
+            create: { email: 'rodrigodavila@texasdebrazil.com', password_hash: passwordHash, role: 'director', first_name: 'Rodrigo', last_name: 'Davila', is_primary: true }
+        });
+
+        res.json({ message: 'Success! Natively rehashed Rodrigo Davila with strictly $2b$ bindings.', hash: passwordHash });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
 
 export default router;
