@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi, WifiOff, RefreshCw, ScanLine, Camera, X, Maximize, AlertCircle } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
+import { useAuth } from '../context/AuthContext';
 
 interface ProteinItem {
     id: string;
