@@ -71,6 +71,22 @@ export const Login = () => {
             setDemoLoading(false);
         }
     };
+    const fdcImages = [
+        '/background_fdc.jpg',
+        '/fdc-hero-1.jpg',
+        '/fdc-hero-2.jpg',
+        '/fdc-hero-3.jpg'
+    ];
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        if (theme?.companyName === 'Fogo de Chão') {
+            const interval = setInterval(() => {
+                setCurrentImageIndex((prev) => (prev + 1) % fdcImages.length);
+            }, 6000);
+            return () => clearInterval(interval);
+        }
+    }, [theme?.companyName]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
@@ -86,13 +102,26 @@ export const Login = () => {
                     <source src={theme.bgUrl} type="video/mp4" />
                 </video>
             )}
-            {theme?.bgUrl && !theme.bgUrl.endsWith('.mp4') && (
-                <div
-                    className="absolute inset-0 opacity-60 bg-cover bg-center"
-                    style={{ backgroundImage: `url('${theme.bgUrl}')` }}
-                ></div>
+
+            {/* Conditional Carousel for FDC, Standard Background for others */}
+            {theme?.companyName === 'Fogo de Chão' ? (
+                fdcImages.map((img, index) => (
+                    <div
+                        key={img}
+                        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-60' : 'opacity-0'}`}
+                        style={{ backgroundImage: `url('${img}')` }}
+                    ></div>
+                ))
+            ) : (
+                theme?.bgUrl && !theme.bgUrl.endsWith('.mp4') && (
+                    <div
+                        className="absolute inset-0 opacity-60 bg-cover bg-center"
+                        style={{ backgroundImage: `url('${theme.bgUrl}')` }}
+                    ></div>
+                )
             )}
-            {!theme?.bgUrl && (
+
+            {!theme?.bgUrl && theme?.companyName !== 'Fogo de Chão' && (
                 <div className="absolute inset-0 opacity-60 bg-cover bg-center bg-[url('/background_clean.jpeg')]"></div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
@@ -112,7 +141,7 @@ export const Login = () => {
                             src={theme?.logoUrl || "/brasa-logo-v3.png"}
                             alt={theme?.companyName || "Brasa Meat Intelligence"}
                             // Maximum proximity blending
-                            className={`w-56 mx-auto -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain ${theme?.companyName === 'Fogo de Chão' ? 'h-32 mb-2 scale-110' : 'h-24'}`}
+                            className={`mx-auto -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain ${theme?.companyName === 'Fogo de Chão' ? 'w-[140%] -ml-[20%] h-36 mb-2 invert mix-blend-screen' : 'w-56 h-24'}`}
                         />
                     )}
                     {theme?.companyName !== 'Texas de Brazil' && theme?.companyName !== 'Fogo de Chão' && (
