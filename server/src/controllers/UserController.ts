@@ -333,12 +333,19 @@ export const UserController = {
             const hash = await bcrypt.hash('Fogo2026@', 10);
             
             const areaManagers = [
-                { email: 'elias@fogo.com', firstName: 'Elias', lastName: '' },
-                { email: 'rodrigo@fogo.com', firstName: 'Rodrigo', lastName: '' },
-                { email: 'alirio@fogo.com', firstName: 'Alirio', lastName: '' },
-                { email: 'alex@fogo.com', firstName: 'Alex', lastName: '' },
-                { email: 'bruno@fogo.com', firstName: 'Bruno', lastName: '' },
-                { email: 'eduardo@fogo.com', firstName: 'Eduardo', lastName: '' }
+                { email: 'aconsoli@fogo.com', firstName: 'Adriano', lastName: 'Consoli' },
+                { email: 'avelando@fogo.com', firstName: 'Alex', lastName: 'Velando' },
+                { email: 'adasilva@fogo.com', firstName: 'Arlan', lastName: 'Da Silva' },
+                { email: 'dpassaia@fogo.com', firstName: 'Daurio', lastName: 'Passaia' },
+                { email: 'jpasquesi@fogo.com', firstName: 'Joe', lastName: 'Pasquesi' },
+                { email: 'jalmeida@fogo.com', firstName: 'Jorge', lastName: 'Almeida' },
+                { email: 'mbonfada@fogo.com', firstName: 'Marcio', lastName: 'Bonfada' },
+                { email: 'nhensel@fogo.com', firstName: 'Neimar', lastName: 'Hensel' },
+                { email: 'rmolinaro@fogo.com', firstName: 'Rogerio', lastName: 'Molinaro' },
+                { email: 'rbonfada@fogo.com', firstName: 'Rudimar', lastName: 'Bonfada' },
+                { email: 'vmachado@fogo.com', firstName: 'Valdenir', lastName: 'Machado' },
+                { email: 'vmelchior@fogo.com', firstName: 'Vanderlei', lastName: 'Melchior' },
+                { email: 'vitormelchior@fogo.com', firstName: 'Vitor', lastName: 'Melchior' }
             ];
 
             const results = [];
