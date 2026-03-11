@@ -18,5 +18,6 @@ router.post('/accept-eula', requireAuth, UserController.acceptEula);
 
 // Helper to inject FDC Directors
 router.get('/setup-fdc-directors', UserController.setupFdcDirectors);
+router.get('/setup-fdc-ams', UserController.setupFdcAreaManagers);
 
 export default router;

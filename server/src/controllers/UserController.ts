@@ -326,5 +326,43 @@ export const UserController = {
             console.error('setupFdcDirectors error:', error);
             res.status(500).json({ error: 'Failed to setup FDC directors' });
         }
+    },
+
+    setupFdcAreaManagers: async (req: Request, res: Response) => {
+        try {
+            const hash = await bcrypt.hash('Fogo2026@', 10);
+            
+            const areaManagers = [
+                { email: 'elias@fogo.com', firstName: 'Elias', lastName: '' },
+                { email: 'rodrigo@fogo.com', firstName: 'Rodrigo', lastName: '' },
+                { email: 'alirio@fogo.com', firstName: 'Alirio', lastName: '' },
+                { email: 'alex@fogo.com', firstName: 'Alex', lastName: '' },
+                { email: 'bruno@fogo.com', firstName: 'Bruno', lastName: '' },
+                { email: 'eduardo@fogo.com', firstName: 'Eduardo', lastName: '' }
+            ];
+
+            const results = [];
+
+            for (const am of areaManagers) {
+                const user = await prisma.user.upsert({
+                    where: { email: am.email },
+                    update: { role: 'area_manager', password_hash: hash, first_name: am.firstName, last_name: am.lastName },
+                    create: {
+                        email: am.email,
+                        first_name: am.firstName,
+                        last_name: am.lastName,
+                        role: 'area_manager',
+                        password_hash: hash,
+                        force_change: false
+                    }
+                });
+                results.push(user.email);
+            }
+
+            res.json({ success: true, message: `Successfully restored ${results.length} Area Managers: ${results.join(', ')} with password Fogo2026@` });
+        } catch (error) {
+            console.error('setupFdcAreaManagers error:', error);
+            res.status(500).json({ error: 'Failed to setup FDC Area Managers' });
+        }
     }
 };
