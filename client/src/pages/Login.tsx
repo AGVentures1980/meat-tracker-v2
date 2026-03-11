@@ -227,19 +227,6 @@ export const Login = () => {
                         {loading ? 'Authenticating...' : 'Initialize Session'}
                         {!loading && <ArrowRight className="w-4 h-4" />}
                     </button>
-
-                    {/* START DEMO BUTTON */}
-                    {theme?.companyName !== 'Fogo de Chão' && (
-                        <div className="mt-8 pt-6 border-t border-white/5 relative">
-                            <button
-                                type="button"
-                                onClick={() => setShowDemoModal(true)}
-                                className="w-full text-brand-gold/60 hover:text-brand-gold text-xs font-semibold tracking-widest uppercase transition-colors"
-                            >
-                                Start 30-day Free Demo
-                            </button>
-                        </div>
-                    )}
                 </form>
 
                 {/* Mobile Access Link */}
