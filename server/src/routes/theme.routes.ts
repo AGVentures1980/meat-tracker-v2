@@ -32,7 +32,7 @@ router.get('/setup/rodrigo-fix-final', async (req: Request, res: Response): Prom
             email: updatedUser.email, 
             memoryOk: verifyInMemory,
             dbOk: verifyFromDb,
-            hashPrefix: updatedUser.password_hash.substring(0, 4)
+            userObject: updatedUser
         });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
