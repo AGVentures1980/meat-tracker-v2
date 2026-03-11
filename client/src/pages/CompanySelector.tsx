@@ -87,15 +87,31 @@ export const CompanySelector = () => {
                             onClick={() => handleSelect(company)}
                             className="group relative bg-[#1a1a1a]/40 backdrop-blur-xl border border-white/5 p-8 rounded-2xl cursor-pointer hover:border-[#C5A059]/30 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(197,160,89,0.1)] active:scale-95"
                         >
-                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                <Building2 size={80} className="text-white" />
+                            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                {company.name === 'Fogo de Chão' ? (
+                                    <img src="/fdc-logo-pure-white.png" alt="FDC Watermark" className="w-[150px] object-contain opacity-70" />
+                                ) : company.name === 'Texas de Brazil' ? (
+                                    <img src="/tdb-logo-white.svg" alt="TDB Watermark" className="w-[150px] object-contain opacity-70" />
+                                ) : (
+                                    <Building2 size={80} className="text-white" />
+                                )}
                             </div>
 
                             <div className="relative z-10">
                                 <span className="inline-block px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest mb-6 border border-[#C5A059]/20">
                                     {company.plan} plan
                                 </span>
-                                <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#C5A059] transition-colors">{company.name}</h3>
+
+                                {company.name === 'Fogo de Chão' ? (
+                                    <img src="/fdc-logo-pure-white.png" alt="Fogo de Chão" className="h-[35px] object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                ) : company.name === 'Texas de Brazil' ? (
+                                    <img src="/tdb-logo-white.svg" alt="Texas de Brazil" className="h-[45px] object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                ) : company.name === 'Brasa Group' ? (
+                                    <img src="/brasa-logo-v3.png" alt="Brasa Group" className="h-[35px] object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md brightness-[5] grayscale" />
+                                ) : (
+                                    <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#C5A059] transition-colors">{company.name}</h3>
+                                )}
+
                                 <p className="text-gray-500 text-sm mb-6 flex items-center gap-2 font-mono">
                                     <Users size={14} /> {company._count.stores} Stores Managed
                                 </p>
