@@ -258,16 +258,12 @@ export const Login = () => {
             </div>
 
             {/* VERSION AT BOTTOM RIGHT */}
-            <div className="absolute bottom-6 pr-6 right-0 text-right opacity-60">
+            <div className={`absolute bottom-6 pr-6 right-0 text-right ${theme?.companyName === 'Fogo de Chão' ? 'opacity-30' : 'opacity-60'}`}>
                 <p className="text-brand-gold font-bold text-xl tracking-widest">
                     <span className="opacity-0">.</span>AGV
                 </p>
                 <p className="text-[8px] text-white/40 uppercase tracking-widest mt-1">
                     © 2026 Alex Garcia Vent JAFO. All rights reserved.
-                </p>
-                <p className="text-[8px] text-brand-gold/40 uppercase tracking-widest mt-1">
-                    v3.1.2_EIGHTY-SIXED_031026
-                    {theme?.companyName !== 'Fogo de Chão' && "_MAIN"}
                 </p>
             </div>
 
