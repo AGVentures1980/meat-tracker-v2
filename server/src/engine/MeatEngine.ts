@@ -222,18 +222,46 @@ export class MeatEngine {
             else if (groupMap[groupKey].lbs === actual) groupMap[groupKey].isDinnerOnly = true; // first variant
         });
 
+        // --- CHICKEN BREAST (GAUCHOS VS KITCHEN SALAD) ---
+        const chickenGroup = groupMap['chicken breast'];
+        let gauchoChickenLbs = 0;
+        let gauchoChickenIdeal = 0;
+
+        if (chickenGroup) {
+            // Actual is bounded by Ideal for the Gaucho portion
+            gauchoChickenIdeal = chickenGroup.idealLbs;
+            gauchoChickenLbs = Math.min(chickenGroup.lbs, chickenGroup.idealLbs);
+
+            // The rest goes to Kitchen Salad
+            let kitchenChickenLbs = chickenGroup.lbs - gauchoChickenLbs;
+            if (kitchenChickenLbs < 0) kitchenChickenLbs = 0;
+
+            // Re-assign Chicken Breast to Kitchen (Salad)
+            chickenGroup.displayName = 'Chicken Breast (Salad)';
+            chickenGroup.lbs = kitchenChickenLbs;
+            chickenGroup.idealLbs = 0; // Ideal is 0 because there's no per-guest metric for salad
+
+            // Add Gaucho Chicken Breast
+            groupMap['chicken_breast_gaucho'] = {
+                lbs: gauchoChickenLbs,
+                idealLbs: gauchoChickenIdeal,
+                isVillain: false,
+                isDinnerOnly: false,
+                displayName: 'Chicken Breast (Gauchos)'
+            };
+        }
+
         // --- BACON KITCHEN VS GAUCHO LOGIC ---
         // 1 Lb of Steak/Filet with Bacon = ~8 pieces (2oz each). 
         // 8 pieces * 0.5 slices/piece = 4 slices. 
         // 4 slices / 16 slices/lb = 0.25 Lbs of Bacon.
         // Therefore, every 1 Lb of wrapped meat consumes 0.25 Lb of Bacon.
-        const swbGroup = groupMap['steak with bacon'] || groupMap['filet bacon'] || groupMap['filet mignon with bacon'] || groupMap['chicken breast'];
+        const swbLbs = (groupMap['steak with bacon']?.lbs || 0) + (groupMap['filet bacon']?.lbs || 0) + (groupMap['filet mignon with bacon']?.lbs || 0) + gauchoChickenLbs;
+        const swbIdeal = (groupMap['steak with bacon']?.idealLbs || 0) + (groupMap['filet bacon']?.idealLbs || 0) + (groupMap['filet mignon with bacon']?.idealLbs || 0) + gauchoChickenIdeal;
+
         const baconGroup = groupMap['bacon'];
 
-        if (baconGroup && swbGroup) {
-            const swbLbs = swbGroup.lbs;
-            const swbIdeal = swbGroup.idealLbs;
-
+        if (baconGroup && swbLbs > 0) {
             const gauchoBaconActual = swbLbs * 0.25;
             const gauchoBaconIdeal = swbIdeal * 0.25;
 
