@@ -253,10 +253,14 @@ export const UserController = {
     acceptEula: async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
+            console.log(`[EULA] Acceptance request received for user ID: ${user?.userId}`);
+            
             if (!user || !user.userId) {
+                console.warn('[EULA] Failed: Not authenticated or missing userId in token');
                 return res.status(401).json({ error: 'Not authenticated' });
             }
 
+            console.log(`[EULA] Proceeding to update database for user ID: ${user.userId}`);
             await prisma.user.update({
                 where: { id: user.userId },
                 data: {
@@ -264,9 +268,10 @@ export const UserController = {
                 }
             });
 
+            console.log(`[EULA] Success: Database updated for user ID: ${user.userId}`);
             res.json({ success: true, message: 'EULA accepted successfully' });
         } catch (error) {
-            console.error('acceptEula error:', error);
+            console.error('[EULA] acceptEula error:', error);
             res.status(500).json({ error: 'Failed to accept EULA' });
         }
     },

@@ -71,13 +71,13 @@ export const EulaAgreement = () => {
             });
 
             if (res.ok) {
-                // Update local Context
-                const updatedUser = { ...user, eula_accepted: true };
-                localStorage.setItem('brasameat_user', JSON.stringify(updatedUser));
-
-                // Force a page reload to let AuthContext properly re-hydrate the state 
-                // and the ProtectedRoute to let them pass.
-                window.location.href = '/dashboard';
+                // Force a full logout so the user re-authenticates.
+                // This ensures the backend issues a brand new JWT token with the eula_accepted: true claim,
+                // preventing the frontend and backend from falling out of sync.
+                alert("Agreement recorded successfully. Please log in again to continue.");
+                localStorage.removeItem('brasameat_user');
+                localStorage.removeItem('brasameat_selected_company');
+                window.location.href = '/login';
             } else {
                 alert("Failed to record acceptance. Please try again.");
                 setIsAccepting(false);
