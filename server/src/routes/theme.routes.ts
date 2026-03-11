@@ -31,6 +31,38 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
     }
 });
 
+// Hotfix for TDB and Director Regions executed in production
+router.get('/setup/production-hotfix', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { exec } = require('child_process');
+        
+        const commands = [
+            'npx ts-node prune_tdb.ts',
+            'npx ts-node provision_tdb_director.ts',
+            'npx ts-node seed_director_regions.ts'
+        ];
+
+        let outputLog = 'Starting Production Data Hotfix...\n\n';
+
+        const runCommand = (cmd: string): Promise<string> => {
+            return new Promise((resolve, reject) => {
+                exec(cmd, { cwd: process.cwd() }, (err: any, stdout: string, stderr: string) => {
+                    if (err) resolve(`[ERROR] ${cmd}: ${stderr || err.message}`);
+                    else resolve(`[SUCCESS] ${cmd}:\n${stdout}`);
+                });
+            });
+        };
+
+        for (const cmd of commands) {
+            outputLog += await runCommand(cmd) + '\n';
+        }
+
+        res.send(`<pre>${outputLog}</pre>`);
+    } catch (e: any) {
+        res.status(500).send(e.message);
+    }
+});
+
 // Master FDC Prod Sync Route
 router.get('/setup/fdc-deploy', async (req: Request, res: Response): Promise<void> => {
     try {
