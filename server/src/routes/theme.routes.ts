@@ -232,4 +232,32 @@ router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => 
     }
 });
 
+// Diagnostic route: Test Rodrigo Login Compare
+const bcryptNative = require('bcrypt');
+router.get('/setup/rodrigo-test', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const email = 'rodrigodavila@texasdebrazil.com';
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            res.json({ error: 'User not found' });
+            return;
+        }
+        
+        const valid = await bcryptNative.compare('TDB2026@', user.password_hash);
+        const validJS = await require('bcryptjs').compare('TDB2026@', user.password_hash);
+
+        res.json({ 
+            email: user.email, 
+            hashLength: user.password_hash.length,
+            hashPrefix: user.password_hash.substring(0, 4),
+            validNative: valid,
+            validJS: validJS,
+            isTrial: user.is_trial,
+            role: user.role
+        });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 export default router;
