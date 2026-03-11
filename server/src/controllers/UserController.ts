@@ -10,9 +10,19 @@ export const UserController = {
             const user = (req as any).user;
             let targetStoreId = user.storeId;
 
-            // Optional query param for Admins to view a specific store's users
-            if ((user.role === 'admin' || user.role === 'director') && req.query.storeId) {
+            // Optional query param for Admins and Area Managers to view a specific store's users
+            if ((user.role === 'admin' || user.role === 'director' || user.role === 'area_manager') && req.query.storeId) {
                 targetStoreId = parseInt(req.query.storeId as string, 10);
+
+                // If area_manager, verify they supervise this store
+                if (user.role === 'area_manager') {
+                    const storeCheck = await prisma.store.findFirst({
+                        where: { id: targetStoreId, area_manager_id: user.userId }
+                    });
+                    if (!storeCheck) {
+                        return res.status(403).json({ error: 'You are not authorized to view this store\'s team' });
+                    }
+                }
             }
 
             if (!targetStoreId) {
@@ -50,9 +60,19 @@ export const UserController = {
             const currentUser = (req as any).user;
             let targetStoreId = currentUser.storeId;
 
-            // Optional override for Admins
-            if ((currentUser.role === 'admin' || currentUser.role === 'director') && req.body.store_id) {
+            // Optional override for Admins and Area Managers
+            if ((currentUser.role === 'admin' || currentUser.role === 'director' || currentUser.role === 'area_manager') && req.body.store_id) {
                 targetStoreId = parseInt(req.body.store_id as string, 10);
+
+                // If area manager, verify they supervise this store
+                if (currentUser.role === 'area_manager') {
+                    const storeCheck = await prisma.store.findFirst({
+                        where: { id: targetStoreId, area_manager_id: currentUser.userId }
+                    });
+                    if (!storeCheck) {
+                        return res.status(403).json({ error: 'You are not authorized to add team members to this store' });
+                    }
+                }
             }
 
             if (!targetStoreId) {
@@ -129,6 +149,17 @@ export const UserController = {
                 if (currentUser.isPrimary === false) {
                     return res.status(403).json({ error: 'Only the primary store account can delete team members' });
                 }
+            } else if (currentUser.role === 'area_manager') {
+                // Area manager can only delete if they supervise the user's store
+                if (!targetUser.store_id) {
+                    return res.status(403).json({ error: 'Unauthorized to delete this user' });
+                }
+                const storeCheck = await prisma.store.findFirst({
+                    where: { id: targetUser.store_id, area_manager_id: currentUser.userId }
+                });
+                if (!storeCheck) {
+                    return res.status(403).json({ error: 'Unauthorized to delete a team member from this store' });
+                }
             }
 
             // Ensure a user cannot delete themselves (or maybe they can? standard is no)
@@ -170,6 +201,26 @@ export const UserController = {
         } catch (error) {
             console.error('acceptEula error:', error);
             res.status(500).json({ error: 'Failed to accept EULA' });
+        }
+    },
+
+    getAreaStores: async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            if (user.role !== 'area_manager') {
+                return res.status(403).json({ error: 'Access Denied' });
+            }
+
+            const stores = await prisma.store.findMany({
+                where: { area_manager_id: user.userId },
+                select: { id: true, store_name: true },
+                orderBy: { store_name: 'asc' }
+            });
+
+            res.json({ success: true, stores });
+        } catch (error) {
+            console.error('getAreaStores error:', error);
+            res.status(500).json({ error: 'Failed to fetch area stores' });
         }
     }
 };

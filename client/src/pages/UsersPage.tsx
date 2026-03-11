@@ -19,6 +19,10 @@ export const UsersPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
 
+    // Area Manager State
+    const [areaStores, setAreaStores] = useState<{id: number, store_name: string}[]>([]);
+    const [selectedAreaStoreId, setSelectedAreaStoreId] = useState<number | null>(null);
+
     // Form State
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -31,16 +35,54 @@ export const UsersPage = () => {
     const API_URL = (import.meta as any).env?.VITE_API_URL || '';
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        if (user?.role === 'area_manager') {
+            fetchAreaStores();
+        } else {
+            fetchUsers();
+        }
+    }, [user]);
 
-    const fetchUsers = async () => {
+    useEffect(() => {
+        if (user?.role === 'area_manager' && selectedAreaStoreId) {
+            fetchUsers(selectedAreaStoreId);
+        }
+    }, [selectedAreaStoreId]);
+
+    const fetchAreaStores = async () => {
+        try {
+            const token = user?.token;
+            if (!token) return;
+
+            const res = await fetch(`${API_URL}/api/v1/users/area-stores`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setAreaStores(data.stores || []);
+                if (data.stores && data.stores.length > 0) {
+                    setSelectedAreaStoreId(data.stores[0].id);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch area stores:', error);
+        }
+    };
+
+    const fetchUsers = async (storeOverride?: number) => {
         setIsLoading(true);
         try {
             const token = user?.token;
             if (!token) return;
 
-            const res = await fetch(`${API_URL}/api/v1/users/store`, {
+            let url = `${API_URL}/api/v1/users/store`;
+            if (storeOverride) {
+                url += `?storeId=${storeOverride}`;
+            } else if (user?.role === 'area_manager' && selectedAreaStoreId) {
+                url += `?storeId=${selectedAreaStoreId}`;
+            }
+
+            const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -77,7 +119,8 @@ export const UsersPage = () => {
                     last_name: lastName,
                     email,
                     password,
-                    position
+                    position,
+                    ...(user?.role === 'area_manager' && selectedAreaStoreId ? { store_id: selectedAreaStoreId } : {})
                 })
             });
 
@@ -142,9 +185,24 @@ export const UsersPage = () => {
                     <p className="text-gray-500 text-sm mt-2 max-w-2xl font-mono">
                         Manage access for Assistant Managers, Kitchen Managers, and other key staff members. All users added to your store are required to complete the Brasa Intel Training Center to maintain store compliance.
                     </p>
+
+                    {user?.role === 'area_manager' && areaStores.length > 0 && (
+                        <div className="mt-4 flex items-center gap-3">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">Select Supervised Store:</label>
+                            <select
+                                value={selectedAreaStoreId || ''}
+                                onChange={(e) => setSelectedAreaStoreId(Number(e.target.value))}
+                                className="bg-[#1a1a1a] border border-[#333] rounded-sm p-2 text-white focus:border-brand-gold outline-none text-sm transition-colors"
+                            >
+                                {areaStores.map(store => (
+                                    <option key={store.id} value={store.id}>{store.store_name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                 </div>
 
-                {(!isMasterOrAdmin && user?.isPrimary !== false) && (
+                {(!isMasterOrAdmin && (user?.isPrimary !== false || user?.role === 'area_manager')) && (
                     <button
                         onClick={() => setIsAdding(true)}
                         className="bg-brand-gold hover:bg-yellow-500 text-black px-6 py-3 rounded-sm font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap"
@@ -253,7 +311,7 @@ export const UsersPage = () => {
                                                 )}
                                             </td>
                                             <td className="p-4 pr-6 text-right">
-                                                {!isSelf && (!isMasterOrAdmin && user?.isPrimary !== false) && (
+                                                {!isSelf && (!isMasterOrAdmin && (user?.isPrimary !== false || user?.role === 'area_manager')) && (
                                                     <button
                                                         onClick={() => handleDeleteUser(u.id, u.email)}
                                                         className="p-2 text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-all"

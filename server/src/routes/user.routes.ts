@@ -5,10 +5,13 @@ import { Role } from '@prisma/client';
 
 const router = Router();
 
-// Store Managers can manage users for their store
-router.get('/store', requireAuth, requireRole([Role.manager, Role.admin, Role.director]), UserController.getStoreUsers);
-router.post('/store', requireAuth, requireRole([Role.manager, Role.admin, Role.director]), UserController.createStoreUser);
-router.delete('/store/:id', requireAuth, requireRole([Role.manager, Role.admin, Role.director]), UserController.deleteStoreUser);
+// Store Managers and Area Managers can manage users for their store
+router.get('/store', requireAuth, requireRole([Role.manager, Role.admin, Role.director, Role.area_manager]), UserController.getStoreUsers);
+router.post('/store', requireAuth, requireRole([Role.manager, Role.admin, Role.director, Role.area_manager]), UserController.createStoreUser);
+router.delete('/store/:id', requireAuth, requireRole([Role.manager, Role.admin, Role.director, Role.area_manager]), UserController.deleteStoreUser);
+
+// Area Manager Stores
+router.get('/area-stores', requireAuth, requireRole([Role.area_manager]), UserController.getAreaStores);
 // EULA Acceptance
 router.post('/accept-eula', requireAuth, UserController.acceptEula);
 
