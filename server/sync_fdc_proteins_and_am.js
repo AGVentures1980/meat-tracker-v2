@@ -23,7 +23,11 @@ async function main() {
         "Chicken Heart",
         "Beef Porterhouse Short Loin",
         "Bacon",
-        "Steak with Bacon"
+        "Steak with Bacon",
+        "Bar Fogo Picanha Burger (8oz)",
+        "Bar Fogo Beef Ribs (A La Carte)",
+        "Bar Fogo Filet Mignon (6oz)",
+        "Bar Fogo Lamb Chops (Single/4 Bones)"
     ];
 
     // 1. Fetch current proteins for FDC
@@ -38,9 +42,7 @@ async function main() {
                 data: {
                     name: pName,
                     company_id: defaultFdcCompanyId,
-                    category: pName.toLowerCase().includes('chicken') ? 'chicken' : (pName.toLowerCase().includes('pork') ? 'pork' : (pName.toLowerCase().includes('lamb') ? 'lamb' : 'beef')),
-                    unit_of_measure: 'lb',
-                    is_active: true
+                    category: pName.toLowerCase().includes('chicken') ? 'chicken' : (pName.toLowerCase().includes('pork') ? 'pork' : (pName.toLowerCase().includes('lamb') ? 'lamb' : 'beef'))
                 }
             });
             console.log("Added protein:", pName);
