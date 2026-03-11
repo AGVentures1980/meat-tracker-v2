@@ -33,9 +33,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
                 // We'll pass the first part as a simplistic approach, the backend handles fallbacks.
                 let subdomain = parts[0];
 
-                // Exclude some common non-tenant prefixes
-                if (['www', 'api', 'localhost', '127', 'meat-intelligence', 'meat-intelligence-final'].includes(subdomain.toLowerCase())) {
-                    subdomain = 'fogo'; // force default FDC theme for local dev 
+                // Exclude some common non-tenant prefixes and map fdc alias
+                if (['fdc', 'www', 'api', 'localhost', '127', 'meat-intelligence', 'meat-intelligence-final'].includes(subdomain.toLowerCase())) {
+                    subdomain = 'fogo'; // map fdc and force default FDC theme for local dev 
                 }
 
                 // In React Vite dev server, typically running at localhost:5173
