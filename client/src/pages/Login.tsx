@@ -103,54 +103,59 @@ export const Login = () => {
                 </video>
             )}
 
-            {/* Conditional Carousel for FDC, Standard Background for others */}
-            {theme?.companyName === 'Fogo de Chão' ? (
-                fdcImages.map((img, index) => (
-                    <div
-                        key={img}
-                        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-60' : 'opacity-0'}`}
-                        style={{ backgroundImage: `url('${img}')` }}
-                    ></div>
-                ))
-            ) : (
-                theme?.bgUrl && !theme.bgUrl.endsWith('.mp4') && (
-                    <div
-                        className="absolute inset-0 opacity-60 bg-cover bg-center"
-                        style={{ backgroundImage: `url('${theme.bgUrl}')` }}
-                    ></div>
-                )
-            )}
+            {/* Background Layers */}
+            <div className="absolute inset-0 z-0">
+                {/* Conditional Carousel for FDC, Standard Background for others */}
+                {theme?.companyName === 'Fogo de Chão' ? (
+                    fdcImages.map((img, index) => (
+                        <div
+                            key={img}
+                            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-60' : 'opacity-0'}`}
+                            style={{ backgroundImage: `url('${img}')` }}
+                        ></div>
+                    ))
+                ) : (
+                    theme?.bgUrl && !theme.bgUrl.endsWith('.mp4') && (
+                        <div
+                            className="absolute inset-0 opacity-60 bg-cover bg-center"
+                            style={{ backgroundImage: `url('${theme.bgUrl}')` }}
+                        ></div>
+                    )
+                )}
 
-            {!theme?.bgUrl && theme?.companyName !== 'Fogo de Chão' && (
-                <div className="absolute inset-0 opacity-60 bg-cover bg-center bg-[url('/background_clean.jpeg')]"></div>
-            )}
+                {!theme?.bgUrl && theme?.companyName !== 'Fogo de Chão' && (
+                    <div className="absolute inset-0 opacity-60 bg-cover bg-center bg-[url('/background_clean.jpeg')]"></div>
+                )}
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
             <div className="relative z-10 w-full max-w-[420px] p-10 bg-black/60 backdrop-blur-[12px] border border-white/5 border-y-brand-gold/30 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-500">
-                <div className="text-center mb-8">
+                <div className="text-center mb-6 h-[120px] flex flex-col items-center justify-center">
                     {theme?.companyName === 'Texas de Brazil' ? (
-                        <div className="relative w-full h-[140px] mx-auto mb-8 -mt-4">
+                        <div className="relative w-full h-[120px] mx-auto">
                             <img
                                 src={theme?.logoUrl || ""}
                                 alt="Texas de Brazil bg layer"
-                                className="absolute inset-0 w-full h-full object-contain scale-[1.9] drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]"
+                                className="absolute inset-0 w-full h-full object-contain scale-[1.7] drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]"
                             />
                         </div>
                     ) : (
-                        <img
-                            src={theme?.logoUrl || "/brasa-logo-v3.png"}
-                            alt={theme?.companyName || "Brasa Meat Intelligence"}
-                            className={`mx-auto object-contain ${theme?.companyName === 'Fogo de Chão'
-                                ? 'w-72 h-40 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]'
-                                : 'w-56 h-24 -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
-                                }`}
-                        />
-                    )}
-                    {theme?.companyName !== 'Texas de Brazil' && theme?.companyName !== 'Fogo de Chão' && (
-                        <>
-                            <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
-                            <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">{theme?.companyName || "Meat Intelligence"}</p>
-                        </>
+                        <div className="flex flex-col items-center justify-center w-full h-full">
+                            <img
+                                src={theme?.logoUrl || "/brasa-logo-v3.png"}
+                                alt={theme?.companyName || "Brasa Meat Intelligence"}
+                                className={`mx-auto object-contain ${theme?.companyName === 'Fogo de Chão'
+                                    ? 'w-[240px] h-[90px] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]'
+                                    : 'w-[200px] h-[70px] drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
+                                    }`}
+                            />
+                            {theme?.companyName !== 'Fogo de Chão' && (
+                                <div className="mt-2 w-full">
+                                    <div className="h-px w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
+                                    <p className="text-brand-gold uppercase tracking-[0.2em] text-[9px] font-bold">{theme?.companyName || "Meat Intelligence"}</p>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
 
