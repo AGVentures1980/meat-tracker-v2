@@ -20,7 +20,9 @@ app.use(cors({
             'https://meat-intelligence.up.railway.app',
             'https://meat-intelligence-final.up.railway.app',
             'https://brasameat.com',
-            'https://www.brasameat.com'
+            'https://www.brasameat.com',
+            'https://fogo.brasameat.com',
+            'https://fdc.brasameat.com'
         ];
         if (allowedOrigins.includes(origin) || origin.endsWith('.brasameat.com')) {
             callback(null, true);
@@ -82,6 +84,10 @@ import path from 'path';
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/theme', themeRoutes); // Public theme fetching
 
+// Admin Debug Seeding (Run FDC Seeds on Prod without auth for a moment)
+import { DebugController } from './controllers/DebugController';
+app.get('/api/v1/public-debug/seed-fdc', DebugController.seedFdcProduction);
+
 // Protected Routes
 app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/v1/orders', requireAuth, orderRoutes);
@@ -106,7 +112,6 @@ app.get('/api/v1/setup-demo', SetupController.runDemoSetup);
 app.get('/api/v1/setup/seed-targets', SetupController.seedTargets); // Emergency Init Route
 
 // Debug / Emergency Migration Route
-import { DebugController } from './controllers/DebugController';
 app.get('/api/v1/debug/migrate', DebugController.runMigration);
 app.get('/api/v1/debug/env', DebugController.checkEnv);
 app.get('/api/v1/debug/cleanup', DebugController.cleanupTdbMeats);

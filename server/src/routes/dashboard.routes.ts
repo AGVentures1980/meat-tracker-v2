@@ -87,4 +87,20 @@ router.get('/waste/history', requireAuth, WasteController.getHistory);
 router.get('/waste/history/details', requireAuth, WasteController.getDetailedHistory);
 router.post('/waste/log', requireAuth, WasteController.logWaste);
 
+// Admin Debug Seeding (Run FDC Seeds on Prod)
+import { exec } from 'child_process';
+router.get('/debug/seed-fdc', (req, res) => {
+    const script = req.query.script as string;
+    if (!script || !script.endsWith('.js') && !script.endsWith('.ts')) {
+        return res.json({ success: false, error: 'Invalid script parameter' });
+    }
+    const cmd = script.endsWith('.ts') ? `npx ts-node ${script}` : `node ${script}`;
+    exec(cmd, (err, stdout, stderr) => {
+        if (err) {
+            return res.json({ success: false, error: err.message, stack: err.stack });
+        }
+        res.json({ success: true, log: stdout, err: stderr });
+    });
+});
+
 export default router;
