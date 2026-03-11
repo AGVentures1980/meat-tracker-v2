@@ -201,25 +201,46 @@ export class DeliveryController {
             }
 
             const openai = new OpenAI();
-            const base64Image = req.file.buffer.toString('base64');
             const mimeType = req.file.mimetype || 'image/jpeg';
+            const base64Image = req.file.buffer.toString('base64');
+            const companyId = user.companyId || 'tdb-main';
+
+            let providerSpecificRules = "";
+            let expectedVendor = "wholesale food distributor";
+
+            if (companyId === 'fdc-main') {
+                expectedVendor = "US Foods";
+                providerSpecificRules = `
+CRITICAL US FOODS INVOICE RULES (FDC Environment):
+1. Look for 'Catch Weight' indications often marked as 'T/WT=' or explicitly listed under a 'Weight' column for the exact pounds delivered.
+2. If it's a piece count (e.g. PACK:4 SIZE:10 LB), calculate the total weight (e.g. 4 * 10 = 40 lbs).
+3. Be aware of abbreviations: 'CH' (Choice), 'BNLS' (Boneless), 'TXDB' (Texas Double Branded/similar), 'PSMO' (Peeled Side Muscle On - usually Tenderloin/Filet Mignon), 'STRIP' (Strip Loin), 'BUTT CAP' or 'COULOTTE' (Picanha).`;
+            } else if (companyId === 'tdb-main') {
+                expectedVendor = "Sysco";
+                providerSpecificRules = `
+CRITICAL SYSCO INVOICE RULES (TDB Environment):
+1. Look for Catch Weights explicitly listed next to 'CW' or 'LBS' column. Note that Sysco often lists Case Count and Avg Weight per Case.
+2. Pay attention to "Split" status, which might mean a partial case.
+3. Common Abbreviations: 'Picanha' is often 'Sirloin Cap' or 'Culotte'. 'Flank' is often 'Flap Meat' or 'Fraldinha'. 'Beef Rib' might be 'Ribs Back Beef'.`;
+            }
 
             const response = await openai.chat.completions.create({
                 model: "gpt-4o",
                 messages: [
                     {
                         role: "system",
-                        content: `You are an OCR and Protein Data Extractor AI. You process delivery tickets/invoices. 
-You must extract only proteins (beef, chicken, pork, lamb, sausage, bacon). Ignore side dishes, salads, drinks, etc.
+                        content: `You are an OCR and Meat Protein Data Extractor AI, specialized in reading ${expectedVendor} distributor invoices.
+You must extract only core meat proteins (beef, chicken, pork, lamb, sausage, bacon) relevant to a Churrascaria. Ignore side dishes, salads, drinks, non-meat items, etc.
+${providerSpecificRules}
 
-CRITICAL RULE (AVOID DOUBLE COUNTING): If the ticket shows a combo plate (e.g. 'Churrasco Plate' or 'Feast') and ALSO lists the specific meat choices underneath it, you MUST NOT extract the combo name itself. ONLY extract the specific meat choices.
+CRITICAL RULE (AVOID DOUBLE COUNTING): If the ticket shows a combo plate (e.g. 'Churrasco Plate' or 'Feast') and ALSO lists the specific meat choices underneath it, you MUST NOT extract the combo name itself. ONLY extract the specific meat choices. (This applies more to POS tickets, but keep it in mind).
 
 Return ONLY a valid JSON object (no markdown formatting, no backticks) with a single root key 'items' which is an array of objects. 
 Each object must have: 
-- 'item' (string, the name of the meat)
-- 'qty' (number, how many pieces/orders)
-- 'weightStr' (string, original weight text from ticket like '1/2 lb'. If missing, return 'unknown')
-- 'lbs' (number, total calculated weight in pounds. CRUCIAL WEIGHT RULE: 1st priority: If the ticket prints an explicit weight for the item (like '1/2 lb' or '1 lb'), use that explicit weight. 2nd priority: If NO explicit weight is printed, choices under a 'Churrasco Feast' are 1.0 lbs per qty, choices under a 'Churrasco Plate' or ordered individually are 0.5 lbs per qty. Combos without sub-items listed: 'Feast for 4' is 2.0 lbs, 'Plate' is 1.0 lbs)
+- 'item' (string, the name of the meat, normalizing to standard cuts like 'Picanha', 'Filet Mignon', 'Fraldinha', 'Ribeye', 'Chicken Breast', etc. if possible)
+- 'qty' (number, how many cases/pieces/orders)
+- 'weightStr' (string, original weight text from ticket like 'T/WT= 72.100' or '1/2 lb'. If missing, return 'unknown')
+- 'lbs' (number, total calculated weight in pounds. CRUCIAL WEIGHT RULE: 1st priority: If the invoice prints an explicit total weight or catch weight for the item, use that exact weight. 2nd priority: If it's a case pack, calculate total (cases * pack * size_lbs). 3rd priority: If NO explicit weight is printed for a restaurant meal ticket, use standard portion rules (0.5 lbs per individual serving).)
 - 'price' (number, total line item price)
 
 If you cannot read the image or find no meat items, return {"items": []}.`
@@ -341,13 +362,21 @@ If you cannot read the image or find no meat items, return {"items": []}.`
     static async getNetworkStatus(req: Request, res: Response) {
         try {
             const user = (req as any).user;
+            const whereStore: any = {};
+            if (user.companyId) {
+                whereStore.company_id = user.companyId;
+            }
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    whereStore.area_manager_id = user.userId;
+                } else {
+                    whereStore.id = user.storeId;
+                }
+            }
+            whereStore.delivery_sales = { some: {} };
+
             const stores = await prisma.store.findMany({
-                where: {
-                    company_id: user.companyId,
-                    delivery_sales: {
-                        some: {}
-                    }
-                },
+                where: whereStore,
                 include: {
                     delivery_sales: {
                         take: 1,

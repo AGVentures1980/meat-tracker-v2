@@ -159,14 +159,20 @@ export class DashboardController {
             const user = (req as any).user;
             const { storeId } = req.query;
 
-            const where: any = {
-                company_id: user.companyId
-            };
+            const where: any = {};
+            // Strict Multi-Tenant Enforcement: Always scope to the user's active company
+            if (user.companyId) {
+                where.company_id = user.companyId;
+            }
 
             // Scoping: Managers only see their own store
             // Admin/Director can see all stores in their company, or a specific one if provided
-            if (user.role === 'manager') {
-                where.id = user.storeId;
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    where.area_manager_id = user.userId;
+                } else {
+                    where.id = user.storeId;
+                }
             } else if (storeId) {
                 where.id = parseInt(storeId as string);
             }
@@ -318,9 +324,16 @@ export class DashboardController {
         try {
             const user = (req as any).user;
 
-            const whereStore: any = { company_id: user.companyId };
-            if (user.role === 'area_manager') {
-                whereStore.area_manager_id = user.userId;
+            const whereStore: any = {};
+            if (user.companyId) {
+                whereStore.company_id = user.companyId;
+            }
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    whereStore.area_manager_id = user.userId;
+                } else {
+                    whereStore.id = user.storeId;
+                }
             }
 
             const validStores = await prisma.store.findMany({
@@ -375,9 +388,16 @@ export class DashboardController {
             const lastWeek = new Date(today);
             lastWeek.setDate(today.getDate() - 7);
 
-            const whereStore: any = { company_id: user.companyId };
-            if (user.role === 'area_manager') {
-                whereStore.area_manager_id = user.userId;
+            const whereStore: any = {};
+            if (user.companyId) {
+                whereStore.company_id = user.companyId;
+            }
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    whereStore.area_manager_id = user.userId;
+                } else {
+                    whereStore.id = user.storeId;
+                }
             }
 
             const wasteLogs = await prisma.wasteLog.findMany({
@@ -429,9 +449,16 @@ export class DashboardController {
             const baselineYield = company?.baseline_yield || 65.0;
 
             // 2. Fetch Stores with relevant data
-            const where: any = { company_id: user.companyId };
-            if (user.role === 'area_manager') {
-                where.area_manager_id = user.userId;
+            const where: any = {};
+            if (user.companyId) {
+                where.company_id = user.companyId;
+            }
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    where.area_manager_id = user.userId;
+                } else {
+                    where.id = user.storeId;
+                }
             }
 
             const stores = await prisma.store.findMany({

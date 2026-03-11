@@ -66,11 +66,13 @@ export class ReportController {
             const start = startOfDay(now);
             const end = endOfDay(now);
 
-            const whereClause: any = user.role === 'admin'
-                ? {}
-                : user.role === 'director'
-                    ? { company_id: user.companyId }
-                    : { id: user.storeId };
+            const whereClause: any = {};
+            if (user.companyId) {
+                whereClause.company_id = user.companyId;
+            }
+            if (user.role !== 'admin' && user.role !== 'director') {
+                whereClause.id = user.storeId;
+            }
 
             const stores = await prisma.store.findMany({
                 where: whereClause,
@@ -123,7 +125,7 @@ export class ReportController {
             if (!targetId && (user.role === 'admin' || user.role === 'director')) {
                 // Fetch the first store that belongs to their company
                 const firstStore = await prisma.store.findFirst({
-                    where: user.role === 'director' ? { company_id: user.companyId } : {}
+                    where: user.companyId ? { company_id: user.companyId } : {}
                 });
                 targetId = firstStore?.id;
             }
@@ -167,7 +169,7 @@ export class ReportController {
             let targetId = id;
             if (!targetId && (user.role === 'admin' || user.role === 'director')) {
                 const firstStore = await prisma.store.findFirst({
-                    where: user.role === 'director' ? { company_id: user.companyId } : {}
+                    where: user.companyId ? { company_id: user.companyId } : {}
                 });
                 targetId = firstStore?.id;
             }
@@ -198,9 +200,11 @@ export class ReportController {
 
             // Fetch ALL Purchase Records across company to calculate benchmark averages
             const companyWhere: any = {
-                date: { gte: start, lte: end },
-                store: { company_id: user.companyId || user.company_id }
+                date: { gte: start, lte: end }
             };
+            if (user.companyId) {
+                companyWhere.store = { company_id: user.companyId };
+            }
 
             const allPurchases = await prisma.purchaseRecord.findMany({
                 where: companyWhere,

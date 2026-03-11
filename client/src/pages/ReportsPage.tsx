@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const ReportsPage = () => {
     const { t } = useLanguage();
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const [selectedReport, setSelectedReport] = useState('full-summary');
     const [dateRange, setDateRange] = useState('this-month');
     const [data, setData] = useState<any>(null);
@@ -27,8 +27,13 @@ export const ReportsPage = () => {
             const report = reports.find(r => r.id === selectedReport);
             if (!report) return;
 
+            const headers: HeadersInit = {
+                'Authorization': `Bearer ${user.token}`
+            };
+            if (selectedCompany) headers['X-Company-Id'] = selectedCompany;
+
             const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}${report.endpoint}?range=${dateRange}`, {
-                headers: { 'Authorization': `Bearer ${user.token}` }
+                headers
             });
 
             if (!response.ok) {

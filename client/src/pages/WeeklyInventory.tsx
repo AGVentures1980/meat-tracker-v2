@@ -3,20 +3,24 @@ import { ShieldAlert, CheckCircle2, AlertTriangle, Scale, ArrowRight, Lock, Wifi
 import { Html5Qrcode } from 'html5-qrcode';
 import { useOfflineInventory } from '../hooks/useOfflineInventory';
 
-const FULL_PROTEIN_LIST = [
-    { id: '1', name: 'Picanha', expected: 156.5, unit: 'Lbs' },
-    { id: '3', name: 'Fraldinha/Flank Steak', expected: 88.0, unit: 'Lbs' },
-    { id: '4', name: 'Tri-Tip', expected: 65.0, unit: 'Lbs' },
-    { id: '6', name: 'Filet Mignon', expected: 70.2, unit: 'Lbs' },
-    { id: '8', name: 'Beef Ribs', expected: 30.5, unit: 'Lbs' },
-    { id: '9', name: 'Pork Ribs', expected: 42.0, unit: 'Lbs' },
-    { id: '10', name: 'Pork Loin', expected: 25.0, unit: 'Lbs' },
-    { id: '11', name: 'Chicken Drumstick', expected: 55.0, unit: 'Lbs' },
-    { id: '12', name: 'Chicken Breast', expected: 60.0, unit: 'Lbs' },
-    { id: '13', name: 'Lamb Chops', expected: 12.5, unit: 'Lbs' },
-    { id: '14', name: 'Leg of Lamb', expected: 28.0, unit: 'Lbs' },
-    { id: '15', name: 'Lamb Picanha', expected: 35.0, unit: 'Lbs' },
-    { id: '16', name: 'Sausage', expected: 22.0, unit: 'Lbs' }
+interface ProteinItem {
+    id: string;
+    name: string;
+    expected: number;
+    unit: string;
+}
+
+// Global fallback if offline and no cache
+const DEFAULT_PROTEIN_LIST: ProteinItem[] = [
+    { id: 'Picanha', name: 'Picanha', expected: 156.5, unit: 'Lbs' },
+    { id: 'Filet Mignon', name: 'Filet Mignon', expected: 70.2, unit: 'Lbs' },
+    { id: 'Beef Ribs', name: 'Beef Ribs', expected: 30.5, unit: 'Lbs' },
+    { id: 'Pork Ribs', name: 'Pork Ribs', expected: 42.0, unit: 'Lbs' },
+    { id: 'Pork Loin', name: 'Pork Loin', expected: 25.0, unit: 'Lbs' },
+    { id: 'Chicken Drumstick', name: 'Chicken Drumstick', expected: 55.0, unit: 'Lbs' },
+    { id: 'Chicken Breast', name: 'Chicken Breast', expected: 60.0, unit: 'Lbs' },
+    { id: 'Lamb Chops', name: 'Lamb Chops', expected: 12.5, unit: 'Lbs' },
+    { id: 'Sausage', name: 'Sausage', expected: 22.0, unit: 'Lbs' }
 ];
 
 // --- Web Audio API Beep System ---
@@ -153,7 +157,33 @@ export const WeeklyInventory = () => {
     const { counts, updateCount, isOnline, hasPendingSync, isSyncing, queueForSync } = useOfflineInventory();
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
-    const [lastScanned, setLastScanned] = useState<{ name: string, weight: number, status: 'success' | 'unknown' | 'duplicate' } | null>(null);
+    const [dynamicProteinList, setDynamicProteinList] = useState<ProteinItem[]>(DEFAULT_PROTEIN_LIST);
+
+    useEffect(() => {
+        const fetchProteins = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        const list = data.map((p: any) => ({
+                            id: p.name,
+                            name: p.name,
+                            expected: p.name.includes('Picanha') ? 150.5 : (p.name.includes('Filet') ? 70.2 : 50.0), // Rough mock target generator
+                            unit: p.unit_of_measure || 'Lbs'
+                        }));
+                        setDynamicProteinList(list);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load dynamic proteins for inventory', error);
+            }
+        };
+        fetchProteins();
+    }, []);
 
     const handleCountChange = (id: string, value: string) => {
         updateCount(id, value);
@@ -226,20 +256,20 @@ export const WeeklyInventory = () => {
         // Including real GTINs from actual US Foods/JBS boxes
         if (cleanBarcode.includes('PICANHA') || cleanBarcode.includes('01900001') || cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477')) {
             // JBS Top Sirloin Butt Cap => Picanha
-            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '1');
+            matchedProtein = dynamicProteinList.find(p => p.name.includes('Picanha'));
         } else if (cleanBarcode.includes('FRALDINHA') || cleanBarcode.includes('01900003') || cleanBarcode.includes('90076338888514') || cleanBarcode.includes('90627577091328')) {
-            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '3');
+            matchedProtein = dynamicProteinList.find(p => p.name.includes('Fraldinha') || p.name.includes('Flap'));
         } else if (cleanBarcode.includes('TRITIP') || cleanBarcode.includes('01900004')) {
-            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '4');
+            matchedProtein = dynamicProteinList.find(p => p.name.includes('Tri-Tip'));
         } else if (cleanBarcode.includes('90758188398912')) {
             // US Foods Beef Tenderloin PSMO => Filet Mignon
-            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '6');
+            matchedProtein = dynamicProteinList.find(p => p.name.includes('Filet Mignon') || p.name.includes('Tenderloin'));
         } else if (cleanBarcode.includes('90627577078145')) {
             // Clear River Farms Beef Rib Bone In => Beef Ribs
-            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '8');
+            matchedProtein = dynamicProteinList.find(p => p.name.includes('Beef Ribs'));
         } else if (cleanBarcode.length === 22 && parsedWeight > 0) {
             // The Taylor Preston Lamb Racks (based on length and generic Lamb Chops grouping)
-            matchedProtein = FULL_PROTEIN_LIST.find(p => p.id === '13'); // Lamb Chops
+            matchedProtein = dynamicProteinList.find(p => p.name.includes('Lamb')); // Lamb Chops
         } else if (parsedWeight > 0) {
             // Unmapped product scanned
             matchedProtein = null;
@@ -331,7 +361,7 @@ export const WeeklyInventory = () => {
             return;
         }
 
-        const randomProtein = FULL_PROTEIN_LIST[Math.floor(Math.random() * FULL_PROTEIN_LIST.length)];
+        const randomProtein = dynamicProteinList[Math.floor(Math.random() * dynamicProteinList.length)];
         const weight = parseFloat((Math.random() * (45 - 20) + 20).toFixed(1));
 
         const currentRaw = String(counts[randomProtein.id] || '');
@@ -426,12 +456,12 @@ export const WeeklyInventory = () => {
                                         className="w-full bg-[#C5A059] hover:bg-[#D4AF37] text-black font-bold uppercase tracking-widest py-4 rounded-lg flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[0_0_15px_rgba(197,160,89,0.3)]"
                                     >
                                         <Camera className="w-6 h-6" />
-                                        abrir leitor de caixas (scanner)
+                                        OPEN BOX SCANNER
                                     </button>
                                 </div>
 
                                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                                    {FULL_PROTEIN_LIST.map((item) => {
+                                    {dynamicProteinList.map((item) => {
                                         const rawVal = counts[item.id] || '';
                                         const expressionStr = String(rawVal);
                                         // Calculate actual evaluated sum

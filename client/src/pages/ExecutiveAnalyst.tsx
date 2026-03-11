@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export const ExecutiveAnalyst = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const { t } = useLanguage();
     const [timeframe, setTimeframe] = useState<'W' | 'M' | 'Q' | 'Y'>('M');
     const [isScanning, setIsScanning] = useState(false);
@@ -12,11 +12,17 @@ export const ExecutiveAnalyst = () => {
     const [auditData, setAuditData] = useState<any>(null);
     const [villainData, setVillainData] = useState<any>(null);
 
+    const getHeaders = () => {
+        const h: HeadersInit = { 'Authorization': `Bearer ${user?.token}` };
+        if (selectedCompany) h['X-Company-Id'] = selectedCompany;
+        return h;
+    };
+
     const runScan = async () => {
         setIsScanning(true);
         try {
             const res = await fetch(`/api/v1/analyst/scan?timeframe=${timeframe}`, {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: getHeaders()
             });
             const result = await res.json();
             if (result.success) {
@@ -29,15 +35,13 @@ export const ExecutiveAnalyst = () => {
         }
     };
 
-
-
     const fetchAiAudit = async () => {
         try {
             const auditRes = await fetch('/api/v1/dashboard/stats/audit-logs', {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: getHeaders()
             });
             const villainRes = await fetch('/api/v1/dashboard/stats/villain-deep-dive', {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: getHeaders()
             });
 
             if (auditRes.ok) setAuditData(await auditRes.json());

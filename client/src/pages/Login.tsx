@@ -130,9 +130,9 @@ export const Login = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
             <div className="relative z-10 w-full max-w-[420px] p-10 bg-black/60 backdrop-blur-[12px] border border-white/5 border-y-brand-gold/30 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-500">
-                <div className="text-center mb-6 h-[120px] flex flex-col items-center justify-center">
+                <div className="text-center mb-6 h-[100px] flex flex-col items-center justify-center">
                     {theme?.companyName === 'Texas de Brazil' ? (
-                        <div className="relative w-full h-[120px] mx-auto">
+                        <div className="relative w-full h-[100px] mx-auto">
                             <img
                                 src={theme?.logoUrl || ""}
                                 alt="Texas de Brazil bg layer"
@@ -145,8 +145,8 @@ export const Login = () => {
                                 src={theme?.logoUrl || "/brasa-logo-v3.png"}
                                 alt={theme?.companyName || "Brasa Meat Intelligence"}
                                 className={`mx-auto object-contain ${theme?.companyName === 'Fogo de Chão'
-                                    ? 'w-[240px] h-[90px] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]'
-                                    : 'w-[200px] h-[70px] drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
+                                    ? 'w-[200px] h-[70px] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]'
+                                    : 'w-[180px] h-[60px] drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
                                     }`}
                             />
                             {theme?.companyName !== 'Fogo de Chão' && (

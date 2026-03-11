@@ -21,19 +21,16 @@ export class SmartPrepController {
             const dateStr = req.query.date as string || centralNow.toISOString().split('T')[0];
             const date = new Date(dateStr);
 
-            let stores = [];
-            if (user.role === 'admin') {
-                stores = await prisma.store.findMany({
-                    select: { id: true, store_name: true, location: true },
-                    orderBy: { store_name: 'asc' }
-                });
-            } else {
-                stores = await prisma.store.findMany({
-                    where: { company_id: user.companyId },
-                    select: { id: true, store_name: true, location: true },
-                    orderBy: { store_name: 'asc' }
-                });
+            const whereClause: any = {};
+            if (user.companyId) {
+                whereClause.company_id = user.companyId;
             }
+
+            const stores = await prisma.store.findMany({
+                where: whereClause,
+                select: { id: true, store_name: true, location: true },
+                orderBy: { store_name: 'asc' }
+            });
 
             const logs = await (prisma as any).prepLog.findMany({
                 where: { date: date },
@@ -255,12 +252,12 @@ export class SmartPrepController {
             // Store specific lunch exclusions (e.g. Tampa excluding Ribs at lunch)
             const lunchExcluded = store.lunch_excluded_proteins || [];
 
-            // Compile the final list of proteins
-            let allProteins = Object.keys(MEAT_UNIT_WEIGHTS).filter(p => !DISCONTINUED.includes(p));
+            // Compile the final list of proteins from the tenant's actual CompanyProduct table
+            let allProteins = products.map((p: any) => p.name).filter((p: string) => !DISCONTINUED.includes(p));
 
             // Global exclusion: block Lamb Chops entirely if the store doesn't serve them in Rodizio
             if (store.serves_lamb_chops_rodizio === false) {
-                allProteins = allProteins.filter(p => !p.toLowerCase().includes('lamb chops'));
+                allProteins = allProteins.filter((p: string) => !p.toLowerCase().includes('lamb chops'));
             }
 
             let totalPredictedCost = 0;

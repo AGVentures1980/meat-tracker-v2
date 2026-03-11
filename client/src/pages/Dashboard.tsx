@@ -41,7 +41,7 @@ export const Dashboard = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'charts'>('grid');
     const [showMobileView, setShowMobileView] = useState(window.innerWidth < 768);
 
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const { t } = useLanguage();
 
     const getMonday = (d: Date) => {
@@ -58,11 +58,17 @@ export const Dashboard = () => {
                 setLoading(true);
                 const mondayDate = getMonday(new Date()).toISOString().split('T')[0];
                 const storeParam = storeId ? `?storeId=${storeId}&date=${mondayDate}` : `?date=${mondayDate}`;
+
+                const headers: HeadersInit = {
+                    'Authorization': `Bearer ${user.token}`
+                };
+                if (selectedCompany) headers['X-Company-Id'] = selectedCompany;
+
                 // Parallel fetch
                 const [perfRes, anomalyRes, suggestRes] = await Promise.all([
-                    fetch(`/api/v1/dashboard/company-stats${storeId ? `?storeId=${storeId}` : ''}`, { headers: { 'Authorization': `Bearer ${user.token}` } }),
-                    fetch('/api/v1/intelligence/anomalies', { headers: { 'Authorization': `Bearer ${user.token}` } }),
-                    fetch(`/api/v1/intelligence/supply-suggestions${storeParam}`, { headers: { 'Authorization': `Bearer ${user.token}` } })
+                    fetch(`/api/v1/dashboard/company-stats${storeId ? `?storeId=${storeId}` : ''}`, { headers }),
+                    fetch('/api/v1/intelligence/anomalies', { headers }),
+                    fetch(`/api/v1/intelligence/supply-suggestions${storeParam}`, { headers })
                 ]);
 
                 if (perfRes.ok) {

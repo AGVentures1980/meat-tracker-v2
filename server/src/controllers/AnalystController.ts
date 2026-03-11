@@ -10,9 +10,12 @@ export class AnalystController {
             const user = (req as any).user;
 
             const whereClause: any = { is_pilot: true };
-            if (user.role === 'director' && user.companyId) {
+            if (user.companyId) {
+                // Strict Isolation: Always scope to the active company
                 whereClause.company_id = user.companyId;
-            } else if (user.role !== 'admin' && user.role !== 'director') {
+            }
+
+            if (user.role !== 'admin' && user.role !== 'director') {
                 whereClause.id = user.storeId;
             }
 
@@ -31,9 +34,12 @@ export class AnalystController {
             let selectedStores = pilotStores;
             if (pilotStores.length === 0) {
                 const fallbackWhere: any = {};
-                if (user.role === 'director' && user.companyId) {
+                // Strict Isolation
+                if (user.companyId) {
                     fallbackWhere.company_id = user.companyId;
-                } else if (user.role !== 'admin' && user.role !== 'director') {
+                }
+
+                if (user.role !== 'admin' && user.role !== 'director') {
                     fallbackWhere.id = user.storeId;
                 }
 
@@ -53,73 +59,53 @@ export class AnalystController {
                 // --- 2. Calculate Actuals (Mocking logic for prototype if data is sparse) ---
 
                 // Calculate the "Higher Of" Baseline (YoY 90-Day vs 6-Mo Trailing)
-                // In production, this queries the last 6 months vs same 90-days last year
                 const yoy90DayLbsPerGuest = store.baseline_yoy_pax;
-
                 const trailing6MonthLbsPerGuest = store.baseline_trailing_pax;
-
-                // The Mathematical Protection Rule
                 const activeBaselineLbsPerGuest = Math.max(yoy90DayLbsPerGuest, trailing6MonthLbsPerGuest);
 
-                // Actual Loss Rate (Logic: Waste Lbs / Total Usage Lbs)
-                // For prototype, we'll simulate a slight improvement over baseline
                 const actualLossRate = store.baseline_loss_rate * 0.85; // 15% improvement simulation
-
-                // Actual Yield (Ribs)
                 const actualYieldRibs = store.baseline_yield_ribs * 1.05; // 5% improvement
-
-                // Actual Consumption Per Pax (The Pilot Result)
-                // We simulate the Garcia Rule bringing consumption down to a healthier rate
                 const actualConsumption = activeBaselineLbsPerGuest * 0.90; // 10% improvement in pilot
 
                 // --- 3. Calculate Savings ---
-
-                // Volume Basis (Annualized) - Configured per store
                 const annualVolume = store.annual_volume_lbs; // lbs
                 const avgCostPerLb = store.baseline_cost_per_lb; // $ per lb
 
-                // Loss Savings
                 const lossVariance = (store.baseline_loss_rate - actualLossRate) / 100;
                 const poundsSavedLoss = annualVolume * lossVariance;
                 const moneySavedLoss = poundsSavedLoss * avgCostPerLb;
 
-                // Consumption Savings (Based on the higher of baseline)
                 const consumptionVariance = activeBaselineLbsPerGuest - actualConsumption;
-                // Assuming 180k lbs represents ~105k guests (based on active baseline)
-                const estimatedGuests = annualVolume / activeBaselineLbsPerGuest;
+                const estimatedGuests = annualVolume > 0 ? annualVolume / activeBaselineLbsPerGuest : 1;
                 const poundsSavedConsumption = consumptionVariance * estimatedGuests;
                 const moneySavedConsumption = poundsSavedConsumption * avgCostPerLb;
 
-                // Total ROI
                 const totalSavings = moneySavedLoss + moneySavedConsumption;
 
-                // Fee
                 const feePct = 8.0; // Forced to 8% for Pilot
                 const saasFee = totalSavings * (feePct / 100);
 
-                // Pilot Rationale Logic (Demo Override)
                 let rationale_en = "Pilot Location";
                 let demoStoreName = store.store_name;
+
+                // Keep the rationale but use actual store names instead of hardcoding Addison/Miami
                 if (index === 0) {
-                    demoStoreName = "Addison, TX (HQ)";
                     rationale_en = "Control Group • HQ Proximity • Stability Test";
                 } else if (index === 1) {
-                    demoStoreName = "Miami Beach, FL";
                     rationale_en = "High Volume • Yield Stress Test • Tourism";
                 } else if (index === 2) {
-                    demoStoreName = "Las Vegas, NV";
                     rationale_en = "High Cost Market • Margin Proof • Complexity";
                 }
 
                 return {
                     storeId: store.id,
-                    storeName: demoStoreName, // Override for demo
-                    rationale: rationale_en, // New field
+                    storeName: demoStoreName,
+                    rationale: rationale_en,
                     pilotStart: store.pilot_start_date || new Date(),
                     baselines: {
                         loss: store.baseline_loss_rate,
                         yield: store.baseline_yield_ribs,
-                        consumption: activeBaselineLbsPerGuest, // Using the protected higher-of baseline
+                        consumption: activeBaselineLbsPerGuest,
                         yoyPax: store.baseline_yoy_pax,
                         trailingPax: store.baseline_trailing_pax,
                         forecast: store.baseline_forecast_accuracy,
@@ -131,7 +117,7 @@ export class AnalystController {
                         yield: actualYieldRibs,
                         consumption: actualConsumption,
                         forecast: 84.0,
-                        overproduction: store.baseline_overproduction * 0.6 // Simulated 40% reduction for audit
+                        overproduction: store.baseline_overproduction * 0.6
                     },
                     financials: {
                         annualVolumeLb: annualVolume,
@@ -205,8 +191,25 @@ export class AnalystController {
 
     static async getAnalystScan(req: Request, res: Response) {
         try {
-            // Fetch all stores for the network scan
+            const user = (req as any).user;
+
+            const whereClause: any = {};
+            if (user.companyId) {
+                // Strict Isolation: Always scope to the active company
+                whereClause.company_id = user.companyId;
+            }
+
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    whereClause.area_manager_id = user.userId;
+                } else {
+                    whereClause.id = user.storeId;
+                }
+            }
+
+            // Fetch all stores for the network scan, filtered by company rules
             const allStores = await prisma.store.findMany({
+                where: whereClause,
                 include: {
                     meat_usage: true,
                     waste_logs: true

@@ -35,7 +35,7 @@ interface StoreStat {
 }
 
 export const ExecutiveSummary = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const [stats, setStats] = useState<CompanyStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -46,9 +46,14 @@ export const ExecutiveSummary = () => {
         try {
             setLoading(true);
 
+            const headers: HeadersInit = {
+                'Authorization': `Bearer ${user?.token}`
+            };
+            if (selectedCompany) headers['X-Company-Id'] = selectedCompany;
+
             // 1. Fetch Summary Stats
             const response = await fetch('/api/v1/dashboard/company-stats', {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers
             });
             if (response.ok) {
                 const data = await response.json();
@@ -57,7 +62,7 @@ export const ExecutiveSummary = () => {
 
             // 2. Fetch Network Health Matrix (Dashboard 2.0)
             const matrixRes = await fetch('/api/v1/smart-prep/network-health', { // Using existing logic or new controller path
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers
             });
             if (matrixRes.ok) {
                 const matrix = await matrixRes.json();
