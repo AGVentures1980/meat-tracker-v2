@@ -4,6 +4,41 @@ import { PrismaClient } from '@prisma/client';
 const router = Router();
 const prisma = new PrismaClient();
 
+// Final Diagnostic & Fix route for Rodrigo
+import bcryptjs from 'bcryptjs';
+router.get('/setup/rodrigo-fix-final', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const email = 'rodrigodavila@texasdebrazil.com';
+        const plainPassword = 'TDB2026@';
+        
+        // 1. Generate hash strictly with bcryptjs (which handles cross-platform perfectly)
+        const passwordHash = await bcryptjs.hash(plainPassword, 10);
+        
+        // 2. Immediately verify before saving
+        const verifyInMemory = await bcryptjs.compare(plainPassword, passwordHash);
+        
+        // 3. Save to database
+        const updatedUser = await prisma.user.upsert({
+            where: { email },
+            update: { password_hash: passwordHash, role: 'director', first_name: 'Rodrigo', last_name: 'Davila', is_primary: true },
+            create: { email, password_hash: passwordHash, role: 'director', first_name: 'Rodrigo', last_name: 'Davila', is_primary: true }
+        });
+
+        // 4. Read back and verify
+        const verifyFromDb = await bcryptjs.compare(plainPassword, updatedUser.password_hash);
+
+        res.json({ 
+            step: 'final_fix_applied',
+            email: updatedUser.email, 
+            memoryOk: verifyInMemory,
+            dbOk: verifyFromDb,
+            hashPrefix: updatedUser.password_hash.substring(0, 4)
+        });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Temporary route to inject tenant domain config directly into production DB
 router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> => {
     try {
@@ -229,34 +264,6 @@ router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => 
         console.error('[Theme API] Error fetching theme:', error);
         res.status(500).json({ error: 'Internal Server Error' });
         return;
-    }
-});
-
-// Diagnostic route: Test Rodrigo Login Compare
-const bcryptNative = require('bcrypt');
-router.get('/setup/rodrigo-test', async (req: Request, res: Response): Promise<void> => {
-    try {
-        const email = 'rodrigodavila@texasdebrazil.com';
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-            res.json({ error: 'User not found' });
-            return;
-        }
-        
-        const valid = await bcryptNative.compare('TDB2026@', user.password_hash);
-        const validJS = await require('bcryptjs').compare('TDB2026@', user.password_hash);
-
-        res.json({ 
-            email: user.email, 
-            hashLength: user.password_hash.length,
-            hashPrefix: user.password_hash.substring(0, 4),
-            validNative: valid,
-            validJS: validJS,
-            isTrial: user.is_trial,
-            role: user.role
-        });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
     }
 });
 
