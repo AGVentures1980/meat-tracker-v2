@@ -184,7 +184,7 @@ export class CompanyController {
         try {
             const user = (req as any).user;
 
-            if (user.role !== 'admin' && user.role !== 'director') {
+            if (user.role !== 'admin' && user.role !== 'director' && user.role !== 'area_manager') {
                 return res.status(403).json({ error: 'Access Denied' });
             }
 
