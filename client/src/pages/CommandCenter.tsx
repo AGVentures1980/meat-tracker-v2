@@ -19,7 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export const CommandCenter = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const navigate = useNavigate();
 
     // --- STATE ---
@@ -49,8 +49,16 @@ export const CommandCenter = () => {
 
     const [selectedDate, setSelectedDate] = useState(getCentralDate());
 
+    const getHeaders = useCallback(() => {
+        const headers: HeadersInit = { 'Authorization': `Bearer ${user?.token}` };
+        if (selectedCompany) {
+            headers['X-Company-Id'] = selectedCompany;
+        }
+        return headers;
+    }, [user, selectedCompany]);
+
     // --- FETCH DATA ---
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const urlParams = new URLSearchParams();
@@ -60,7 +68,7 @@ export const CommandCenter = () => {
 
             // 1. Fetch gate status
             const statusRes = await fetch(`/api/v1/dashboard/waste/status?${urlParams.toString()}`, {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: getHeaders()
             });
             const statusData = await statusRes.json();
             setGateStatus(statusData);
@@ -77,7 +85,7 @@ export const CommandCenter = () => {
                     urlParams.append('store_id', user.storeId.toString());
                 }
                 const prepRes = await fetch(`/api/v1/dashboard/smart-prep?${urlParams.toString()}`, {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: getHeaders()
                 });
                 if (prepRes.ok) {
                     const pData = await prepRes.json();
@@ -97,10 +105,10 @@ export const CommandCenter = () => {
             if (user?.role === 'director' || user?.role === 'admin') {
                 const [networkRes, prepStatusRes] = await Promise.all([
                     fetch('/api/v1/dashboard/waste/network-accountability', {
-                        headers: { 'Authorization': `Bearer ${user?.token}` }
+                        headers: getHeaders()
                     }),
                     fetch('/api/v1/dashboard/smart-prep/network-status', {
-                        headers: { 'Authorization': `Bearer ${user?.token}` }
+                        headers: getHeaders()
                     })
                 ]);
 
@@ -121,7 +129,7 @@ export const CommandCenter = () => {
 
             // 4. Fetch Products
             const productRes = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: getHeaders()
             });
             if (productRes.ok) {
                 const pData = await productRes.json();
@@ -135,7 +143,7 @@ export const CommandCenter = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user, selectedCompany, selectedStoreId, selectedDate, lunchForecast, dinnerForecast, getHeaders]);
 
     useEffect(() => {
         fetchData();
@@ -145,14 +153,14 @@ export const CommandCenter = () => {
         if (user?.role === 'director' || user?.role === 'admin') {
             interval = setInterval(() => {
                 fetch('/api/v1/dashboard/waste/network-accountability', {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: getHeaders()
                 })
                     .then(res => res.json())
                     .then(data => setNetworkAccountability(data))
                     .catch(err => console.error(err));
 
                 fetch('/api/v1/dashboard/smart-prep/network-status', {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: getHeaders()
                 })
                     .then(res => res.json())
                     .then(data => setNetworkPrepStatus(data))
@@ -161,7 +169,7 @@ export const CommandCenter = () => {
         }
 
         return () => clearInterval(interval);
-    }, [user, selectedStoreId, selectedDate]);
+    }, [fetchData, getHeaders, user]);
 
     // Debounced fetch for forecast changes
     useEffect(() => {
@@ -179,7 +187,7 @@ export const CommandCenter = () => {
             const res = await fetch('/api/v1/dashboard/settings/no-delivery', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${user?.token}`,
+                    ...getHeaders(),
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -213,7 +221,7 @@ export const CommandCenter = () => {
             const res = await fetch('/api/v1/dashboard/smart-prep/lock', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${user?.token}`,
+                    ...getHeaders(),
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
@@ -268,8 +276,8 @@ export const CommandCenter = () => {
             const res = await fetch('/api/v1/dashboard/waste', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user?.token}`
+                    ...getHeaders(),
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
             });
