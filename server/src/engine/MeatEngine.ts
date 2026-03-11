@@ -227,7 +227,7 @@ export class MeatEngine {
         // 8 pieces * 0.5 slices/piece = 4 slices. 
         // 4 slices / 16 slices/lb = 0.25 Lbs of Bacon.
         // Therefore, every 1 Lb of wrapped meat consumes 0.25 Lb of Bacon.
-        const swbGroup = groupMap['steak with bacon'] || groupMap['filet bacon'];
+        const swbGroup = groupMap['steak with bacon'] || groupMap['filet bacon'] || groupMap['filet mignon with bacon'] || groupMap['chicken breast'];
         const baconGroup = groupMap['bacon'];
 
         if (baconGroup && swbGroup) {
