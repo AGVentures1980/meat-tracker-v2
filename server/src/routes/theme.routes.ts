@@ -34,17 +34,23 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
 // GET /api/v1/theme/setup/inspect-users
 router.get('/setup/inspect-users', async (req: Request, res: Response): Promise<void> => {
     try {
-        const directors = await prisma.user.findMany({
-            where: { role: 'director' },
-            select: { id: true, email: true, first_name: true, last_name: true, role: true }
-        });
-        
-        const areaManagers = await prisma.user.findMany({
-            where: { role: 'area_manager' },
-            select: { id: true, email: true, first_name: true, last_name: true, role: true }
-        });
+        const bcryptjs = require('bcryptjs');
 
-        res.json({ directors, areaManagers });
+        const neri = await prisma.user.findUnique({ where: { email: 'ngiachini@fogo.com' } });
+        const rod = await prisma.user.findUnique({ where: { email: 'rodrigodavila@texasdebrazil.com' } });
+
+        const neriMatchJs = neri ? await bcryptjs.compare('Fogo2026@', neri.password_hash) : false;
+        const neriMatchJs2 = neri ? await bcryptjs.compare('Fogo2026!', neri.password_hash) : false;
+        
+        const rodMatchJs = rod ? await bcryptjs.compare('TDB2026@', rod.password_hash) : false;
+
+        res.json({ 
+            neriHashStart: neri?.password_hash?.substring(0, 10),
+            neriMatchJs,
+            neriMatchJs2,
+            rodHashStart: rod?.password_hash?.substring(0, 10),
+            rodMatchJs
+        });
         return;
     } catch (error) {
         res.status(500).json({ error: String(error) });
