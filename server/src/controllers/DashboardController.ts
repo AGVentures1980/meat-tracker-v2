@@ -56,7 +56,7 @@ export class DashboardController {
             const w = week ? parseInt(week as string) : undefined;
 
             // Enforcement: Network stats must be filtered by companyId
-            const stats = await MeatEngine.getNetworkBiStats(y, w, user.companyId);
+            const stats = await MeatEngine.getNetworkBiStats(y, w, user.companyId, user);
 
             return res.json(stats);
         } catch (error) {

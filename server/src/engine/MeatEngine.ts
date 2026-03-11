@@ -333,10 +333,18 @@ export class MeatEngine {
         ];
     }
 
-    static async getNetworkBiStats(year?: number, week?: number, companyId?: string) {
-        const where: any = {};
+    static async getNetworkBiStats(year?: number, week?: number, companyId?: string, user?: any) {
+        const where: any = { };
         if (companyId) {
             where.company_id = companyId;
+        }
+
+        if (user && user.role !== 'admin' && user.role !== 'director') {
+            if (user.role === 'area_manager') {
+                where.area_manager_id = user.userId;
+            } else if (user.storeId) {
+                where.id = user.storeId;
+            }
         }
 
         const stores = await prisma.store.findMany({ where });
