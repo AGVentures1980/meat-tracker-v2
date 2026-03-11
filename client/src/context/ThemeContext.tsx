@@ -35,7 +35,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
                 // Exclude some common non-tenant prefixes
                 if (['www', 'api', 'localhost', '127', 'meat-intelligence', 'meat-intelligence-final'].includes(subdomain.toLowerCase())) {
-                    subdomain = 'www'; // force default
+                    subdomain = 'fogo'; // force default FDC theme for local dev 
                 }
 
                 // In React Vite dev server, typically running at localhost:5173

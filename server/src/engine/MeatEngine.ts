@@ -216,12 +216,44 @@ export class MeatEngine {
 
             groupMap[groupKey].lbs += actual;
             groupMap[groupKey].idealLbs += ideal;
-            // Group is villain if ANY variant is a villain
             if (VILLAINS.includes(name)) groupMap[groupKey].isVillain = true;
             // Group is dinner-only only if ALL variants are dinner-only
             if (!isDinnerOnly) groupMap[groupKey].isDinnerOnly = false;
             else if (groupMap[groupKey].lbs === actual) groupMap[groupKey].isDinnerOnly = true; // first variant
         });
+
+        // --- BACON KITCHEN VS GAUCHO LOGIC ---
+        // 1 Lb of Steak/Filet with Bacon = ~8 pieces (2oz each). 
+        // 8 pieces * 0.5 slices/piece = 4 slices. 
+        // 4 slices / 16 slices/lb = 0.25 Lbs of Bacon.
+        // Therefore, every 1 Lb of wrapped meat consumes 0.25 Lb of Bacon.
+        const swbGroup = groupMap['steak with bacon'] || groupMap['filet bacon'];
+        const baconGroup = groupMap['bacon'];
+
+        if (baconGroup && swbGroup) {
+            const swbLbs = swbGroup.lbs;
+            const swbIdeal = swbGroup.idealLbs;
+
+            const gauchoBaconActual = swbLbs * 0.25;
+            const gauchoBaconIdeal = swbIdeal * 0.25;
+
+            let kitchenBaconActual = baconGroup.lbs - gauchoBaconActual;
+            if (kitchenBaconActual < 0) kitchenBaconActual = 0; // Sanity check
+
+            // Re-assign Bacon to Kitchen
+            baconGroup.displayName = 'Bacon (Kitchen)';
+            baconGroup.lbs = kitchenBaconActual;
+            baconGroup.idealLbs = baconGroup.idealLbs - gauchoBaconIdeal;
+
+            // Add Gaucho Bacon
+            groupMap['bacon_gaucho'] = {
+                lbs: gauchoBaconActual,
+                idealLbs: gauchoBaconIdeal > 0 ? gauchoBaconIdeal : 0,
+                isVillain: false,
+                isDinnerOnly: false,
+                displayName: 'Bacon (Gauchos)'
+            };
+        }
 
         // Convert grouped map to the expected array format
         return Object.entries(groupMap).map(([, group]) => ({
@@ -339,14 +371,17 @@ export class MeatEngine {
     static async getCompanyDashboardStats(user: any, startProp?: Date, endProp?: Date) {
         // 1. Determine which stores to fetch
         const where: any = {};
+
+        // Strict Multi-Tenant Enforcement: Always scope to the user's active company
+        if (user.companyId) {
+            where.company_id = user.companyId;
+        }
+
         if (user.role !== 'admin' && user.role !== 'director') {
             if (user.role === 'area_manager') {
                 where.area_manager_id = user.userId;
             } else if (user.storeId) {
                 where.id = user.storeId;
-            } else if (user.companyId) {
-                // If user is Trial/Demo, restrict to their company's stores or Demo Playground
-                // For now, if they are trial, show Demo Playground stores
             }
         }
 
@@ -555,6 +590,12 @@ export class MeatEngine {
     static async getNetworkHealthMatrix(user: any) {
         // 1. Fetch all stores (or subset based on permissions)
         const where: any = {};
+
+        // Strict Multi-Tenant Enforcement: Always scope to the user's active company
+        if (user.companyId) {
+            where.company_id = user.companyId;
+        }
+
         if (user.role !== 'admin' && user.role !== 'director') {
             if (user.role === 'area_manager') {
                 where.area_manager_id = user.userId;
