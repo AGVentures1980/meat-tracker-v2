@@ -81,7 +81,10 @@ export const UsersPage = () => {
             // Fetch Area Managers & Stores
             if (isMasterOrAdmin || isAreaManager) {
                 const res = await fetch(`${API_URL}/api/v1/dashboard/company/area-managers`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'x-company-id': localStorage.getItem('selectedCompany') || ''
+                    }
                 });
                 
                 if (res.ok) {
