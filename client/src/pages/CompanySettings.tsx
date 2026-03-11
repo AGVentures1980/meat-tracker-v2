@@ -602,53 +602,13 @@ export const CompanySettings = () => {
                         </tbody>
                     </table>
                 ) : activeTab === 'areaManagers' ? (
-                    <table className="w-full">
-                        <thead className="bg-black text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                            <tr>
-                                <th className="p-4 text-left">Manager Name</th>
-                                <th className="p-4 text-left">Email</th>
-                                <th className="p-4 text-left">Assigned Stores</th>
-                                <th className="p-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {areaManagers.map((am: any) => (
-                                <tr key={am.id} className="hover:bg-white/5 transition-colors group">
-                                    <td className="p-4 font-bold text-white flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-[#C5A059]/20 flex items-center justify-center text-[#C5A059] text-xs font-bold">
-                                            {am.first_name[0]}{am.last_name[0]}
-                                        </div>
-                                        {am.first_name} {am.last_name}
-                                    </td>
-                                    <td className="p-4 text-gray-400 text-xs">{am.email}</td>
-                                    <td className="p-4">
-                                        <div className="flex flex-wrap gap-1">
-                                            {am.area_stores && am.area_stores.length > 0 ? (
-                                                am.area_stores.map((store: any) => (
-                                                    <span key={store.id} className="text-[10px] bg-white/10 text-gray-300 px-2 py-1 rounded">
-                                                        {store.store_name}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span className="text-[10px] text-gray-500 italic">No stores assigned</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-right flex justify-end gap-2">
-                                        <button
-                                            onClick={() => openAssignModal(am)}
-                                            className="px-3 py-1 bg-[#1a1a1a] border border-[#C5A059]/30 text-[#C5A059] hover:bg-[#C5A059] hover:text-black transition-colors rounded text-[10px] font-bold uppercase tracking-wider"
-                                        >
-                                            Manage Stores
-                                        </button>
-                                        <button title="Delete Area Manager" onClick={() => handleDelete(am.id)} className="text-gray-600 hover:text-red-500 transition-colors px-3 py-1 bg-black border border-white/10 rounded flex items-center justify-center">
-                                            <Trash2 className="w-3 h-3" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <div className="p-12 text-center flex flex-col items-center justify-center border border-dashed border-[#C5A059]/30 rounded-lg bg-black/20 m-4">
+                        <Users className="w-12 h-12 text-[#C5A059]/30 mb-4" />
+                        <h3 className="text-white font-bold text-lg mb-2">Area Manager Deployment</h3>
+                        <p className="text-gray-500 text-sm font-mono max-w-md">
+                            Area Manager profiles are generated safely using the form above. To view your live management hierarchy and assign regional store territories, please utilize the dedicated <strong>Team Management</strong> tab located in the main sidebar.
+                        </p>
+                    </div>
                 ) : (
                     /* Templates Tab */
                     <div className="p-6 space-y-4">
