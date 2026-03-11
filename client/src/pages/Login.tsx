@@ -72,10 +72,10 @@ export const Login = () => {
         }
     };
     const fdcImages = [
-        '/background_fdc.jpg',
         '/fdc-hero-1.jpg',
         '/fdc-hero-2.jpg',
-        '/fdc-hero-3.jpg'
+        '/fdc-hero-3.jpg',
+        '/fdc-hero-4.jpg'
     ];
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -206,12 +206,10 @@ export const Login = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2">
-                        <div className="mt-8 text-center">
-                            <p className="text-[#C5A059]/40 text-[10px] font-mono uppercase tracking-[0.2em]">
-                                {theme?.companyName === 'Texas de Brazil' ? 'v3.2.0' : 'v3.2.0-SHIFT-AWARE SYSTEM ENGINE'}
-                            </p>
-                        </div>
+                    <div className="flex items-center justify-center gap-6 pt-4 pb-2 text-center">
+                        <p className="text-[#C5A059]/40 text-[10px] font-mono uppercase tracking-[0.2em] mt-1">
+                            v3.2.0
+                        </p>
                         <button
                             type="button"
                             onClick={() => setShowResetModal(true)}
