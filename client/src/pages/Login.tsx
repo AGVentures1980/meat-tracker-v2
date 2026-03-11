@@ -141,8 +141,8 @@ export const Login = () => {
                             src={theme?.logoUrl || "/brasa-logo-v3.png"}
                             alt={theme?.companyName || "Brasa Meat Intelligence"}
                             className={`mx-auto object-contain ${theme?.companyName === 'Fogo de Chão'
-                                    ? 'w-72 h-40 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]'
-                                    : 'w-56 h-24 -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
+                                ? 'w-72 h-40 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]'
+                                : 'w-56 h-24 -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
                                 }`}
                         />
                     )}
@@ -230,30 +230,45 @@ export const Login = () => {
                         {!loading && <ArrowRight className="w-4 h-4" />}
                     </button>
 
-                    {theme?.companyName !== 'Texas de Brazil' && (
-                        <div className="text-center pt-4">
+                    {/* START DEMO BUTTON */}
+                    {theme?.companyName !== 'Fogo de Chão' && (
+                        <div className="mt-8 pt-6 border-t border-white/5 relative">
                             <button
                                 type="button"
                                 onClick={() => setShowDemoModal(true)}
-                                className="text-xs text-gray-400 hover:text-brand-gold transition-colors font-bold uppercase tracking-widest border-b border-transparent hover:border-brand-gold pb-1"
+                                className="w-full text-brand-gold/60 hover:text-brand-gold text-xs font-semibold tracking-widest uppercase transition-colors"
                             >
-                                Start 30-Day Free Demo
+                                Start 30-day Free Demo
                             </button>
                         </div>
                     )}
                 </form>
 
-                {/* Mobile Access Trigger */}
-                <div className="mt-8 border-t border-white/5 pt-6 flex justify-center">
+                {/* Mobile Access Link */}
+                <div className="mt-6 flex justify-center pb-2">
                     <button
                         type="button"
                         onClick={() => setShowQR(true)}
-                        className="flex items-center gap-2 text-[10px] text-gray-500 hover:text-brand-gold uppercase tracking-[0.2em] transition-all group"
+                        className="group flex items-center space-x-2 text-white/40 hover:text-white transition-colors"
                     >
-                        <Smartphone className="w-3 h-3 group-hover:scale-110 transition-transform" />
-                        Mobile Access Link
+                        <Smartphone size={14} className="group-hover:text-brand-gold transition-colors" />
+                        <span className="text-[10px] uppercase tracking-widest font-semibold">Mobile Access Link</span>
                     </button>
                 </div>
+            </div>
+
+            {/* VERSION AT BOTTOM RIGHT */}
+            <div className="absolute bottom-6 pr-6 right-0 text-right opacity-60">
+                <p className="text-brand-gold font-bold text-xl tracking-widest">
+                    <span className="opacity-0">.</span>AGV
+                </p>
+                <p className="text-[8px] text-white/40 uppercase tracking-widest mt-1">
+                    © 2026 Alex Garcia Vent JAFO. All rights reserved.
+                </p>
+                <p className="text-[8px] text-brand-gold/40 uppercase tracking-widest mt-1">
+                    v3.1.2_EIGHTY-SIXED_031026
+                    {theme?.companyName !== 'Fogo de Chão' && "_MAIN"}
+                </p>
             </div>
 
             {/* High-Tech QR Panel Overlay */}
