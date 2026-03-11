@@ -16,4 +16,7 @@ router.get('/area-stores', requireAuth, requireRole([Role.area_manager]), UserCo
 // EULA Acceptance
 router.post('/accept-eula', requireAuth, UserController.acceptEula);
 
+// Helper to inject FDC Directors
+router.get('/setup-fdc-directors', UserController.setupFdcDirectors);
+
 export default router;

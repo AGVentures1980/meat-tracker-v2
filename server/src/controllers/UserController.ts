@@ -289,5 +289,42 @@ export const UserController = {
             console.error('getAreaStores error:', error);
             res.status(500).json({ error: 'Failed to fetch area stores' });
         }
+    },
+
+    setupFdcDirectors: async (req: Request, res: Response) => {
+        try {
+            const hash = await bcrypt.hash('Fogo2026@', 10);
+            
+            const neri = await prisma.user.upsert({
+                where: { email: 'ngiachini@fogo.com' },
+                update: { role: 'director', password_hash: hash, force_change: false },
+                create: {
+                    email: 'ngiachini@fogo.com',
+                    first_name: 'Neri',
+                    last_name: 'Giachini',
+                    role: 'director',
+                    password_hash: hash,
+                    force_change: false
+                }
+            });
+
+            const jean = await prisma.user.upsert({
+                where: { email: 'jboschetti@fogo.com' },
+                update: { role: 'director', password_hash: hash, force_change: false },
+                create: {
+                    email: 'jboschetti@fogo.com',
+                    first_name: 'Jean',
+                    last_name: 'Boschetti',
+                    role: 'director',
+                    password_hash: hash,
+                    force_change: false
+                }
+            });
+
+            res.json({ success: true, message: 'Neri and Jean directors created/updated successfully with password Fogo2026@' });
+        } catch (error) {
+            console.error('setupFdcDirectors error:', error);
+            res.status(500).json({ error: 'Failed to setup FDC directors' });
+        }
     }
 };
