@@ -81,8 +81,15 @@ export const DebugController = {
             const logs: string[] = [];
             const log = (msg: string) => { console.log(msg); logs.push(msg); };
 
-            const defaultFdcCompanyId = '43670635-c205-4b19-99d4-445c7a683730';
-            const tdbCompanyId = 'd8614457-37fb-468f-9a9f-6bd92ebbfd5b';
+            const fdcCompany = await prisma.company.findFirst({ where: { name: 'Fogo de Chão' } });
+            const tdbCompany = await prisma.company.findFirst({ where: { name: 'Texas de Brazil' } });
+
+            if (!fdcCompany || !tdbCompany) {
+                return res.status(500).json({ error: 'Companies not found. Run setup/tenants first.' });
+            }
+
+            const defaultFdcCompanyId = fdcCompany.id;
+            const tdbCompanyId = tdbCompany.id;
 
             log("Starting FDC Prod Seed...");
 
