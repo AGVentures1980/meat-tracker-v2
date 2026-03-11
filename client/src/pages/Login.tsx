@@ -255,16 +255,6 @@ export const Login = () => {
                 </div>
             </div>
 
-            {/* VERSION AT BOTTOM RIGHT */}
-            <div className={`absolute bottom-6 pr-6 right-0 text-right ${theme?.companyName === 'Fogo de Chão' ? 'opacity-30' : 'opacity-60'}`}>
-                <p className="text-brand-gold font-bold text-xl tracking-widest">
-                    <span className="opacity-0">.</span>AGV
-                </p>
-                <p className="text-[8px] text-white/40 uppercase tracking-widest mt-1">
-                    © 2026 Alex Garcia Vent JAFO. All rights reserved.
-                </p>
-            </div>
-
             {/* High-Tech QR Panel Overlay */}
             {showQR && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
