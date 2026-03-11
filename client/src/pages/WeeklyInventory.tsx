@@ -158,6 +158,7 @@ export const WeeklyInventory = () => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [dynamicProteinList, setDynamicProteinList] = useState<ProteinItem[]>(DEFAULT_PROTEIN_LIST);
+    const [lastScanned, setLastScanned] = useState<{ name: string, weight: number, status: string } | null>(null);
 
     useEffect(() => {
         const fetchProteins = async () => {
