@@ -59,47 +59,52 @@ export class AuthController {
             let redirectPath = '/dashboard';
             let defaultCompanyId = null;
 
-            if (user.role === 'admin') {
-                redirectPath = '/select-company';
-            } else if (user.role === 'director' || user.email === 'dallas@texasdebrazil.com') {
-                // Find companies affiliated with this director
-                const affiliatedCompanies = await prisma.company.findMany({
-                    where: {
-                        OR: [
-                            { owner_id: user.id },
-                            { stores: { some: { id: user.store_id || -1 } } },
-                            { id: 'tdb-main' } // Explicit fallback for TDB director accounts
-                        ]
-                    },
-                    select: { id: true }
+            // Step 1: Infer company from explicit relations (store_id)
+            if (user.store_id) {
+                const store = await prisma.store.findUnique({
+                    where: { id: user.store_id },
+                    select: { company_id: true }
                 });
+                defaultCompanyId = store?.company_id || null;
+            }
+            // Step 2: Infer company from area manager relations
+            else if (user.role === 'area_manager') {
+                const areaStore = await prisma.store.findFirst({
+                    where: { area_manager_id: user.id },
+                    select: { company_id: true }
+                });
+                if (areaStore) defaultCompanyId = areaStore.company_id;
+            }
 
-                if (affiliatedCompanies.length >= 1) {
-                    redirectPath = '/executive';
-                    defaultCompanyId = affiliatedCompanies[0].id;
-                } else {
-                    redirectPath = '/select-company';
+            // Step 3: Domain Inference Fallback for Directors/Area Managers/Admins without raw relations
+            if (!defaultCompanyId) {
+                if (user.email.endsWith('@fogo.com')) {
+                    const fdcCompany = await prisma.company.findFirst({ where: { name: { contains: 'Fogo' } } });
+                    if (fdcCompany) defaultCompanyId = fdcCompany.id;
+                } else if (user.email.endsWith('@texasdebrazil.com')) {
+                    const tdbCompany = await prisma.company.findFirst({ where: { name: { contains: 'Texas' } } });
+                    if (tdbCompany) defaultCompanyId = tdbCompany.id;
                 }
+            }
+
+            // Route user depending on Role
+            if (user.role === 'admin') {
+                redirectPath = '/select-company'; // Admin always picks
+            } else if (user.role === 'director' || user.email === 'dallas@texasdebrazil.com') {
+                redirectPath = defaultCompanyId ? '/executive' : '/select-company';
             } else {
-                // Manager/Viewer
-                if (user.store_id) {
-                    const store = await prisma.store.findUnique({
-                        where: { id: user.store_id },
-                        select: { company_id: true }
-                    });
-                    defaultCompanyId = store?.company_id || null;
-                }
                 redirectPath = '/dashboard';
             }
 
-            // 4. Issue Token (RE-ORDERED TO HAVE CompanyID)
+            // 4. Issue Token
             const token = jwt.sign(
                 {
                     userId: user.id,
                     email: user.email,
                     role: user.role,
                     storeId: user.store_id,
-                    companyId: defaultCompanyId || 'tdb-main', // Fallback for TDB safety
+                    companyId: defaultCompanyId, // Strict Tenant Enforcement
+
                     isPrimary: user.is_primary,
                     eula_accepted: !!user.eula_accepted_at,
                     position: user.position

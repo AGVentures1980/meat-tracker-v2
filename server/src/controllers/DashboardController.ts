@@ -73,7 +73,10 @@ export class DashboardController {
             const y = year ? parseInt(year as string) : new Date().getFullYear();
             const w = week ? parseInt(week as string) : 8; // Default to week 8 for demo
 
-            const stats = await MeatEngine.getNetworkReportCard(y, w);
+            const user = (req as any).user;
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+
+            const stats = await MeatEngine.getNetworkReportCard(y, w, activeCompanyId);
             return res.json(stats);
         } catch (error) {
             console.error('Report Card Error:', error);
@@ -98,6 +101,13 @@ export class DashboardController {
     static async getCompanyStats(req: Request, res: Response) {
         try {
             const user = (req as any).user;
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+
+            // Override user's active company context for the query if provided
+            if (activeCompanyId) {
+                user.companyId = activeCompanyId;
+            }
+
             const stats = await MeatEngine.getExecutiveStats(user);
             return res.json(stats);
         } catch (error) {

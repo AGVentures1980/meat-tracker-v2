@@ -358,7 +358,7 @@ export class MeatEngine {
         };
     }
 
-    static async getNetworkReportCard(year: number, week: number) {
+    static async getNetworkReportCard(year: number, week: number, companyId?: string) {
         // Mock Data for Network Report Card to match Frontend Interface
         return {
             year,
