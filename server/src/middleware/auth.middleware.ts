@@ -20,7 +20,14 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     }
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+
+        // Multi-Tenant Override: Allow frontend to specify Active Company if user is executive
+        const requestedCompanyId = req.headers['x-company-id'];
+        if (requestedCompanyId && typeof requestedCompanyId === 'string' && ['admin', 'director'].includes(decoded.role)) {
+            decoded.companyId = requestedCompanyId;
+        }
+
         (req as any).user = decoded;
         next();
     } catch (error) {

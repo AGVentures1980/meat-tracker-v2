@@ -13,7 +13,7 @@ const formatProteinName = (raw: string): string => {
 };
 
 export const WeeklyPriceInput = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const { t } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -33,7 +33,10 @@ export const WeeklyPriceInput = () => {
     const fetchProducts = async () => {
         try {
             const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: {
+                    'Authorization': `Bearer ${user?.token}`,
+                    'X-Company-ID': selectedCompany || ''
+                }
             });
             const data = await res.json();
             if (Array.isArray(data)) {
@@ -82,7 +85,10 @@ export const WeeklyPriceInput = () => {
     const fetchAverages = async () => {
         try {
             const response = await fetch(`/api/v1/purchases/weighted-averages?start=${weekRange.start.toISOString()}&end=${weekRange.end.toISOString()}`, {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: {
+                    'Authorization': `Bearer ${user?.token}`,
+                    'X-Company-ID': selectedCompany || ''
+                }
             });
             const data = await response.json();
             if (data.success) {
@@ -135,7 +141,8 @@ export const WeeklyPriceInput = () => {
                 const response = await fetch('/api/v1/purchases/process-invoice-ocr', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${user?.token}`
+                        'Authorization': `Bearer ${user?.token}`,
+                        'X-Company-ID': selectedCompany || ''
                     },
                     body: formData
                 });
@@ -200,7 +207,8 @@ export const WeeklyPriceInput = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user?.token}`
+                    'Authorization': `Bearer ${user?.token}`,
+                    'X-Company-ID': selectedCompany || ''
                 },
                 body: JSON.stringify({ invoices: payload })
             });
