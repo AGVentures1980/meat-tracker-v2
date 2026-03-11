@@ -188,26 +188,31 @@ export class CompanyController {
                 return res.status(403).json({ error: 'Access Denied' });
             }
 
-            // Find users in this company (assuming company context via stores or direct id)
-            // Currently User isn't strictly bound to Company directly, but tied via Store.
-            // For directors/admins, they might not have a store_id. But Area Managers can be created 
-            // and assigned stores. Let's fetch users with role 'area_manager' and their stores.
-
-            // To properly scope to the company: find all stores for this company, 
-            // then find area managers assigned to those stores. Or, just list all area managers
-            // (in a multi-tenant DB without Company on User, this requires fetching via store relation or domain)
-
-            // For MVP: Fetch users with role area_manager (simplification: assuming admin manages their own)
-            const areaManagers = await prisma.user.findMany({
-                where: { role: 'area_manager' }, // TODO: Add company filter if Users are strictly tenant-bound
-                include: { area_stores: true },
-                orderBy: { first_name: 'asc' }
-            });
-
-            // Also fetch all stores to show available vs assigned
+            // Find all stores for this company
             const allStores = await prisma.store.findMany({
                 where: { company_id: user.companyId },
                 orderBy: { store_name: 'asc' }
+            });
+
+            // Get the IDs of the stores that belong to this company
+            const storeIds = allStores.map(s => s.id);
+
+            // Fetch users with role area_manager who are EITHER assigned to at least one store in this company,
+            // OR have an email matching the company domain as a fallback (since we don't have company_id on User directly)
+            
+            // Assuming users are scoped by their email domain if they have no stores yet
+            const domain = user.email.split('@')[1];
+
+            const areaManagers = await prisma.user.findMany({
+                where: { 
+                    role: 'area_manager',
+                    OR: [
+                        { area_stores: { some: { id: { in: storeIds } } } },
+                        { email: { endsWith: '@' + domain } } // Fallback for newly created unassigned managers
+                    ]
+                },
+                include: { area_stores: true },
+                orderBy: { first_name: 'asc' }
             });
 
             return res.json({ areaManagers, allStores });
@@ -275,7 +280,8 @@ export class CompanyController {
                     first_name,
                     last_name,
                     role: 'area_manager',
-                    // Optional: link directly to company if schema supports it, for now using role boundary
+                    // Note: Since User currently lacks company_id directly, they are strictly scoped 
+                    // by their email domain and/or the store associations in getAreaManagers
                 }
             });
 
