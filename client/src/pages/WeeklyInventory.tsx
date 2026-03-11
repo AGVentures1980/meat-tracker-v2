@@ -154,6 +154,7 @@ const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
 };
 
 export const WeeklyInventory = () => {
+    const { user, selectedCompany } = useAuth();
     const { counts, updateCount, isOnline, hasPendingSync, isSyncing, queueForSync } = useOfflineInventory();
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -163,13 +164,16 @@ export const WeeklyInventory = () => {
     useEffect(() => {
         const fetchProteins = async () => {
             try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
-                });
+                const headers: HeadersInit = { 'Authorization': `Bearer ${user?.token}` };
+                if (selectedCompany) {
+                    headers['X-Company-Id'] = selectedCompany;
+                }
+
+                const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, { headers });
+
                 if (res.ok) {
                     const data = await res.json();
-                    if (Array.isArray(data)) {
+                    if (Array.isArray(data) && data.length > 0) {
                         const list = data.map((p: any) => ({
                             id: p.name,
                             name: p.name,
@@ -184,7 +188,7 @@ export const WeeklyInventory = () => {
             }
         };
         fetchProteins();
-    }, []);
+    }, [user, selectedCompany]);
 
     const handleCountChange = (id: string, value: string) => {
         updateCount(id, value);
