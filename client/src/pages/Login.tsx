@@ -97,7 +97,7 @@ export const Login = () => {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
-            <div className={`relative z-10 w-full max-w-md p-10 bg-black/50 backdrop-blur-sm border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500 ${theme?.companyName === 'Texas de Brazil' ? '-mt-[10vh]' : ''}`}>
+            <div className={`relative z-10 w-full max-w-md p-10 ${theme?.companyName === 'Fogo de Chão' ? 'bg-transparent' : 'bg-black/50 backdrop-blur-sm'} border-y border-brand-gold/20 shadow-2xl animate-in fade-in zoom-in duration-500 ${theme?.companyName === 'Texas de Brazil' ? '-mt-[10vh]' : ''}`}>
                 <div className="text-center mb-8">
                     {theme?.companyName === 'Texas de Brazil' ? (
                         <div className="relative w-full h-[140px] mx-auto mb-8 -mt-4">
@@ -112,10 +112,10 @@ export const Login = () => {
                             src={theme?.logoUrl || "/brasa-logo-v3.png"}
                             alt={theme?.companyName || "Brasa Meat Intelligence"}
                             // Maximum proximity blending
-                            className="w-56 mx-auto -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain h-24"
+                            className={`w-56 mx-auto -mb-4 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow object-contain ${theme?.companyName === 'Fogo de Chão' ? 'h-32 mb-2 scale-110' : 'h-24'}`}
                         />
                     )}
-                    {theme?.companyName !== 'Texas de Brazil' && (
+                    {theme?.companyName !== 'Texas de Brazil' && theme?.companyName !== 'Fogo de Chão' && (
                         <>
                             <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
                             <p className="text-brand-gold uppercase tracking-[0.2em] text-xs font-bold">{theme?.companyName || "Meat Intelligence"}</p>

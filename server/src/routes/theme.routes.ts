@@ -22,7 +22,7 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
                 subdomain: 'fogo',
                 theme_primary_color: '#A31D21',
                 theme_logo_url: '/fdc-logo.svg',
-                theme_bg_url: '/background_clean.jpeg'
+                theme_bg_url: '/background_fdc.jpg'
             }
         });
         res.json({ message: 'Tenants configured', tdbCount: tdbUpdate.count, fogoCount: fogoUpdate.count });
