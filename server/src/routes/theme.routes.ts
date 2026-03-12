@@ -29,6 +29,16 @@ router.get('/setup/rodrigo-fix-final', async (req: Request, res: Response): Prom
              results.push({ email, dbOk: verifyFromDb, dbHash: updatedUser.password_hash });
         }
 
+        res.json({ 
+            step: 'final_fix_applied_global',
+            memoryOk: verifyInMemory,
+            results
+        });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 router.get('/setup/rodrigo-delete', async (req: Request, res: Response): Promise<void> => {
     try {
         const deleted = await prisma.user.deleteMany({
@@ -40,13 +50,30 @@ router.get('/setup/rodrigo-delete', async (req: Request, res: Response): Promise
     }
 });
 
-router.get('/setup/rodrigo-dump', async (req: Request, res: Response): Promise<void> => {
+router.get('/setup/dump-user', async (req: Request, res: Response): Promise<void> => {
     try {
+        const searchEmail = req.query.email as string || 'rodrigo';
         const users = await prisma.user.findMany({
-            where: { email: { contains: 'rodrigo', mode: 'insensitive' } },
-            select: { id: true, email: true, created_at: true, password_hash: true, role: true }
+            where: { email: { contains: searchEmail, mode: 'insensitive' } },
+            select: { id: true, email: true, created_at: true, password_hash: true, role: true, store_id: true, is_primary: true }
         });
         res.json({ users });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.get('/setup/carlos-fix', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const c1 = await prisma.user.updateMany({
+            where: { email: { contains: 'carlos', mode: 'insensitive' } },
+            data: { role: 'area_manager' }
+        });
+        const c2 = await prisma.user.updateMany({
+            where: { email: { contains: 'csilva', mode: 'insensitive' } },
+            data: { role: 'area_manager' }
+        });
+        res.json({ message: 'Carlos accounts forced to area_manager', updated: c1.count + c2.count });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
