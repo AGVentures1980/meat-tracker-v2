@@ -30,6 +30,13 @@ model Company {
   invoices                    SysInvoice[]
   vault_messages              OwnerVaultMessage[]
   PartnerClient               PartnerClient[]
+
+  // -------------------------------------------------------------
+  // STRIPE PAYMENT INTEGRATION (Phase 3)
+  // -------------------------------------------------------------
+  stripe_customer_id          String?  @unique
+  billing_type                String   @default("STRIPE_AUTO") // "STRIPE_AUTO" or "MANUAL_INVOICE"
+  company_status              String   @default("Pending") // "Pending", "Active", "Suspended"
 }
 
 model CompanyProduct {
@@ -452,6 +459,8 @@ model InventoryItem {
 
   @@unique([cycle_id, protein_id])
 }
+
+
 
 model FAQ {
   id              String   @id @default(uuid())
