@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle, Trash2, ChevronLeft } from 'lucide-react';
+import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle, Trash2, ChevronLeft, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,6 +11,7 @@ export const PartnerNetwork: React.FC = () => {
     const [escalated, setEscalated] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [executingPayout, setExecutingPayout] = useState<string | null>(null);
+    const [viewingPartner, setViewingPartner] = useState<any>(null);
 
     const fetchNetworkData = async () => {
         try {
@@ -154,7 +155,7 @@ export const PartnerNetwork: React.FC = () => {
                 <div className="mb-6 mb-12">
                     <button 
                         onClick={() => navigate('/select-company')}
-                        className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm mb-6"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg text-gray-300 hover:text-white transition-all text-sm mb-8 shadow-lg w-max font-medium"
                     >
                         <ChevronLeft className="w-4 h-4" /> Back to Command Center
                     </button>
@@ -226,26 +227,20 @@ export const PartnerNetwork: React.FC = () => {
                 {/* Partner Node Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {partners.map(partner => (
-                        <div key={partner.id} className="bg-[#111] border border-gray-800 rounded-xl p-6 hover:border-indigo-500/50 transition-colors shadow-xl relative overflow-hidden group">
+                        <div 
+                            key={partner.id} 
+                            onClick={() => setViewingPartner(partner)}
+                            className="bg-[#111] border border-gray-800 rounded-xl p-6 hover:border-indigo-500/50 hover:bg-[#151515] hover:shadow-[0_0_30px_rgba(79,70,229,0.1)] transition-all cursor-pointer relative overflow-hidden group"
+                        >
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <h3 className="text-lg font-bold text-white">{partner.name}</h3>
+                                    <h3 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">{partner.name}</h3>
                                     <p className="text-sm text-gray-400">{partner.email}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="px-2 py-1 text-xs font-bold rounded-full bg-emerald-900/30 text-emerald-400 border border-emerald-800">
                                         {partner.country}
                                     </span>
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeletePartner(partner.id, partner.name, partner.metrics.activeClients);
-                                        }}
-                                        className={`p-1.5 rounded-lg border transition-all ${partner.metrics.activeClients > 0 ? 'border-gray-800 text-gray-700 cursor-not-allowed bg-black/50' : 'border-red-900/50 text-red-500 hover:bg-red-900/30 hover:text-white bg-black/80'}`}
-                                        title={partner.metrics.activeClients > 0 ? "Cannot delete partners with active clients" : "Delete Partner"}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
                                 </div>
                             </div>
 
@@ -262,7 +257,10 @@ export const PartnerNetwork: React.FC = () => {
 
                             {partner.metrics.pendingPayouts > 0 ? (
                                 <button 
-                                    onClick={() => handleExecutePayouts(partner.id, partner.name)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleExecutePayouts(partner.id, partner.name);
+                                    }}
                                     disabled={executingPayout === partner.id}
                                     className="w-full flex items-center justify-center gap-2 p-3 bg-indigo-900/40 hover:bg-indigo-600/50 rounded-lg border border-indigo-500/50 transition-all shadow-md group-hover:border-indigo-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left"
                                 >
@@ -289,6 +287,57 @@ export const PartnerNetwork: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Partner Details Modal */}
+            {viewingPartner && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl w-full max-w-lg p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative animate-in zoom-in-95 duration-200">
+                        <button 
+                            onClick={() => setViewingPartner(null)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <h2 className="text-2xl font-bold text-white mb-1">{viewingPartner.name}</h2>
+                        <p className="text-indigo-400 mb-6 font-medium tracking-wide">{viewingPartner.email} <span className="text-gray-600 mx-2">•</span> {viewingPartner.country}</p>
+
+                        <div className="grid grid-cols-2 gap-4 mb-8">
+                            <div className="bg-black/50 p-4 border border-gray-800/50 rounded-lg shadow-inner">
+                                <span className="text-[10px] text-gray-500 block mb-1 uppercase tracking-widest font-bold">Active MRR</span>
+                                <span className="text-2xl text-emerald-400 font-mono font-bold">${viewingPartner.metrics.totalMRR.toLocaleString()}</span>
+                            </div>
+                            <div className="bg-black/50 p-4 border border-gray-800/50 rounded-lg shadow-inner">
+                                <span className="text-[10px] text-gray-500 block mb-1 uppercase tracking-widest font-bold">Live Clients</span>
+                                <span className="text-2xl text-blue-400 font-mono font-bold">{viewingPartner.metrics.activeClients}</span>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-gray-800 pt-6">
+                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Network Actions</h3>
+                            
+                            <div className="bg-red-950/20 border border-red-900/30 rounded-lg p-4 transition-colors hover:bg-red-950/40">
+                                <div className="flex justify-between items-center gap-4">
+                                    <div>
+                                        <h4 className="text-red-500 font-bold mb-1 text-sm">Delete Partner Account</h4>
+                                        <p className="text-[11px] text-gray-400 leading-tight">Permanently remove this partner and all their data from the network.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            handleDeletePartner(viewingPartner.id, viewingPartner.name, viewingPartner.metrics.activeClients);
+                                            setViewingPartner(null);
+                                        }}
+                                        className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-lg font-bold text-sm transition-all ${viewingPartner.metrics.activeClients > 0 ? 'bg-gray-900 border border-gray-800 text-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/20'}`}
+                                        title={viewingPartner.metrics.activeClients > 0 ? "Cannot delete partners with active clients" : "Permanently Delete Partner"}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
