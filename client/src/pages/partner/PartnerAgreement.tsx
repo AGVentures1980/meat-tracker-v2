@@ -37,8 +37,8 @@ export const PartnerAgreement: React.FC = () => {
                 throw new Error(data.error || 'Failed to sign agreement.');
             }
 
-            // Immediately route to training on success
-            navigate('/partner/onboarding/training');
+            // Force a hard reload so PartnerLayout refetches the upgraded profile status
+            window.location.href = '/partner/onboarding/training';
         } catch (err: any) {
             setError(err.message);
         } finally {

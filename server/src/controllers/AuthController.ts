@@ -77,12 +77,16 @@ export class AuthController {
                 defaultCompanyId = store?.company_id || null;
             }
             // Step 2: Infer company from area manager relations
-            else if (user.role === 'area_manager') {
-                const areaStore = await prisma.store.findFirst({
+            let areaStoreIds: number[] = [];
+            if (user.role === 'area_manager') {
+                const areaStores = await prisma.store.findMany({
                     where: { area_manager_id: user.id },
-                    select: { company_id: true }
+                    select: { id: true, company_id: true }
                 });
-                if (areaStore) defaultCompanyId = areaStore.company_id;
+                if (areaStores.length > 0) {
+                    defaultCompanyId = areaStores[0].company_id;
+                    areaStoreIds = areaStores.map(s => s.id);
+                }
             }
 
             // Step 3: Domain Inference Fallback for Directors/Area Managers/Admins without raw relations
@@ -95,6 +99,14 @@ export class AuthController {
                     if (tdbCompany) defaultCompanyId = tdbCompany.id;
                 }
             }
+
+            // Step 4: Define Scope Object
+            let scope: any = { type: 'UNKNOWN' };
+            if (user.role === 'admin') scope = { type: 'GLOBAL' };
+            else if (user.role === 'director') scope = { type: 'COMPANY', companyId: defaultCompanyId };
+            else if (user.role === 'area_manager') scope = { type: 'AREA', storeIds: areaStoreIds };
+            else if (user.role === 'partner') scope = { type: 'PARTNER' };
+            else if (user.store_id) scope = { type: 'STORE', storeId: user.store_id };
 
             // Route user depending on Role
             if (user.role === 'admin') {
@@ -115,6 +127,7 @@ export class AuthController {
                     role: user.role,
                     storeId: user.store_id,
                     companyId: defaultCompanyId, // Strict Tenant Enforcement
+                    scope, // Injected Hierarchical Scope
 
                     isPrimary: user.is_primary,
                     eula_accepted: !!user.eula_accepted_at,
@@ -136,6 +149,7 @@ export class AuthController {
                     role: user.role,
                     storeId: user.store_id,
                     companyId: defaultCompanyId || 'tdb-main',
+                    scope, // Ensure frontend knows its scope boundary
                     isPrimary: user.is_primary,
                     eula_accepted: !!user.eula_accepted_at,
                     position: user.position,

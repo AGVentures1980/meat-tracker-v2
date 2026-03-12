@@ -553,9 +553,18 @@ export class PartnerController {
       const { legal_entity_type, tax_id, country } = req.body;
       const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
 
-      const partner = await prisma.partner.update({
+      const partner = await prisma.partner.upsert({
         where: { user_id: userId },
-        data: {
+        create: {
+          user_id: userId,
+          legal_entity_type: legal_entity_type || 'Individual',
+          tax_id: tax_id,
+          country: country || 'USA',
+          agreement_signed_at: new Date(),
+          agreement_ip: ip as string,
+          status: 'Pending'
+        },
+        update: {
           legal_entity_type: legal_entity_type || 'Individual',
           tax_id: tax_id,
           country: country || 'USA',

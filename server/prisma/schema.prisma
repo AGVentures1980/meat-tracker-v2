@@ -512,22 +512,22 @@ model ProcurementAIFeedback {
 }
 
 model Partner {
-  id                String          @id @default(uuid())
-  user_id           String          @unique
-  legal_entity_type String          @default("Individual")
-  tax_id            String?
-  country           String          @default("USA")
-  paypal_email      String?
+  id                    String          @id @default(uuid())
+  user_id               String          @unique
+  legal_entity_type     String          @default("Individual")
+  tax_id                String?
+  country               String          @default("USA")
+  paypal_email          String?
   status                String          @default("Active")
-  agreement_signed_at   DateTime?
-  agreement_ip          String?
-  training_completed_at DateTime?
   created_at            DateTime        @default(now())
   updated_at            DateTime        @updatedAt
-  user              User            @relation("PartnerUser", fields: [user_id], references: [id])
-  clients           PartnerClient[]
-  payouts           Payout[]
-  proposals         Proposal[]
+  agreement_ip          String?
+  agreement_signed_at   DateTime?
+  training_completed_at DateTime?
+  user                  User            @relation("PartnerUser", fields: [user_id], references: [id])
+  clients               PartnerClient[]
+  payouts               Payout[]
+  proposals             Proposal[]
 }
 
 model PartnerClient {

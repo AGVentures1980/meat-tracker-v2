@@ -30,8 +30,8 @@ export const PartnerTraining: React.FC = () => {
                 throw new Error(data.error || 'Failed to confirm training completion.');
             }
 
-            // Route to dashboard finally
-            navigate('/partner/dashboard');
+            // Force a hard reload so PartnerLayout refetches the completed status
+            window.location.href = '/partner/dashboard';
         } catch (err: any) {
             setError(err.message);
         } finally {

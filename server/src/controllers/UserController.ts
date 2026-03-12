@@ -10,27 +10,27 @@ export const UserController = {
             const user = (req as any).user;
             const { layer } = req.query;
 
-            // Only Directors and Area Managers can query the corporate hierarchy
+            // Only Directors, Area Managers, and Admins can query the corporate hierarchy
             if (user.role !== 'admin' && user.role !== 'director' && user.role !== 'area_manager') {
                 return res.status(403).json({ error: 'Access Denied' });
             }
 
             if (layer === 'gms') {
                 // Return Store Managers (is_primary = true)
-                
-                // If Area Manager: only return GMs from their assigned stores
                 let storeIds: number[] = [];
                 
-                if (user.role === 'area_manager') {
-                    const myStores = await prisma.store.findMany({
-                        where: { area_manager_id: user.userId },
+                if (user.scope.type === 'AREA') {
+                    storeIds = user.scope.storeIds || [];
+                } else if (user.scope.type === 'COMPANY') {
+                    const allStores = await prisma.store.findMany({
+                        where: { company_id: user.scope.companyId },
                         select: { id: true }
                     });
-                    storeIds = myStores.map(s => s.id);
-                } else {
-                    // If Director/Admin, get all stores for the company
+                    storeIds = allStores.map(s => s.id);
+                } else if (user.scope.type === 'GLOBAL') {
+                    // Admin can see everything, optionally filtered by current view
                     const allStores = await prisma.store.findMany({
-                        where: { company_id: user.companyId },
+                        where: { company_id: user.companyId }, // using the requested company scope or default
                         select: { id: true }
                     });
                     storeIds = allStores.map(s => s.id);
@@ -76,19 +76,24 @@ export const UserController = {
             const user = (req as any).user;
             let targetStoreId = user.storeId;
 
-            // Optional query param for Admins and Area Managers to view a specific store's users
-            if ((user.role === 'admin' || user.role === 'director' || user.role === 'area_manager') && req.query.storeId) {
+            // Optional query param for Admins, Directors, and Area Managers to view a specific store's users
+            if (req.query.storeId) {
                 targetStoreId = parseInt(req.query.storeId as string, 10);
-
-                // If area_manager, verify they supervise this store
-                if (user.role === 'area_manager') {
-                    const storeCheck = await prisma.store.findFirst({
-                        where: { id: targetStoreId, area_manager_id: user.userId }
-                    });
-                    if (!storeCheck) {
-                        return res.status(403).json({ error: 'You are not authorized to view this store\'s team' });
+                
+                // Authorize Scope Exception
+                if (user.scope.type === 'STORE' && targetStoreId !== user.scope.storeId) {
+                    return res.status(403).json({ error: 'Scope Error: You can only view your own store' });
+                }
+                if (user.scope.type === 'AREA' && !user.scope.storeIds.includes(targetStoreId)) {
+                    return res.status(403).json({ error: 'Scope Error: You are not authorized to view this store\'s team' });
+                }
+                if (user.scope.type === 'COMPANY') {
+                    const store = await prisma.store.findUnique({ where: { id: targetStoreId } });
+                    if (store?.company_id !== user.scope.companyId) {
+                        return res.status(403).json({ error: 'Scope Error: Store belongs to another organization' });
                     }
                 }
+                // Admin (GLOBAL) skips validation
             }
 
             if (!targetStoreId) {
@@ -126,19 +131,24 @@ export const UserController = {
             const currentUser = (req as any).user;
             let targetStoreId = currentUser.storeId;
 
-            // Optional override for Admins and Area Managers
-            if ((currentUser.role === 'admin' || currentUser.role === 'director' || currentUser.role === 'area_manager') && req.body.store_id) {
+            // Optional override for Admins, Directors, and Area Managers
+            if (req.body.store_id) {
                 targetStoreId = parseInt(req.body.store_id as string, 10);
 
-                // If area manager, verify they supervise this store
-                if (currentUser.role === 'area_manager') {
-                    const storeCheck = await prisma.store.findFirst({
-                        where: { id: targetStoreId, area_manager_id: currentUser.userId }
-                    });
-                    if (!storeCheck) {
-                        return res.status(403).json({ error: 'You are not authorized to add team members to this store' });
+                // Authorize Scope Exception
+                if (currentUser.scope.type === 'STORE' && targetStoreId !== currentUser.scope.storeId) {
+                    return res.status(403).json({ error: 'Scope Error: You can only configure your own store' });
+                }
+                if (currentUser.scope.type === 'AREA' && !currentUser.scope.storeIds.includes(targetStoreId)) {
+                    return res.status(403).json({ error: 'Scope Error: You are not authorized to add team members to this store' });
+                }
+                if (currentUser.scope.type === 'COMPANY') {
+                    const store = await prisma.store.findUnique({ where: { id: targetStoreId } });
+                    if (store?.company_id !== currentUser.scope.companyId) {
+                        return res.status(403).json({ error: 'Scope Error: Store belongs to another organization' });
                     }
                 }
+                // Admin (GLOBAL) skips validation
             }
 
             if (!targetStoreId) {
@@ -208,24 +218,28 @@ export const UserController = {
                 return res.status(404).json({ error: 'User not found' });
             }
 
-            // Ensure the manager only deletes users from their own store
-            if (currentUser.role === 'manager') {
-                if (targetUser.store_id !== currentUser.storeId) {
-                    return res.status(403).json({ error: 'Unauthorized to delete this user' });
+            // Scope boundary enforcement for Delete
+            const targetUserStoreId = targetUser.store_id;
+
+            if (currentUser.scope.type === 'STORE') {
+                if (targetUserStoreId !== currentUser.scope.storeId) {
+                    return res.status(403).json({ error: 'Unauthorized to delete users outside your store' });
                 }
+                // Even within store, only primary account can delete secondary accounts
                 if (currentUser.isPrimary === false) {
                     return res.status(403).json({ error: 'Only the primary store account can delete team members' });
                 }
-            } else if (currentUser.role === 'area_manager') {
-                // Area manager can only delete if they supervise the user's store
-                if (!targetUser.store_id) {
-                    return res.status(403).json({ error: 'Unauthorized to delete this user' });
+            } else if (currentUser.scope.type === 'AREA') {
+                if (!targetUserStoreId || !currentUser.scope.storeIds.includes(targetUserStoreId)) {
+                    return res.status(403).json({ error: 'Scope Error: User does not belong to a store in your Area' });
                 }
-                const storeCheck = await prisma.store.findFirst({
-                    where: { id: targetUser.store_id, area_manager_id: currentUser.userId }
-                });
-                if (!storeCheck) {
-                    return res.status(403).json({ error: 'Unauthorized to delete a team member from this store' });
+            } else if (currentUser.scope.type === 'COMPANY') {
+                if (!targetUserStoreId) {
+                     return res.status(403).json({ error: 'Unauthorized to delete this corporate user' });
+                }
+                const store = await prisma.store.findUnique({ where: { id: targetUserStoreId } });
+                if (store?.company_id !== currentUser.scope.companyId) {
+                     return res.status(403).json({ error: 'Scope Error: User belongs to another organization' });
                 }
             }
 
