@@ -19,8 +19,9 @@ router.get('/profile', PartnerController.getProfile);
 // Dashboard / Overview
 router.get('/dashboard', PartnerController.getDashboardStats);
 
-// Deals
+// Deals & Autonomous Provisioning
 router.post('/proposals', PartnerController.createProposal);
+router.post('/provision-tenant', PartnerController.provisionTenant);
 
 // Onboarding Flow
 router.post('/onboarding/agreement', PartnerController.signAgreement);

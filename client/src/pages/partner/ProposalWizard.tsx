@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, Bone } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const ProposalWizard: React.FC = () => {
@@ -9,22 +9,35 @@ export const ProposalWizard: React.FC = () => {
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
     const [step, setStep] = useState(1);
     
-    // Form State
-    const [formData, setFormData] = useState({
-        client_name: '',
-        contact_email: '',
-        contact_phone: '',
-        country: 'USA',
-        language: 'English',
-        store_count: 1
-    });
+    // Feature Form State
+    const [companyName, setCompanyName] = useState('');
+    const [ceo, setCeo] = useState({ first_name: '', last_name: '', email: '' });
+    
+    // Dynamic Arrays using temp IDs for relational binding
+    const [areaManagers, setAreaManagers] = useState<any[]>([]);
+    const [stores, setStores] = useState<any[]>([]);
+    const [proteins, setProteins] = useState<any[]>([
+        { id: 'p1', name: 'Picanha', cost_per_lb: 6.50 },
+        { id: 'p2', name: 'Fraldinha', cost_per_lb: 5.20 },
+        { id: 'p3', name: 'Filet Mignon', cost_per_lb: 12.00 }
+    ]);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successPayload, setSuccessPayload] = useState<any>(null);
 
-    const handleNext = () => setStep(2);
-    const handleBack = () => setStep(1);
+    const handleNext = () => setStep(s => s + 1);
+    const handleBack = () => setStep(s => s - 1);
+
+    // Dynamic Lists Actions
+    const addAreaManager = () => setAreaManagers([...areaManagers, { temp_id: Date.now().toString(), first_name: '', last_name: '', email: '', region: 'Global' }]);
+    const removeAreaManager = (id: string) => setAreaManagers(areaManagers.filter(am => am.temp_id !== id));
+    
+    const addStore = () => setStores([...stores, { id: Date.now().toString(), name: '', location: '', target_lbs: 1.76, target_cost: 9.50, area_manager_temp_id: '' }]);
+    const removeStore = (id: string) => setStores(stores.filter(s => s.id !== id));
+    
+    const addProtein = () => setProteins([...proteins, { id: Date.now().toString(), name: '', cost_per_lb: 0 }]);
+    const removeProtein = (id: string) => setProteins(proteins.filter(p => p.id !== id));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,60 +45,58 @@ export const ProposalWizard: React.FC = () => {
         setError(null);
 
         try {
-            // Rough pricing logic simulation
-            const baseSetup = formData.store_count > 3 ? 5000 : 2500;
-            const baseMonthly = formData.store_count * 300;
-
-            const res = await fetch(`${API_URL}/api/v1/partner/proposals`, {
+            const res = await fetch(`${API_URL}/api/v1/partner/provision-tenant`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${user?.token}`
                 },
                 body: JSON.stringify({
-                    ...formData,
-                    setup_fee: baseSetup,
-                    monthly_fee: baseMonthly
+                    company_name: companyName,
+                    ceo,
+                    area_managers: areaManagers,
+                    stores,
+                    proteins
                 })
             });
 
             const data = await res.json();
 
             if (!res.ok) {
-                if (data.error === 'FRAUD_BLOCK_DOMAIN') {
-                    throw new Error(data.message);
-                }
-                throw new Error('Failed to generate proposal. Please try again.');
+                throw new Error(data.error || 'Failed to generate tenant. Please check logs.');
             }
 
             setSuccessPayload(data);
-            setStep(3); // Show Success/Link screen
+            setStep(6); // Success screen
         } catch (err: any) {
-            setError(err.message || 'Failed to generate proposal.');
+            setError(err.message || 'Failed to generate tenant.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="max-w-3xl mx-auto mt-8 animate-fade-in-up">
+        <div className="max-w-4xl mx-auto mt-8 animate-fade-in-up pb-24">
             <div className="bg-[#111] border border-gray-800 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
                 
                 {/* Header Wizard Steps */}
                 <div className="flex items-center justify-between mb-12 border-b border-gray-800 pb-6">
                     <div>
                         <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                            <Globe className="text-emerald-500" />
-                            Smart Proposal Generator
+                            <Building2 className="text-emerald-500" />
+                            Tenant Architect
                         </h2>
-                        <p className="text-sm text-gray-400 mt-2">Zero-touch onboarding contract engine.</p>
+                        <p className="text-sm text-gray-400 mt-2">Self-serve massive deployment engine.</p>
                     </div>
                     <div className="flex gap-2">
-                        <StepDot active={step >= 1} number={1} />
-                        <div className={`w-8 h-[2px] mt-4 ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-800'}`} />
-                        <StepDot active={step >= 2} number={2} />
-                        <div className={`w-8 h-[2px] mt-4 ${step === 3 ? 'bg-emerald-500' : 'bg-gray-800'}`} />
-                        <StepDot active={step === 3} number={3} />
+                        {[1, 2, 3, 4, 5].map((num) => (
+                            <React.Fragment key={num}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= num ? 'bg-emerald-500 text-white' : 'bg-gray-800 text-gray-500'}`}>
+                                    {num}
+                                </div>
+                                {num < 5 && <div className={`w-6 h-[2px] mt-4 ${step > num ? 'bg-emerald-500' : 'bg-gray-800'}`} />}
+                            </React.Fragment>
+                        ))}
                     </div>
                 </div>
 
@@ -93,144 +104,256 @@ export const ProposalWizard: React.FC = () => {
                     <div className="mb-8 p-4 bg-red-900/20 border border-red-500/50 rounded-lg flex items-start gap-4">
                         <ShieldAlert className="w-6 h-6 text-red-400 shrink-0 mt-1" />
                         <div>
-                            <h4 className="text-red-400 font-bold mb-1">Proposal Blocked</h4>
+                            <h4 className="text-red-400 font-bold mb-1">Provisioning Engine Fault</h4>
                             <p className="text-red-200 text-sm">{error}</p>
                         </div>
                     </div>
                 )}
 
-                <form onSubmit={step === 2 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
+                <form onSubmit={step === 5 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
                     
                     {step === 1 && (
                         <div className="space-y-6 animate-fade-in">
-                            <h3 className="text-lg font-semibold text-emerald-400 mb-4">Step 1: Entity Details</h3>
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">1. Organization & Executive Leadership</h3>
+                            <p className="text-sm text-gray-400">Define the legal entity and the primary Director (CEO) account.</p>
                             
-                            <div className="grid grid-cols-2 gap-6">
-                                <Input label="Legal Entity Name" value={formData.client_name} onChange={(v: string) => setFormData({...formData, client_name: v})} required placeholder="e.g. Fogo de Chão Holdings" />
-                                <Select label="Proposal Language" value={formData.language} onChange={(v: string) => setFormData({...formData, language: v})} options={['English', 'Spanish', 'Portuguese']} />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-6">
-                                <Input label="Director/Owner Email" type="email" value={formData.contact_email} onChange={(v: string) => setFormData({...formData, contact_email: v})} required placeholder="To scan against Fraud DB" />
-                                <Select label="Country of Operations" value={formData.country} onChange={(v: string) => setFormData({...formData, country: v})} options={['USA', 'Brazil', 'UAE', 'Mexico', 'UK']} />
-                            </div>
-
-                            <div className="pt-6 flex justify-end">
-                                <button type="submit" className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                                    Next: Scope & Pricing
-                                    <ArrowRight className="w-5 h-5" />
-                                </button>
+                            <div className="p-6 bg-[#0a0a0a] border border-gray-800 rounded-xl space-y-6">
+                                <Input label="Conglomerate / Company Name" value={companyName} onChange={setCompanyName} required placeholder="e.g. Fogo de Chão North America" />
+                                
+                                <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-800">
+                                    <Input label="CEO First Name" value={ceo.first_name} onChange={(v: string) => setCeo({...ceo, first_name: v})} required placeholder="John" />
+                                    <Input label="CEO Last Name" value={ceo.last_name} onChange={(v: string) => setCeo({...ceo, last_name: v})} required placeholder="Doe" />
+                                    <div className="col-span-2">
+                                        <Input label="CEO Secure Email" type="email" value={ceo.email} onChange={(v: string) => setCeo({...ceo, email: v})} required placeholder="john.doe@company.com" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {step === 2 && (
                         <div className="space-y-6 animate-fade-in">
-                            <h3 className="text-lg font-semibold text-emerald-400 mb-4">Step 2: Network Scope</h3>
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">2. Regional Hierarchy</h3>
+                            <p className="text-sm text-gray-400">Create global Area Managers to supervise specific store clusters.</p>
                             
-                            <div className="p-6 bg-[#0a0a0a] border border-gray-800 rounded-xl space-y-4">
-                                <label className="block text-sm font-medium text-gray-300">
-                                    Total Stores (Locations) to Provision
-                                </label>
-                                <input 
-                                    type="number" 
-                                    min="1" 
-                                    max="500"
-                                    required
-                                    value={formData.store_count}
-                                    onChange={(e) => setFormData({...formData, store_count: parseInt(e.target.value) || 1})}
-                                    className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors text-xl font-mono"
-                                />
-                                
-                                {formData.store_count > 20 && (
-                                    <div className="mt-4 p-4 bg-amber-900/20 border border-amber-500/50 rounded-lg flex items-start gap-3">
-                                        <Building2 className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                                        <p className="text-amber-200 text-sm leading-relaxed">
-                                            <strong>Enterprise Deal Detected.</strong> Generating a proposal for {formData.store_count} locations exceeds the automated Reseller threshold. This deal will be placed under <strong>AGV Master Review</strong> and routed to the executive board. You remain the originator and are eligible for the finder's fee payout upon successful closing.
-                                        </p>
+                            <div className="space-y-4">
+                                {areaManagers.map((am, index) => (
+                                    <div key={am.temp_id} className="p-5 bg-[#0a0a0a] border border-gray-800 rounded-xl grid grid-cols-12 gap-4 items-end relative group">
+                                        <div className="col-span-3">
+                                            <Input label="First Name" value={am.first_name} onChange={(v: string) => { const newAm = [...areaManagers]; newAm[index].first_name = v; setAreaManagers(newAm); }} required />
+                                        </div>
+                                        <div className="col-span-3">
+                                            <Input label="Last Name" value={am.last_name} onChange={(v: string) => { const newAm = [...areaManagers]; newAm[index].last_name = v; setAreaManagers(newAm); }} required />
+                                        </div>
+                                        <div className="col-span-3">
+                                            <Input label="Email" type="email" value={am.email} onChange={(v: string) => { const newAm = [...areaManagers]; newAm[index].email = v; setAreaManagers(newAm); }} required />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <Input label="Region" value={am.region} onChange={(v: string) => { const newAm = [...areaManagers]; newAm[index].region = v; setAreaManagers(newAm); }} required />
+                                        </div>
+                                        <div className="col-span-1 pb-2">
+                                            <button type="button" onClick={() => removeAreaManager(am.temp_id)} className="text-red-500 hover:text-red-400">
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
-                                )}
+                                ))}
                             </div>
 
-                            <div className="pt-6 flex justify-between">
+                            <button type="button" onClick={addAreaManager} className="flex items-center gap-2 text-emerald-500 hover:text-emerald-400 font-medium bg-emerald-900/20 px-4 py-2 rounded-lg border border-emerald-900/40">
+                                <UserPlus className="w-4 h-4" /> Add Area Manager
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-6 animate-fade-in">
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">3. Physical Store Network</h3>
+                            <p className="text-sm text-gray-400">Provision valid database entities for each restaurant location.</p>
+                            
+                            <div className="space-y-4">
+                                {stores.map((store, index) => (
+                                    <div key={store.id} className="p-5 bg-[#0a0a0a] border border-gray-800 rounded-xl grid grid-cols-12 gap-4 items-end relative">
+                                        <div className="col-span-3">
+                                            <Input label="Store Name" value={store.name} onChange={(v: string) => { const newS = [...stores]; newS[index].name = v; setStores(newS); }} required placeholder="e.g. Miami Beach" />
+                                        </div>
+                                        <div className="col-span-3">
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider">Area Manager Supervisor</label>
+                                                <select 
+                                                    value={store.area_manager_temp_id} 
+                                                    onChange={(e) => { const newS = [...stores]; newS[index].area_manager_temp_id = e.target.value; setStores(newS); }}
+                                                    className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-emerald-500 transition-colors text-sm"
+                                                >
+                                                    <option value="">-- Master Pool --</option>
+                                                    {areaManagers.map(am => (
+                                                        <option key={am.temp_id} value={am.temp_id}>{am.first_name} {am.last_name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="col-span-2">
+                                            <Input label="Lbs / Guest" type="number" step="0.01" value={store.target_lbs.toString()} onChange={(v: string) => { const newS = [...stores]; newS[index].target_lbs = parseFloat(v); setStores(newS); }} required />
+                                        </div>
+                                        <div className="col-span-3">
+                                            <Input label="Target Cost / Guest" type="number" step="0.01" value={store.target_cost.toString()} onChange={(v: string) => { const newS = [...stores]; newS[index].target_cost = parseFloat(v); setStores(newS); }} required />
+                                        </div>
+                                        <div className="col-span-1 pb-2 text-right">
+                                            <button type="button" onClick={() => removeStore(store.id)} className="text-red-500 hover:text-red-400">
+                                                <Trash2 className="w-5 h-5 mx-auto" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button type="button" onClick={addStore} className="flex items-center gap-2 text-emerald-500 hover:text-emerald-400 font-medium bg-emerald-900/20 px-4 py-2 rounded-lg border border-emerald-900/40">
+                                <MapPin className="w-4 h-4" /> Add Corporate Store
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 4 && (
+                        <div className="space-y-6 animate-fade-in">
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">4. Core Meat Portfolio</h3>
+                            <p className="text-sm text-gray-400">Establish the initial protein dictionary and localized per-pound baselines.</p>
+                            
+                            <div className="space-y-4 max-w-2xl">
+                                {proteins.map((p, index) => (
+                                    <div key={p.id} className="flex gap-4 items-end">
+                                        <div className="flex-1">
+                                            <Input label="Protein Name" value={p.name} onChange={(v: string) => { const n = [...proteins]; n[index].name = v; setProteins(n); }} required />
+                                        </div>
+                                        <div className="w-48">
+                                            <Input label="Cost per LB ($)" type="number" step="0.01" value={p.cost_per_lb.toString()} onChange={(v: string) => { const n = [...proteins]; n[index].cost_per_lb = parseFloat(v); setProteins(n); }} required />
+                                        </div>
+                                        <div className="pb-2">
+                                            <button type="button" onClick={() => removeProtein(p.id)} className="text-red-500 hover:text-red-400">
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button type="button" onClick={addProtein} className="flex items-center gap-2 text-emerald-500 hover:text-emerald-400 font-medium bg-emerald-900/20 px-4 py-2 rounded-lg border border-emerald-900/40">
+                                <Bone className="w-4 h-4" /> Add Custom Protein
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 5 && (
+                        <div className="space-y-6 animate-fade-in">
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">5. Final Validation Check</h3>
+                            
+                            <div className="p-8 bg-[#0a0a0a] border border-gray-800 rounded-xl space-y-6">
+                                <div className="grid grid-cols-2 gap-8 text-sm">
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Target Organization</span>
+                                        <span className="text-xl font-bold text-white">{companyName}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Director/CEO</span>
+                                        <span className="text-lg text-gray-200">{ceo.first_name} {ceo.last_name} ({ceo.email})</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Total Regional Leadership</span>
+                                        <span className="text-lg text-emerald-400">{areaManagers.length} Directors Active</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Physical Store Map</span>
+                                        <span className="text-lg text-emerald-400">{stores.length} Retail Locations</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">Protein Inventory Dictionary</span>
+                                        <span className="text-lg text-emerald-400">{proteins.length} Core Meats</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="pt-6 border-t border-gray-800">
+                                    <div className="flex items-start gap-3 p-4 bg-emerald-900/10 border border-emerald-900/50 rounded-lg">
+                                        <FileSpreadsheet className="w-6 h-6 text-emerald-500 shrink-0" />
+                                        <p className="text-gray-300 text-sm">
+                                            By clicking build, you are triggering a massive autonomous database transaction. 
+                                            This will instantly generate the isolated multitenant instance, seed all users, link corporate hierarchies, 
+                                            and inject the initial datasets. Welcome emails with generic passwords will be dispersed.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Navigation Footer */}
+                    {step < 6 && (
+                        <div className="mt-12 flex justify-between items-center pt-6 border-t border-gray-800">
+                            {step > 1 ? (
                                 <button type="button" onClick={handleBack} className="text-gray-400 hover:text-white px-6 py-3 rounded-lg font-medium transition-colors">
                                     Back
                                 </button>
-                                <button disabled={loading} type="submit" className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/40 transition-all">
-                                    {loading ? 'Processing Protocol...' : 'Generate Smart Protocol'}
+                            ) : <div></div>}
+                            
+                            {step < 5 ? (
+                                <button type="submit" className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/40 transition-all">
+                                    Next Phase <ArrowRight className="w-5 h-5" />
                                 </button>
-                            </div>
+                            ) : (
+                                <button disabled={loading || !companyName} type="submit" className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/40 transition-all">
+                                    {loading ? 'Executing Master Blueprint...' : 'Build Organization & Initialize AI'} 
+                                    {!loading && <CheckCircle2 className="w-5 h-5" />}
+                                </button>
+                            )}
                         </div>
                     )}
 
-                    {step === 3 && successPayload && (
-                        <div className="text-center py-12 space-y-6 animate-fade-in">
-                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-900/30 mb-4">
-                                <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+                    {/* Success Screen */}
+                    {step === 6 && successPayload && (
+                        <div className="text-center py-16 space-y-6 animate-fade-in">
+                            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-900/30 mb-4 animate-bounce">
+                                <CheckCircle2 className="w-12 h-12 text-emerald-400" />
                             </div>
-                            <h3 className="text-2xl font-bold text-white">Proposal Generated Successfully</h3>
-                            <p className="text-gray-400 max-w-md mx-auto">
-                                {successPayload.message}
+                            <h3 className="text-3xl font-bold text-white">Instance Provisioned</h3>
+                            <p className="text-emerald-400 text-lg">
+                                {companyName} is fully operational.
                             </p>
                             
-                            <div className="mt-8 p-6 bg-[#0a0a0a] border border-gray-800 rounded-xl inline-block text-left w-full max-w-md">
-                                <label className="block text-xs text-gray-500 uppercase tracking-wider mb-2">Secure Client Link (TripleSeat Style)</label>
-                                <div className="flex gap-2">
-                                    <input 
-                                        readOnly 
-                                        value={`https://brasameat.com/proposal/sign/${successPayload.proposal.id}`} 
-                                        className="w-full bg-[#111] text-indigo-300 font-mono text-sm p-3 rounded border border-gray-700" 
-                                        title="Proposal URL"
-                                    />
-                                    <button type="button" onClick={() => navigator.clipboard.writeText(`https://brasameat.com/proposal/sign/${successPayload.proposal.id}`)} className="bg-gray-800 hover:bg-gray-700 text-white px-4 rounded transition-colors text-sm font-medium">
-                                        Copy
-                                    </button>
-                                </div>
+                            <div className="max-w-md mx-auto mt-8 bg-[#0a0a0a] border border-gray-800 rounded-xl p-6 text-left">
+                                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Instance Details</h4>
+                                <ul className="space-y-3 text-sm text-gray-300">
+                                    <li><strong className="text-white">Tenant ID:</strong> {successPayload.company.id}</li>
+                                    <li><strong className="text-white">Subdomain:</strong> {successPayload.company.subdomain}</li>
+                                    <li><strong className="text-white">Owner Portal:</strong> Activated</li>
+                                </ul>
                             </div>
-
+                            
                             <div className="pt-8">
-                                <button onClick={() => navigate('/partner/dashboard')} className="text-emerald-500 hover:text-emerald-400 font-medium">
-                                    Return to Dashboard
+                                <button type="button" onClick={() => navigate('/partner/dashboard')} className="text-gray-400 hover:text-white px-6 py-3 border border-gray-700 rounded-lg font-medium transition-colors">
+                                    Return to Command Center
                                 </button>
                             </div>
                         </div>
                     )}
+
                 </form>
             </div>
         </div>
     );
 };
 
-const Input = ({ label, value, onChange, type = "text", required, placeholder }: any) => (
-    <div>
-        <label className="block text-sm font-medium text-gray-400 mb-2">{label}</label>
+// Reusable Input Component (Tailwind inline)
+const Input = ({ label, type = 'text', value, onChange, required = false, placeholder = '', step }: any) => (
+    <div className="space-y-1">
+        <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider">
+            {label} {required && <span className="text-red-500">*</span>}
+        </label>
         <input 
             type={type} 
-            value={value} 
-            onChange={(e) => onChange(e.target.value)} 
+            value={value}
+            step={step}
+            onChange={(e) => onChange(e.target.value)}
             required={required}
             placeholder={placeholder}
-            className="w-full bg-[#0a0a0a] border border-gray-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+            className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition-colors text-sm"
         />
-    </div>
-);
-
-const Select = ({ label, value, onChange, options }: any) => (
-    <div>
-        <label className="block text-sm font-medium text-gray-400 mb-2">{label}</label>
-        <select 
-            value={value} 
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-[#0a0a0a] border border-gray-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors appearance-none"
-            title={label}
-        >
-            {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
-    </div>
-);
-
-const StepDot = ({ active, number }: { active: boolean, number: number }) => (
-    <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold border-2 transition-colors ${active ? 'border-emerald-500 text-emerald-400 bg-emerald-900/20' : 'border-gray-800 text-gray-600'}`}>
-        {number}
     </div>
 );

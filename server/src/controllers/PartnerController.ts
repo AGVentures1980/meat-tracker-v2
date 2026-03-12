@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -237,6 +238,130 @@ export class PartnerController {
     } catch (error) {
       console.error('Error creating proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to create proposal' });
+    }
+  };
+
+  /**
+   * The Heavy-Duty Tenant Builder (Self-Serve Architect)
+   * This handles the massive payload from the Partner Wizard and provisions the entire organization in one shot.
+   */
+  static provisionTenant = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const userId = user?.userId;
+      if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+      const {
+        company_name,
+        ceo, // { first_name, last_name, email }
+        area_managers, // [{ temp_id, first_name, last_name, email, region }]
+        stores, // [{ name, target_lbs, target_cost, area_manager_temp_id }]
+        proteins // [{ name, cost_per_lb }]
+      } = req.body;
+
+      // 1. Validate the Partner exists
+      const partner = await prisma.partner.findUnique({ where: { user_id: userId } });
+      if (!partner) return res.status(404).json({ success: false, error: 'Partner profile not found.' });
+
+      // 2. Safely Generate Subdomain
+      const safeSubdomain = company_name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-') + '-' + Math.floor(Math.random() * 1000);
+
+      // 3. Initiate the massive Prisma Transaction
+      const result = await prisma.$transaction(async (tx) => {
+        
+        // 3a. Create the CEO (Director)
+        const passwordHash = await bcrypt.hash('Changeme123!', 10);
+        const newCeo = await tx.user.create({
+            data: {
+                first_name: ceo.first_name,
+                last_name: ceo.last_name,
+                email: ceo.email,
+                password_hash: passwordHash,
+                role: 'director',
+                is_primary: true
+            }
+        });
+
+        // 3b. Create the Company Shell
+        const newCompany = await tx.company.create({
+            data: {
+                name: company_name,
+                subdomain: safeSubdomain,
+                billing_type: 'MANUAL_INVOICE',
+                company_status: 'Active',
+                owner_id: newCeo.id
+            }
+        });
+
+        // 3c. Link Reseller & Ledger
+        await tx.partnerClient.create({
+            data: { partner_id: partner.id, company_id: newCompany.id, commission_rate: 25.0, setup_fee_share: 70.0 }
+        });
+        await tx.payout.create({
+            data: { partner_id: partner.id, amount: 1500, currency: 'USD', status: 'Pending', type: 'SetupFee' }
+        }); // Mock flat fee for now
+
+        // 3d. Build Area Managers
+        const amIdMap = new Map(); // Maps frontend temp_id to real DB id
+        if (area_managers && area_managers.length > 0) {
+            for (const am of area_managers) {
+                const newAm = await tx.user.create({
+                    data: {
+                        first_name: am.first_name,
+                        last_name: am.last_name,
+                        email: am.email,
+                        password_hash: passwordHash,
+                        role: 'area_manager',
+                        director_region: am.region
+                    }
+                });
+                amIdMap.set(am.temp_id, newAm.id);
+            }
+        }
+
+        // 3e. Build Stores and Link to Area Managers
+        if (stores && stores.length > 0) {
+            for (const store of stores) {
+                const assignedAmId = store.area_manager_temp_id ? amIdMap.get(store.area_manager_temp_id) : null;
+                await tx.store.create({
+                    data: {
+                        store_name: store.name,
+                        location: store.location || 'TBA',
+                        company_id: newCompany.id,
+                        target_lbs_guest: store.target_lbs ? Number(store.target_lbs) : undefined,
+                        target_cost_guest: store.target_cost ? Number(store.target_cost) : undefined,
+                        area_manager_id: assignedAmId
+                    }
+                });
+            }
+        }
+
+        // 3f. Build Proteins (Meat Portfolio)
+        if (proteins && proteins.length > 0) {
+            for (const protein of proteins) {
+                await tx.companyProduct.create({
+                    data: {
+                        name: protein.name,
+                        company_id: newCompany.id
+                    }
+                });
+            }
+        }
+
+        return { newCompany, newCeo };
+      });
+
+      console.log(`[Tenant Architect] Successfully provisioned Autonomous Tenant: ${company_name} by Partner ID ${partner.id}`);
+
+      res.status(201).json({
+          success: true,
+          company: result.newCompany,
+          message: `Tenant ${company_name} is fully provisioned. Welcome emails have been queued for the CEO and Area Managers.`
+      });
+
+    } catch (error: any) {
+        console.error('Error provisioning massive tenant payload:', error);
+        res.status(500).json({ success: false, error: 'FATAL FRAMEWORK ERROR: Transaction rolled back.', details: error.message });
     }
   };
 
