@@ -84,6 +84,7 @@ import vaultRoutes from './routes/vault.routes';
 import themeRoutes from './routes/theme.routes';
 import partnerRoutes from './routes/partner.routes';
 import agvAdminRoutes from './routes/agv-admin.routes';
+import ediRoutes from './routes/edi.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';

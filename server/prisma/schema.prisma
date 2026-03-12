@@ -27,6 +27,7 @@ model Company {
   billing_type                String              @default("STRIPE_AUTO")
   company_status              String              @default("Pending")
   stripe_customer_id          String?             @unique
+  api_key                     String?             @unique
   products                    CompanyProduct[]
   vault_messages              OwnerVaultMessage[]
   PartnerClient               PartnerClient[]
