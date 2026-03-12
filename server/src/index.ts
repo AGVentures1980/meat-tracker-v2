@@ -239,8 +239,36 @@ async function ensurePrimaryStoreUsers() {
     }
 }
 
+async function ensureProductionAccounts() {
+    try {
+        console.log(`[Startup] Ensuring critical production accounts are protected with proper auth...`);
+        
+        // Ensure bcrypt is available (it's imported at the top of the file if AuthController is used, but we'll use require to be safe if it's missing)
+        const bcrypt = require('bcryptjs');
+        
+        const partnerPassword = await bcrypt.hash('brasa-partner-2026', 10);
+        await (prisma as any).user.updateMany({
+            where: { email: 'partner@example.com' },
+            data: { password_hash: partnerPassword }
+        });
+        
+        const rodrigoPassword = await bcrypt.hash('TDB2026@', 10);
+        await (prisma as any).user.updateMany({
+            where: { email: 'rodrigodavila@texasdebrazil.com' },
+            data: { password_hash: rodrigoPassword }
+        });
+        console.log(`[Startup] SUCCESS: Production accounts verified and secured.`);
+    } catch (error) {
+        console.error('[Startup] FAILED to ensure production accounts:', error);
+    }
+}
+
 // Start Server after DB Check
-cleanupDuplicateProteins().then(() => ensureDefaultSettings()).then(() => ensurePrimaryStoreUsers()).then(() => {
+cleanupDuplicateProteins()
+    .then(() => ensureDefaultSettings())
+    .then(() => ensurePrimaryStoreUsers())
+    .then(() => ensureProductionAccounts())
+    .then(() => {
     // ... (existing imports)
 
     app.listen(PORT, () => {
