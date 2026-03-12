@@ -327,14 +327,27 @@ export class PartnerController {
         const baseTemplate = await tx.storeTemplate.create({
             data: {
                 company_id: newCompany.id,
-                name: "Base Default Template",
-                description: "Standard daily operating parameters generated automatically.",
+                name: "Template Básico",
+                description: "Configurações padrão (Lbs/Guest, Custo e Target de Cortes).",
                 is_system: true,
                 config: {
-                    daily_budget: 1500,
-                    waste_threshold: 5,
-                    labor_target: 18,
-                    preferred_vendors: []
+                    target_lbs_guest: 1.76,
+                    target_cost_guest: 9.94,
+                    dinner_price: 64.00,
+                    lunch_price: 44.00,
+                    serves_lamb_chops_rodizio: true,
+                    protein_targets: {
+                        'Beef Ribs': 0.12,
+                        'Filet Mignon': 0.15,
+                        'Picanha': 0.14,
+                        'Fraldinha': 0.13,
+                        'Chicken': 0.07,
+                        'Lamb Chops': 0.05,
+                        'Sirloin': 0.08,
+                        'Sausage': 0.04,
+                        'Pork Ribs': 0.06,
+                        'Pork Loin': 0.05
+                    }
                 }
             }
         });

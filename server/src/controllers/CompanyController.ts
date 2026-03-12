@@ -117,15 +117,44 @@ export class CompanyController {
                 return res.status(403).json({ error: 'Access Denied' });
             }
 
+            // 1. Find the default system template for the company
+            const defaultTemplate = await prisma.storeTemplate.findFirst({
+                where: { company_id: user.companyId, is_system: true }
+            });
+            const cfg = defaultTemplate ? (defaultTemplate.config as any) : null;
+
+            // 2. Create the store linking to the base template
             const store = await prisma.store.create({
                 data: {
                     company_id: user.companyId,
                     store_name,
                     location,
-                    target_cost_guest: 9.94, // Default
-                    target_lbs_guest: 1.76
+                    active_template_id: defaultTemplate?.id || undefined,
+                    target_cost_guest: cfg?.target_cost_guest ?? 9.94,
+                    target_lbs_guest: cfg?.target_lbs_guest ?? 1.76,
+                    lunch_price: cfg?.lunch_price ?? 45.00,
+                    dinner_price: cfg?.dinner_price ?? 65.00,
+                    serves_lamb_chops_rodizio: cfg?.serves_lamb_chops_rodizio ?? true
                 }
             });
+
+            // 3. Clone all CompanyProducts into StoreMeatTargets for this store
+            const companyProducts = await prisma.companyProduct.findMany({
+                where: { company_id: user.companyId }
+            });
+            const proteinTargetsCfg = cfg?.protein_targets || {};
+
+            for (const product of companyProducts) {
+                const defaultTarget = proteinTargetsCfg[product.name] || 1.76;
+                await prisma.storeMeatTarget.create({
+                    data: {
+                        store_id: store.id,
+                        protein: product.name,
+                        target: defaultTarget,
+                        cost_target: null 
+                    }
+                });
+            }
 
             await AuditService.logAction(
                 user.id,
