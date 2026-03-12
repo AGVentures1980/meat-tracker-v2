@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface AuthContextType {
     user: any | null;
     selectedCompany: string | null;
-    login: (email: string, pass: string) => Promise<any | null>;
+    login: (email: string, pass: string, portalCompany?: string) => Promise<any | null>;
     logout: () => void;
     setCompany: (id: string | null) => void;
     isLoading: boolean;
@@ -37,13 +37,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const login = async (email: string, pass: string) => {
+    const login = async (email: string, pass: string, portalCompany?: string) => {
         try {
             const baseUrl = '/api/v1';
             const res = await fetch(`${baseUrl}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: pass })
+                body: JSON.stringify({ email, password: pass, portalCompany })
             });
 
             const data = await res.json();

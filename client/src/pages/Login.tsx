@@ -33,7 +33,7 @@ export const Login = () => {
         setLoading(true);
 
         try {
-            const loginRes = await login(email, password);
+            const loginRes = await login(email, password, theme?.companyName);
             if (loginRes?.success) {
                 // Respect original destination if they were intercepted by ProtectedRoute
                 const destination = fromPath || loginRes.redirectPath || '/dashboard';
