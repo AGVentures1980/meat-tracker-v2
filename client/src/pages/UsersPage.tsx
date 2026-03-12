@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Network, Search, User as UserIcon, Shield, Building2, ChevronDown, Plus, Trash2 } from 'lucide-react';
+import { Network, User as UserIcon, Shield, Building2, ChevronDown, Plus, Trash2 } from 'lucide-react';
 
 interface NetworkUser {
     id: string;
@@ -31,9 +31,9 @@ interface HierarchyNode {
 export const UsersPage = () => {
     const { user } = useAuth();
     
-    // Auth levels
-    const isMasterOrAdmin = user?.role === 'admin' || user?.role === 'director' || user?.email === 'alexandre@alexgarciaventures.co';
-    const isAreaManager = user?.role === 'area_manager';
+    // Auth levels based on the validated scope injected by the backend token
+    const isMasterOrAdmin = user?.scope?.type === 'GLOBAL' || user?.scope?.type === 'COMPANY';
+    const isAreaManager = user?.scope?.type === 'AREA';
 
     const [isLoading, setIsLoading] = useState(true);
 

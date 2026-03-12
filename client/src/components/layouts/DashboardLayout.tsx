@@ -56,18 +56,20 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     }
 
     if (selectedCompany) {
-        const isStoreLevel = !['admin', 'director', 'owner', 'area_manager'].includes(user?.role || '');
+        const isStoreLevel = user?.scope?.type === 'STORE';
+        const isAreaLevel = user?.scope?.type === 'AREA';
+        const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
 
         navItems.push(
             {
                 section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Accountability)' : 'MARKET DATA'), items: [
                     { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Meat Prices / Invoices') : 'Protein Market Cost', path: '/prices' },
-                    ...(isStoreLevel ? [{ icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' }] : []),
+                    ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' }] : []),
                 ]
             }
         );
 
-        if (isStoreLevel) {
+        if (isStoreLevel || isAreaLevel) {
             navItems.push({
                 section: t('nav.section_run') || 'RUN (Shift Command)', items: [
                     { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
@@ -99,8 +101,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             }
         );
 
-        // Add Company Settings for Directors/Admins/Master/Owners
-        if (user?.role === 'director' || user?.role === 'admin' || user?.role === 'owner' || isMaster) {
+        // Add Company Settings for Directors/Admins/Master (Company or Global Scope)
+        if (isCompanyOrGlobal) {
 
             const manageItems = [
                 { icon: Activity, label: 'Network Command Center', path: '/owner' },

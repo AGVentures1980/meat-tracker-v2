@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { PlayCircle, CheckCircle2 } from 'lucide-react';
 
 export const PartnerTraining: React.FC = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
 
     const [loading, setLoading] = useState(false);

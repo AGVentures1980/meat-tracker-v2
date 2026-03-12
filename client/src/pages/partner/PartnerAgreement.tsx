@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, FileText, CheckCircle2 } from 'lucide-react';
 
 export const PartnerAgreement: React.FC = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
 
     const [formData, setFormData] = useState({
