@@ -123,7 +123,10 @@ export const OwnerController = {
             }
 
             const companies = await prisma.company.findMany({
-                where: whereClause,
+                where: {
+                    ...whereClause,
+                    company_status: { not: 'Archived' }
+                },
                 include: {
                     _count: {
                         select: { stores: true }
@@ -134,6 +137,41 @@ export const OwnerController = {
             return res.json({ success: true, companies });
         } catch (error: any) {
             return res.status(500).json({ error: error.message });
+        }
+    },
+
+    async archiveCompany(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+            if (user.role !== 'admin') {
+                return res.status(403).json({ error: 'Only admins can archive entire organizations.' });
+            }
+
+            const { id } = req.params;
+
+            // Ensure company exists
+            const company = await prisma.company.findUnique({ where: { id } });
+            if (!company) {
+                return res.status(404).json({ error: 'Company not found' });
+            }
+
+            // Protect the main AGV / Demo companies from accidental deletion
+            if (company.id === 'CMP-001' || company.name.includes('Texas de Brazil') || company.name.includes('Fogo de Chão') || company.name.includes('Brasa Group')) {
+                return res.status(403).json({ error: 'You cannot archive system-protected master organizations.' });
+            }
+
+            // Perform soft delete
+            await prisma.company.update({
+                where: { id },
+                data: { company_status: 'Archived' }
+            });
+
+            return res.json({ success: true, message: `Organization ${company.name} successfully archived.` });
+        } catch (error: any) {
+            console.error('Archive Company Error:', error);
+            return res.status(500).json({ error: 'Failed to archive organization.' });
         }
     },
 

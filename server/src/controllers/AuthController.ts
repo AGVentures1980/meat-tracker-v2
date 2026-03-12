@@ -13,7 +13,7 @@ export class AuthController {
 
     static async login(req: Request, res: Response) {
         try {
-            let { email, password } = req.body;
+            let { email, password, portalCompany } = req.body;
             email = email.toLowerCase().trim();
             const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
 
@@ -40,16 +40,21 @@ export class AuthController {
             // 2. Verify Password
             const valid = await bcrypt.compare(password, user.password_hash);
             if (!valid) {
-                if (email === 'rodrigodavila@texasdebrazil.com') {
-                    // Diagnostic DB trap to bypass lack of Railway CLI logs
-                    const hexPass = Buffer.from(password, 'utf8').toString('hex');
-                    await prisma.user.update({
-                        where: { email },
-                        data: { director_region: `FAIL_HEX: [${hexPass}] RAW: [${password}]` }
-                    });
-                }
                 await SentinelService.trackAttempt(clientIp);
                 return res.status(401).json({ error: 'Invalid credentials' });
+            }
+
+            console.log(`[LOGIN TRACE] email=${email}, role=${user.role}, portalCompany=${portalCompany}`);
+
+            // Enforce Tenant UI Boundaries for Users
+            if (user.role !== 'admin' && user.role !== 'partner' && portalCompany) {
+                const pc = portalCompany.toLowerCase();
+                if (pc.includes('texas') && !email.includes('@texasdebrazil.com')) {
+                    return res.status(403).json({ error: 'Acesso Negado: Realize o login no portal do Fogo de Chão.' });
+                }
+                if (pc.includes('fogo') && !email.includes('@fogo.com')) {
+                    return res.status(403).json({ error: 'Acesso Negado: Realize o login no portal do Texas de Brazil.' });
+                }
             }
 
             // Success - Reset Sentinel

@@ -11,8 +11,9 @@ const router = Router();
 // Global Setup (Developer/Admin only)
 router.get('/setup-owner', OwnerController.setupOwnerCompanies);
 
-// Multi-Company Retrieval
+// Multi-Company Retrieval & Management
 router.get('/my-companies', requireAuth, OwnerController.getMyCompanies);
+router.delete('/company/:id', requireAuth, OwnerController.archiveCompany);
 
 // Financial Billing
 router.post('/billing/generate', requireAuth, BillingController.generateMonthlyInvoice);
