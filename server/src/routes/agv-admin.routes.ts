@@ -18,4 +18,7 @@ router.get('/network', AdminPartnerController.getAllPartners);
 // Get Enterprise/Fraud Escalated Proposals (> 20 Stores)
 router.get('/escalated', AdminPartnerController.getEscalatedProposals);
 
+// Execute Batched PayPal Payouts
+router.post('/payouts/execute', AdminPartnerController.executePayouts);
+
 export default router;

@@ -8,9 +8,9 @@ export const PartnerNetwork: React.FC = () => {
     const [partners, setPartners] = useState<any[]>([]);
     const [escalated, setEscalated] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [executingPayout, setExecutingPayout] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchNetworkData = async () => {
+    const fetchNetworkData = async () => {
             try {
                 const [networkRes, escalatedRes] = await Promise.all([
                     fetch(`${API_URL}/api/v1/admin-partner/network`, { headers: { 'Authorization': `Bearer ${user?.token}` } }),
@@ -34,6 +34,38 @@ export const PartnerNetwork: React.FC = () => {
 
         fetchNetworkData();
     }, []);
+
+    const handleExecutePayouts = async (partnerId: string, partnerName: string) => {
+        if (!window.confirm(`Are you sure you want to execute all Pending PayPal payouts for ${partnerName}? This action cannot be undone and transfers real funds.`)) {
+            return;
+        }
+
+        setExecutingPayout(partnerId);
+        try {
+            const res = await fetch(`${API_URL}/api/v1/admin-partner/payouts/execute`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user?.token}` 
+                },
+                body: JSON.stringify({ partnerId })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(`Success! \$${data.total_payout.toFixed(2)} disbursed to ${partnerName}. PayPal Batch ID: ${data.batch_id}`);
+                // Refresh network data to show 0 pending
+                await fetchNetworkData();
+            } else {
+                alert(`Payout Failed: ${data.error || 'Unknown Error'}`);
+            }
+        } catch (err) {
+            console.error("Payout execution error:", err);
+            alert("A network error occurred while executing the payout.");
+        } finally {
+            setExecutingPayout(null);
+        }
+    };
 
     if (loading) {
         return <div className="p-8 text-gray-400">Synchronizing Global Network...</div>;
@@ -100,12 +132,18 @@ export const PartnerNetwork: React.FC = () => {
                         </div>
 
                         {partner.metrics.pendingPayouts > 0 ? (
-                            <div className="flex items-center gap-2 p-3 bg-indigo-900/20 rounded-lg border border-indigo-500/30">
-                                <Clock className="w-4 h-4 text-indigo-400" />
-                                <span className="text-sm font-medium text-indigo-200">
-                                    ${partner.metrics.pendingPayouts.toLocaleString()} Payout Pending
+                            <button 
+                                onClick={() => handleExecutePayouts(partner.id, partner.name)}
+                                disabled={executingPayout === partner.id}
+                                className="w-full flex items-center justify-center gap-2 p-3 bg-indigo-900/40 hover:bg-indigo-600/50 rounded-lg border border-indigo-500/50 transition-all shadow-md group-hover:border-indigo-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                            >
+                                <Clock className={`w-4 h-4 ${executingPayout === partner.id ? 'text-gray-400 animate-spin' : 'text-indigo-400 group-hover:text-white'}`} />
+                                <span className={`text-sm font-bold ${executingPayout === partner.id ? 'text-gray-400' : 'text-indigo-200 group-hover:text-white'}`}>
+                                    {executingPayout === partner.id 
+                                        ? 'EXECUTING TRANSFER...' 
+                                        : `Approve & Pay \$${partner.metrics.pendingPayouts.toLocaleString()}`}
                                 </span>
-                            </div>
+                            </button>
                         ) : (
                             <div className="flex items-center gap-2 p-3 bg-[#0a0a0a] rounded-lg">
                                 <CheckCircle className="w-4 h-4 text-gray-600" />

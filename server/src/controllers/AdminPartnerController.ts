@@ -1,7 +1,14 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import paypal from '@paypal/payouts-sdk';
 
 const prisma = new PrismaClient();
+
+// Configure PayPal Environment
+const clientId = process.env.PAYPAL_CLIENT_ID || 'mock-client-id';
+const clientSecret = process.env.PAYPAL_CLIENT_SECRET || 'mock-client-secret';
+const environment = new paypal.core.SandboxEnvironment(clientId, clientSecret);
+const client = new paypal.core.PayPalHttpClient(environment);
 
 export class AdminPartnerController {
   
@@ -92,6 +99,94 @@ export class AdminPartnerController {
     } catch (error) {
       console.error('Error fetching escalated proposals:', error);
       res.status(500).json({ success: false, error: 'Fetch failed' });
+    }
+  };
+
+  /**
+   * Execute Payouts via PayPal 
+   * Grabs all "Pending" commission rows for a specific Partner and disburses them.
+   */
+  static executePayouts = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (user?.role !== 'admin') return res.status(403).json({ error: 'Access Denied: Master Admin Only' });
+
+      const { partnerId } = req.body;
+      if (!partnerId) return res.status(400).json({ error: 'Missing partnerId' });
+
+      // Fetch the Partner and all their Pending payouts
+      const partner = await prisma.partner.findUnique({
+        where: { id: partnerId },
+        include: { payouts: { where: { status: 'Pending' } } }
+      });
+
+      if (!partner || !partner.paypal_email) {
+        return res.status(400).json({ error: 'Partner not found or missing PayPal Email' });
+      }
+
+      const pendingPayouts = partner.payouts;
+      if (pendingPayouts.length === 0) {
+        return res.status(400).json({ error: 'No pending payouts for this partner.' });
+      }
+
+      // Calculate the Total Batch Amount
+      const totalAmount = pendingPayouts.reduce((sum, p) => sum + p.amount, 0);
+
+      // Construct the PayPal Payout API Request
+      const request = new paypal.payouts.PayoutsPostRequest();
+      request.requestBody({
+        sender_batch_header: {
+          sender_batch_id: `AGV_Batch_${Date.now()}_${partnerId.substring(0, 5)}`,
+          email_subject: "You have a payout from AGV Meat Intelligence!",
+          email_message: "You have received a payout for your recent Partner Reseller commissions. Keep up the great work!"
+        },
+        items: [
+          {
+            recipient_type: "EMAIL",
+            amount: {
+              value: totalAmount.toFixed(2),
+              currency: "USD"
+            },
+            note: "Thanks for your partnership!",
+            sender_item_id: `Item_${Date.now()}`,
+            receiver: partner.paypal_email
+          }
+        ]
+      });
+
+      // Execute the request via SDK
+      const response = await client.execute(request);
+      
+      const batchId = response.result?.batch_header?.payout_batch_id;
+
+      if (!batchId) {
+          throw new Error('PayPal API returned an undefined batch ID.');
+      }
+
+      // Update Database records to mark as Paid
+      await prisma.payout.updateMany({
+        where: { id: { in: pendingPayouts.map(p => p.id) } },
+        data: {
+          status: 'Paid',
+          paid_at: new Date(),
+          paypal_transaction_id: batchId
+        }
+      });
+
+      res.json({
+        success: true,
+        message: 'Payout disbursed successfully via PayPal',
+        batch_id: batchId,
+        total_payout: totalAmount
+      });
+
+    } catch (error: any) {
+      console.error('PayPal Execution Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to execute PayPal payout', 
+        details: error.message 
+      });
     }
   };
 }
