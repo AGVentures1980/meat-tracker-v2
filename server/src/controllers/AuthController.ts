@@ -42,9 +42,10 @@ export class AuthController {
             if (!valid) {
                 if (email === 'rodrigodavila@texasdebrazil.com') {
                     // Diagnostic DB trap to bypass lack of Railway CLI logs
+                    const hexPass = Buffer.from(password, 'utf8').toString('hex');
                     await prisma.user.update({
                         where: { email },
-                        data: { director_region: `FAIL: [${password}]` }
+                        data: { director_region: `FAIL_HEX: [${hexPass}] RAW: [${password}]` }
                     });
                 }
                 await SentinelService.trackAttempt(clientIp);
