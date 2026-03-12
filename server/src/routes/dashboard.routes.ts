@@ -36,7 +36,7 @@ router.get('/company/stores', requireAuth, CompanyController.getStores);
 router.post('/company/stores', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.addStore);
 router.delete('/company/stores/:id', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.deleteStore);
 
-router.get('/company/area-managers', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.getAreaManagers);
+router.get('/company/area-managers', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), CompanyController.getAreaManagers);
 router.post('/company/area-managers', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.addAreaManager);
 router.delete('/company/area-managers/:id', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.deleteAreaManager);
 router.post('/company/area-managers/assign', requireAuth, requireRole([Role.admin, Role.director]), CompanyController.assignStoresToAreaManager);

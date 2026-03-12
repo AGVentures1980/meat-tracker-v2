@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, Bone, UploadCloud, ScanLine, Sparkles, Link as LinkIcon } from 'lucide-react';
+import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, Bone, UploadCloud, ScanLine, Sparkles, Link as LinkIcon, Palette } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const TenantArchitect: React.FC = () => {
@@ -23,6 +23,7 @@ export const TenantArchitect: React.FC = () => {
     ]);
 
     const [integrations, setIntegrations] = useState({ pos_provider: 'Micros', pos_api_key: '', olo_api_key: '' });
+    const [branding, setBranding] = useState({ theme_primary_color: '#7e1518', theme_logo_url: '', theme_bg_url: '' });
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -73,9 +74,11 @@ export const TenantArchitect: React.FC = () => {
                 body: JSON.stringify({
                     company_name: companyName,
                     ceo,
+                    branding,
                     area_managers: areaManagers,
                     stores,
-                    proteins
+                    proteins,
+                    integrations
                 })
             });
 
@@ -86,7 +89,7 @@ export const TenantArchitect: React.FC = () => {
             }
 
             setSuccessPayload(data);
-            setStep(7); // Success screen
+            setStep(8); // Success screen
         } catch (err: any) {
             setError(err.message || 'Failed to generate tenant.');
         } finally {
@@ -108,12 +111,12 @@ export const TenantArchitect: React.FC = () => {
                         <p className="text-sm text-gray-400 mt-2">Self-serve massive deployment engine.</p>
                     </div>
                     <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5, 6].map((num) => (
+                        {[1, 2, 3, 4, 5, 6, 7].map((num) => (
                             <React.Fragment key={num}>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= num ? 'bg-emerald-500 text-white' : 'bg-gray-800 text-gray-500'}`}>
                                     {num}
                                 </div>
-                                {num < 6 && <div className={`w-6 h-[2px] mt-4 ${step > num ? 'bg-emerald-500' : 'bg-gray-800'}`} />}
+                                {num < 7 && <div className={`w-6 h-[2px] mt-4 ${step > num ? 'bg-emerald-500' : 'bg-gray-800'}`} />}
                             </React.Fragment>
                         ))}
                     </div>
@@ -129,7 +132,7 @@ export const TenantArchitect: React.FC = () => {
                     </div>
                 )}
 
-                <form onSubmit={step === 6 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
+                <form onSubmit={step === 7 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
                     
                     {step === 1 && (
                         <div className="space-y-6 animate-fade-in">
@@ -152,7 +155,41 @@ export const TenantArchitect: React.FC = () => {
 
                     {step === 2 && (
                         <div className="space-y-6 animate-fade-in">
-                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">2. Regional Hierarchy</h3>
+                            <h3 className="text-xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200 border-b border-gray-800 pb-2">
+                                <Palette className="w-5 h-5 text-emerald-400" />
+                                2. Branding & Visual Identity (Whitelabel)
+                            </h3>
+                            <p className="text-sm text-gray-400">Configure the cinematic layout engine to instantly morph the UI to match the client's official brand.</p>
+
+                            <div className="p-6 bg-[#0a0a0a] border border-gray-800 rounded-xl space-y-6">
+                                <div className="grid grid-cols-12 gap-6">
+                                    <div className="col-span-8 space-y-4">
+                                        <Input label="High-Res Vector Logo URL (SVG/PNG)" value={branding.theme_logo_url} onChange={(v: string) => setBranding({...branding, theme_logo_url: v})} placeholder="https://cdn.example.com/logo-white.svg" />
+                                        <p className="text-xs text-gray-500 mt-1">For cinematic video backgrounds, solid white (high-contrast) vectors perform best.</p>
+                                    </div>
+                                    <div className="col-span-4">
+                                        <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Primary Brand Accent</label>
+                                        <div className="flex items-center gap-3">
+                                            <input 
+                                                type="color" 
+                                                value={branding.theme_primary_color} 
+                                                onChange={(e) => setBranding({...branding, theme_primary_color: e.target.value})}
+                                                className="w-12 h-12 rounded cursor-pointer bg-transparent border-0 p-0"
+                                            />
+                                            <Input label="" value={branding.theme_primary_color} onChange={(v: string) => setBranding({...branding, theme_primary_color: v})} placeholder="#hex" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="pt-4 border-t border-gray-800">
+                                    <Input label="Cinematic Background (MP4 Video or HD Image URL)" value={branding.theme_bg_url} onChange={(v: string) => setBranding({...branding, theme_bg_url: v})} placeholder="https://cdn.example.com/ambient-loop.mp4" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-6 animate-fade-in">
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">3. Regional Hierarchy</h3>
                             <p className="text-sm text-gray-400">Create global Area Managers to supervise specific store clusters.</p>
                             
                             <div className="space-y-4">
@@ -185,9 +222,9 @@ export const TenantArchitect: React.FC = () => {
                         </div>
                     )}
 
-                    {step === 3 && (
+                    {step === 4 && (
                         <div className="space-y-6 animate-fade-in">
-                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">3. Physical Store Network</h3>
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">4. Physical Store Network</h3>
                             <p className="text-sm text-gray-400">Provision valid database entities for each restaurant location.</p>
                             
                             <div className="space-y-4">
@@ -232,13 +269,13 @@ export const TenantArchitect: React.FC = () => {
                         </div>
                     )}
 
-                    {step === 4 && (
+                    {step === 5 && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="flex justify-between items-end border-b border-gray-800 pb-2">
                                 <div>
                                     <h3 className="text-xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
                                         <Sparkles className="w-5 h-5 text-emerald-400" /> 
-                                        4. AI Invoice Extraction (OCR)
+                                        5. AI Invoice Extraction (OCR)
                                     </h3>
                                     <p className="text-sm text-gray-400 mt-1">Upload vendor invoices to automatically generate the Meat Dictionary and precise $ / Lb Cost Baselines.</p>
                                 </div>
@@ -313,11 +350,11 @@ export const TenantArchitect: React.FC = () => {
                         </div>
                     )}
 
-                    {step === 5 && (
+                    {step === 6 && (
                         <div className="space-y-6 animate-fade-in">
                             <h3 className="text-xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200 border-b border-gray-800 pb-2">
                                 <LinkIcon className="w-5 h-5 text-emerald-400" />
-                                5. Operational Integrations (API)
+                                6. Operational Integrations (API)
                             </h3>
                             <p className="text-sm text-gray-400">Connect the restaurant's Point of Sale and Delivery systems for live metric ingestion.</p>
 
@@ -345,9 +382,9 @@ export const TenantArchitect: React.FC = () => {
                         </div>
                     )}
 
-                    {step === 6 && (
+                    {step === 7 && (
                         <div className="space-y-6 animate-fade-in">
-                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">6. Master Architecture Review</h3>
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">7. Master Architecture Review</h3>
                             
                             <div className="p-8 bg-[#0a0a0a] border border-gray-800 rounded-xl space-y-6">
                                 <div className="grid grid-cols-2 gap-8 text-sm">
@@ -388,7 +425,7 @@ export const TenantArchitect: React.FC = () => {
                     )}
 
                     {/* Navigation Footer */}
-                    {step < 7 && (
+                    {step < 8 && (
                         <div className="mt-12 flex justify-between items-center pt-6 border-t border-gray-800">
                             {step > 1 ? (
                                 <button type="button" onClick={handleBack} className="text-gray-400 hover:text-white px-6 py-3 rounded-lg font-medium transition-colors">
@@ -396,7 +433,7 @@ export const TenantArchitect: React.FC = () => {
                                 </button>
                             ) : <div></div>}
                             
-                            {step < 6 ? (
+                            {step < 7 ? (
                                 <button type="submit" className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/40 transition-all">
                                     Next Phase <ArrowRight className="w-5 h-5" />
                                 </button>
@@ -410,7 +447,7 @@ export const TenantArchitect: React.FC = () => {
                     )}
 
                     {/* Success Screen */}
-                    {step === 7 && successPayload && (
+                    {step === 8 && successPayload && (
                         <div className="text-center py-16 space-y-6 animate-fade-in max-w-2xl mx-auto">
                             <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-yellow-900/30 mb-4 animate-bounce">
                                 <ShieldAlert className="w-12 h-12 text-yellow-500" />
