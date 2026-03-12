@@ -101,7 +101,7 @@ const MasterGuard = () => {
 
     if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
     
-    const isMasterOrAdmin = user.role === 'admin' || user.role === 'director' || user.email.toLowerCase().includes('alexandre@alexgarciaventures.co');
+    const isMasterOrAdmin = user.email.toLowerCase().includes('alexandre@alexgarciaventures.co');
     
     if (!isMasterOrAdmin) return <Navigate to="/dashboard" replace />;
     

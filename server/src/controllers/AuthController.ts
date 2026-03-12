@@ -99,7 +99,7 @@ export class AuthController {
             // Route user depending on Role
             if (user.role === 'admin') {
                 redirectPath = '/select-company'; // Admin always picks
-            } else if (user.role === 'director' || user.email === 'dallas@texasdebrazil.com') {
+            } else if (user.role === 'director') {
                 redirectPath = defaultCompanyId ? '/executive' : '/select-company';
             } else {
                 redirectPath = '/dashboard';

@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const OwnerController = {
     async setupOwnerCompanies(req: Request, res: Response) {
         try {
-            const directorEmail = 'dallas@texasdebrazil.com';
+            const directorEmail = 'alexandre@alexgarciaventures.co';
             const user = await prisma.user.findUnique({ where: { email: directorEmail } });
 
             if (!user) {

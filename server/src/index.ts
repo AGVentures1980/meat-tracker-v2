@@ -158,34 +158,6 @@ import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-async function ensureDirectorUser() {
-    try {
-        const email = 'dallas@texasdebrazil.com';
-        const password = 'Dallas2026';
-        const role = 'director' as any;
-        const name = 'Director Dallas';
-
-        console.log(`[Startup] Ensuring user ${email} exists...`);
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await prisma.user.upsert({
-            where: { email },
-            update: {
-                password_hash: hashedPassword,
-                role: role
-            },
-            create: {
-                email,
-                password_hash: hashedPassword,
-                role: role
-            },
-        });
-        console.log(`[Startup] SUCCESS: Verified user ${user.email} with role ${user.role}`);
-    } catch (error) {
-        console.error('[Startup] FAILED to ensure director user:', error);
-    }
-}
-
 async function cleanupDuplicateProteins() {
     try {
         console.log(`[Startup] Cleaning up duplicate proteins from the database...`);
@@ -268,7 +240,7 @@ async function ensurePrimaryStoreUsers() {
 }
 
 // Start Server after DB Check
-cleanupDuplicateProteins().then(() => ensureDirectorUser()).then(() => ensureDefaultSettings()).then(() => ensurePrimaryStoreUsers()).then(() => {
+cleanupDuplicateProteins().then(() => ensureDefaultSettings()).then(() => ensurePrimaryStoreUsers()).then(() => {
     // ... (existing imports)
 
     app.listen(PORT, () => {
