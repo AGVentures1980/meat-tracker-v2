@@ -344,13 +344,23 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
                     {/* Switch Company (Master Owner Only) */}
                     {isMaster && (
-                        <Link
-                            to="/select-company"
-                            className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
-                        >
-                            <Building2 className="w-5 h-5 min-w-[20px]" />
-                            <span className="text-sm font-bold tracking-tight">Switch Company</span>
-                        </Link>
+                        <>
+                            <Link
+                                to="/select-company"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
+                            >
+                                <Building2 className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Switch Company</span>
+                            </Link>
+                            
+                            <Link
+                                to="/agv-network"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-indigo-400 hover:bg-indigo-900/20 mt-2 border border-indigo-500/20 border-solid shadow-sm shadow-indigo-900/10"
+                            >
+                                <Network className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Global Partner Network</span>
+                            </Link>
+                        </>
                     )}
                 </nav>
 

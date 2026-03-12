@@ -38,6 +38,12 @@ import { IdeaVault } from './pages/IdeaVault';
 import { CorpProcurement } from './pages/CorpProcurement';
 import { ProcurementShadowDashboard } from './pages/Intelligence/ProcurementShadowDashboard';
 
+// Partner / Reseller Components
+import { PartnerLayout } from './components/layouts/PartnerLayout';
+import { PartnerDashboard } from './pages/partner/PartnerDashboard';
+import { ProposalWizard } from './pages/partner/ProposalWizard';
+import { PartnerNetwork } from './pages/admin/PartnerNetwork';
+
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
 // Protected Route Wrapper
@@ -106,6 +112,9 @@ function AppContent() {
                 <Route path="/saas-admin" element={<ProtectedRoute />}>
                     <Route index element={<SaaSAdminDashboard />} />
                 </Route>
+                <Route path="/agv-network" element={<ProtectedRoute />}>
+                    <Route index element={<PartnerNetwork />} />
+                </Route>
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/:storeId" element={<Dashboard />} />
@@ -135,6 +144,13 @@ function AppContent() {
                     <Route path="/intelligence/procurement-shadow" element={<ProcurementShadowDashboard />} />
                     <Route path="/support" element={<SupportHub />} />
                     <Route path="/vault" element={<IdeaVault />} />
+                </Route>
+
+                {/* Partner / Reseller Isolated Portal */}
+                <Route path="/partner" element={<PartnerLayout />}>
+                    <Route index element={<PartnerDashboard />} />
+                    <Route path="dashboard" element={<PartnerDashboard />} />
+                    <Route path="proposal/new" element={<ProposalWizard />} />
                 </Route>
 
                 {/* Catch all redirect to login */}

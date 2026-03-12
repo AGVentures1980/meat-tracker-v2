@@ -74,6 +74,8 @@ import userRoutes from './routes/user.routes';
 import supportRoutes from './routes/support.routes';
 import vaultRoutes from './routes/vault.routes';
 import themeRoutes from './routes/theme.routes';
+import partnerRoutes from './routes/partner.routes';
+import agvAdminRoutes from './routes/agv-admin.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
@@ -104,6 +106,8 @@ app.use('/api/v1/support', requireAuth, supportRoutes);
 app.use('/api/v1/owner', ownerRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/vault', vaultRoutes);
+app.use('/api/v1/partner', partnerRoutes);
+app.use('/api/v1/admin-partner', agvAdminRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
