@@ -42,6 +42,7 @@ import { ProcurementShadowDashboard } from './pages/Intelligence/ProcurementShad
 import { PartnerLayout } from './components/layouts/PartnerLayout';
 import { PartnerDashboard } from './pages/partner/PartnerDashboard';
 import { ProposalWizard } from './pages/partner/ProposalWizard';
+import { AcceptProposal } from './pages/partner/AcceptProposal';
 import { PartnerNetwork } from './pages/admin/PartnerNetwork';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
@@ -101,6 +102,8 @@ function AppContent() {
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/eula-agreement" element={<EulaAgreement />} />
+                <Route path="/proposal/sign/:id" element={<AcceptProposal />} />
+                
                 <Route path="/select-company" element={<ProtectedRoute />}>
                     <Route index element={<CompanySelector />} />
                 </Route>
