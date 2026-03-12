@@ -79,6 +79,78 @@ router.get('/setup/carlos-fix', async (req: Request, res: Response): Promise<voi
     }
 });
 
+router.get('/setup/fdc-templates', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const fdc = await prisma.company.findFirst({ where: { name: { contains: 'Fogo', mode: 'insensitive' } } });
+        if (!fdc) {
+            res.status(404).json({ error: 'FDC not found' });
+            return;
+        }
+
+        const SYSTEM_TEMPLATES = [
+            {
+                name: 'Default Template',
+                description: 'Standard baseline metrics for normal operating conditions.',
+                is_system: true,
+                config: {
+                    target_lbs_guest: 1.45, target_cost_guest: 12.50,
+                    lunch_price: 49.00, dinner_price: 64.00,
+                    serves_lamb_chops_rodizio: false,
+                    protein_targets: {
+                        'Beef Ribs': 0.12, 'Filet Mignon': 0.15, 'Picanha': 0.14,
+                        'Fraldinha': 0.13, 'Chicken': 0.07, 'Lamb Chops': 0.05,
+                        'Sirloin': 0.08, 'Sausage': 0.04, 'Pork Ribs': 0.06, 'Pork Loin': 0.05
+                    }
+                }
+            },
+            {
+                name: 'High Volume Weekend',
+                description: 'Optimized for high turnover. Increased sirloin/chicken/pork, reduced premium yields.',
+                is_system: true,
+                config: {
+                    target_lbs_guest: 1.50, target_cost_guest: 11.20,
+                    lunch_price: 49.00, dinner_price: 64.00,
+                    serves_lamb_chops_rodizio: false,
+                    protein_targets: {
+                        'Beef Ribs': 0.09, 'Filet Mignon': 0.10, 'Picanha': 0.12,
+                        'Fraldinha': 0.15, 'Chicken': 0.14, 'Lamb Chops': 0.03,
+                        'Sirloin': 0.15, 'Sausage': 0.08, 'Pork Ribs': 0.09, 'Pork Loin': 0.05
+                    }
+                }
+            },
+            {
+                name: 'Special Event',
+                description: 'Valentine\'s Day, NYE, Mother\'s Day. 4x volume, premium mix, tight tolerance.',
+                is_system: true,
+                config: {
+                    target_lbs_guest: 1.55, target_cost_guest: 13.50,
+                    lunch_price: 49.00, dinner_price: 64.00,
+                    serves_lamb_chops_rodizio: true,
+                    protein_targets: {
+                        'Beef Ribs': 0.06, 'Filet Mignon': 0.25, 'Picanha': 0.22,
+                        'Fraldinha': 0.08, 'Chicken': 0.04, 'Lamb Chops': 0.10,
+                        'Sirloin': 0.07, 'Sausage': 0.02, 'Pork Ribs': 0.03, 'Pork Loin': 0.03
+                    }
+                }
+            }
+        ];
+
+        let created = 0;
+        for (const tmpl of SYSTEM_TEMPLATES) {
+            await prisma.storeTemplate.upsert({
+                where: { company_id_name: { company_id: fdc.id, name: tmpl.name } },
+                update: { description: tmpl.description, config: tmpl.config },
+                create: { company_id: fdc.id, ...tmpl }
+            });
+            created++;
+        }
+
+        res.json({ message: `Successfully seeded ${created} templates for Fogo de Chão.`, company_id: fdc.id });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 router.post('/setup/rodrigo-validate-password', async (req: Request, res: Response): Promise<void> => {
     try {
         const { password } = req.body;
