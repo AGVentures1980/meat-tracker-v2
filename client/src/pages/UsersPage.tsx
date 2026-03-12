@@ -103,7 +103,8 @@ export const UsersPage = () => {
                     
                     if (isAreaManager) {
                        // Filter ONLY to my node
-                       const me = ams.find((a: any) => a.id === user.userId);
+                       const currentUserId = user.id || user.userId;
+                       const me = ams.find((a: any) => a.id === currentUserId);
                        if (me) {
                            tree.push({
                                areaManagerId: me.id,
