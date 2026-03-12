@@ -46,17 +46,6 @@ export class AuthController {
 
             console.log(`[LOGIN TRACE] email=${email}, role=${user.role}, portalCompany=${portalCompany}`);
 
-            // Enforce Tenant UI Boundaries for Users
-            if (user.role !== 'admin' && user.role !== 'partner' && portalCompany) {
-                const pc = portalCompany.toLowerCase();
-                if (pc.includes('texas') && !email.includes('@texasdebrazil.com')) {
-                    return res.status(403).json({ error: 'Acesso Negado: Realize o login no portal do Fogo de Chão.' });
-                }
-                if (pc.includes('fogo') && !email.includes('@fogo.com')) {
-                    return res.status(403).json({ error: 'Acesso Negado: Realize o login no portal do Texas de Brazil.' });
-                }
-            }
-
             // Success - Reset Sentinel
             SentinelService.reset(clientIp);
 
@@ -102,6 +91,14 @@ export class AuthController {
                 } else if (user.email.endsWith('@texasdebrazil.com')) {
                     const tdbCompany = await prisma.company.findFirst({ where: { name: { contains: 'Texas' } } });
                     if (tdbCompany) defaultCompanyId = tdbCompany.id;
+                }
+            }
+
+            // Step 3.5: Universal Tenant UI Enforcement
+            if (user.role !== 'admin' && user.role !== 'partner' && portalCompany && portalCompany !== 'Brasa Meat Intelligence' && defaultCompanyId) {
+                const pCompany = await prisma.company.findUnique({ where: { id: defaultCompanyId }, select: { name: true } });
+                if (pCompany && pCompany.name !== portalCompany) {
+                    return res.status(403).json({ error: `Acesso Negado: Sua conta pertence à organização ${pCompany.name}. Por favor, acesse através do seu portal correto.` });
                 }
             }
 
