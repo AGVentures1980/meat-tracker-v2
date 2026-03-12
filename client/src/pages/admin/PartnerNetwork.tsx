@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle } from 'lucide-react';
+import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -70,6 +70,27 @@ export const PartnerNetwork: React.FC = () => {
         }
     };
 
+    const handleDeleteProposal = async (proposalId: string, clientName: string) => {
+        if (!window.confirm(`Are you sure you want to permanently delete the proposal for ${clientName}?`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/v1/admin-partner/escalated/${proposalId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+
+            if (res.ok) {
+                fetchNetworkData(); // Refresh UI
+            } else {
+                alert('Failed to delete proposal.');
+            }
+        } catch (err) {
+            console.error('Failed to delete proposal:', err);
+        }
+    };
+
     if (loading) {
         return <div className="p-8 text-gray-400">Synchronizing Global Network...</div>;
     }
@@ -112,9 +133,18 @@ export const PartnerNetwork: React.FC = () => {
                                         <h4 className="font-bold text-white">{prop.client_name} <span className="text-sm font-normal text-amber-200">({prop.store_count} Stores)</span></h4>
                                         <p className="text-sm text-gray-400">Originated by: {prop.partner.user.email}</p>
                                     </div>
-                                    <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded font-medium text-sm transition-colors cursor-not-allowed opacity-50">
-                                        Review Deal Structuring
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded font-medium text-sm transition-colors cursor-not-allowed opacity-50">
+                                            Review Deal Structuring
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDeleteProposal(prop.id, prop.client_name)}
+                                            className="px-4 py-2 bg-red-900/30 hover:bg-red-800/80 text-red-500 hover:text-white border border-red-900/50 rounded font-medium text-sm transition-colors"
+                                            title="Delete Proposal"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

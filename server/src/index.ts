@@ -144,6 +144,11 @@ app.use(express.static(CLIENT_BUILD_PATH));
 
 // SPA Fallback
 app.get('*', (req, res) => {
+    // Only intercept if it's not an API route (which should return JSON 404s normally)
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API Endpoint Not Found' });
+    }
+    
     const indexPath = path.join(CLIENT_BUILD_PATH, 'index.html');
     res.sendFile(indexPath);
 });

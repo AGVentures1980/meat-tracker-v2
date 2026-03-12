@@ -239,4 +239,33 @@ export class AdminPartnerController {
       res.status(500).json({ success: false, error: 'Failed to fetch agreements' });
     }
   };
+
+  /**
+   * Delete an escalated or drafted proposal (Master Admin)
+   */
+  static deleteProposal = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const { proposalId } = req.params;
+
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ success: false, error: 'Access Denied: Master Admin Only' });
+      }
+
+      const proposal = await prisma.proposal.findUnique({ where: { id: proposalId } });
+      if (!proposal) {
+        return res.status(404).json({ success: false, error: 'Proposal not found' });
+      }
+
+      await prisma.proposal.delete({
+        where: { id: proposalId }
+      });
+
+      res.json({ success: true, message: 'Proposal deleted successfully' });
+
+    } catch (error) {
+      console.error('Error deleting proposal:', error);
+      res.status(500).json({ success: false, error: 'Failed to delete proposal' });
+    }
+  };
 }
