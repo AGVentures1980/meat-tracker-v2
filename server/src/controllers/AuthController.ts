@@ -101,6 +101,8 @@ export class AuthController {
                 redirectPath = '/select-company'; // Admin always picks
             } else if (user.role === 'director') {
                 redirectPath = defaultCompanyId ? '/executive' : '/select-company';
+            } else if (user.role === 'partner') {
+                redirectPath = '/partner';
             } else {
                 redirectPath = '/dashboard';
             }

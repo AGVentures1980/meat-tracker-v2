@@ -83,8 +83,13 @@ const ProtectedRoute = () => {
         }
     }
 
+    // Partner Enforcement: Partners must stay in the Partner zone
+    if (user.role === 'partner' && !path.startsWith('/partner') && path !== '/eula-agreement') {
+        return <Navigate to="/partner" replace />;
+    }
+
     // EULA Enforcement: If EULA is not accepted, force them to the agreement page.
-    if (!user.eula_accepted && path !== '/eula-agreement') {
+    if (!user.eula_accepted && path !== '/eula-agreement' && user.role !== 'partner') {
         return <Navigate to="/eula-agreement" replace />;
     }
 
