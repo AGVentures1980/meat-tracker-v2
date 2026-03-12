@@ -157,7 +157,7 @@ export const CompanySettings = () => {
     }, [user?.token, activeTab]);
 
     const handleAdd = async () => {
-        if (!newItemName) return;
+        if (activeTab !== 'areaManagers' && !newItemName) return;
 
         try {
             const endpointBase = activeTab === 'products' ? '/company/products' : (activeTab === 'stores' ? '/company/stores' : '/company/area-managers');
