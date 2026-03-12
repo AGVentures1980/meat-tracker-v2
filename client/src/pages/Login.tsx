@@ -132,11 +132,11 @@ export const Login = () => {
             <div className="relative z-10 w-[calc(100%-2rem)] sm:w-[420px] mx-auto p-6 sm:p-10 bg-black/60 backdrop-blur-[12px] border border-white/5 border-y-brand-gold/30 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-500">
                 <div className="text-center mb-6 h-[80px] sm:h-[100px] flex flex-col items-center justify-center">
                     {theme?.companyName === 'Texas de Brazil' ? (
-                        <div className="relative w-full h-[80px] sm:h-[100px] mx-auto">
+                        <div className="relative w-full h-[120px] sm:h-[140px] mx-auto mb-4 mt-2">
                             <img
                                 src={theme?.logoUrl || ""}
-                                alt="Texas de Brazil bg layer"
-                                className="absolute inset-0 w-full h-full object-contain scale-[1.3] drop-shadow-[0_0_15px_rgba(197,160,89,0.5)]"
+                                alt="Texas de Brazil logo"
+                                className="absolute inset-0 w-full h-full object-contain scale-[1.7] drop-shadow-[0_0_15px_rgba(197,160,89,0.6)]"
                             />
                         </div>
                     ) : (
