@@ -319,32 +319,64 @@ export class PartnerController {
             }
         }
 
-        // 3e. Build Stores and Link to Area Managers
+        // 3e. Inject the Mandatory Default Template
+        const baseTemplate = await tx.storeTemplate.create({
+            data: {
+                company_id: newCompany.id,
+                name: "Base Default Template",
+                description: "Standard daily operating parameters generated automatically.",
+                is_system: true,
+                config: {
+                    daily_budget: 1500,
+                    waste_threshold: 5,
+                    labor_target: 18,
+                    preferred_vendors: []
+                }
+            }
+        });
+
+        // 3f. Build Stores and Link to Area Managers & Default Template
+        const createdStores = [];
         if (stores && stores.length > 0) {
             for (const store of stores) {
                 const assignedAmId = store.area_manager_temp_id ? amIdMap.get(store.area_manager_temp_id) : null;
-                await tx.store.create({
+                const newStore = await tx.store.create({
                     data: {
                         store_name: store.name,
                         location: store.location || 'TBA',
                         company_id: newCompany.id,
                         target_lbs_guest: store.target_lbs ? Number(store.target_lbs) : undefined,
                         target_cost_guest: store.target_cost ? Number(store.target_cost) : undefined,
-                        area_manager_id: assignedAmId
+                        area_manager_id: assignedAmId,
+                        active_template_id: baseTemplate.id
                     }
                 });
+                createdStores.push(newStore);
             }
         }
 
-        // 3f. Build Proteins (Meat Portfolio)
+        // 3g. Build Proteins & Cross-Pollinate Store Targets
         if (proteins && proteins.length > 0) {
             for (const protein of proteins) {
+                // 1. Create the global Product
                 await tx.companyProduct.create({
                     data: {
                         name: protein.name,
                         company_id: newCompany.id
                     }
                 });
+
+                // 2. Cross-pollinate the baseline target matrix for EVERY store created
+                for (const store of createdStores) {
+                    await tx.storeMeatTarget.create({
+                        data: {
+                            store_id: store.id,
+                            protein: protein.name,
+                            target: store.target_lbs_guest || 1.76, // Global baseline fallback
+                            cost_target: protein.cost_per_lb ? Number(protein.cost_per_lb) : null
+                        }
+                    });
+                }
             }
         }
 
