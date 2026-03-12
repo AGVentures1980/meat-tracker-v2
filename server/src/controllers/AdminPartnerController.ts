@@ -25,6 +25,9 @@ export class AdminPartnerController {
       }
 
       const partners = await prisma.partner.findMany({
+        where: {
+          user: { role: { notIn: ['admin', 'director'] } }
+        },
         include: {
           user: {
             select: {
@@ -84,7 +87,7 @@ export class AdminPartnerController {
       if (user?.role !== 'admin') return res.status(403).json({ error: 'Access Denied' });
 
       const escalated = await prisma.proposal.findMany({
-        where: { status: 'AGV_Review' },
+        where: { status: { not: 'Won' } },
         include: {
           partner: {
             include: { user: true }
@@ -203,7 +206,8 @@ export class AdminPartnerController {
 
       const agreements = await prisma.partner.findMany({
         where: {
-          agreement_signed_at: { not: null }
+          agreement_signed_at: { not: null },
+          user: { role: { notIn: ['admin', 'director'] } }
         },
         include: {
           user: {
@@ -249,23 +253,84 @@ export class AdminPartnerController {
       const { proposalId } = req.params;
 
       if (user?.role !== 'admin') {
-        return res.status(403).json({ success: false, error: 'Access Denied: Master Admin Only' });
+        return res.status(403).json({ error: 'Access Denied: Master Admin Only' });
       }
 
-      const proposal = await prisma.proposal.findUnique({ where: { id: proposalId } });
-      if (!proposal) {
-        return res.status(404).json({ success: false, error: 'Proposal not found' });
-      }
-
-      await prisma.proposal.delete({
-        where: { id: proposalId }
-      });
-
-      res.json({ success: true, message: 'Proposal deleted successfully' });
-
+      await prisma.proposal.delete({ where: { id: proposalId } });
+      res.json({ success: true, message: 'Proposal deleted permanently.' });
     } catch (error) {
       console.error('Error deleting proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to delete proposal' });
+    }
+  };
+
+  /**
+   * Forcefully provision a Proposal into an active Organization (Stripe Bypass)
+   */
+  static forceProvisionProposal = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const { proposalId } = req.params;
+
+      if (user?.role !== 'admin') {
+         return res.status(403).json({ error: 'Access Denied: Master Admin Only' });
+      }
+
+      // 1. Get the Proposal
+      const proposal = await prisma.proposal.findUnique({ where: { id: proposalId } });
+      if (!proposal) return res.status(404).json({ error: 'Proposal not found' });
+      if (proposal.status === 'Won') return res.status(400).json({ error: 'Proposal already provisioned' });
+
+      // 2. Generate the safe subdomain
+      const safeSubdomain = proposal.client_name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+
+      // 3. Create the active Company tied manually
+      const newCompany = await prisma.company.create({
+        data: {
+          name: proposal.client_name,
+          subdomain: safeSubdomain + '-' + Math.floor(Math.random() * 1000), // Ensure uniqueness
+          stripe_customer_id: 'MANUAL_BYPASS_' + proposalId.substring(0, 8),
+          billing_type: 'MANUAL_INVOICE',
+          company_status: 'Active',
+          owner_id: user.userId // Attached to the Admin who clicked it
+        }
+      });
+
+      // 4. Link Company to the Partner (Reseller Architecture)
+      await prisma.partnerClient.create({
+        data: {
+          partner_id: proposal.partner_id,
+          company_id: newCompany.id,
+          commission_rate: 25.0, // 25% MRR default
+          setup_fee_share: 70.0 // 70% Hunting default
+        }
+      });
+
+      // 5. Generate the Pending Payout Ledger entry for the Partner (70% of Setup Fee)
+      const commissionAmount = proposal.setup_fee * 0.70;
+      await prisma.payout.create({
+        data: {
+          partner_id: proposal.partner_id,
+          amount: commissionAmount,
+          currency: 'USD',
+          status: 'Pending',
+          type: 'SetupFee'
+        }
+      });
+
+      // 6. Mark Proposal as Won
+      await prisma.proposal.update({
+        where: { id: proposalId },
+        data: { status: 'Won' }
+      });
+
+      console.log(`[Manual Override] Successfully provisioned ${proposal.client_name}. Commission of $${commissionAmount} marked Pending.`);
+      
+      res.json({ success: true, message: `Organization ${proposal.client_name} provisioned manually!` });
+
+    } catch (error: any) {
+      console.error('Error forcing provision:', error);
+      res.status(500).json({ success: false, error: 'Failed to provision organization', details: error.message });
     }
   };
 }

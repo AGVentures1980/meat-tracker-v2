@@ -91,6 +91,30 @@ export const PartnerNetwork: React.FC = () => {
         }
     };
 
+    const handleForceProvision = async (proposalId: string, clientName: string) => {
+        if (!window.confirm(`FORCE PROVISION: Are you sure you want to bypass Stripe and immediately create the Tenant Organization for ${clientName}? This will instantly launch the live Dashboard for them.`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/v1/admin-partner/escalated/${proposalId}/provision`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(`SUCCESS: Organization ${clientName} is now live and provisioned!`);
+                fetchNetworkData(); // Refresh UI
+            } else {
+                alert(`Provisioning Failed: ${data.error || 'Unknown Error'}`);
+            }
+        } catch (err) {
+            console.error('Failed to provision organization:', err);
+            alert("A network error occurred while provisioning.");
+        }
+    };
+
     if (loading) {
         return <div className="p-8 text-gray-400">Synchronizing Global Network...</div>;
     }
@@ -124,18 +148,30 @@ export const PartnerNetwork: React.FC = () => {
                     <div className="bg-amber-900/20 border border-amber-500/50 rounded-xl p-6 shadow-2xl mb-8">
                         <h3 className="text-xl font-bold text-amber-500 mb-4 flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5" />
-                            Pending Enterprise Escalations
+                            Pending Proposals (Manual Provisioning)
                         </h3>
                         <div className="space-y-4">
                             {escalated.map((prop: any) => (
                                 <div key={prop.id} className="bg-[#111] p-4 rounded-lg flex justify-between items-center border border-amber-900/50">
                                     <div>
-                                        <h4 className="font-bold text-white">{prop.client_name} <span className="text-sm font-normal text-amber-200">({prop.store_count} Stores)</span></h4>
-                                        <p className="text-sm text-gray-400">Originated by: {prop.partner.user.email}</p>
+                                        <h4 className="font-bold text-white mb-1">
+                                            {prop.client_name} 
+                                            <span className="text-xs ml-2 font-normal px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-300 border border-amber-500/30">
+                                                {prop.store_count} Stores | {prop.status}
+                                            </span>
+                                        </h4>
+                                        <div className="flex flex-col gap-1 text-xs text-gray-400">
+                                            <span>Partner: <span className="text-gray-300 font-mono">{prop.partner.user.email}</span></span>
+                                            <span>Hunting Setup: <span className="text-emerald-400/80 font-mono">${prop.setup_fee.toLocaleString()}</span></span>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded font-medium text-sm transition-colors cursor-not-allowed opacity-50">
-                                            Review Deal Structuring
+                                    <div className="flex gap-2 items-center">
+                                        <button 
+                                            onClick={() => handleForceProvision(prop.id, prop.client_name)}
+                                            className="px-4 py-2 bg-amber-600 hover:bg-emerald-600 text-white rounded font-bold text-sm transition-colors shadow-lg shadow-amber-900/20 flex items-center gap-2 border border-amber-500/50 hover:border-emerald-400"
+                                            title="Bypass Stripe and Build Organization"
+                                        >
+                                            Force Provision & Activate
                                         </button>
                                         <button 
                                             onClick={() => handleDeleteProposal(prop.id, prop.client_name)}

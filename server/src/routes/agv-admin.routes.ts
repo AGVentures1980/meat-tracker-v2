@@ -15,9 +15,10 @@ router.use(requireRole(['admin']));
 // Get the Global Partner Network Cards
 router.get('/network', AdminPartnerController.getAllPartners);
 
-// Get Enterprise/Fraud Escalated Proposals (> 20 Stores)
+// Get Pending/Escalated Proposals
 router.get('/escalated', AdminPartnerController.getEscalatedProposals);
 router.delete('/escalated/:proposalId', AdminPartnerController.deleteProposal);
+router.post('/escalated/:proposalId/provision', AdminPartnerController.forceProvisionProposal);
 
 // Execute Batched PayPal Payouts
 router.post('/payouts/execute', AdminPartnerController.executePayouts);
