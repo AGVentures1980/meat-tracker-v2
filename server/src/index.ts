@@ -241,7 +241,7 @@ async function ensurePrimaryStoreUsers() {
 
 async function ensureProductionAccounts() {
     try {
-        console.log(`[Startup] Ensuring critical production accounts are protected with proper auth...`);
+        console.log(`[Startup] Ensuring critical production accounts are protected with proper auth and roles...`);
         
         // Ensure bcrypt is available (it's imported at the top of the file if AuthController is used, but we'll use require to be safe if it's missing)
         const bcrypt = require('bcryptjs');
@@ -249,7 +249,10 @@ async function ensureProductionAccounts() {
         const partnerPassword = await bcrypt.hash('brasa-partner-2026', 10);
         await (prisma as any).user.updateMany({
             where: { email: 'partner@example.com' },
-            data: { password_hash: partnerPassword }
+            data: { 
+                password_hash: partnerPassword,
+                role: 'partner'
+            }
         });
         
         const rodrigoPassword = await bcrypt.hash('TDB2026@', 10);
