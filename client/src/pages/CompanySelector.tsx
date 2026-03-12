@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, ArrowRight, Users, Zap, Lock } from 'lucide-react';
+import { Building2, ArrowRight, Users, Zap, Lock, Archive } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface Company {
@@ -41,6 +41,27 @@ export const CompanySelector = () => {
     const handleSelect = (company: Company) => {
         setCompany(company.id);
         navigate('/dashboard');
+    };
+
+    const handleArchive = async (e: React.MouseEvent, companyId: string, companyName: string) => {
+        e.stopPropagation();
+        if (window.confirm(`Are you sure you want to archive ${companyName}? This will hide it from the command center.`)) {
+            try {
+                const res = await fetch(`/api/v1/owner/company/${companyId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setCompanies(companies.filter(c => c.id !== companyId));
+                } else {
+                    alert(data.error || 'Failed to archive organization.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred connecting to the server.');
+            }
+        }
     };
 
     if (loading) {
@@ -97,6 +118,16 @@ export const CompanySelector = () => {
                                 )}
                             </div>
 
+                            {user?.role === 'admin' && company.id !== 'CMP-001' && !company.name.includes('Texas de Brazil') && !company.name.includes('Fogo de Chão') && (
+                                <button 
+                                    onClick={(e) => handleArchive(e, company.id, company.name)}
+                                    className="absolute top-4 right-4 z-20 p-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full"
+                                    title="Archive Organization"
+                                >
+                                    <Archive size={16} />
+                                </button>
+                            )}
+
                             <div className="relative z-10">
                                 <span className="inline-block px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest mb-6 border border-[#C5A059]/20">
                                     {company.plan} plan
@@ -124,7 +155,11 @@ export const CompanySelector = () => {
                                             </div>
                                         ))}
                                     </div>
-                                    <button className="h-10 w-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-black transition-all">
+                                    <button 
+                                        className="h-10 w-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-black transition-all"
+                                        aria-label={`Select ${company.name}`}
+                                        title={`Select ${company.name}`}
+                                    >
                                         <ArrowRight size={18} />
                                     </button>
                                 </div>
