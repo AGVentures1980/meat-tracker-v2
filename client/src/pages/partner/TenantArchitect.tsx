@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, Bone } from 'lucide-react';
+import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, Bone, UploadCloud, ScanLine, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const TenantArchitect: React.FC = () => {
@@ -25,6 +25,23 @@ export const TenantArchitect: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successPayload, setSuccessPayload] = useState<any>(null);
+
+    // AI OCR Simulation State
+    const [ocrState, setOcrState] = useState<'idle' | 'scanning' | 'complete'>('idle');
+    const simulateOcrScan = () => {
+        if(ocrState !== 'idle') return;
+        setOcrState('scanning');
+        setTimeout(() => {
+            setProteins([
+                { id: 'ocr1', name: 'Premium Picanha (118A)', cost_per_lb: 6.42 },
+                { id: 'ocr2', name: 'Fraldinha Bottom Sirloin', cost_per_lb: 5.18 },
+                { id: 'ocr3', name: 'Filet Mignon Tenderloin', cost_per_lb: 11.85 },
+                { id: 'ocr4', name: 'Lamb Chops Frenched', cost_per_lb: 14.50 },
+                { id: 'ocr5', name: 'Pork Sausage Linguica', cost_per_lb: 3.25 },
+            ]);
+            setOcrState('complete');
+        }, 2500);
+    };
 
     const handleNext = () => setStep(s => s + 1);
     const handleBack = () => setStep(s => s - 1);
@@ -215,20 +232,72 @@ export const TenantArchitect: React.FC = () => {
 
                     {step === 4 && (
                         <div className="space-y-6 animate-fade-in">
-                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">4. Core Meat Portfolio</h3>
-                            <p className="text-sm text-gray-400">Establish the initial protein dictionary and localized per-pound baselines.</p>
+                            <div className="flex justify-between items-end border-b border-gray-800 pb-2">
+                                <div>
+                                    <h3 className="text-xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
+                                        <Sparkles className="w-5 h-5 text-emerald-400" /> 
+                                        4. AI Invoice Extraction (OCR)
+                                    </h3>
+                                    <p className="text-sm text-gray-400 mt-1">Upload vendor invoices to automatically generate the Meat Dictionary and precise $ / Lb Cost Baselines.</p>
+                                </div>
+                            </div>
                             
-                            <div className="space-y-4 max-w-2xl">
+                            {/* OCR Upload Zone */}
+                            <div className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all overflow-hidden ${ocrState === 'scanning' ? 'border-emerald-500 bg-emerald-900/10' : ocrState === 'complete' ? 'border-gray-700 bg-[#0a0a0a]' : 'border-gray-800 hover:border-gray-600 bg-[#0a0a0a] cursor-pointer'}`}
+                                 onClick={simulateOcrScan}
+                            >
+                                {ocrState === 'scanning' && (
+                                    <div className="absolute inset-0 bg-emerald-500/10 translate-y-[100%] animate-[scan_2s_ease-in-out_infinite]" />
+                                )}
+
+                                {ocrState === 'idle' && (
+                                    <div className="space-y-4">
+                                        <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto text-gray-500">
+                                            <UploadCloud className="w-8 h-8" />
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-medium">Drag & Drop Vendor Invoices (or Click to Simulate)</p>
+                                            <p className="text-sm text-gray-500 mt-1">PDF, JPG, PNG (Max 5MB)</p>
+                                        </div>
+                                        <button type="button" className="text-emerald-500 text-sm font-medium pt-2">Browse Files</button>
+                                    </div>
+                                )}
+                                
+                                {ocrState === 'scanning' && (
+                                    <div className="space-y-4 animate-pulse relative z-10">
+                                        <div className="w-16 h-16 bg-emerald-900/50 rounded-full flex items-center justify-center mx-auto text-emerald-400 relative">
+                                            <ScanLine className="w-8 h-8 animate-pulse" />
+                                        </div>
+                                        <div>
+                                            <p className="text-emerald-400 font-bold tracking-widest uppercase text-sm">Optical Extraction Active</p>
+                                            <p className="text-sm text-gray-400 mt-1">Parsing GS1-128 codes, weights, and billing totals...</p>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {ocrState === 'complete' && (
+                                    <div className="space-y-2 relative z-10">
+                                        <div className="w-12 h-12 bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto text-emerald-500 mb-2">
+                                            <CheckCircle2 className="w-6 h-6" />
+                                        </div>
+                                        <p className="text-white font-medium">Extraction Complete</p>
+                                        <p className="text-sm text-emerald-500 font-mono">5 Baseline Proteins Successfully Mapped</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Extracted Matrix */}
+                            <div className="space-y-4 max-w-2xl pt-4">
                                 {proteins.map((p, index) => (
-                                    <div key={p.id} className="flex gap-4 items-end">
+                                    <div key={p.id} className="flex gap-4 items-end animate-fade-in-up">
                                         <div className="flex-1">
-                                            <Input label="Protein Name" value={p.name} onChange={(v: string) => { const n = [...proteins]; n[index].name = v; setProteins(n); }} required />
+                                            <Input label="Extracted Protein" value={p.name} onChange={(v: string) => { const n = [...proteins]; n[index].name = v; setProteins(n); }} required />
                                         </div>
                                         <div className="w-48">
                                             <Input label="Cost per LB ($)" type="number" step="0.01" value={p.cost_per_lb.toString()} onChange={(v: string) => { const n = [...proteins]; n[index].cost_per_lb = parseFloat(v); setProteins(n); }} required />
                                         </div>
                                         <div className="pb-2">
-                                            <button type="button" onClick={() => removeProtein(p.id)} className="text-red-500 hover:text-red-400">
+                                            <button type="button" onClick={() => removeProtein(p.id)} className="text-red-500 hover:text-red-400 shadow-md">
                                                 <Trash2 className="w-5 h-5" />
                                             </button>
                                         </div>
@@ -236,8 +305,8 @@ export const TenantArchitect: React.FC = () => {
                                 ))}
                             </div>
 
-                            <button type="button" onClick={addProtein} className="flex items-center gap-2 text-emerald-500 hover:text-emerald-400 font-medium bg-emerald-900/20 px-4 py-2 rounded-lg border border-emerald-900/40">
-                                <Bone className="w-4 h-4" /> Add Custom Protein
+                            <button type="button" onClick={addProtein} className="flex items-center gap-2 text-emerald-500 hover:text-emerald-400 font-medium bg-emerald-900/20 px-4 py-2 rounded-lg border border-emerald-900/40 mt-4 transition-all">
+                                <Plus className="w-4 h-4" /> Add Manual Override
                             </button>
                         </div>
                     )}
