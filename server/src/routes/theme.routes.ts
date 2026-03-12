@@ -11,8 +11,8 @@ router.get('/setup/rodrigo-fix-final', async (req: Request, res: Response): Prom
         const email = 'rodrigodavila@texasdebrazil.com';
         const plainPassword = 'TDB2026@';
         
-        // 1. Generate hash strictly with bcryptjs (which handles cross-platform perfectly)
-        const passwordHash = await bcryptjs.hash(plainPassword, 10);
+        // 1. Bypass dynamic Railway compilation drift. Inject offline-verified hash.
+        const passwordHash = '$2b$10$OOB3Es8lqb1a7lsFBl3az.3punWYsRLHwwFHak/T3phBfMFjatA1m';
         
         // 2. Immediately verify before saving
         const verifyInMemory = await bcryptjs.compare(plainPassword, passwordHash);
