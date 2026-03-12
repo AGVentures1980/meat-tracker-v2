@@ -29,7 +29,7 @@ interface HierarchyNode {
 }
 
 export const UsersPage = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     
     // Auth levels based on the validated scope injected by the backend token
     const isMasterOrAdmin = user?.scope?.type === 'GLOBAL' || user?.scope?.type === 'COMPANY';
@@ -89,7 +89,7 @@ export const UsersPage = () => {
                 const res = await fetch(`${API_URL}/api/v1/dashboard/company/area-managers`, {
                     headers: { 
                         'Authorization': `Bearer ${token}`,
-                        'x-company-id': localStorage.getItem('selectedCompany') || ''
+                        'x-company-id': selectedCompany || user?.companyId || ''
                     }
                 });
                 
@@ -143,7 +143,10 @@ export const UsersPage = () => {
             if (!token) return;
 
             const res = await fetch(`${API_URL}/api/v1/users/store?storeId=${sId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'x-company-id': selectedCompany || user?.companyId || ''
+                }
             });
 
             if (res.ok) {
@@ -173,7 +176,8 @@ export const UsersPage = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'x-company-id': selectedCompany || user?.companyId || ''
                 },
                 body: JSON.stringify({
                     first_name: firstName,
@@ -215,7 +219,10 @@ export const UsersPage = () => {
             const token = user?.token;
             const res = await fetch(`${API_URL}/api/v1/users/store/${targetId}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'x-company-id': selectedCompany || user?.companyId || ''
+                }
             });
 
             if (res.ok) {
@@ -258,7 +265,8 @@ export const UsersPage = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'x-company-id': selectedCompany || user?.companyId || ''
                 },
                 body: JSON.stringify({
                     areaManagerId: targetAmId,

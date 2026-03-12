@@ -13,9 +13,14 @@ import {
 } from 'lucide-react';
 
 export const CompanySettings = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'products' | 'stores' | 'templates' | 'areaManagers'>('products');
+
+    const authHeaders = { 
+        'Authorization': `Bearer ${user?.token}`,
+        'x-company-id': selectedCompany || user?.companyId || ''
+    };
 
     // Data State
     const [products, setProducts] = useState<any[]>([]);
@@ -56,23 +61,23 @@ export const CompanySettings = () => {
         try {
             if (activeTab === 'products') {
                 const res = await fetch(`${API_URL}/api/v1/dashboard/company/products`, {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: authHeaders
                 });
                 if (res.ok) setProducts(await res.json());
             } else if (activeTab === 'stores') {
                 const resStores = await fetch(`${API_URL}/api/v1/dashboard/company/stores`, {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: authHeaders
                 });
                 if (resStores.ok) setStores(await resStores.json());
 
                 // Fetch templates as well, because the Stores tab needs them for the Action dropdown
                 const resTemplates = await fetch(`${API_URL}/api/v1/dashboard/company/templates`, {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: authHeaders
                 });
                 if (resTemplates.ok) setTemplates(await resTemplates.json());
             } else if (activeTab === 'areaManagers') {
                 const res = await fetch(`${API_URL}/api/v1/dashboard/company/area-managers`, {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: authHeaders
                 });
                 if (res.ok) {
                     const data = await res.json();
@@ -81,7 +86,7 @@ export const CompanySettings = () => {
                 }
             } else {
                 const res = await fetch(`${API_URL}/api/v1/dashboard/company/templates`, {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: authHeaders
                 });
                 if (res.ok) setTemplates(await res.json());
             }
@@ -99,7 +104,7 @@ export const CompanySettings = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user?.token}`
+                    ...authHeaders
                 },
                 body: JSON.stringify({ template_id: templateId })
             });
@@ -122,7 +127,7 @@ export const CompanySettings = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user?.token}`
+                    ...authHeaders
                 },
                 body: JSON.stringify({ areaManagerId: selectedAreaManager, storeIds: selectedStores })
             });
@@ -195,7 +200,7 @@ export const CompanySettings = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user?.token}`
+                    ...authHeaders
                 },
                 body: JSON.stringify(body)
             });
@@ -225,7 +230,7 @@ export const CompanySettings = () => {
             const endpoint = activeTab === 'products' ? `/company/products/${id}` : (activeTab === 'stores' ? `/company/stores/${id}` : `/company/area-managers/${id}`);
             const res = await fetch(`${API_URL}/api/v1/dashboard${endpoint}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: authHeaders
             });
 
             if (res.ok) {

@@ -17,7 +17,7 @@ interface ReportCardData {
 import { useAuth } from '../context/AuthContext';
 
 export const NetworkReportCard = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const [year, setYear] = useState(2026);
     const [week, setWeek] = useState(9);
     const [data, setData] = useState<ReportCardData | null>(null);
@@ -36,7 +36,10 @@ export const NetworkReportCard = () => {
 
             // Correct Endpoint matching backend routes
             const res = await fetch(`${baseUrl}/dashboard/stats/report-card?year=${year}&week=${week}`, {
-                headers: { 'Authorization': token }
+                headers: { 
+                    'Authorization': token,
+                    'x-company-id': selectedCompany || user?.companyId || ''
+                }
             });
 
             if (res.ok) {
