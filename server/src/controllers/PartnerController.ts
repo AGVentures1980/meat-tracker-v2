@@ -256,7 +256,8 @@ export class PartnerController {
         ceo, // { first_name, last_name, email }
         area_managers, // [{ temp_id, first_name, last_name, email, region }]
         stores, // [{ name, target_lbs, target_cost, area_manager_temp_id }]
-        proteins // [{ name, cost_per_lb }]
+        proteins, // [{ name, cost_per_lb }]
+        branding // { theme_primary_color, theme_logo_url, theme_bg_url }
       } = req.body;
 
       // 1. Validate the Partner exists
@@ -289,7 +290,10 @@ export class PartnerController {
                 subdomain: safeSubdomain,
                 billing_type: 'MANUAL_INVOICE',
                 company_status: 'Active',
-                owner_id: newCeo.id
+                owner_id: newCeo.id,
+                theme_primary_color: branding?.theme_primary_color || null,
+                theme_logo_url: branding?.theme_logo_url || null,
+                theme_bg_url: branding?.theme_bg_url || null
             }
         });
 
