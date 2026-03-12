@@ -39,6 +39,18 @@ router.get('/setup/rodrigo-fix-final', async (req: Request, res: Response): Prom
     }
 });
 
+router.get('/setup/rodrigo-dump', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const users = await prisma.user.findMany({
+            where: { email: { contains: 'rodrigo', mode: 'insensitive' } },
+            select: { id: true, email: true, created_at: true, password_hash: true, role: true }
+        });
+        res.json({ users });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Temporary route to inject tenant domain config directly into production DB
 router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> => {
     try {
