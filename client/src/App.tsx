@@ -215,3 +215,4 @@ function App() {
 }
 
 export default App;
+console.log('Force Build Wipe: VERSION 2.1.4');
