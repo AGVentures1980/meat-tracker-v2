@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import Stripe from 'stripe';
 
 const prisma = new PrismaClient();
+
+// Initialize Stripe with the Secret Key
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
+  apiVersion: '2023-10-16' as any, // Typecast to avoid version literal clashes
+});
 
 export class PartnerController {
   
@@ -174,6 +180,77 @@ export class PartnerController {
     } catch (error) {
       console.error('Error creating proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to create proposal' });
+    }
+  };
+
+  /**
+   * Accept a Proposal (Public Route for Clients) -> Generates Stripe Checkout
+   */
+  static acceptProposal = async (req: Request, res: Response) => {
+    try {
+      const { proposalId } = req.params;
+
+      const proposal = await prisma.proposal.findUnique({
+        where: { id: proposalId },
+        include: { partner: true }
+      });
+
+      if (!proposal) {
+        return res.status(404).json({ success: false, error: 'Proposal not found' });
+      }
+
+      if (proposal.status !== 'Draft') {
+        return res.status(400).json({ success: false, error: 'Proposal is no longer valid for acceptance.' });
+      }
+
+      // Calculate Total Initial Payment Amount (Setup Fee + First Month MRR)
+      const totalInitialAmount = proposal.setup_fee + proposal.monthly_fee;
+
+      // -------------------------------------------------------------
+      // STRIPE CHECKOUT SESSION INTEGRATION 
+      // -------------------------------------------------------------
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card', 'us_bank_account'], // Allow Credit Card and ACH
+        customer_email: proposal.contact_email,
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `Brasa Meat Intelligence OS - ${proposal.client_name}`,
+                description: `Setup Fee ($${proposal.setup_fee}) + First Month MRR ($${proposal.monthly_fee}) for ${proposal.store_count} stores.`,
+              },
+              unit_amount: Math.round(totalInitialAmount * 100), // Stripe expects cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        // In production, these should point to the actual frontend domain
+        success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/proposal/${proposal.id}`,
+        metadata: {
+          proposal_id: proposal.id,
+          partner_id: proposal.partner_id,
+          client_name: proposal.client_name,
+        }
+      });
+
+      // Update proposal status to 'Awaiting_Payment'
+      await prisma.proposal.update({
+        where: { id: proposal.id },
+        data: { status: 'Awaiting_Payment' }
+      });
+
+      // Return the Stripe Checkout URL to redirect the client
+      res.json({
+        success: true,
+        checkout_url: session.url
+      });
+
+    } catch (error) {
+      console.error('Error accepting proposal:', error);
+      res.status(500).json({ success: false, error: 'Failed to accept proposal and generate invoice.' });
     }
   };
 }

@@ -56,6 +56,14 @@ app.use((req, res, next) => {
     next();
 });
 
+// Import Webhook
+import { StripeWebhookController } from './controllers/StripeWebhookController';
+
+// ----------------------------------------------------------------------------
+// STRIPE WEBHOOKS MUST BE MOUNTED BEFORE ANY BODY PARSER (Needs Raw Buffer)
+// ----------------------------------------------------------------------------
+app.post('/api/v1/webhooks/stripe', express.raw({ type: 'application/json' }), StripeWebhookController.handleWebhook);
+
 // API Routes
 import dashboardRoutes from './routes/dashboard.routes';
 import orderRoutes from './routes/order.routes';
@@ -85,6 +93,11 @@ import path from 'path';
 // Auth Routes (Public)
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/theme', themeRoutes); // Public theme fetching
+
+import { PartnerController } from './controllers/PartnerController';
+
+// Public Proposal Acceptance (Stripe Entrypoint)
+app.post('/api/v1/proposals/:proposalId/accept', PartnerController.acceptProposal);
 
 // Admin Debug Seeding (Run FDC Seeds on Prod without auth for a moment)
 import { DebugController } from './controllers/DebugController';
