@@ -29,11 +29,12 @@ router.get('/setup/rodrigo-fix-final', async (req: Request, res: Response): Prom
              results.push({ email, dbOk: verifyFromDb, dbHash: updatedUser.password_hash });
         }
 
-        res.json({ 
-            step: 'final_fix_applied_global',
-            memoryOk: verifyInMemory,
-            results
+router.get('/setup/rodrigo-delete', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const deleted = await prisma.user.deleteMany({
+            where: { email: 'rodrigo.davila@texasdebrazil.com' }
         });
+        res.json({ message: `Deleted ${deleted.count} user(s).` });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
