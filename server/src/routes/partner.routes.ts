@@ -9,9 +9,9 @@ const router = Router();
 // Completely isolated routes (Zero-Regression)
 // ============================================================================
 
-// All partner routes require a valid JWT AND the 'partner' role
+// All partner routes require a valid JWT AND the 'partner' role or admin privileges
 router.use(requireAuth);
-router.use(requireRole(['partner']));
+router.use(requireRole(['partner', 'admin', 'director']));
 
 // Profile / Onboarding Security Check
 router.get('/profile', PartnerController.getProfile);
