@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export const PartnerNetwork: React.FC = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
     const [partners, setPartners] = useState<any[]>([]);
     const [escalated, setEscalated] = useState<any[]>([]);
@@ -74,101 +75,106 @@ export const PartnerNetwork: React.FC = () => {
     }
 
     return (
-        <div className="p-8 space-y-8 animate-fade-in">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                        <Network className="text-indigo-500 w-8 h-8" />
-                        Global Partner Network
-                    </h2>
-                    <p className="text-gray-400 mt-2">Executive oversight of all regional resellers and MRR performance.</p>
+        <div className="min-h-screen bg-[#050505] p-6 lg:p-12 w-full flex flex-col pt-24">
+            <div className="max-w-6xl mx-auto w-full">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6 pb-6 border-b border-white/5">
+                    <div>
+                        <h1 className="text-3xl lg:text-4xl font-black text-white flex items-center gap-4 tracking-tight">
+                            <Network className="text-indigo-500 w-10 h-10" />
+                            Global Partner Network
+                        </h1>
+                        <p className="text-gray-400 mt-3 font-mono text-sm tracking-wide uppercase">
+                            Executive oversight of all regional resellers and MRR performance.
+                        </p>
+                    </div>
+                    
+                    <button 
+                        onClick={() => navigate('/partner/proposal/new')}
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(79,70,229,0.3)] border border-indigo-400/30 whitespace-nowrap"
+                    >
+                        <PlusCircle className="w-5 h-5" />
+                        New Smart Proposal
+                    </button>
+                </div>
+
+                {/* Anti-Fraud / Mega Deal Escalations */}
+                {escalated.length > 0 && (
+                    <div className="bg-amber-900/20 border border-amber-500/50 rounded-xl p-6 shadow-2xl mb-8">
+                        <h3 className="text-xl font-bold text-amber-500 mb-4 flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5" />
+                            Pending Enterprise Escalations
+                        </h3>
+                        <div className="space-y-4">
+                            {escalated.map((prop: any) => (
+                                <div key={prop.id} className="bg-[#111] p-4 rounded-lg flex justify-between items-center border border-amber-900/50">
+                                    <div>
+                                        <h4 className="font-bold text-white">{prop.client_name} <span className="text-sm font-normal text-amber-200">({prop.store_count} Stores)</span></h4>
+                                        <p className="text-sm text-gray-400">Originated by: {prop.partner.user.email}</p>
+                                    </div>
+                                    <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded font-medium text-sm transition-colors cursor-not-allowed opacity-50">
+                                        Review Deal Structuring
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Partner Node Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {partners.map(partner => (
+                        <div key={partner.id} className="bg-[#111] border border-gray-800 rounded-xl p-6 hover:border-indigo-500/50 transition-colors shadow-xl relative overflow-hidden group">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">{partner.name}</h3>
+                                    <p className="text-sm text-gray-400">{partner.email}</p>
+                                </div>
+                                <span className="px-2 py-1 text-xs font-bold rounded-full bg-emerald-900/30 text-emerald-400 border border-emerald-800">
+                                    {partner.country}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                <div className="bg-[#0a0a0a] p-3 rounded-lg border border-gray-800">
+                                    <span className="text-xs text-gray-500 block mb-1">Active MRR</span>
+                                    <span className="text-xl font-mono text-emerald-400 font-bold">${partner.metrics.totalMRR.toLocaleString()}</span>
+                                </div>
+                                <div className="bg-[#0a0a0a] p-3 rounded-lg border border-gray-800">
+                                    <span className="text-xs text-gray-500 block mb-1">Live Clients</span>
+                                    <span className="text-xl font-mono text-blue-400 font-bold">{partner.metrics.activeClients}</span>
+                                </div>
+                            </div>
+
+                            {partner.metrics.pendingPayouts > 0 ? (
+                                <button 
+                                    onClick={() => handleExecutePayouts(partner.id, partner.name)}
+                                    disabled={executingPayout === partner.id}
+                                    className="w-full flex items-center justify-center gap-2 p-3 bg-indigo-900/40 hover:bg-indigo-600/50 rounded-lg border border-indigo-500/50 transition-all shadow-md group-hover:border-indigo-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                                >
+                                    <Clock className={`w-4 h-4 ${executingPayout === partner.id ? 'text-gray-400 animate-spin' : 'text-indigo-400 group-hover:text-white'}`} />
+                                    <span className={`text-sm font-bold ${executingPayout === partner.id ? 'text-gray-400' : 'text-indigo-200 group-hover:text-white'}`}>
+                                        {executingPayout === partner.id 
+                                            ? 'EXECUTING TRANSFER...' 
+                                            : `Approve & Pay \$${partner.metrics.pendingPayouts.toLocaleString()}`}
+                                    </span>
+                                </button>
+                            ) : (
+                                <div className="flex items-center gap-2 p-3 bg-[#0a0a0a] rounded-lg">
+                                    <CheckCircle className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-500">All payouts cleared</span>
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
                 
-                <Link 
-                    to="/partner/proposal/new" 
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-indigo-400/50 shadow-lg shadow-indigo-900/40"
-                >
-                    <PlusCircle className="w-5 h-5" />
-                    New Smart Proposal
-                </Link>
-            </div>
-
-            {/* Anti-Fraud / Mega Deal Escalations */}
-            {escalated.length > 0 && (
-                <div className="bg-amber-900/20 border border-amber-500/50 rounded-xl p-6 shadow-2xl">
-                    <h3 className="text-xl font-bold text-amber-500 mb-4 flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5" />
-                        Pending Enterprise Escalations
-                    </h3>
-                    <div className="space-y-4">
-                        {escalated.map((prop) => (
-                            <div key={prop.id} className="bg-[#111] p-4 rounded-lg flex justify-between items-center border border-amber-900/50">
-                                <div>
-                                    <h4 className="font-bold text-white">{prop.client_name} <span className="text-sm font-normal text-amber-200">({prop.store_count} Stores)</span></h4>
-                                    <p className="text-sm text-gray-400">Originated by: {prop.partner.user.email}</p>
-                                </div>
-                                <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded font-medium text-sm transition-colors">
-                                    Review Deal Structuring
-                                </button>
-                            </div>
-                        ))}
+                {partners.length === 0 && (
+                    <div className="text-center py-32 bg-[#111] border-dashed border border-gray-800 rounded-xl text-gray-500 font-mono uppercase tracking-widest mt-8 shadow-2xl">
+                        No active partners in the global network yet.
                     </div>
-                </div>
-            )}
-
-            {/* Partner Node Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {partners.map(partner => (
-                    <div key={partner.id} className="bg-[#111] border border-gray-800 rounded-xl p-6 hover:border-indigo-500/50 transition-colors shadow-xl relative overflow-hidden group">
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 className="text-lg font-bold text-white">{partner.name}</h3>
-                                <p className="text-sm text-gray-400">{partner.email}</p>
-                            </div>
-                            <span className="px-2 py-1 text-xs font-bold rounded-full bg-emerald-900/30 text-emerald-400 border border-emerald-800">
-                                {partner.country}
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div className="bg-[#0a0a0a] p-3 rounded-lg border border-gray-800">
-                                <span className="text-xs text-gray-500 block mb-1">Active MRR</span>
-                                <span className="text-xl font-mono text-emerald-400 font-bold">${partner.metrics.totalMRR.toLocaleString()}</span>
-                            </div>
-                            <div className="bg-[#0a0a0a] p-3 rounded-lg border border-gray-800">
-                                <span className="text-xs text-gray-500 block mb-1">Live Clients</span>
-                                <span className="text-xl font-mono text-blue-400 font-bold">{partner.metrics.activeClients}</span>
-                            </div>
-                        </div>
-
-                        {partner.metrics.pendingPayouts > 0 ? (
-                            <button 
-                                onClick={() => handleExecutePayouts(partner.id, partner.name)}
-                                disabled={executingPayout === partner.id}
-                                className="w-full flex items-center justify-center gap-2 p-3 bg-indigo-900/40 hover:bg-indigo-600/50 rounded-lg border border-indigo-500/50 transition-all shadow-md group-hover:border-indigo-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left"
-                            >
-                                <Clock className={`w-4 h-4 ${executingPayout === partner.id ? 'text-gray-400 animate-spin' : 'text-indigo-400 group-hover:text-white'}`} />
-                                <span className={`text-sm font-bold ${executingPayout === partner.id ? 'text-gray-400' : 'text-indigo-200 group-hover:text-white'}`}>
-                                    {executingPayout === partner.id 
-                                        ? 'EXECUTING TRANSFER...' 
-                                        : `Approve & Pay \$${partner.metrics.pendingPayouts.toLocaleString()}`}
-                                </span>
-                            </button>
-                        ) : (
-                            <div className="flex items-center gap-2 p-3 bg-[#0a0a0a] rounded-lg">
-                                <CheckCircle className="w-4 h-4 text-gray-600" />
-                                <span className="text-sm text-gray-500">All payouts cleared</span>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                )}
             </div>
-            
-            {partners.length === 0 && (
-                <div className="text-center py-20 bg-[#111] border-dashed border border-gray-800 rounded-xl text-gray-400">
-                    No active partners in the global network yet.
-                </div>
-            )}
         </div>
     );
 };

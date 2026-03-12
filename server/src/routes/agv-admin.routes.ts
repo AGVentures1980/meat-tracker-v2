@@ -21,4 +21,7 @@ router.get('/escalated', AdminPartnerController.getEscalatedProposals);
 // Execute Batched PayPal Payouts
 router.post('/payouts/execute', AdminPartnerController.executePayouts);
 
+// Contracts Vault (Signed Partner Agreements)
+router.get('/vault', AdminPartnerController.getVaultAgreements);
+
 export default router;

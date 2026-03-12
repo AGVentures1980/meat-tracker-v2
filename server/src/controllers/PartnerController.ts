@@ -12,6 +12,48 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 export class PartnerController {
   
   /**
+   * Fetch Lightweight Profile for Onboarding Checks
+   */
+  static getProfile = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const userId = user?.userId;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
+
+      let partner = await prisma.partner.findUnique({
+        where: { user_id: userId }
+      });
+
+      // Auto-create for masters/directors if they accidentally click network
+      if (!partner) {
+        const originUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (originUser && (originUser.role === 'admin' || originUser.role === 'director' || originUser.email.toLowerCase().includes('alexandre@alexgarciaventures.co'))) {
+            partner = await prisma.partner.create({
+                data: {
+                    user_id: originUser.id,
+                    paypal_email: originUser.email,
+                    country: 'USA',
+                    legal_entity_type: 'Company',
+                    status: 'Active',
+                    agreement_signed_at: new Date(), // Masters bypass onboarding
+                    training_completed_at: new Date()
+                }
+            });
+        } else {
+             return res.status(404).json({ success: false, error: 'Partner profile not found.' });
+        }
+      }
+
+      res.json({ success: true, partner });
+    } catch (error) {
+       console.error('Error fetching partner profile:', error);
+       res.status(500).json({ success: false, error: 'Failed to fetch partner profile' });
+    }
+  };
+
+  /**
    * Get the Partner Dashboard stats (MRR, Client Count, Payouts)
    */
   static getDashboardStats = async (req: Request, res: Response) => {
@@ -309,6 +351,62 @@ export class PartnerController {
     } catch (error) {
       console.error('Error accepting proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to accept proposal and generate invoice.' });
+    }
+  };
+  /**
+   * Complete Partner Training (Step 2 Onboarding)
+   */
+  static completeTraining = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const userId = user?.userId;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
+
+      const partner = await prisma.partner.update({
+        where: { user_id: userId },
+        data: {
+          training_completed_at: new Date()
+        }
+      });
+
+      res.json({ success: true, partner });
+    } catch (error) {
+      console.error('Error completing partner training:', error);
+      res.status(500).json({ success: false, error: 'Failed to complete training.' });
+    }
+  };
+
+  /**
+   * Sign Partner Agreement (Step 1 Onboarding)
+   */
+  static signAgreement = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const userId = user?.userId;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
+
+      const { legal_entity_type, tax_id, country } = req.body;
+      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+
+      const partner = await prisma.partner.update({
+        where: { user_id: userId },
+        data: {
+          legal_entity_type: legal_entity_type || 'Individual',
+          tax_id: tax_id,
+          country: country || 'USA',
+          agreement_signed_at: new Date(),
+          agreement_ip: ip as string
+        }
+      });
+
+      res.json({ success: true, partner });
+    } catch (error) {
+      console.error('Error signing partner agreement:', error);
+      res.status(500).json({ success: false, error: 'Failed to sign agreement.' });
     }
   };
 }

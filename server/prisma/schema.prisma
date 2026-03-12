@@ -24,19 +24,15 @@ model Company {
   theme_bg_url                String?
   theme_logo_url              String?
   theme_primary_color         String?
+  billing_type                String              @default("STRIPE_AUTO")
+  company_status              String              @default("Pending")
+  stripe_customer_id          String?             @unique
   products                    CompanyProduct[]
+  vault_messages              OwnerVaultMessage[]
+  PartnerClient               PartnerClient[]
   stores                      Store[]
   templates                   StoreTemplate[]
   invoices                    SysInvoice[]
-  vault_messages              OwnerVaultMessage[]
-  PartnerClient               PartnerClient[]
-
-  // -------------------------------------------------------------
-  // STRIPE PAYMENT INTEGRATION (Phase 3)
-  // -------------------------------------------------------------
-  stripe_customer_id          String?  @unique
-  billing_type                String   @default("STRIPE_AUTO") // "STRIPE_AUTO" or "MANUAL_INVOICE"
-  company_status              String   @default("Pending") // "Pending", "Active", "Suspended"
 }
 
 model CompanyProduct {
@@ -160,16 +156,15 @@ model User {
   eula_accepted_at     DateTime?
   position             String?
   director_region      String?
+  partner              Partner?           @relation("PartnerUser")
   area_stores          Store[]            @relation("AreaManager")
   support_tickets      SupportTicket[]
   training_progress    TrainingProgress[]
   store                Store?             @relation(fields: [store_id], references: [id])
-  partner              Partner?           @relation("PartnerUser")
 }
 
 model OwnerVaultMessage {
   id         String   @id @default(uuid())
-  company_id String   @default("tdb-main") // default to current primary to avoid wiping DB completely if possible, or just string
   text       String?
   file_url   String?
   file_name  String?
@@ -177,8 +172,8 @@ model OwnerVaultMessage {
   sender     String   @default("OWNER")
   created_at DateTime @default(now())
   is_read    Boolean  @default(false)
-
-  company Company @relation(fields: [company_id], references: [id])
+  company_id String   @default("tdb-main")
+  company    Company  @relation(fields: [company_id], references: [id])
 }
 
 model TrainingProgress {
@@ -460,8 +455,6 @@ model InventoryItem {
   @@unique([cycle_id, protein_id])
 }
 
-
-
 model FAQ {
   id              String   @id @default(uuid())
   question        String
@@ -518,6 +511,75 @@ model ProcurementAIFeedback {
   @@unique([store_id, date, protein])
 }
 
+model Partner {
+  id                String          @id @default(uuid())
+  user_id           String          @unique
+  legal_entity_type String          @default("Individual")
+  tax_id            String?
+  country           String          @default("USA")
+  paypal_email      String?
+  status                String          @default("Active")
+  agreement_signed_at   DateTime?
+  agreement_ip          String?
+  training_completed_at DateTime?
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @updatedAt
+  user              User            @relation("PartnerUser", fields: [user_id], references: [id])
+  clients           PartnerClient[]
+  payouts           Payout[]
+  proposals         Proposal[]
+}
+
+model PartnerClient {
+  id              String   @id @default(uuid())
+  partner_id      String
+  company_id      String
+  commission_rate Float    @default(25.0)
+  setup_fee_share Float    @default(70.0)
+  status          String   @default("Active")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  company         Company  @relation(fields: [company_id], references: [id])
+  partner         Partner  @relation(fields: [partner_id], references: [id])
+
+  @@unique([partner_id, company_id])
+}
+
+model Proposal {
+  id               String    @id @default(uuid())
+  partner_id       String
+  client_name      String
+  contact_email    String
+  contact_phone    String?
+  country          String    @default("USA")
+  language         String    @default("English")
+  store_count      Int       @default(1)
+  setup_fee        Float     @default(0.0)
+  monthly_fee      Float     @default(0.0)
+  status           String    @default("Draft")
+  agv_review_notes String?
+  signed_at        DateTime?
+  signer_ip        String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  partner          Partner   @relation(fields: [partner_id], references: [id])
+}
+
+model Payout {
+  id                    String    @id @default(uuid())
+  partner_id            String
+  amount                Float
+  currency              String    @default("USD")
+  type                  String    @default("SetupFee")
+  status                String    @default("Pending")
+  reference_month       DateTime? @db.Date
+  paid_at               DateTime?
+  paypal_transaction_id String?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  partner               Partner   @relation(fields: [partner_id], references: [id])
+}
+
 enum CycleType {
   WEEKLY
   MONTHLY
@@ -561,78 +623,4 @@ enum SenderType {
   USER
   AI
   ADMIN
-}
-
-// -----------------------------------------
-// Global Partner Ecosystem (Reseller Models)
-// -----------------------------------------
-
-model Partner {
-  id                String   @id @default(uuid())
-  user_id           String   @unique
-  legal_entity_type String   @default("Individual") // "Individual" | "Company"
-  tax_id            String?
-  country           String   @default("USA")
-  paypal_email      String?
-  status            String   @default("Active") // Active, Suspended
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  user      User            @relation("PartnerUser", fields: [user_id], references: [id])
-  clients   PartnerClient[]
-  proposals Proposal[]
-  payouts   Payout[]
-}
-
-model PartnerClient {
-  id              String   @id @default(uuid())
-  partner_id      String
-  company_id      String
-  commission_rate Float    @default(25.0) // 25% MRR
-  setup_fee_share Float    @default(70.0) // 70% Setup Fee
-  status          String   @default("Active") // Active, Churned
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  partner Partner @relation(fields: [partner_id], references: [id])
-  company Company @relation(fields: [company_id], references: [id])
-
-  @@unique([partner_id, company_id])
-}
-
-model Proposal {
-  id               String    @id @default(uuid())
-  partner_id       String
-  client_name      String
-  contact_email    String
-  contact_phone    String?
-  country          String    @default("USA")
-  language         String    @default("English") // English, Spanish, Portuguese
-  store_count      Int       @default(1)
-  setup_fee        Float     @default(0.0)
-  monthly_fee      Float     @default(0.0)
-  status           String    @default("Draft") // Draft, Pending_Signature, Signed, Active, AGV_Review, Fraud_Flagged
-  agv_review_notes String?
-  signed_at        DateTime?
-  signer_ip        String?
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
-
-  partner Partner @relation(fields: [partner_id], references: [id])
-}
-
-model Payout {
-  id                    String    @id @default(uuid())
-  partner_id            String
-  amount                Float
-  currency              String    @default("USD")
-  type                  String    @default("SetupFee") // SetupFee, MRR_Commission
-  status                String    @default("Pending") // Pending, Approved, Paid, Rejected
-  reference_month       DateTime? @db.Date // Which month is this commission for?
-  paid_at               DateTime?
-  paypal_transaction_id String?
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
-
-  partner Partner @relation(fields: [partner_id], references: [id])
 }

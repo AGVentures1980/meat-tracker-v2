@@ -13,10 +13,17 @@ const router = Router();
 router.use(requireAuth);
 router.use(requireRole(['partner']));
 
+// Profile / Onboarding Security Check
+router.get('/profile', PartnerController.getProfile);
+
 // Dashboard / Overview
 router.get('/dashboard', PartnerController.getDashboardStats);
 
-// Proposals (Smart Contracting)
+// Deals
 router.post('/proposals', PartnerController.createProposal);
+
+// Onboarding Flow
+router.post('/onboarding/agreement', PartnerController.signAgreement);
+router.post('/onboarding/training', PartnerController.completeTraining);
 
 export default router;

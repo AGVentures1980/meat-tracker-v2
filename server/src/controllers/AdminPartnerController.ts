@@ -189,4 +189,54 @@ export class AdminPartnerController {
       });
     }
   };
+  /**
+   * Get all signed Partner Agreements for the Vault
+   */
+  static getVaultAgreements = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      
+      // Strict sanity check: only 'admin' can view the global network
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ success: false, error: 'Access Denied: Master Admin Only' });
+      }
+
+      const agreements = await prisma.partner.findMany({
+        where: {
+          agreement_signed_at: { not: null }
+        },
+        include: {
+          user: {
+            select: {
+              first_name: true,
+              last_name: true,
+              email: true
+            }
+          }
+        },
+        orderBy: {
+          agreement_signed_at: 'desc'
+        }
+      });
+
+      res.json({
+        success: true,
+        agreements: agreements.map(a => ({
+          id: a.id,
+          name: `${a.user.first_name} ${a.user.last_name}`,
+          email: a.user.email,
+          legal_entity_type: a.legal_entity_type,
+          tax_id: a.tax_id,
+          country: a.country,
+          agreement_signed_at: a.agreement_signed_at,
+          agreement_ip: a.agreement_ip,
+          training_completed_at: a.training_completed_at
+        }))
+      });
+
+    } catch (error) {
+      console.error('Error fetching vault agreements:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch agreements' });
+    }
+  };
 }

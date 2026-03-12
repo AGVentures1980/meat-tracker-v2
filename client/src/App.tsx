@@ -44,6 +44,9 @@ import { PartnerDashboard } from './pages/partner/PartnerDashboard';
 import { ProposalWizard } from './pages/partner/ProposalWizard';
 import { AcceptProposal } from './pages/partner/AcceptProposal';
 import { PartnerNetwork } from './pages/admin/PartnerNetwork';
+import { PartnerAgreement } from './pages/partner/PartnerAgreement';
+import { PartnerTraining } from './pages/partner/PartnerTraining';
+import { ContractsVault } from './pages/admin/ContractsVault';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 
@@ -74,6 +77,7 @@ const ProtectedRoute = () => {
         if (path === '/vault' && isMaster) {
             // allow bypass
         } else {
+            console.log("Redirecting to select-company due to:", { path, isOwnerRole, selectedCompany });
             return <Navigate to="/select-company" replace />;
         }
     }
@@ -140,6 +144,13 @@ function AppContent() {
                         </div>
                     } />
                 </Route>
+                <Route path="/agv-vault" element={<MasterGuard />}>
+                    <Route index element={
+                        <div className="flex bg-[#121212] min-h-screen text-white">
+                            <ContractsVault />
+                        </div>
+                    } />
+                </Route>
 
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<Dashboard />} />
@@ -177,6 +188,8 @@ function AppContent() {
                     <Route index element={<PartnerDashboard />} />
                     <Route path="dashboard" element={<PartnerDashboard />} />
                     <Route path="proposal/new" element={<ProposalWizard />} />
+                    <Route path="onboarding/agreement" element={<PartnerAgreement />} />
+                    <Route path="onboarding/training" element={<PartnerTraining />} />
                 </Route>
 
                 {/* Catch all redirect to login */}

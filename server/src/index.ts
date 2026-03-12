@@ -97,6 +97,7 @@ app.use('/api/v1/theme', themeRoutes); // Public theme fetching
 import { PartnerController } from './controllers/PartnerController';
 
 // Public Proposal Acceptance (Stripe Entrypoint)
+app.get('/api/v1/proposals/:proposalId', PartnerController.getPublicProposal);
 app.post('/api/v1/proposals/:proposalId/accept', PartnerController.acceptProposal);
 
 // Admin Debug Seeding (Run FDC Seeds on Prod without auth for a moment)
