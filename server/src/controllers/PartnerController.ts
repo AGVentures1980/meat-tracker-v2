@@ -106,12 +106,27 @@ export class PartnerController {
         monthly_fee
       } = req.body;
 
-      const partner = await prisma.partner.findUnique({
+      let partner = await prisma.partner.findUnique({
         where: { user_id: userId }
       });
 
       if (!partner) {
-        return res.status(404).json({ success: false, error: 'Partner profile not found.' });
+        // Zero-Regression: Auto-enlist Admins/Directors as Partners if they originate a deal
+        // Normal users will be blocked upstream, but if they reach here, we double check role.
+        const originUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (originUser && (originUser.role === 'admin' || originUser.role === 'director' || originUser.email.toLowerCase().includes('alexandre@alexgarciaventures.co'))) {
+            partner = await prisma.partner.create({
+                data: {
+                    user_id: originUser.id,
+                    paypal_email: originUser.email,
+                    country: 'USA',
+                    legal_entity_type: 'Company',
+                    status: 'Active'
+                }
+            });
+        } else {
+            return res.status(404).json({ success: false, error: 'Partner profile not found.' });
+        }
       }
 
       // -----------------------------------------------------------------
@@ -180,6 +195,49 @@ export class PartnerController {
     } catch (error) {
       console.error('Error creating proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to create proposal' });
+    }
+  };
+
+  /**
+   * Fetch a Proposal (Public Route for Clients to review before accepting)
+   */
+  static getPublicProposal = async (req: Request, res: Response) => {
+    try {
+      const { proposalId } = req.params;
+
+      const proposal = await prisma.proposal.findUnique({
+        where: { id: proposalId },
+        select: {
+          id: true,
+          client_name: true,
+          country: true,
+          language: true,
+          store_count: true,
+          setup_fee: true,
+          monthly_fee: true,
+          status: true,
+          created_at: true,
+          partner: {
+            select: {
+              user: {
+                select: {
+                  first_name: true,
+                  last_name: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (!proposal) {
+        return res.status(404).json({ success: false, error: 'Proposal not found' });
+      }
+
+      res.json({ success: true, proposal });
+    } catch (error) {
+      console.error('Error fetching public proposal:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch proposal details' });
     }
   };
 
