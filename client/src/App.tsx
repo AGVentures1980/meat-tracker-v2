@@ -66,7 +66,9 @@ const ProtectedRoute = () => {
         path !== '/select-company' &&
         path !== '/saas-admin' &&
         path !== '/owner-terminal' &&
-        path !== '/owner') {
+        path !== '/owner' &&
+        path !== '/agv-network' &&
+        !path.startsWith('/partner')) {
 
         // Allow the Master to access the global Vault directly from the Lobby
         if (path === '/vault' && isMaster) {
