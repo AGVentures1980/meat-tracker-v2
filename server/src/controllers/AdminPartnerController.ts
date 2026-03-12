@@ -265,6 +265,51 @@ export class AdminPartnerController {
   };
 
   /**
+   * Delete a Partner and all their associated Reseller data
+   */
+  static deletePartner = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const { partnerId } = req.params;
+
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Access Denied: Master Admin Only' });
+      }
+
+      const partner = await prisma.partner.findUnique({
+        where: { id: partnerId },
+        include: { clients: true }
+      });
+
+      if (!partner) {
+        return res.status(404).json({ success: false, error: 'Partner not found' });
+      }
+
+      // Safeguard: Check if they have active clients
+      if (partner.clients && partner.clients.length > 0) {
+        return res.status(400).json({ 
+            success: false, 
+            error: `Cannot delete partner with ${partner.clients.length} active clients. Please transfer them first.` 
+        });
+      }
+
+      // Perform a transactional delete of all associated records
+      await prisma.$transaction([
+        prisma.partnerClient.deleteMany({ where: { partner_id: partnerId } }),
+        prisma.proposal.deleteMany({ where: { partner_id: partnerId } }),
+        prisma.payout.deleteMany({ where: { partner_id: partnerId } }),
+        prisma.partner.delete({ where: { id: partnerId } }),
+        prisma.user.delete({ where: { id: partner.user_id } }) // Optional: delete their login too
+      ]);
+
+      res.json({ success: true, message: 'Partner deleted permanently.' });
+    } catch (error) {
+      console.error('Error deleting partner:', error);
+      res.status(500).json({ success: false, error: 'Failed to delete partner' });
+    }
+  };
+
+  /**
    * Forcefully provision a Proposal into an active Organization (Stripe Bypass)
    */
   static forceProvisionProposal = async (req: Request, res: Response) => {

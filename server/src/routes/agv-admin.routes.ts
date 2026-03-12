@@ -14,6 +14,7 @@ router.use(requireRole(['admin']));
 
 // Get the Global Partner Network Cards
 router.get('/network', AdminPartnerController.getAllPartners);
+router.delete('/network/:partnerId', AdminPartnerController.deletePartner);
 
 // Get Pending/Escalated Proposals
 router.get('/escalated', AdminPartnerController.getEscalatedProposals);

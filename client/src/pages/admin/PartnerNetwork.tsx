@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle, Trash2 } from 'lucide-react';
+import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle, Trash2, ChevronLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -91,6 +91,34 @@ export const PartnerNetwork: React.FC = () => {
         }
     };
 
+    const handleDeletePartner = async (partnerId: string, name: string, activeClients: number) => {
+        if (activeClients > 0) {
+            alert(`Cannot delete partner ${name} because they have ${activeClients} active clients. Please transition their clients first.`);
+            return;
+        }
+        
+        if (!window.confirm(`Are you sure you want to permanently delete partner: ${name}?`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/v1/admin-partner/network/${partnerId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                fetchNetworkData();
+            } else {
+                alert(`Failed to delete partner: ${data.error || 'Unknown Error'}`);
+            }
+        } catch (err) {
+            console.error('Failed to delete partner:', err);
+            alert("Network error deleting partner.");
+        }
+    };
+
     const handleForceProvision = async (proposalId: string, clientName: string) => {
         if (!window.confirm(`FORCE PROVISION: Are you sure you want to bypass Stripe and immediately create the Tenant Organization for ${clientName}? This will instantly launch the live Dashboard for them.`)) {
             return;
@@ -123,24 +151,32 @@ export const PartnerNetwork: React.FC = () => {
         <div className="min-h-screen bg-[#050505] p-6 lg:p-12 w-full flex flex-col pt-24">
             <div className="max-w-6xl mx-auto w-full">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6 pb-6 border-b border-white/5">
-                    <div>
-                        <h1 className="text-3xl lg:text-4xl font-black text-white flex items-center gap-4 tracking-tight">
-                            <Network className="text-indigo-500 w-10 h-10" />
-                            Global Partner Network
-                        </h1>
-                        <p className="text-gray-400 mt-3 font-mono text-sm tracking-wide uppercase">
-                            Executive oversight of all regional resellers and MRR performance.
-                        </p>
-                    </div>
-                    
+                <div className="mb-6 mb-12">
                     <button 
-                        onClick={() => navigate('/partner/proposal/new')}
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(79,70,229,0.3)] border border-indigo-400/30 whitespace-nowrap"
+                        onClick={() => navigate('/select-company')}
+                        className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm mb-6"
                     >
-                        <PlusCircle className="w-5 h-5" />
-                        New Smart Proposal
+                        <ChevronLeft className="w-4 h-4" /> Back to Command Center
                     </button>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-white/5">
+                        <div>
+                            <h1 className="text-3xl lg:text-4xl font-black text-white flex items-center gap-4 tracking-tight">
+                                <Network className="text-indigo-500 w-10 h-10" />
+                                Global Partner Network
+                            </h1>
+                            <p className="text-gray-400 mt-3 font-mono text-sm tracking-wide uppercase">
+                                Executive oversight of all regional resellers and MRR performance.
+                            </p>
+                        </div>
+                        
+                        <button 
+                            onClick={() => navigate('/partner/proposal/new')}
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(79,70,229,0.3)] border border-indigo-400/30 whitespace-nowrap"
+                        >
+                            <PlusCircle className="w-5 h-5" />
+                            New Smart Proposal
+                        </button>
+                    </div>
                 </div>
 
                 {/* Anti-Fraud / Mega Deal Escalations */}
@@ -196,9 +232,21 @@ export const PartnerNetwork: React.FC = () => {
                                     <h3 className="text-lg font-bold text-white">{partner.name}</h3>
                                     <p className="text-sm text-gray-400">{partner.email}</p>
                                 </div>
-                                <span className="px-2 py-1 text-xs font-bold rounded-full bg-emerald-900/30 text-emerald-400 border border-emerald-800">
-                                    {partner.country}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2 py-1 text-xs font-bold rounded-full bg-emerald-900/30 text-emerald-400 border border-emerald-800">
+                                        {partner.country}
+                                    </span>
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeletePartner(partner.id, partner.name, partner.metrics.activeClients);
+                                        }}
+                                        className={`p-1.5 rounded-lg border transition-all ${partner.metrics.activeClients > 0 ? 'border-gray-800 text-gray-700 cursor-not-allowed bg-black/50' : 'border-red-900/50 text-red-500 hover:bg-red-900/30 hover:text-white bg-black/80'}`}
+                                        title={partner.metrics.activeClients > 0 ? "Cannot delete partners with active clients" : "Delete Partner"}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 mb-6">
