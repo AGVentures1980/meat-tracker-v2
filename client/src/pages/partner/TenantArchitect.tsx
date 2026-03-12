@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, Bone, UploadCloud, ScanLine, Sparkles } from 'lucide-react';
+import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, Bone, UploadCloud, ScanLine, Sparkles, Link as LinkIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const TenantArchitect: React.FC = () => {
@@ -21,6 +21,8 @@ export const TenantArchitect: React.FC = () => {
         { id: 'p2', name: 'Fraldinha', cost_per_lb: 5.20 },
         { id: 'p3', name: 'Filet Mignon', cost_per_lb: 12.00 }
     ]);
+
+    const [integrations, setIntegrations] = useState({ pos_provider: 'Micros', pos_api_key: '', olo_api_key: '' });
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export const TenantArchitect: React.FC = () => {
             }
 
             setSuccessPayload(data);
-            setStep(6); // Success screen
+            setStep(7); // Success screen
         } catch (err: any) {
             setError(err.message || 'Failed to generate tenant.');
         } finally {
@@ -106,12 +108,12 @@ export const TenantArchitect: React.FC = () => {
                         <p className="text-sm text-gray-400 mt-2">Self-serve massive deployment engine.</p>
                     </div>
                     <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5].map((num) => (
+                        {[1, 2, 3, 4, 5, 6].map((num) => (
                             <React.Fragment key={num}>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= num ? 'bg-emerald-500 text-white' : 'bg-gray-800 text-gray-500'}`}>
                                     {num}
                                 </div>
-                                {num < 5 && <div className={`w-6 h-[2px] mt-4 ${step > num ? 'bg-emerald-500' : 'bg-gray-800'}`} />}
+                                {num < 6 && <div className={`w-6 h-[2px] mt-4 ${step > num ? 'bg-emerald-500' : 'bg-gray-800'}`} />}
                             </React.Fragment>
                         ))}
                     </div>
@@ -127,7 +129,7 @@ export const TenantArchitect: React.FC = () => {
                     </div>
                 )}
 
-                <form onSubmit={step === 5 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
+                <form onSubmit={step === 6 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
                     
                     {step === 1 && (
                         <div className="space-y-6 animate-fade-in">
@@ -313,7 +315,39 @@ export const TenantArchitect: React.FC = () => {
 
                     {step === 5 && (
                         <div className="space-y-6 animate-fade-in">
-                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">5. Final Validation Check</h3>
+                            <h3 className="text-xl font-bold flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200 border-b border-gray-800 pb-2">
+                                <LinkIcon className="w-5 h-5 text-emerald-400" />
+                                5. Operational Integrations (API)
+                            </h3>
+                            <p className="text-sm text-gray-400">Connect the restaurant's Point of Sale and Delivery systems for live metric ingestion.</p>
+
+                            <div className="p-6 bg-[#0a0a0a] border border-gray-800 rounded-xl space-y-6">
+                                <div className="space-y-1">
+                                    <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider">Primary POS Provider</label>
+                                    <select 
+                                        value={integrations.pos_provider} 
+                                        onChange={(e) => setIntegrations({...integrations, pos_provider: e.target.value})}
+                                        className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-emerald-500 transition-colors text-sm"
+                                    >
+                                        <option value="Micros">Oracle Micros</option>
+                                        <option value="Aloha">NCR Aloha</option>
+                                        <option value="Toast">Toast POS</option>
+                                        <option value="Square">Square</option>
+                                    </select>
+                                </div>
+                                
+                                <Input label={`${integrations.pos_provider} API Key / Webhook Secret`} type="password" value={integrations.pos_api_key} onChange={(v: string) => setIntegrations({...integrations, pos_api_key: v})} placeholder="sk_live_..." />
+                                
+                                <div className="pt-4 border-t border-gray-800">
+                                    <Input label="OLO Delivery API Key (Optional)" type="password" value={integrations.olo_api_key} onChange={(v: string) => setIntegrations({...integrations, olo_api_key: v})} placeholder="olo_key_..." />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 6 && (
+                        <div className="space-y-6 animate-fade-in">
+                            <h3 className="text-xl font-bold text-emerald-400 border-b border-gray-800 pb-2">6. Master Architecture Review</h3>
                             
                             <div className="p-8 bg-[#0a0a0a] border border-gray-800 rounded-xl space-y-6">
                                 <div className="grid grid-cols-2 gap-8 text-sm">
@@ -340,13 +374,13 @@ export const TenantArchitect: React.FC = () => {
                                 </div>
                                 
                                 <div className="pt-6 border-t border-gray-800">
-                                    <div className="flex items-start gap-3 p-4 bg-emerald-900/10 border border-emerald-900/50 rounded-lg">
-                                        <FileSpreadsheet className="w-6 h-6 text-emerald-500 shrink-0" />
-                                        <p className="text-gray-300 text-sm">
-                                            By clicking build, you are triggering a massive autonomous database transaction. 
-                                            This will instantly generate the isolated multitenant instance, seed all users, link corporate hierarchies, 
-                                            and inject the initial datasets. Welcome emails with generic passwords will be dispersed.
-                                        </p>
+                                    <div className="flex items-start gap-3 p-4 bg-yellow-900/10 border border-yellow-900/50 rounded-lg">
+                                        <FileSpreadsheet className="w-6 h-6 text-yellow-500 shrink-0" />
+                                        <div className="text-gray-300 text-sm">
+                                            <p className="font-bold text-yellow-500 mb-1">Sandbox Preview Deployment</p>
+                                            <p>Clicking build will generate this complex multi-tenant architecture immediately. The instance will be placed into <span className="text-white font-bold">Sandbox Mode</span> for your QA testing.</p>
+                                            <p className="mt-2 text-yellow-600/80 italic">To push LIVE and dispatch the CEO login credentials, you must finalize the SLA using the Contract Generator later.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -354,7 +388,7 @@ export const TenantArchitect: React.FC = () => {
                     )}
 
                     {/* Navigation Footer */}
-                    {step < 6 && (
+                    {step < 7 && (
                         <div className="mt-12 flex justify-between items-center pt-6 border-t border-gray-800">
                             {step > 1 ? (
                                 <button type="button" onClick={handleBack} className="text-gray-400 hover:text-white px-6 py-3 rounded-lg font-medium transition-colors">
@@ -362,42 +396,52 @@ export const TenantArchitect: React.FC = () => {
                                 </button>
                             ) : <div></div>}
                             
-                            {step < 5 ? (
+                            {step < 6 ? (
                                 <button type="submit" className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/40 transition-all">
                                     Next Phase <ArrowRight className="w-5 h-5" />
                                 </button>
                             ) : (
-                                <button disabled={loading || !companyName} type="submit" className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-emerald-900/40 transition-all">
-                                    {loading ? 'Executing Master Blueprint...' : 'Build Organization & Initialize AI'} 
-                                    {!loading && <CheckCircle2 className="w-5 h-5" />}
+                                <button disabled={loading || !companyName} type="submit" className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-yellow-900/40 transition-all text-gray-900">
+                                    {loading ? 'Compiling Sandbox...' : 'Deploy Architecture Preview'} 
+                                    {!loading && <CheckCircle2 className="w-5 h-5 text-gray-900" />}
                                 </button>
                             )}
                         </div>
                     )}
 
                     {/* Success Screen */}
-                    {step === 6 && successPayload && (
-                        <div className="text-center py-16 space-y-6 animate-fade-in">
-                            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-900/30 mb-4 animate-bounce">
-                                <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+                    {step === 7 && successPayload && (
+                        <div className="text-center py-16 space-y-6 animate-fade-in max-w-2xl mx-auto">
+                            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-yellow-900/30 mb-4 animate-bounce">
+                                <ShieldAlert className="w-12 h-12 text-yellow-500" />
                             </div>
-                            <h3 className="text-3xl font-bold text-white">Instance Provisioned</h3>
-                            <p className="text-emerald-400 text-lg">
-                                {companyName} is fully operational.
+                            <h3 className="text-3xl font-bold text-white">Preview Deployed</h3>
+                            <p className="text-yellow-500 text-lg">
+                                {companyName} is compiled and awaiting the Final Contract Gate.
                             </p>
                             
-                            <div className="max-w-md mx-auto mt-8 bg-[#0a0a0a] border border-gray-800 rounded-xl p-6 text-left">
-                                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Instance Details</h4>
-                                <ul className="space-y-3 text-sm text-gray-300">
-                                    <li><strong className="text-white">Tenant ID:</strong> {successPayload.company.id}</li>
-                                    <li><strong className="text-white">Subdomain:</strong> {successPayload.company.subdomain}</li>
-                                    <li><strong className="text-white">Owner Portal:</strong> Activated</li>
-                                </ul>
+                            <div className="mt-8 bg-[#0a0a0a] border border-gray-800 rounded-xl p-8 text-left space-y-6">
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2 border-b border-gray-800 pb-2">Instance Details</h4>
+                                    <ul className="space-y-3 text-sm text-gray-300 font-mono pl-2 border-l-2 border-yellow-900/50">
+                                        <li><strong className="text-white text-xs uppercase mr-2">Tenant ID:</strong> {successPayload.company.id}</li>
+                                        <li><strong className="text-white text-xs uppercase mr-2">Subdomain:</strong> {successPayload.company.subdomain}</li>
+                                        <li><strong className="text-white text-xs uppercase mr-2">POS Link:</strong> {integrations.pos_provider} (Pending Signature)</li>
+                                        <li><strong className="text-white text-xs uppercase mr-2">CEO Status:</strong> Credentials Locked</li>
+                                    </ul>
+                                </div>
+                                
+                                <div className="bg-yellow-900/10 border border-yellow-900/50 rounded-lg p-5">
+                                    <h5 className="font-bold text-yellow-500 mb-2">Next Step: Finalize Checkout</h5>
+                                    <p className="text-gray-400 text-sm">
+                                        The architecture is complete. Now, open the <strong>Contract Generator</strong> back at the Dashboard to send the Master SaaS Agreement and SLA to {ceo.first_name}. Once they sign and pay, the CEO credentials will be instantly emailed to them and the Sandbox restrictions will be lifted.
+                                    </p>
+                                </div>
                             </div>
                             
                             <div className="pt-8">
-                                <button type="button" onClick={() => navigate('/partner/dashboard')} className="text-gray-400 hover:text-white px-6 py-3 border border-gray-700 rounded-lg font-medium transition-colors">
-                                    Return to Command Center
+                                <button type="button" onClick={() => navigate('/partner/dashboard')} className="bg-white text-black hover:bg-gray-200 px-8 py-3 rounded-lg font-bold shadow-lg transition-colors">
+                                    Return to Command Center & Generate Contract
                                 </button>
                             </div>
                         </div>
