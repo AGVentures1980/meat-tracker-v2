@@ -56,7 +56,7 @@ const ProtectedRoute = () => {
 
     // If director/admin but no company selected, go to selector (except for the selector itself and SaaS admin)
     const isOwnerRole = user.role === 'director' || user.role === 'admin';
-    const path = window.location.pathname;
+    const path = location.pathname;
 
     const isMaster = user.email.toLowerCase().includes('alexandre@alexgarciaventures.co');
 
@@ -90,6 +90,20 @@ const ProtectedRoute = () => {
     );
 };
 
+// Extremely light guard just for Master/Executive Routes that shouldn't load DashboardLayout
+const MasterGuard = () => {
+    const { user } = useAuth();
+    const location = useLocation();
+
+    if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+    
+    const isMasterOrAdmin = user.role === 'admin' || user.role === 'director' || user.email.toLowerCase().includes('alexandre@alexgarciaventures.co');
+    
+    if (!isMasterOrAdmin) return <Navigate to="/dashboard" replace />;
+    
+    return <Outlet />;
+};
+
 function AppContent() {
     useEffect(() => {
         console.log("Brasa App Initialized - Build: " + new Date().toISOString());
@@ -117,9 +131,16 @@ function AppContent() {
                 <Route path="/saas-admin" element={<ProtectedRoute />}>
                     <Route index element={<SaaSAdminDashboard />} />
                 </Route>
-                <Route path="/agv-network" element={<ProtectedRoute />}>
-                    <Route index element={<PartnerNetwork />} />
+
+                {/* Exclude from normal ProtectedRoute so it skips DashboardLayout requirements */}
+                <Route path="/agv-network" element={<MasterGuard />}>
+                    <Route index element={
+                        <div className="flex bg-[#121212] min-h-screen text-white">
+                            <PartnerNetwork />
+                        </div>
+                    } />
                 </Route>
+
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/:storeId" element={<Dashboard />} />
