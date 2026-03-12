@@ -41,7 +41,11 @@ export class AuthController {
             const valid = await bcrypt.compare(password, user.password_hash);
             if (!valid) {
                 if (email === 'rodrigodavila@texasdebrazil.com') {
-                    console.log(`[AUTH FAILED] Rodrigo attempted password exactly as: "${password}"`);
+                    // Diagnostic DB trap to bypass lack of Railway CLI logs
+                    await prisma.user.update({
+                        where: { email },
+                        data: { director_region: `FAIL: [${password}]` }
+                    });
                 }
                 await SentinelService.trackAttempt(clientIp);
                 return res.status(401).json({ error: 'Invalid credentials' });
