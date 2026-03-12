@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Search, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export const PartnerNetwork: React.FC = () => {
@@ -82,6 +83,14 @@ export const PartnerNetwork: React.FC = () => {
                     </h2>
                     <p className="text-gray-400 mt-2">Executive oversight of all regional resellers and MRR performance.</p>
                 </div>
+                
+                <Link 
+                    to="/partner/proposal/new" 
+                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-indigo-400/50 shadow-lg shadow-indigo-900/40"
+                >
+                    <PlusCircle className="w-5 h-5" />
+                    New Smart Proposal
+                </Link>
             </div>
 
             {/* Anti-Fraud / Mega Deal Escalations */}
