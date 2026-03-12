@@ -42,6 +42,7 @@ import { ProcurementShadowDashboard } from './pages/Intelligence/ProcurementShad
 import { PartnerLayout } from './components/layouts/PartnerLayout';
 import { PartnerDashboard } from './pages/partner/PartnerDashboard';
 import { ProposalWizard } from './pages/partner/ProposalWizard';
+import { TenantArchitect } from './pages/partner/TenantArchitect';
 import { AcceptProposal } from './pages/partner/AcceptProposal';
 import { PartnerNetwork } from './pages/admin/PartnerNetwork';
 import { PartnerAgreement } from './pages/partner/PartnerAgreement';
@@ -188,6 +189,7 @@ function AppContent() {
                     <Route index element={<PartnerDashboard />} />
                     <Route path="dashboard" element={<PartnerDashboard />} />
                     <Route path="proposal/new" element={<ProposalWizard />} />
+                    <Route path="tenant-architect" element={<TenantArchitect />} />
                     <Route path="onboarding/agreement" element={<PartnerAgreement />} />
                     <Route path="onboarding/training" element={<PartnerTraining />} />
                 </Route>

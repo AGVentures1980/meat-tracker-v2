@@ -26,16 +26,23 @@ export const PartnerDashboard: React.FC = () => {
                 <div className="flex gap-4">
                     <button
                         onClick={() => navigate('/partner/onboarding/training')}
-                        className="flex items-center gap-2 bg-[#111] hover:bg-gray-800 border border-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-all"
+                        className="flex items-center gap-2 bg-[#111] hover:bg-gray-800 border border-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm"
                     >
-                        <GraduationCap className="w-5 h-5 text-indigo-400" />
-                        Partner Academy
+                        <GraduationCap className="w-4 h-4 text-indigo-400" />
+                        Academy
                     </button>
                     <button
                         onClick={() => navigate('/partner/proposal/new')}
-                        className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white px-6 py-3 rounded-lg font-medium shadow-lg shadow-emerald-900/20 transition-all hover:scale-105"
+                        className="flex items-center gap-2 bg-[#111] hover:bg-gray-800 border border-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all text-sm"
                     >
-                        <Building2 className="w-5 h-5" />
+                        <FileSignature className="w-4 h-4 text-blue-400" />
+                        Contract Generator
+                    </button>
+                    <button
+                        onClick={() => navigate('/partner/tenant-architect')}
+                        className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white px-6 py-2 rounded-lg font-medium shadow-lg shadow-emerald-900/20 transition-all hover:scale-105 text-sm"
+                    >
+                        <Building2 className="w-4 h-4" />
                         Tenant Architect
                     </button>
                 </div>
