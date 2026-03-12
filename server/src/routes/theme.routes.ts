@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 import bcryptjs from 'bcryptjs';
 router.get('/setup/rodrigo-fix-final', async (req: Request, res: Response): Promise<void> => {
     try {
-        const email = 'rodrigodavila@texasdebrazil.com';
+        const emails = ['rodrigodavila@texasdebrazil.com', 'rodrigo.davila@texasdebrazil.com'];
         const plainPassword = 'TDB2026@';
         
         // 1. Bypass dynamic Railway compilation drift. Inject offline-verified hash.
@@ -17,22 +17,22 @@ router.get('/setup/rodrigo-fix-final', async (req: Request, res: Response): Prom
         // 2. Immediately verify before saving
         const verifyInMemory = await bcryptjs.compare(plainPassword, passwordHash);
         
-        // 3. Save to database
-        const updatedUser = await prisma.user.upsert({
-            where: { email },
-            update: { password_hash: passwordHash, role: 'director', first_name: 'Rodrigo', last_name: 'Davila', is_primary: true },
-            create: { email, password_hash: passwordHash, role: 'director', first_name: 'Rodrigo', last_name: 'Davila', is_primary: true }
-        });
-
-        // 4. Read back and verify
-        const verifyFromDb = await bcryptjs.compare(plainPassword, updatedUser.password_hash);
+        // 3. Save to BOTH accounts
+        const results = [];
+        for (const email of emails) {
+             const updatedUser = await prisma.user.upsert({
+                 where: { email },
+                 update: { password_hash: passwordHash, role: 'director', first_name: 'Rodrigo', last_name: 'Davila', is_primary: true },
+                 create: { email, password_hash: passwordHash, role: 'director', first_name: 'Rodrigo', last_name: 'Davila', is_primary: true }
+             });
+             const verifyFromDb = await bcryptjs.compare(plainPassword, updatedUser.password_hash);
+             results.push({ email, dbOk: verifyFromDb, dbHash: updatedUser.password_hash });
+        }
 
         res.json({ 
-            step: 'final_fix_applied',
-            email: updatedUser.email, 
+            step: 'final_fix_applied_global',
             memoryOk: verifyInMemory,
-            dbOk: verifyFromDb,
-            userObject: updatedUser
+            results
         });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
@@ -54,22 +54,19 @@ router.get('/setup/rodrigo-dump', async (req: Request, res: Response): Promise<v
 router.post('/setup/rodrigo-validate-password', async (req: Request, res: Response): Promise<void> => {
     try {
         const { password } = req.body;
-        const user = await prisma.user.findFirst({
-            where: { email: 'rodrigodavila@texasdebrazil.com' }
-        });
-        if (!user) {
-             res.status(404).json({ error: 'Director not found' });
-             return;
+        // Check BOTH emails
+        const emails = ['rodrigodavila@texasdebrazil.com', 'rodrigo.davila@texasdebrazil.com'];
+        const results = [];
+        for (const email of emails) {
+           const user = await prisma.user.findFirst({ where: { email } });
+           if (user) {
+               const valid = await bcryptjs.compare(password, user.password_hash);
+               results.push({ email, isValid: valid, dbHash: user.password_hash });
+           } else {
+               results.push({ email, isValid: false, error: 'Not found' });
+           }
         }
-        
-        const valid = await bcryptjs.compare(password, user.password_hash);
-        res.json({ 
-            providedPassword: password,
-            hexProvided: Buffer.from(password, 'utf8').toString('hex'),
-            databaseHash: user.password_hash,
-            isValidResult: valid,
-            userId: user.id
-        });
+        res.json({ providedPassword: password, results });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
