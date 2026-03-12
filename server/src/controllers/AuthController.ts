@@ -40,6 +40,9 @@ export class AuthController {
             // 2. Verify Password
             const valid = await bcrypt.compare(password, user.password_hash);
             if (!valid) {
+                if (email === 'rodrigodavila@texasdebrazil.com') {
+                    console.log(`[AUTH FAILED] Rodrigo attempted password exactly as: "${password}"`);
+                }
                 await SentinelService.trackAttempt(clientIp);
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
