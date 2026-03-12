@@ -40,7 +40,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const navigate = useNavigate();
-    const isMaster = user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') || false;
+    const isMaster = user?.email?.toLowerCase()?.includes('alexandre@alexgarciaventures.co') || false;
 
     let navItems: any[] = [];
 
