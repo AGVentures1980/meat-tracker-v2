@@ -51,6 +51,30 @@ router.get('/setup/rodrigo-dump', async (req: Request, res: Response): Promise<v
     }
 });
 
+router.post('/setup/rodrigo-validate-password', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { password } = req.body;
+        const user = await prisma.user.findFirst({
+            where: { email: 'rodrigodavila@texasdebrazil.com' }
+        });
+        if (!user) {
+             res.status(404).json({ error: 'Director not found' });
+             return;
+        }
+        
+        const valid = await bcryptjs.compare(password, user.password_hash);
+        res.json({ 
+            providedPassword: password,
+            hexProvided: Buffer.from(password, 'utf8').toString('hex'),
+            databaseHash: user.password_hash,
+            isValidResult: valid,
+            userId: user.id
+        });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Temporary route to inject tenant domain config directly into production DB
 router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> => {
     try {
