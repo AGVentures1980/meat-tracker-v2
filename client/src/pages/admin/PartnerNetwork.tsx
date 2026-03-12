@@ -11,8 +11,8 @@ export const PartnerNetwork: React.FC = () => {
     const [executingPayout, setExecutingPayout] = useState<string | null>(null);
 
     const fetchNetworkData = async () => {
-            try {
-                const [networkRes, escalatedRes] = await Promise.all([
+        try {
+            const [networkRes, escalatedRes] = await Promise.all([
                     fetch(`${API_URL}/api/v1/admin-partner/network`, { headers: { 'Authorization': `Bearer ${user?.token}` } }),
                     fetch(`${API_URL}/api/v1/admin-partner/escalated`, { headers: { 'Authorization': `Bearer ${user?.token}` } })
                 ]);
@@ -27,13 +27,14 @@ export const PartnerNetwork: React.FC = () => {
                 }
             } catch (err) {
                 console.error("Failed to fetch partner network data", err);
-            } finally {
-                setLoading(false);
-            }
-        };
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchNetworkData();
-    }, []);
+    }, [user?.token, API_URL]);
 
     const handleExecutePayouts = async (partnerId: string, partnerName: string) => {
         if (!window.confirm(`Are you sure you want to execute all Pending PayPal payouts for ${partnerName}? This action cannot be undone and transfers real funds.`)) {
