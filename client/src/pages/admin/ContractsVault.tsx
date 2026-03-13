@@ -49,7 +49,7 @@ export const ContractsVault: React.FC = () => {
             {/* Back Button */}
             <div className="mb-8">
                 <button
-                    onClick={() => navigate('/admin')}
+                    onClick={() => navigate('/saas-admin')}
                     className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-gray-800 border border-gray-800 hover:border-emerald-500/50 text-gray-400 hover:text-emerald-500 rounded-full transition-all group w-max"
                 >
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
