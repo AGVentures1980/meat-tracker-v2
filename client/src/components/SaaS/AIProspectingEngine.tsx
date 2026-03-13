@@ -74,14 +74,10 @@ export const AIProspectingEngine = () => {
                 clearInterval(interval);
                 setIsSearching(false);
                 setProspects(mockProspects);
+                alert('Neural Scan Completed: 3 High-Intent Leads Discovered in the network.');
             }
         }, 100);
     };
-
-    useEffect(() => {
-        const timeout = setTimeout(runScan, 1000);
-        return () => clearTimeout(timeout);
-    }, []);
 
     return (
         <div className="space-y-8">

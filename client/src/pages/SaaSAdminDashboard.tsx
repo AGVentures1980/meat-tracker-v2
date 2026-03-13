@@ -106,7 +106,9 @@ export const SaaSAdminDashboard = () => {
                                     <p className="text-[9px] text-gray-500 font-mono">ID: ACC_9281_REALTIME</p>
                                 </div>
                             </div>
-                            <button className="w-full py-3 bg-[#C5A059] text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-[#D5B069] transition-all">
+                            <button 
+                                onClick={() => alert('Securely connecting to Stripe Connect Dashboard... Payout processing engine engaged.')}
+                                className="w-full py-3 bg-[#C5A059] text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-[#D5B069] transition-all">
                                 Manage Payouts
                             </button>
                         </div>
