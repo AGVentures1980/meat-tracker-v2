@@ -45,15 +45,17 @@ export const ContractsVault: React.FC = () => {
     }
 
     return (
-        <div className="p-8 w-full max-w-7xl mx-auto animate-fade-in relative">
+        <div className="p-8 w-full max-w-7xl mx-auto animate-fade-in">
             {/* Back Button */}
-            <button
-                onClick={() => navigate('/admin')}
-                className="absolute top-8 right-8 flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-gray-800 border border-gray-800 hover:border-emerald-500/50 text-gray-400 hover:text-emerald-500 rounded-full transition-all group z-10"
-            >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-medium tracking-wide">Return to Command Center</span>
-            </button>
+            <div className="mb-8">
+                <button
+                    onClick={() => navigate('/admin')}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-gray-800 border border-gray-800 hover:border-emerald-500/50 text-gray-400 hover:text-emerald-500 rounded-full transition-all group w-max"
+                >
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    <span className="text-sm font-medium tracking-wide">Return to Command Center</span>
+                </button>
+            </div>
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
