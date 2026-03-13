@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, Search, Clock, MapPin, Database, Award } from 'lucide-react';
+import { ShieldCheck, Search, Clock, MapPin, Database, Award, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const ContractsVault: React.FC = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
     
     const [agreements, setAgreements] = useState<any[]>([]);
@@ -43,7 +45,16 @@ export const ContractsVault: React.FC = () => {
     }
 
     return (
-        <div className="p-8 w-full max-w-7xl mx-auto animate-fade-in">
+        <div className="p-8 w-full max-w-7xl mx-auto animate-fade-in relative">
+            {/* Back Button */}
+            <button
+                onClick={() => navigate('/admin')}
+                className="absolute top-8 right-8 flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-gray-800 border border-gray-800 hover:border-emerald-500/50 text-gray-400 hover:text-emerald-500 rounded-full transition-all group z-10"
+            >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span className="text-sm font-medium tracking-wide">Return to Command Center</span>
+            </button>
+
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                 <div>
@@ -54,7 +65,7 @@ export const ContractsVault: React.FC = () => {
                     <p className="text-gray-400 mt-2">Secure cryptographic log of all AGV Partner / Reseller NDAs and Operating Agreements.</p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-4 mt-12 md:mt-0">
                     <div className="relative">
                         <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input

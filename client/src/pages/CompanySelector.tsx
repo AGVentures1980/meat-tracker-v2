@@ -134,11 +134,11 @@ export const CompanySelector = () => {
                                 </span>
 
                                 {company.name === 'Fogo de Chão' ? (
-                                    <img src="/fdc-logo-pure-white.png" alt="Fogo de Chão" className="h-[35px] object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                    <img src="/fdc-logo-pure-white.png" alt="Fogo de Chão" className="h-[35px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : company.name === 'Texas de Brazil' ? (
-                                    <img src="/tdb-logo-white.svg" alt="Texas de Brazil" className="h-[45px] object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                    <img src="/tdb-logo-white.svg" alt="Texas de Brazil" className="h-[65px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : company.name === 'Brasa Group' ? (
-                                    <img src="/brasa-logo-v3.png" alt="Brasa Group" className="h-[35px] object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md brightness-[5] grayscale" />
+                                    <img src="/brasa-logo-v3.png" alt="Brasa Group" className="h-[55px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md brightness-[5] grayscale" />
                                 ) : (
                                     <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#C5A059] transition-colors">{company.name}</h3>
                                 )}
