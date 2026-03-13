@@ -50,7 +50,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             section: 'EXECUTIVE STEALTH',
             items: [
                 { icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' },
-                { icon: BrainCircuit, label: 'A.I. Procurement (Shadow)', path: '/intelligence/procurement-shadow' }
+                { icon: BrainCircuit, label: 'A.I. Procurement (Shadow)', path: '/intelligence/procurement-shadow' },
+                { icon: ShieldCheck, label: 'Master Contracts Vault', path: '/agv-vault' }
             ]
         });
     }
