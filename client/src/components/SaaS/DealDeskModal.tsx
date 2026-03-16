@@ -23,6 +23,20 @@ export const DealDeskModal = ({ isOpen, onClose }: DealDeskModalProps) => {
 
     if (!isOpen) return null;
 
+    React.useEffect(() => {
+        if (isOpen) {
+            setStep(1);
+            setContractId(null);
+            setFormData({
+                company_name: '',
+                signer_name: '',
+                signer_email: '',
+                price: '',
+                locations_count: '1'
+            });
+        }
+    }, [isOpen]);
+
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -177,14 +191,40 @@ export const DealDeskModal = ({ isOpen, onClose }: DealDeskModalProps) => {
                 {/* Step 2: Final Review Pop-up */}
                 {step === 2 && (
                     <div className="p-8 space-y-6">
-                        <div className="bg-[#050505] border border-white/5 rounded-2xl p-6 h-64 overflow-y-auto leading-relaxed text-sm text-gray-400 font-serif">
-                            <h3 className="text-center font-bold text-white uppercase text-lg mb-6">Master Software As A Service Agreement</h3>
-                            <p className="mb-4">This Master SaaS Agreement is entered into as of <strong>{new Date().toLocaleDateString()}</strong> by and between <strong>Brasa Intel (AGV Ventures LLC)</strong> and <strong>{formData.company_name}</strong>.</p>
-                            <p className="mb-4"><strong>1. SCOPE OF PILOT:</strong> Provider will deploy the Brasa Meat Intelligence OS to <strong>{formData.locations_count}</strong> pilot locations for the duration of 90 days.</p>
-                            <p className="mb-4"><strong>2. COMMERCIAL TERMS:</strong> Client agrees to a monthly recurring software license fee of <strong>${formData.price}.00 USD</strong>. Execution of this digital document legally binds the signatory, <strong>{formData.signer_name} ({formData.signer_email})</strong>, to these terms.</p>
-                            <div className="mt-8 border-t border-dashed border-gray-700 pt-4 flex justify-between uppercase text-xs">
-                                <span>Signatory: ___________________</span>
-                                <span>Date: ___________________</span>
+                        <div className="bg-[#111] border border-white/5 rounded-2xl p-6 h-[400px] overflow-y-auto leading-relaxed text-xs text-gray-400 font-sans shadow-inner">
+                            <div className="text-center border-b-2 border-[#C5A059] pb-4 mb-6">
+                                <div className="text-xl font-black tracking-widest text-white uppercase">AGV Ventures</div>
+                                <span className="text-[10px] font-bold tracking-[0.2em] text-[#C5A059] uppercase block mt-1">Technology Holdings & Licensing</span>
+                            </div>
+                            
+                            <h3 className="text-center font-bold text-white uppercase text-sm tracking-wide mb-6">Master Software Evaluation & SaaS Agreement</h3>
+                            
+                            <p className="mb-4 text-justify">This Master Agreement (the "Agreement") is entered into as of <strong className="text-white">{new Date().toLocaleDateString()}</strong> (the "Effective Date") by and between <strong className="text-white">AGV Ventures LLC</strong> ("Licensor" or "Owner") and <strong className="text-white">{formData.company_name || '[Company Name]'}</strong> ("Client").</p>
+                            
+                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">1. Ownership & Intellectual Property</h4>
+                            <p className="mb-4 text-justify">The <strong className="text-white">Brasa Meat Intelligence</strong> platform, algorithms, source codes, trademarks, operational methodologies (including the "Garcia Rule"), and all related intellectual property are owned exclusively by <strong className="text-white">AGV Ventures LLC</strong>. The software is merely licensed, not sold, to the Client under the terms of this Agreement. The Client hereby acknowledges that they hold no ownership rights over the software or any derivative works.</p>
+
+                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">2. Pilot Evaluation Program</h4>
+                            <p className="mb-4 text-justify">Licensor agrees to deploy the Brasa Meat Intelligence operating system to <strong className="text-white">{formData.locations_count || '[X]'}</strong> pilot locations for a 90-day evaluation period. During this period, both parties agree to mutual confidentiality regarding proprietary business metrics, strategic workflows, and software interfaces (Mutual NDA).</p>
+                            
+                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">3. Commercial Terms & Transition</h4>
+                            <p className="mb-4 text-justify">Upon successful conclusion of the Pilot Program, this Agreement automatically transitions to an active monthly Software-as-a-Service (SaaS) license. The Client agrees to a recurring monthly software licensing fee of <strong className="text-white">${Number(formData.price || 0).toLocaleString()}.00 USD</strong>. This fee grants the Client non-exclusive, non-transferable access for the authorized locations.</p>
+
+                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">4. Liability Shield</h4>
+                            <p className="mb-4 text-justify">In no event shall AGV Ventures LLC, its founders, members, or affiliates be liable for any indirect, incidental, or consequential damages arising out of the use or inability to use the Software. Total liability of AGV Ventures LLC shall not exceed the amount paid by the Client for the software license.</p>
+
+                            <div className="mt-8 border-t border-dashed border-gray-700 pt-6">
+                                <p className="mb-4 text-justify">Execution of this digital document legally binds the signatory, <strong className="text-white">{formData.signer_name || '[Signer Name]'} ({formData.signer_email || '[Signer Email]'})</strong> representing {formData.company_name || '[Company Name]'}, to these terms.</p>
+                                <div className="border border-dashed border-gray-600 bg-white/5 p-4 text-center mt-2">
+                                    <span className="text-gray-500 text-[10px] tracking-widest uppercase items-center gap-2 inline-flex">
+                                        <FileSignature className="w-4 h-4" /> DocuSign Anchor Point
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-10 text-[10px] text-center text-gray-600 border-t border-white/5 pt-4">
+                                AGV Ventures LLC • Proprietary & Confidential Document<br/>
+                                Generated by Brasa Meat Intelligence Deal Desk
                             </div>
                         </div>
                         
@@ -218,7 +258,7 @@ export const DealDeskModal = ({ isOpen, onClose }: DealDeskModalProps) => {
                         </div>
 
                         <div className="pt-8">
-                            <button onClick={onClose} className="text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
+                            <button type="button" onClick={() => { setStep(1); onClose(); }} className="text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
                                 Return to Command Center
                             </button>
                         </div>
