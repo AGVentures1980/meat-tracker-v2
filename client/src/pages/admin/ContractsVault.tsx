@@ -7,6 +7,7 @@ import { DealDeskModal } from '../../components/SaaS/DealDeskModal';
 export const ContractsVault: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const API_URL = (import.meta as any).env.VITE_API_URL || '';
     const [contracts, setContracts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +17,7 @@ export const ContractsVault: React.FC = () => {
 
     const fetchVault = async () => {
         try {
-            const res = await fetch(`/api/v1/contracts`, {
+            const res = await fetch(`${API_URL}/api/v1/contracts`, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await res.json();
@@ -34,12 +35,12 @@ export const ContractsVault: React.FC = () => {
         if (user?.token) {
             fetchVault();
         }
-    }, [user]);
+    }, [user, API_URL]);
 
     const executeDelete = async () => {
         if (!contractToDelete) return;
         try {
-            const res = await fetch(`/api/v1/contracts/${contractToDelete}`, {
+            const res = await fetch(`${API_URL}/api/v1/contracts/${contractToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
