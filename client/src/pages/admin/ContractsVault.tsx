@@ -44,16 +44,25 @@ export const ContractsVault: React.FC = () => {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
-            const data = await res.json();
+            
+            const text = await res.text();
+            
             if (res.ok) {
                 fetchVault();
                 setContractToDelete(null);
             } else {
-                alert(data.error || 'Failed to delete contract');
+                let errorMsg = 'Failed to delete contract';
+                try {
+                    const data = JSON.parse(text);
+                    if (data.error) errorMsg = data.error;
+                } catch(e) {
+                    errorMsg = `Server error ${res.status}: ${text.substring(0, 50)}`;
+                }
+                alert(errorMsg);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to delete', error);
-            alert('A network error occurred while deleting.');
+            alert(`A network error occurred while deleting: ${error.message || error.toString()}`);
         }
     };
 
