@@ -14,6 +14,7 @@ export const ContractsVault: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isDealDeskOpen, setIsDealDeskOpen] = useState(false);
     const [selectedDraft, setSelectedDraft] = useState<any>(null);
+    const [contractToDelete, setContractToDelete] = useState<string | null>(null);
 
     const fetchVault = async () => {
         try {
@@ -37,17 +38,28 @@ export const ContractsVault: React.FC = () => {
         }
     }, [user, API_URL]);
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to permanently delete this DRAFT?')) return;
+    const executeDelete = async () => {
+        if (!contractToDelete) return;
         try {
-            const res = await fetch(`${API_URL}/api/v1/contracts/${id}`, {
+            const res = await fetch(`${API_URL}/api/v1/contracts/${contractToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
-            if (res.ok) fetchVault();
+            const data = await res.json();
+            if (res.ok) {
+                fetchVault();
+                setContractToDelete(null);
+            } else {
+                alert(data.error || 'Failed to delete contract');
+            }
         } catch (error) {
             console.error('Failed to delete', error);
+            alert('A network error occurred while deleting.');
         }
+    };
+
+    const handleDeleteClick = (id: string) => {
+        setContractToDelete(id);
     };
 
     const handleEdit = (contract: any) => {
@@ -199,7 +211,7 @@ export const ContractsVault: React.FC = () => {
                                                         <button onClick={() => handleEdit(contract)} className="text-gray-400 hover:text-white transition-colors" title="Edit Draft">
                                                             <Edit2 size={14} />
                                                         </button>
-                                                        <button onClick={() => handleDelete(contract.id)} className="text-gray-400 hover:text-red-400 transition-colors" title="Delete Draft">
+                                                        <button onClick={() => handleDeleteClick(contract.id)} className="text-gray-400 hover:text-red-400 transition-colors" title="Delete Draft">
                                                             <Trash2 size={14} />
                                                         </button>
                                                     </div>
@@ -213,6 +225,28 @@ export const ContractsVault: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Custom Confirm Modal */}
+            {contractToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-[#111] border border-red-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+                        <h3 className="text-xl font-bold text-white mb-2 text-center flex justify-center items-center gap-2">
+                           <XCircle className="text-red-500" /> Confirm Deletion 
+                        </h3>
+                        <p className="text-gray-400 text-xs text-center mb-6">
+                            Are you absolutely sure you want to permanently delete this Draft? This action cannot be undone.
+                        </p>
+                        <div className="flex gap-4">
+                            <button onClick={() => setContractToDelete(null)} className="flex-1 py-3 text-gray-400 hover:text-white border border-white/10 rounded-xl text-xs font-bold uppercase transition-all">
+                                Cancel
+                            </button>
+                            <button onClick={executeDelete} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold uppercase transition-all">
+                                Delete Deal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <DealDeskModal 
                 isOpen={isDealDeskOpen} 
