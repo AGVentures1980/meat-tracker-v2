@@ -105,6 +105,8 @@ app.post('/api/v1/proposals/:proposalId/accept', PartnerController.acceptProposa
 import { DebugController } from './controllers/DebugController';
 app.get('/api/v1/public-debug/seed-fdc', DebugController.seedFdcProduction);
 
+import contractsRoutes from './routes/contracts.routes';
+
 // Protected Routes
 app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/v1/orders', requireAuth, orderRoutes);
@@ -123,6 +125,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/vault', vaultRoutes);
 app.use('/api/v1/partner', partnerRoutes);
 app.use('/api/v1/admin-partner', agvAdminRoutes);
+app.use('/api/v1/contracts', requireAuth, contractsRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)

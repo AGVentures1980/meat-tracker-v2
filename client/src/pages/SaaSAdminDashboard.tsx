@@ -1,18 +1,11 @@
-import {
-    Users,
-    DollarSign,
-    CreditCard,
-    ShieldCheck,
-    ArrowUpRight,
-    Briefcase,
-    Zap,
-    LayoutDashboard,
-    Building2
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, ArrowUpRight, Zap, CreditCard, FileSignature, DollarSign, LayoutDashboard, Building2, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AIProspectingEngine } from '../components/SaaS/AIProspectingEngine';
+import { DealDeskModal } from '../components/SaaS/DealDeskModal';
 
 export const SaaSAdminDashboard = () => {
+    const [isDealDeskOpen, setIsDealDeskOpen] = useState(false);
     const navigate = useNavigate();
 
     const stats = [
@@ -113,19 +106,20 @@ export const SaaSAdminDashboard = () => {
                             </button>
                         </div>
 
-                        {/* HR / Corporate Placeholder */}
-                        <div className="bg-[#111] border border-white/5 rounded-3xl p-6 opacity-60 grayscale hover:grayscale-0 transition-all cursor-not-allowed group">
-                            <h3 className="text-white font-bold mb-2 flex items-center gap-2">
-                                <Briefcase size={16} className="text-gray-500 group-hover:text-blue-400" /> HR & Payroll
-                            </h3>
-                            <p className="text-gray-500 text-[10px] leading-relaxed">
-                                Centralized employee management and payroll automation. (Unlocks v4.4)
-                            </p>
-                            <div className="mt-4 flex gap-2">
-                                <div className="h-1.5 w-12 bg-white/10 rounded-full"></div>
-                                <div className="h-1.5 w-12 bg-white/10 rounded-full"></div>
-                                <div className="h-1.5 w-12 bg-white/10 rounded-full"></div>
+                        {/* Legal Deal Desk / Contract Generator */}
+                        <div className="bg-gradient-to-br from-[#1a1a1a] to-[#050505] border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-[#00FF94]/50 transition-all cursor-pointer" onClick={() => setIsDealDeskOpen(true)}>
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <FileSignature size={100} className="text-[#00FF94]" />
                             </div>
+                            <h3 className="text-white font-bold mb-2 flex items-center gap-2">
+                                <FileSignature size={16} className="text-[#00FF94]" /> Legal Deal Desk
+                            </h3>
+                            <p className="text-gray-500 text-[10px] leading-relaxed mb-4">
+                                Frictionless B2B Enterprise Closing. Fire pre-filled MSA & Pilot contracts instantly to prospects via E-Signature.
+                            </p>
+                            <button className="w-full py-3 bg-white/5 text-[#00FF94] border border-[#00FF94]/20 text-xs font-black uppercase tracking-widest rounded-2xl group-hover:bg-[#00FF94] group-hover:text-black transition-all flex items-center justify-center gap-2">
+                                <Zap size={14} /> Execute Deal
+                            </button>
                         </div>
                     </div>
 
@@ -135,6 +129,8 @@ export const SaaSAdminDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            <DealDeskModal isOpen={isDealDeskOpen} onClose={() => setIsDealDeskOpen(false)} />
         </div>
     );
 };

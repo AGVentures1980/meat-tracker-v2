@@ -581,6 +581,20 @@ model Payout {
   partner               Partner   @relation(fields: [partner_id], references: [id])
 }
 
+model ContractDocument {
+  id               String    @id @default(uuid())
+  company_name     String
+  signer_name      String
+  signer_email     String
+  price            Float
+  locations_count  Int
+  status           String    @default("DRAFT") // DRAFT, SENT, EXECUTED, CANCELLED
+  api_envelope_id  String?   // For DocuSign / HelloSign webhook tracking
+  contract_url     String?   // PDF link
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+}
+
 enum CycleType {
   WEEKLY
   MONTHLY
