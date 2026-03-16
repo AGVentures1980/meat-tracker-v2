@@ -12,5 +12,7 @@ router.post('/generate', ContractController.generateContract);
 router.post('/dispatch', ContractController.dispatchSignatureRequest);
 router.post('/mock-webhook', ContractController.simulateSignatureWebhook);
 router.get('/', ContractController.getAllContracts);
+router.put('/:id', ContractController.updateContract);
+router.delete('/:id', ContractController.deleteContract);
 
 export default router;

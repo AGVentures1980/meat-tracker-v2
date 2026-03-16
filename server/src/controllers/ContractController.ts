@@ -253,7 +253,50 @@ export const ContractController = {
             return res.status(200).json(contracts);
         } catch (error) {
             console.error('Error fetching contracts:', error);
-            return res.status(500).json({ error: 'Failed to fetch vault records' });
+            return res.status(500).json({ error: 'Failed to fetch contracts.' });
+        }
+    },
+
+    // Update an existing DRAFT contract
+    updateContract: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const { company_name, signer_name, signer_email, price, locations_count } = req.body;
+
+            const existing = await prisma.contractDocument.findUnique({ where: { id } });
+            if (!existing || existing.status !== 'DRAFT') {
+                return res.status(400).json({ error: 'Contract not found or cannot be modified.' });
+            }
+
+            const updated = await prisma.contractDocument.update({
+                where: { id },
+                data: {
+                    company_name,
+                    signer_name,
+                    signer_email,
+                    price: parseFloat(price),
+                    locations_count: parseInt(locations_count, 10),
+                }
+            });
+
+            return res.status(200).json({ message: 'Contract updated', contract: updated });
+        } catch (error) {
+            console.error('Error updating contract:', error);
+            return res.status(500).json({ error: 'Failed to update contract.' });
+        }
+    },
+
+    // Delete a contract
+    deleteContract: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            await prisma.contractDocument.delete({
+                where: { id }
+            });
+            return res.status(200).json({ message: 'Contract deleted successfully.' });
+        } catch (error) {
+            console.error('Error deleting contract:', error);
+            return res.status(500).json({ error: 'Failed to delete contract.' });
         }
     }
 };
