@@ -5,9 +5,10 @@ import { X, Send, FileSignature, CheckCircle2, TrendingUp, Building } from 'luci
 interface DealDeskModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialContract?: any;
 }
 
-export const DealDeskModal = ({ isOpen, onClose }: DealDeskModalProps) => {
+export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModalProps) => {
     const { user } = useAuth();
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [loading, setLoading] = useState(false);
@@ -21,43 +22,74 @@ export const DealDeskModal = ({ isOpen, onClose }: DealDeskModalProps) => {
         locations_count: '1'
     });
 
-    if (!isOpen) return null;
 
     React.useEffect(() => {
         if (isOpen) {
             setStep(1);
-            setContractId(null);
-            setFormData({
-                company_name: '',
-                signer_name: '',
-                signer_email: '',
-                price: '',
-                locations_count: '1'
-            });
+            if (initialContract) {
+                setContractId(initialContract.id);
+                setFormData({
+                    company_name: initialContract.company_name,
+                    signer_name: initialContract.signer_name,
+                    signer_email: initialContract.signer_email,
+                    price: initialContract.price?.toString() || '',
+                    locations_count: initialContract.locations_count?.toString() || '1'
+                });
+            } else {
+                setContractId(null);
+                setFormData({
+                    company_name: '',
+                    signer_name: '',
+                    signer_email: '',
+                    price: '',
+                    locations_count: '1'
+                });
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, initialContract]);
+
+    if (!isOpen) return null;
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('/api/v1/contracts/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user?.token}`
-                },
-                body: JSON.stringify(formData)
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setContractId(data.contract.id);
-                setStep(2);
+            if (contractId && initialContract) {
+                // Update existing draft
+                const res = await fetch(`/api/v1/contracts/${contractId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user?.token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    setStep(2);
+                } else {
+                    alert(data.error || 'Failed to update draft');
+                }
             } else {
-                alert(data.error);
+                // Generate new draft
+                const res = await fetch('/api/v1/contracts/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user?.token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    setContractId(data.contract.id);
+                    setStep(2);
+                } else {
+                    alert(data.error);
+                }
             }
         } catch (error) {
-            alert('Failed to generate contract.');
+            alert('Failed to process contract.');
         } finally {
             setLoading(false);
         }
