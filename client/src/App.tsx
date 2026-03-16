@@ -74,8 +74,8 @@ const ProtectedRoute = () => {
         path !== '/agv-network' &&
         !path.startsWith('/partner')) {
 
-        // Allow the Master to access the global Vault directly from the Lobby
-        if (path === '/vault' && isMaster) {
+        // Allow the Master to access the global Vaults directly from the Lobby
+        if ((path === '/vault' || path === '/agv-vault') && isMaster) {
             // allow bypass
         } else {
             console.log("Redirecting to select-company due to:", { path, isOwnerRole, selectedCompany });
