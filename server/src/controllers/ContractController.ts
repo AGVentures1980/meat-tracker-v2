@@ -91,15 +91,53 @@ export const ContractController = {
             const documentHtml = `
             <!DOCTYPE html>
             <html>
+                <head>
+                    <style>
+                        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; margin: 0; padding: 40px; }
+                        .header { text-align: center; border-bottom: 2px solid #C5A059; padding-bottom: 20px; margin-bottom: 30px; }
+                        .logo-text { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: #111; text-transform: uppercase; }
+                        .logo-sub { font-size: 10px; font-weight: bold; letter-spacing: 4px; color: #C5A059; text-transform: uppercase; display: block; margin-top: 5px; }
+                        .title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+                        .section-title { font-size: 14px; font-weight: bold; color: #111; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+                        p { font-size: 12px; text-align: justify; margin-bottom: 15px; }
+                        .highlight { font-weight: bold; color: #000; }
+                        .footer { margin-top: 50px; font-size: 10px; text-align: center; color: #777; border-top: 1px solid #eee; padding-top: 20px; }
+                        .signature-block { margin-top: 40px; width: 100%; }
+                        .sign-box { border: 1px dashed #ccc; padding: 20px; text-align: center; background: #fafafa; margin-top: 10px; }
+                    </style>
+                </head>
                 <body>
-                    <h1 style="text-align: center; font-family: sans-serif;">Master Software As A Service Agreement</h1>
-                    <p style="font-family: sans-serif;">This Master SaaS Agreement is entered into as of <strong>${contract.created_at.toLocaleDateString()}</strong> by and between <strong>Brasa Intel (AGV Ventures LLC)</strong> and <strong>${contract.company_name}</strong>.</p>
-                    <br/>
-                    <p style="font-family: sans-serif;"><strong>1. SCOPE OF PILOT:</strong> Provider will deploy the Brasa Meat Intelligence OS to <strong>${contract.locations_count}</strong> pilot locations for the duration of 90 days.</p>
-                    <p style="font-family: sans-serif;"><strong>2. COMMERCIAL TERMS:</strong> Client agrees to a monthly recurring software license fee of <strong>$${contract.price}.00 USD</strong>. Execution of this digital document legally binds the signatory, <strong>${contract.signer_name} (${contract.signer_email})</strong>, to these terms.</p>
-                    <br/><br/>
-                    <div style="font-family: sans-serif;">
-                        <span style="color:white;">SIGN_HERE</span>
+                    <div class="header">
+                        <div class="logo-text">AGV Ventures</div>
+                        <span class="logo-sub">Technology Holdings & Licensing</span>
+                    </div>
+                    
+                    <div class="title">Master Software Evaluation & SaaS Agreement</div>
+                    
+                    <p>This Master Agreement (the "Agreement") is entered into as of <span class="highlight">${contract.created_at.toLocaleDateString()}</span> (the "Effective Date") by and between <span class="highlight">AGV Ventures LLC</span> ("Licensor" or "Owner") and <span class="highlight">${contract.company_name}</span> ("Client").</p>
+                    
+                    <div class="section-title">1. Ownership & Intellectual Property</div>
+                    <p>The <span class="highlight">Brasa Meat Intelligence</span> platform, algorithms, source codes, trademarks, operational methodologies (including the "Garcia Rule"), and all related intellectual property are owned exclusively by <span class="highlight">AGV Ventures LLC</span>. The software is merely licensed, not sold, to the Client under the terms of this Agreement. The Client hereby acknowledges that they hold no ownership rights over the software or any derivative works.</p>
+
+                    <div class="section-title">2. Pilot Evaluation Program</div>
+                    <p>Licensor agrees to deploy the Brasa Meat Intelligence operating system to <span class="highlight">${contract.locations_count}</span> pilot locations for a 90-day evaluation period. During this period, both parties agree to mutual confidentiality regarding proprietary business metrics, strategic workflows, and software interfaces (Mutual NDA).</p>
+                    
+                    <div class="section-title">3. Commercial Terms & Transition</div>
+                    <p>Upon successful conclusion of the Pilot Program, this Agreement automatically transitions to an active monthly Software-as-a-Service (SaaS) license. The Client agrees to a recurring monthly software licensing fee of <span class="highlight">$${contract.price.toLocaleString()}.00 USD</span>. This fee grants the Client non-exclusive, non-transferable access for the authorized locations.</p>
+
+                    <div class="section-title">4. Liability Shield</div>
+                    <p>In no event shall AGV Ventures LLC, its founders, members, or affiliates be liable for any indirect, incidental, or consequential damages arising out of the use or inability to use the Software. Total liability of AGV Ventures LLC shall not exceed the amount paid by the Client for the software license.</p>
+
+                    <div class="signature-block">
+                        <p>Execution of this digital document legally binds the signatory, <span class="highlight">${contract.signer_name} (${contract.signer_email})</span> representing ${contract.company_name}, to these terms.</p>
+                        <div class="sign-box">
+                            <span style="color:#fafafa; font-size:1px;">SIGN_HERE</span>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        AGV Ventures LLC • Proprietary & Confidential Document<br>
+                        Generated by Brasa Meat Intelligence Deal Desk • Document ID: ${contract.id.split('-')[0]}
                     </div>
                 </body>
             </html>
