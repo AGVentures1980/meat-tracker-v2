@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, Search, Database, ArrowLeft, CheckCircle2, Clock, XCircle, FileSignature } from 'lucide-react';
+import { ShieldCheck, Search, Database, ArrowLeft, CheckCircle2, Clock, XCircle, FileSignature, Edit2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { DealDeskModal } from '../../components/SaaS/DealDeskModal';
 
 export const ContractsVault: React.FC = () => {
     const { user } = useAuth();
@@ -11,28 +12,54 @@ export const ContractsVault: React.FC = () => {
     const [contracts, setContracts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isDealDeskOpen, setIsDealDeskOpen] = useState(false);
+    const [selectedDraft, setSelectedDraft] = useState<any>(null);
+
+    const fetchVault = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/v1/contracts`, {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setContracts(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch vault contracts', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchVault = async () => {
-            try {
-                const res = await fetch(`${API_URL}/api/v1/contracts`, {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    setContracts(data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch vault contracts', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (user?.token) {
             fetchVault();
         }
     }, [user, API_URL]);
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to permanently delete this DRAFT?')) return;
+        try {
+            const res = await fetch(`${API_URL}/api/v1/contracts/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            if (res.ok) fetchVault();
+        } catch (error) {
+            console.error('Failed to delete', error);
+        }
+    };
+
+    const handleEdit = (contract: any) => {
+        setSelectedDraft(contract);
+        setIsDealDeskOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsDealDeskOpen(false);
+        setSelectedDraft(null);
+        fetchVault(); // Refresh vault in case it was updated or generated
+    };
 
     const filteredContracts = contracts.filter(c => 
         c.company_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -165,7 +192,19 @@ export const ContractsVault: React.FC = () => {
                                             <p className="text-gray-300 text-xs">
                                               {new Date(contract.created_at).toLocaleDateString()}
                                             </p>
-                                            {contract.contract_url && <a href={contract.contract_url} target="_blank" rel="noopener noreferrer" className="text-[#C5A059] text-[10px] mt-1 hover:underline inline-block">View Details &rarr;</a>}
+                                            <div className="flex flex-col items-end mt-2 gap-2">
+                                                {contract.contract_url && <a href={contract.contract_url} target="_blank" rel="noopener noreferrer" className="text-[#C5A059] text-[10px] hover:underline inline-block">View Details &rarr;</a>}
+                                                {contract.status === 'DRAFT' && (
+                                                    <div className="flex items-center gap-3">
+                                                        <button onClick={() => handleEdit(contract)} className="text-gray-400 hover:text-white transition-colors" title="Edit Draft">
+                                                            <Edit2 size={14} />
+                                                        </button>
+                                                        <button onClick={() => handleDelete(contract.id)} className="text-gray-400 hover:text-red-400 transition-colors" title="Delete Draft">
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -174,6 +213,12 @@ export const ContractsVault: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            <DealDeskModal 
+                isOpen={isDealDeskOpen} 
+                onClose={handleModalClose} 
+                initialContract={selectedDraft} 
+            />
         </div>
     );
 };
