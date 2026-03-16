@@ -58,9 +58,14 @@ export const ContractController = {
             const accountId = process.env.DOCUSIGN_ACCOUNT_ID!;
             const basePath = process.env.DOCUSIGN_BASE_PATH || 'https://demo.docusign.net/restapi';
             
-            // Read RSA Key from file
-            const rsaKeyFile = path.resolve(__dirname, '../../', process.env.DOCUSIGN_RSA_KEY_FILE!);
-            const rsaKey = fs.readFileSync(rsaKeyFile); // Returns Buffer
+            // Read RSA Key (from env string for production, or fallback to file for local dev)
+            let rsaKey: string | Buffer;
+            if (process.env.DOCUSIGN_RSA_PRIVATE_KEY) {
+                rsaKey = Buffer.from(process.env.DOCUSIGN_RSA_PRIVATE_KEY.replace(/\\n/g, '\n'), 'utf8');
+            } else {
+                const rsaKeyFile = path.resolve(__dirname, '../../', process.env.DOCUSIGN_RSA_KEY_FILE || 'docusign_private_key.pem');
+                rsaKey = fs.readFileSync(rsaKeyFile); // Returns Buffer
+            }
 
             console.log('Authenticating with DocuSign JWT...');
             const apiClient = new docusign.ApiClient();
