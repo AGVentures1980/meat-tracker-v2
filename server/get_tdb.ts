@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function run() { const tdb = await prisma.company.findFirst({ where: { name: { contains: 'Texas' } }}); console.log(tdb); } run().finally(() => prisma.$disconnect());

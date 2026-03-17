@@ -144,15 +144,25 @@ app.get('/api/v1/debug/run-fix', async (req, res) => {
         try {
             const { PrismaClient } = require('@prisma/client');
             const prisma = new PrismaClient();
-            const stores = await prisma.store.findMany();
+            
+            const tdbCompany = await prisma.company.findFirst({
+                where: { name: { contains: 'Texas' } }
+            });
+
+            if (!tdbCompany) throw new Error("TDB Company missing");
+
+            const cid = tdbCompany.id;
+
+            // Unflag all
             await prisma.store.updateMany({ data: { is_pilot: false } });
             
-            const toUpdate = stores.filter((s: any) => 
-                s.store_name.toLowerCase().includes('dallas') ||
-                s.store_name.toLowerCase().includes('addison') ||
-                s.store_name.toLowerCase().includes('miami beach') ||
-                s.store_name.toLowerCase().includes('las vegas')
-            );
+            // Only update stores belonging to the active TdB company
+            const stores = await prisma.store.findMany({ where: { company_id: cid } });
+            
+            const toUpdate = stores.filter((s: any) => {
+                const raw = s.store_name.toLowerCase().trim();
+                return raw === 'dallas' || raw === 'addison' || raw === 'miami beach' || raw === 'las vegas' || raw === 'las vegas (hughes center)'; // Added Vegas Hughes Center just in case Since the direct DB query showed it.
+            });
             
             for (const store of toUpdate) {
                 await prisma.store.update({
@@ -160,7 +170,7 @@ app.get('/api/v1/debug/run-fix', async (req, res) => {
                     data: { is_pilot: true }
                 });
             }
-            res.json({ success: true, updated: toUpdate.length, details: toUpdate.map((s: any) => s.store_name) });
+            res.json({ success: true, company: cid, updated: toUpdate.length, details: toUpdate.map((s: any) => s.store_name) });
         } catch (err: any) {
             res.json({ success: false, err: err.message });
         }
