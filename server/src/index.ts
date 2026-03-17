@@ -139,11 +139,31 @@ app.get('/api/v1/debug/env', DebugController.checkEnv);
 app.get('/api/v1/debug/cleanup', DebugController.cleanupTdbMeats);
 
 import { exec } from 'child_process';
-app.get('/api/v1/debug/run-fix', (req, res) => {
+app.get('/api/v1/debug/run-fix', async (req, res) => {
     if (req.query.key === 'fatality') {
-        exec('npx tsx fix-pilots.ts', (err, stdout, stderr) => {
-            res.json({ err: err?.message, stdout, stderr });
-        });
+        try {
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            const stores = await prisma.store.findMany();
+            await prisma.store.updateMany({ data: { is_pilot: false } });
+            
+            const toUpdate = stores.filter((s: any) => 
+                s.store_name.toLowerCase().includes('dallas') ||
+                s.store_name.toLowerCase().includes('addison') ||
+                s.store_name.toLowerCase().includes('miami beach') ||
+                s.store_name.toLowerCase().includes('las vegas')
+            );
+            
+            for (const store of toUpdate) {
+                await prisma.store.update({
+                    where: { id: store.id },
+                    data: { is_pilot: true }
+                });
+            }
+            res.json({ success: true, updated: toUpdate.length, details: toUpdate.map((s: any) => s.store_name) });
+        } catch (err: any) {
+            res.json({ success: false, err: err.message });
+        }
     } else {
         res.status(401).send('Unauthorized');
     }
