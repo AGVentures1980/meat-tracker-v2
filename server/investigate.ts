@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function run() { console.log(await prisma.store.findMany({ where: { company_id: 'tdb-main' }, select: { store_name: true } })); } run().finally(() => prisma.$disconnect());

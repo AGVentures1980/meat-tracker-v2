@@ -161,7 +161,14 @@ app.get('/api/v1/debug/run-fix', async (req, res) => {
             
             const toUpdate = stores.filter((s: any) => {
                 const raw = s.store_name.toLowerCase().trim();
-                return raw === 'dallas' || raw === 'addison' || raw === 'miami beach' || raw === 'las vegas' || raw === 'las vegas (hughes center)'; // Added Vegas Hughes Center just in case Since the direct DB query showed it.
+                
+                // Dallas must be exact to avoid "North Dallas" and "Dallas (Uptown)"
+                const isDallas = raw === 'dallas' || raw === 'dallas tx';
+                const isAddison = raw.includes('addison');
+                const isMiami = raw.includes('miami');
+                const isVegas = raw.includes('vegas');
+
+                return (isDallas || isAddison || isMiami || isVegas) && !raw.includes('demo');
             });
             
             for (const store of toUpdate) {
