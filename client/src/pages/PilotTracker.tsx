@@ -22,7 +22,7 @@ export const PilotTracker = () => {
     useEffect(() => {
         const fetchStores = async () => {
             try {
-                const res = await fetch('/api/v1/dashboard/stores', { headers: getHeaders() });
+                const res = await fetch('/api/v1/dashboard/company/stores', { headers: getHeaders() });
                 const json = await res.json();
                 if (json.success) {
                     const pilots = json.stores.filter((s: any) => s.is_pilot);
