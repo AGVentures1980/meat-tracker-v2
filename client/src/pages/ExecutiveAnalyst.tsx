@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react';
 import { Search, Printer, FileText, AlertCircle, Zap, Download } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { PilotTracker } from './PilotTracker';
 
 export const ExecutiveAnalyst = () => {
     const { user, selectedCompany } = useAuth();
     const { t } = useLanguage();
     const [timeframe, setTimeframe] = useState<'W' | 'M' | 'Q' | 'Y'>('M');
-    const [activeTab, setActiveTab] = useState<'main' | 'pilot'>('main');
     const [isScanning, setIsScanning] = useState(false);
     const [data, setData] = useState<any>(null);
     const [auditData, setAuditData] = useState<any>(null);
@@ -74,59 +72,42 @@ export const ExecutiveAnalyst = () => {
                         <Zap className="fill-[#C5A059]" />
                         {t('analyst_title')}
                     </h1>
-                    
-                    {/* VIEW TOGGLE TABS */}
-                    <div className="flex gap-6 mt-4">
-                        <button 
-                            onClick={() => setActiveTab('main')} 
-                            className={`text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all ${activeTab === 'main' ? 'text-white border-[#C5A059]' : 'text-gray-500 border-transparent hover:text-white'}`}
-                        >
-                            Global Reconnaissance
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('pilot')} 
-                            className={`text-[10px] font-bold uppercase tracking-widest pb-1 border-b-2 transition-all flex items-center gap-1 ${activeTab === 'pilot' ? 'text-[#00FF94] border-[#00FF94]' : 'text-gray-500 border-transparent hover:text-white'}`}
-                        >
-                            <Zap size={12} className={activeTab === 'pilot' ? "fill-[#00FF94]" : ""} /> 90-Day Pilot Command Center
-                        </button>
-                    </div>
+                    <p className="text-gray-500 text-xs font-mono uppercase tracking-[0.2em] mt-1">
+                        {t('analyst_subtitle')}
+                    </p>
                 </div>
 
-                {activeTab === 'main' && (
-                    <div className="flex gap-4">
-                        <div className="flex bg-[#1a1a1a] p-1 rounded-sm border border-[#333]">
-                            {['W', 'M', 'Q', 'Y'].map((tf) => (
-                                <button
-                                    key={tf}
-                                    onClick={() => setTimeframe(tf as any)}
-                                    className={`px-4 py-2 text-[10px] font-bold transition-all ${timeframe === tf ? 'bg-[#C5A059] text-black' : 'text-gray-500 hover:text-white'}`}
-                                >
-                                    {tf === 'W' ? 'WEEK' : tf === 'M' ? 'MONTH' : tf === 'Q' ? 'QUARTER' : 'YEAR'}
-                                </button>
-                            ))}
-                        </div>
-                        <button
-                            onClick={handlePrint}
-                            className="bg-[#121212] border border-[#333] text-white px-6 py-2 text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#222]"
-                        >
-                            <Printer size={16} /> {t('print_report')}
-                        </button>
-                        <button
-                            onClick={runScan}
-                            disabled={isScanning}
-                            className="bg-white text-black px-6 py-2 text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-gray-200 disabled:opacity-50"
-                        >
-                            {isScanning ? <Zap className="animate-spin w-4 h-4" /> : <Search size={16} />}
-                            {isScanning ? t('analyst_scanning') : t('analyst_run_deep_scan')}
-                        </button>
+                <div className="flex gap-4">
+                    <div className="flex bg-[#1a1a1a] p-1 rounded-sm border border-[#333]">
+                        {['W', 'M', 'Q', 'Y'].map((tf) => (
+                            <button
+                                key={tf}
+                                onClick={() => setTimeframe(tf as any)}
+                                className={`px-4 py-2 text-[10px] font-bold transition-all ${timeframe === tf ? 'bg-[#C5A059] text-black' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                {tf === 'W' ? 'WEEK' : tf === 'M' ? 'MONTH' : tf === 'Q' ? 'QUARTER' : 'YEAR'}
+                            </button>
+                        ))}
                     </div>
-                )}
+                    <button
+                        onClick={handlePrint}
+                        className="bg-[#121212] border border-[#333] text-white px-6 py-2 text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#222]"
+                    >
+                        <Printer size={16} /> {t('print_report')}
+                    </button>
+                    <button
+                        onClick={runScan}
+                        disabled={isScanning}
+                        className="bg-white text-black px-6 py-2 text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-gray-200 disabled:opacity-50"
+                    >
+                        {isScanning ? <Zap className="animate-spin w-4 h-4" /> : <Search size={16} />}
+                        {isScanning ? t('analyst_scanning') : t('analyst_run_deep_scan')}
+                    </button>
+                </div>
             </div>
 
-            {activeTab === 'pilot' ? (
-                <PilotTracker />
-            ) : data ? (
-                <div className="space-y-12 animate-in fade-in duration-500">
+            {data ? (
+                <div className="space-y-12">
                     {/* NEW: AI EXECUTIVE AUDIT SECTION */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* 1. GATEKEEPER AUDIT */}
