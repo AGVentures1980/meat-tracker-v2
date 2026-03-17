@@ -138,7 +138,7 @@ export const PilotTracker = () => {
                                         <AlertTriangle size={14} className="text-orange-500" /> Locked until Day 90
                                     </div>
                                     <div className="w-32 h-1 bg-[#333] mt-2 rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#C5A059]" style={{ width: \`\${(data.current_day / 90) * 100}%\` }}></div>
+                                        <div className="h-full bg-[#C5A059]" style={{ width: `${(data.current_day / 90) * 100}%` }}></div>
                                     </div>
                                 </div>
                             )}
