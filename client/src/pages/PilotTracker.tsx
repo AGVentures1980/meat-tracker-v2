@@ -24,8 +24,10 @@ export const PilotTracker = () => {
             try {
                 const res = await fetch('/api/v1/dashboard/company/stores', { headers: getHeaders() });
                 const json = await res.json();
-                if (json.success) {
-                    const pilots = json.stores.filter((s: any) => s.is_pilot);
+                
+                // The company/stores endpoint returns an array directly
+                if (Array.isArray(json)) {
+                    const pilots = json.filter((s: any) => s.is_pilot);
                     setStores(pilots);
                     if (pilots.length > 0) {
                         setSelectedStore(pilots[0].id);

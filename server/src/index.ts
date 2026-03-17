@@ -138,6 +138,17 @@ app.get('/api/v1/debug/migrate', DebugController.runMigration);
 app.get('/api/v1/debug/env', DebugController.checkEnv);
 app.get('/api/v1/debug/cleanup', DebugController.cleanupTdbMeats);
 
+import { exec } from 'child_process';
+app.get('/api/v1/debug/run-fix', (req, res) => {
+    if (req.query.key === 'fatality') {
+        exec('npx tsx fix-pilots.ts', (err, stdout, stderr) => {
+            res.json({ err: err?.message, stdout, stderr });
+        });
+    } else {
+        res.status(401).send('Unauthorized');
+    }
+});
+
 // Serve Static Frontend (Production)
 const CLIENT_BUILD_PATH = process.env.NODE_ENV === 'production'
     ? path.join(__dirname, '../../../client/dist') // From dist/src/index.js
