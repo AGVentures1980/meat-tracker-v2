@@ -153,8 +153,19 @@ app.get('/api/v1/debug/run-fix', async (req, res) => {
 
             const cid = tdbCompany.id;
 
-            // Unflag all
-            await prisma.store.updateMany({ data: { is_pilot: false } });
+            // Unflag all in company
+            await prisma.store.updateMany({ 
+                where: { company_id: cid },
+                data: { is_pilot: false } 
+            });
+
+            // Delete demo stores
+            const deleted = await prisma.store.deleteMany({
+                 where: { 
+                     company_id: cid, 
+                     store_name: { contains: 'demo', mode: 'insensitive' } 
+                 }
+            });
             
             // Only update stores belonging to the active TdB company
             const stores = await prisma.store.findMany({ where: { company_id: cid } });
@@ -168,7 +179,7 @@ app.get('/api/v1/debug/run-fix', async (req, res) => {
                 const isMiami = raw.includes('miami');
                 const isVegas = raw.includes('vegas');
 
-                return (isDallas || isAddison || isMiami || isVegas) && !raw.includes('demo');
+                return isDallas || isAddison || isMiami || isVegas;
             });
             
             for (const store of toUpdate) {
