@@ -111,6 +111,7 @@ model Store {
   users                      User[]
   waste_compliance           WasteCompliance[]
   waste_logs                 WasteLog[]
+  pilot_audits               PilotDailyAudit[]
 
   @@unique([company_id, store_name])
 }
@@ -593,6 +594,21 @@ model ContractDocument {
   contract_url     String?   // PDF link
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
+}
+
+model PilotDailyAudit {
+  id                      String   @id @default(uuid())
+  store_id                Int
+  audit_date              DateTime @db.Date
+  day_number              Int
+  daily_score             Float
+  yield_savings_usd       Float
+  meat_rotation_insight   String
+  ai_executive_summary    String
+  created_at              DateTime @default(now())
+  store                   Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, audit_date])
 }
 
 enum CycleType {

@@ -254,4 +254,70 @@ export class IntelligenceController {
             return res.status(500).json({ success: false, error: 'Failed to generate suggestions' });
         }
     }
+
+    /**
+     * GET /api/v1/intelligence/pilot-dashboard
+     * Aggregates the 90-day pilot data for a specific store
+     */
+    static async getPilotDashboard(req: Request, res: Response) {
+        try {
+            const storeId = parseInt(req.query.storeId as string);
+            if (!storeId) {
+                return res.status(400).json({ error: 'storeId is required' });
+            }
+
+            const store = await prisma.store.findUnique({
+                where: { id: storeId },
+                include: { company: true }
+            });
+
+            if (!store) {
+                return res.status(404).json({ error: 'Store not found' });
+            }
+
+            // Fetch the daily audits ordered by day number
+            const audits = await prisma.pilotDailyAudit.findMany({
+                where: { store_id: storeId },
+                orderBy: { day_number: 'asc' }
+            });
+
+            let totalSavings = 0;
+            const timeline = audits.map(audit => {
+                totalSavings += audit.yield_savings_usd;
+                const gainShareDaily = audit.yield_savings_usd * 0.08;
+                return {
+                    day_number: audit.day_number,
+                    date: audit.audit_date,
+                    daily_score: audit.daily_score,
+                    daily_savings: audit.yield_savings_usd,
+                    gain_share_8pct: gainShareDaily,
+                    accumulated_savings: totalSavings,
+                    insight: audit.meat_rotation_insight,
+                    summary: audit.ai_executive_summary
+                };
+            });
+
+            // Is the pilot finished?
+            const currentDay = audits.length > 0 ? audits[audits.length - 1].day_number : 0;
+            const isFinished = currentDay >= 90;
+            
+            // Calculate final performance fee
+            const finalFee = totalSavings * 0.08; // 8%
+
+            return res.json({
+                success: true,
+                store_name: store.store_name,
+                pilot_status: isFinished ? 'COMPLETED' : 'IN_PROGRESS',
+                current_day: currentDay,
+                days_remaining: Math.max(0, 90 - currentDay),
+                total_savings_recovered: totalSavings,
+                agv_performance_fee: finalFee,
+                timeline
+            });
+
+        } catch (error) {
+            console.error('Pilot Dashboard Error:', error);
+            return res.status(500).json({ success: false, error: 'Failed to fetch pilot data' });
+        }
+    }
 }
