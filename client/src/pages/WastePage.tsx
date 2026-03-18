@@ -258,14 +258,19 @@ const WastePage = () => {
     };
 
     useEffect(() => {
-        if (selectedStore) {
+        if (isExecutive) {
+            setLoading(true);
+            if (selectedStore) {
+                fetchStatus();
+            } else {
+                fetchNetworkStatus();
+            }
+        } else {
+            // Managers fetch their own status immediately. The backend uses their JWT token.
             setLoading(true);
             fetchStatus();
-        } else if (isExecutive) {
-            setLoading(true);
-            fetchNetworkStatus();
         }
-    }, [selectedStore]);
+    }, [selectedStore, isExecutive]);
 
     const handleAddItem = () => {
         if (!protein || !weight) return;
