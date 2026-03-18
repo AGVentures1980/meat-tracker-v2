@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
     Search,
     Zap,
@@ -82,7 +82,7 @@ export const AIProspectingEngine = () => {
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center bg-[#111] p-6 rounded-3xl border border-white/5 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
+                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                     <Search size={120} className="text-white" />
                 </div>
                 <div className="relative z-10">
@@ -99,7 +99,7 @@ export const AIProspectingEngine = () => {
                 <button
                     onClick={runScan}
                     disabled={isSearching}
-                    className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${isSearching
+                    className={`relative z-10 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${isSearching
                         ? 'bg-gray-800 text-gray-400 cursor-not-allowed'
                         : 'bg-[#C5A059] text-black hover:bg-[#D5B069] shadow-[0_10px_30px_rgba(197,160,89,0.2)]'
                         }`}
