@@ -96,6 +96,7 @@ model Store {
   invoices                   InvoiceRecord[]
   meat_usage                 MeatUsage[]
   orders                     Order[]
+  pilot_audits               PilotDailyAudit[]
   prep_logs                  PrepLog[]
   ProcurementAIFeedback      ProcurementAIFeedback[]
   product_aliases            ProductAlias[]
@@ -111,7 +112,6 @@ model Store {
   users                      User[]
   waste_compliance           WasteCompliance[]
   waste_logs                 WasteLog[]
-  pilot_audits               PilotDailyAudit[]
 
   @@unique([company_id, store_name])
 }
@@ -427,6 +427,18 @@ model SystemMetric {
   timestamp   DateTime @default(now())
 }
 
+model Lead {
+  id          String     @id @default(uuid())
+  name        String
+  email       String
+  company     String?
+  store_count Int?       @default(1)
+  message     String?
+  status      LeadStatus @default(NEW)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+}
+
 model InventoryCycle {
   id           String          @id @default(uuid())
   store_id     Int
@@ -583,30 +595,30 @@ model Payout {
 }
 
 model ContractDocument {
-  id               String    @id @default(uuid())
-  company_name     String
-  signer_name      String
-  signer_email     String
-  price            Float
-  locations_count  Int
-  status           String    @default("DRAFT") // DRAFT, SENT, EXECUTED, CANCELLED
-  api_envelope_id  String?   // For DocuSign / HelloSign webhook tracking
-  contract_url     String?   // PDF link
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
+  id              String   @id @default(uuid())
+  company_name    String
+  signer_name     String
+  signer_email    String
+  price           Float
+  locations_count Int
+  status          String   @default("DRAFT")
+  api_envelope_id String?
+  contract_url    String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 }
 
 model PilotDailyAudit {
-  id                      String   @id @default(uuid())
-  store_id                Int
-  audit_date              DateTime @db.Date
-  day_number              Int
-  daily_score             Float
-  yield_savings_usd       Float
-  meat_rotation_insight   String
-  ai_executive_summary    String
-  created_at              DateTime @default(now())
-  store                   Store    @relation(fields: [store_id], references: [id])
+  id                    String   @id @default(uuid())
+  store_id              Int
+  audit_date            DateTime @db.Date
+  day_number            Int
+  daily_score           Float
+  yield_savings_usd     Float
+  meat_rotation_insight String
+  ai_executive_summary  String
+  created_at            DateTime @default(now())
+  store                 Store    @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, audit_date])
 }
@@ -637,6 +649,13 @@ enum OrderSource {
   DoorDash
   Manual
   OCR
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  PROPOSAL_SENT
+  ARCHIVED
 }
 
 enum FileType {

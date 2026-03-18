@@ -9,15 +9,17 @@ export const PartnerNetwork: React.FC = () => {
     const API_URL = (import.meta as any).env.VITE_API_URL || '';
     const [partners, setPartners] = useState<any[]>([]);
     const [escalated, setEscalated] = useState<any[]>([]);
+    const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [executingPayout, setExecutingPayout] = useState<string | null>(null);
     const [viewingPartner, setViewingPartner] = useState<any>(null);
 
     const fetchNetworkData = async () => {
         try {
-            const [networkRes, escalatedRes] = await Promise.all([
+            const [networkRes, escalatedRes, leadsRes] = await Promise.all([
                     fetch(`${API_URL}/api/v1/admin-partner/network`, { headers: { 'Authorization': `Bearer ${user?.token}` } }),
-                    fetch(`${API_URL}/api/v1/admin-partner/escalated`, { headers: { 'Authorization': `Bearer ${user?.token}` } })
+                    fetch(`${API_URL}/api/v1/admin-partner/escalated`, { headers: { 'Authorization': `Bearer ${user?.token}` } }),
+                    fetch(`${API_URL}/api/v1/leads`, { headers: { 'Authorization': `Bearer ${user?.token}` } })
                 ]);
                 
                 if (networkRes.ok) {
@@ -27,6 +29,10 @@ export const PartnerNetwork: React.FC = () => {
                 if (escalatedRes.ok) {
                     const data = await escalatedRes.json();
                     if (data.success) setEscalated(data.proposals);
+                }
+                if (leadsRes.ok) {
+                    const data = await leadsRes.json();
+                    setLeads(Array.isArray(data) ? data : []);
                 }
             } catch (err) {
                 console.error("Failed to fetch partner network data", err);
@@ -220,6 +226,66 @@ export const PartnerNetwork: React.FC = () => {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Inbound Website Leads (CRM) */}
+                {leads.length > 0 && (
+                    <div className="bg-[#111] border border-gray-800 rounded-xl p-6 shadow-2xl mb-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                <Search className="w-5 h-5 text-indigo-400" />
+                                Inbound Website Leads (AGV Consultations)
+                            </h3>
+                            <span className="bg-indigo-900/40 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/30">
+                                {leads.length} New
+                            </span>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-[#0a0a0a] border-y border-gray-800 text-xs font-mono text-gray-500 uppercase tracking-widest">
+                                    <tr>
+                                        <th className="p-4 rounded-tl-lg">Date</th>
+                                        <th className="p-4">Contact</th>
+                                        <th className="p-4">Company</th>
+                                        <th className="p-4 text-center">Stores</th>
+                                        <th className="p-4">Message</th>
+                                        <th className="p-4 text-right rounded-tr-lg">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-800">
+                                    {leads.map((lead: any) => (
+                                        <tr key={lead.id} className="hover:bg-[#151515] transition-colors group">
+                                            <td className="p-4 text-sm text-gray-400 font-mono">
+                                                {new Date(lead.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="font-bold text-white">{lead.name}</div>
+                                                <div className="text-xs text-indigo-400 mt-1 font-mono">{lead.email}</div>
+                                                {lead.phone && <div className="text-xs text-gray-500">{lead.phone}</div>}
+                                            </td>
+                                            <td className="p-4 text-sm text-gray-300 font-medium">
+                                                {lead.company || <span className="text-gray-600 italic">Not Provided</span>}
+                                            </td>
+                                            <td className="p-4 text-center font-mono font-bold text-emerald-400">
+                                                {lead.store_count}
+                                            </td>
+                                            <td className="p-4 text-sm text-gray-400 max-w-xs truncate" title={lead.message}>
+                                                {lead.message || <span className="text-gray-600 italic">No message</span>}
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                <button 
+                                                    onClick={() => navigate('/partner/proposal/new', { state: { prefill: lead } })}
+                                                    className="bg-indigo-900/40 hover:bg-indigo-600 text-indigo-300 hover:text-white px-4 py-2 rounded text-xs font-bold transition-colors border border-indigo-500/30 group-hover:border-indigo-400 whitespace-nowrap"
+                                                >
+                                                    Draft Proposal
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}

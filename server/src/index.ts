@@ -17,6 +17,7 @@ app.use(cors({
         const allowedOrigins = [
             'http://localhost:3000',
             'http://localhost:5173',
+            'http://localhost:8080',
             'https://meat-intelligence.up.railway.app',
             'https://meat-intelligence-final.up.railway.app',
             'https://brasameat.com',
@@ -24,7 +25,7 @@ app.use(cors({
             'https://fogo.brasameat.com',
             'https://fdc.brasameat.com'
         ];
-        if (allowedOrigins.includes(origin) || origin.endsWith('.brasameat.com')) {
+        if (allowedOrigins.includes(origin) || origin.endsWith('.brasameat.com') || origin.endsWith('.alexgarciaventures.co')) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
@@ -85,6 +86,7 @@ import themeRoutes from './routes/theme.routes';
 import partnerRoutes from './routes/partner.routes';
 import agvAdminRoutes from './routes/agv-admin.routes';
 import ediRoutes from './routes/edi.routes';
+import leadRoutes from './routes/lead.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
@@ -126,6 +128,7 @@ app.use('/api/v1/vault', vaultRoutes);
 app.use('/api/v1/partner', partnerRoutes);
 app.use('/api/v1/admin-partner', agvAdminRoutes);
 app.use('/api/v1/contracts', requireAuth, contractsRoutes);
+app.use('/api/v1', leadRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
