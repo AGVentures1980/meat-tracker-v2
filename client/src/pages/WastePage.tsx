@@ -463,20 +463,6 @@ const WastePage = () => {
                     </h1>
                 </div>
 
-                {/* Admin Store Selector */}
-                {isExecutive && (
-                    <div className="flex items-center gap-2 bg-[#1a1a1a] p-1 rounded border border-[#333]">
-                        <select
-                            className="bg-[#121212] text-white text-sm p-1 rounded border border-[#333] outline-none focus:border-[#C5A059]"
-                            value={selectedStore || ''}
-                            onChange={(e) => setSelectedStore(e.target.value ? parseInt(e.target.value) : null)}
-                        >
-                            <option value="">Select Store...</option>
-                            {stores.map(s => <option key={s.id} value={s.id}>{s.name || s.store_name}</option>)}
-                        </select>
-                    </div>
-                )}
-
                 <div className="flex items-center gap-4 text-sm font-mono">
                     <div className="flex flex-col items-end">
                         <span className="text-gray-500">WEEKLY COMPLIANCE</span>
