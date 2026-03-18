@@ -479,24 +479,29 @@ const WastePage = () => {
                     <div className="flex flex-col items-end">
                         <span className="text-gray-500">WEEKLY COMPLIANCE</span>
                         <div className="flex gap-2 mt-1">
-                            <div className={`px-2 py-1 rounded border ${status.compliance.lunch_count >= 3 ? 'bg-green-500/20 border-green-500 text-green-500' : 'bg-gray-800 border-gray-700 text-gray-400'}`}>
-                                LUNCH: {status.compliance.lunch_count}/3
+                            <div className={`px-2 py-1 rounded border ${status.compliance?.lunch_count >= 3 ? 'bg-green-500/20 border-green-500 text-green-500' : 'bg-gray-800 border-gray-700 text-gray-400'}`}>
+                                LUNCH: {status.compliance?.lunch_count || 0}/3
                             </div>
-                            <div className={`px-2 py-1 rounded border ${status.compliance.dinner_count >= 3 ? 'bg-green-500/20 border-green-500 text-green-500' : 'bg-gray-800 border-gray-700 text-gray-400'}`}>
-                                DINNER: {status.compliance.dinner_count}/3
+                            <div className={`px-2 py-1 rounded border ${status.compliance?.dinner_count >= 3 ? 'bg-green-500/20 border-green-500 text-green-500' : 'bg-gray-800 border-gray-700 text-gray-400'}`}>
+                                DINNER: {status.compliance?.dinner_count || 0}/3
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {status.error ? (
-                <div className="bg-red-900/20 border border-red-500 text-red-500 p-6 rounded flex flex-col gap-2">
+            {status.error || status.gate_locked ? (
+                <div className={`p-6 rounded flex flex-col gap-2 border ${status.gate_locked ? 'bg-yellow-900/20 border-yellow-500 text-yellow-500' : 'bg-red-900/20 border-red-500 text-red-500'}`}>
                     <h2 className="text-xl font-bold flex items-center gap-2">
                         <AlertTriangle className="w-6 h-6" />
-                        Infrastructure Error
+                        {status.gate_locked ? 'Accountability Gate Locked' : 'Infrastructure Error'}
                     </h2>
-                    <p className="text-sm opacity-80">{status.details || status.error}</p>
+                    <p className="text-sm opacity-80">{status.details || status.error || status.message}</p>
+                    {status.gate_locked && (
+                         <button onClick={() => navigate(status.required_action || '/prices')} className="mt-4 self-start bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded text-sm transition-colors">
+                             Resolve Accountability
+                         </button>
+                    )}
                 </div>
             ) : (
                 <>

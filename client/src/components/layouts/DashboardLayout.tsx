@@ -21,7 +21,8 @@ import {
     Activity,
     ShieldAlert,
     BrainCircuit,
-    ShieldCheck
+    ShieldCheck,
+    Database
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -376,20 +377,33 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     )}
                 </nav>
 
-                <div className="pt-4 mt-4 border-t border-white/10">
+                <div className="p-5 border-t border-[#333] bg-[#121212] mt-auto relative shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-10">
                     <button
                         onClick={logout}
-                        className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-lg text-sm font-medium transition-colors text-gray-400 hover:text-white hover:bg-white/5"
+                        className="flex items-center gap-3 px-4 py-3 w-full text-left rounded border border-transparent text-sm font-bold transition-all text-gray-400 hover:text-[#FF2A6D] hover:bg-[#FF2A6D]/10 hover:border-[#FF2A6D]/30"
                     >
                         <LogOut className="w-5 h-5 flex-shrink-0" />
-                        <span>{t('nav_logout')}</span>
+                        <span className="tracking-widest uppercase text-xs">{t('nav_logout')}</span>
                     </button>
-                    <div className="mt-6 px-3">
-                        <div className="text-[10px] text-gray-600 font-mono">v4.2.0-DASHBOARD-EXEC - LIVE</div>
-                        <div className="text-[10px] text-brand-gold font-mono mb-2">CONN: POSTGRES-CL-V3</div>
-                        <div className="text-[9px] text-gray-700 font-mono">Build: {new Date().toLocaleDateString()}, {new Date().toLocaleTimeString()}</div>
-                        <div className="mt-4 flex items-center gap-2 opacity-30 hover:opacity-100 transition-opacity">
-                            <span className="text-[10px] font-serif text-white uppercase tracking-widest">Powered by AGV</span>
+                    
+                    <div className="mt-8 px-1 space-y-2">
+                        <div className="text-[10px] text-gray-500 font-mono tracking-wider flex items-center justify-between">
+                            VERSION 4.2.0
+                            <span className="text-[#00FF94] flex items-center gap-1.5 py-0.5 px-2 bg-[#00FF94]/10 rounded border border-[#00FF94]/20"><span className="w-1.5 h-1.5 bg-[#00FF94] rounded-full animate-pulse" /> LIVE</span>
+                        </div>
+                        
+                        <div className="text-[10px] text-[#C5A059] font-mono font-bold tracking-widest flex items-center gap-2 bg-[#C5A059]/5 p-2 rounded border border-[#C5A059]/10">
+                            <Database className="w-3 h-3 text-[#C5A059]" />
+                            POSTGRES_V3_LINK
+                        </div>
+                        
+                        <div className="text-[9px] text-gray-600 font-mono tracking-widest uppercase pt-3 border-t border-[#333] mt-4 flex flex-col gap-1">
+                            <span>Build Stamp:</span>
+                            <span className="text-gray-500">{new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} // {new Date().toLocaleTimeString()}</span>
+                        </div>
+                        
+                        <div className="pt-5 mt-2 flex items-center gap-2 opacity-30 hover:opacity-100 transition-opacity justify-center w-full">
+                            <span className="text-[9px] font-bold text-white uppercase tracking-[0.3em] font-sans">POWERED BY AGV INTEL</span>
                         </div>
                     </div>
                 </div>
