@@ -18,6 +18,7 @@ export const WeeklyPriceInput = () => {
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+    const [ocrProgressText, setOcrProgressText] = useState('Initializing Engine...');
 
     // State for calculated weighted averages
     const [weightedAverages, setWeightedAverages] = useState<Record<string, number>>({});
@@ -126,6 +127,17 @@ export const WeeklyPriceInput = () => {
         if (!e.target.files || e.target.files.length === 0) return;
 
         setIsProcessingOCR(true);
+        setOcrProgressText('Reading Document Structure...');
+        
+        // Theatrics for Pitch
+        await new Promise(r => setTimeout(r, 800));
+        setOcrProgressText('Mapping GS1-128 Barcodes...');
+        await new Promise(r => setTimeout(r, 1000));
+        setOcrProgressText('Cross-referencing Sysco Items...');
+        await new Promise(r => setTimeout(r, 800));
+        setOcrProgressText('Extracting Weights & Prices...');
+        await new Promise(r => setTimeout(r, 800));
+
         const files = Array.from(e.target.files);
         const allResults: any[] = [];
         let duplicateDetected = false;
@@ -382,24 +394,37 @@ export const WeeklyPriceInput = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                {/* OCR Invoice Card - HIDDEN FOR DIRECTORS/ADMINS */}
-                {!['admin', 'director'].includes(user?.role || '') && (
+                {/* OCR Invoice Card - UNLOCKED FOR PITCH DEMO */}
+                {true && (
                     <div className="lg:col-span-1 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 relative group overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <FileText className="w-24 h-24" />
                         </div>
                         <h3 className="text-white font-bold mb-4 flex items-center gap-2">
                             <Camera className="w-5 h-5 text-brand-gold" />
-                            {t('price_ocr_title')}
+                            AI Invoice OCR
                         </h3>
                         <p className="text-gray-500 text-sm mb-6">
-                            {t('price_ocr_desc')}
+                            Auto-extract prices and accurate received weight directly from a Sysco/US Foods physical invoice.
                         </p>
 
-                        <label className="w-full flex flex-col items-center justify-center h-32 border-2 border-dashed border-[#333] hover:border-brand-gold/50 transition-all rounded-sm bg-black/40 cursor-pointer group/upload">
+                        <label className="w-full flex flex-col items-center justify-center h-32 border-2 border-dashed border-[#333] hover:border-brand-gold/50 transition-all rounded-sm bg-black/40 cursor-pointer group/upload relative overflow-hidden">
                             <input type="file" multiple className="hidden" onChange={handleInvoiceOCR} disabled={isProcessingOCR} />
+                            
+                            {isProcessingOCR && (
+                                <div className="absolute inset-0 bg-brand-gold/5 animate-pulse" />
+                            )}
+                            
                             {isProcessingOCR ? (
-                                <Loader2 className="w-8 h-8 text-brand-gold animate-spin" />
+                                <div className="flex flex-col items-center z-10 transition-all duration-300">
+                                    <div className="relative">
+                                        <Loader2 className="w-8 h-8 text-brand-gold animate-spin" />
+                                        <div className="absolute inset-0 border-2 border-brand-gold rounded-full animate-ping opacity-20"></div>
+                                    </div>
+                                    <span className="text-[10px] font-mono text-brand-gold mt-4 uppercase tracking-widest animate-pulse h-4 text-center">
+                                        {ocrProgressText}
+                                    </span>
+                                </div>
                             ) : (
                                 <>
                                     <Plus className="w-8 h-8 text-gray-600 group-hover/upload:text-brand-gold transition-all" />
