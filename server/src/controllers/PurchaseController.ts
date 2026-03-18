@@ -203,49 +203,77 @@ export class PurchaseController {
             let isRealExtraction = false;
 
             // TRY TRUE AI EXTRACTION FIRST
-            if (file && process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-')) {
+            const apiKey = process.env.OPENAI_API_KEY;
+            
+            if (file && apiKey.startsWith('sk-')) {
                 try {
-                    const pdfParse = require('pdf-parse');
                     const OpenAI = require('openai');
-                    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+                    const openai = new OpenAI({ apiKey: apiKey });
                     
-                    let documentText = '';
-                    if (file.mimetype === 'application/pdf') {
-                        const data = await pdfParse(file.buffer);
-                        documentText = data.text;
-                    } else if (file.mimetype.startsWith('text/')) {
-                         documentText = file.buffer.toString('utf-8');
-                    }
-                    
-                    if (documentText && documentText.length > 50) {
-                        const response = await openai.chat.completions.create({
-                            model: "gpt-4o-mini",
+                    let response;
+
+                    if (file.mimetype.startsWith('image/')) {
+                        console.log('Processing Image via Vision API...');
+                        const base64Image = file.buffer.toString('base64');
+                        response = await openai.chat.completions.create({
+                            model: "gpt-4o", // Must use gpt-4o or gpt-4-vision for image inputs
                             messages: [
                                 {
                                     role: "system",
-                                    content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein line items and return them as a strict JSON ARRAY of objects. Each object MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast), 'quantity' (total lbs received, calculate catch weight if needed), 'price_per_lb' (number), 'confidence' (float between 0 and 1)."
+                                    content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein/Dairy line items and return them as a strict JSON ARRAY of objects. Each object MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast, Buttermilk), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate), 'confidence' (float between 0 and 1)."
                                 },
                                 {
                                     role: "user",
-                                    content: `Extract meat line items from this distributor invoice text:\n\n${documentText.substring(0, 8000)}`
+                                    content: [
+                                        { type: "text", text: "Extract line items from this distributor invoice image:" },
+                                        { type: "image_url", image_url: { url: `data:${file.mimetype};base64,${base64Image}` } }
+                                    ]
                                 }
                             ],
                             response_format: { type: "json_object" }
                         });
-
-                        const responseText = response.choices[0].message.content;
-                        if (responseText) {
-                            // Extract array from standard {"items": [...]} or raw array if returned
-                            const parsed = JSON.parse(responseText);
-                            finalOCRResults = Array.isArray(parsed) ? parsed : (parsed.items || parsed.line_items || []);
-                            
-                            // Map invoice number
-                            finalOCRResults = finalOCRResults.map(r => ({
-                                ...r,
-                                invoice_number: detectedInvoiceNumber
-                            }));
-                            isRealExtraction = true;
+                    } else {
+                        console.log('Processing Document via Text API...');
+                        let documentText = '';
+                        if (file.mimetype === 'application/pdf') {
+                            const pdfParse = require('pdf-parse');
+                            const data = await pdfParse(file.buffer);
+                            documentText = data.text;
+                        } else if (file.mimetype.startsWith('text/')) {
+                            documentText = file.buffer.toString('utf-8');
                         }
+
+                        if (documentText && documentText.length > 50) {
+                            response = await openai.chat.completions.create({
+                                model: "gpt-4o-mini",
+                                messages: [
+                                    {
+                                        role: "system",
+                                        content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein/Dairy line items and return them as a strict JSON ARRAY of objects. Each object MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast, Buttermilk), 'quantity' (total lbs received, calculate catch weight if needed), 'price_per_lb' (number), 'confidence' (float between 0 and 1)."
+                                    },
+                                    {
+                                        role: "user",
+                                        content: `Extract line items from this distributor invoice text:\n\n${documentText.substring(0, 8000)}`
+                                    }
+                                ],
+                                response_format: { type: "json_object" }
+                            });
+                        }
+                    }
+
+                    if (response && response.choices && response.choices[0].message.content) {
+                        const responseText = response.choices[0].message.content;
+                        // Extract array from standard {"items": [...]} or raw array if returned
+                        const parsed = JSON.parse(responseText);
+                        finalOCRResults = Array.isArray(parsed) ? parsed : (parsed.items || parsed.line_items || []);
+                        
+                        // Map invoice number
+                        finalOCRResults = finalOCRResults.map(r => ({
+                            ...r,
+                            invoice_number: detectedInvoiceNumber
+                        }));
+                        isRealExtraction = true;
+                        console.log(`Real AI Extraction Successful: Mapped ${finalOCRResults.length} items`);
                     }
                 } catch (AI_ERR) {
                     console.error('Real AI Extraction Failed. Falling back to Mock Mágico...', AI_ERR);
