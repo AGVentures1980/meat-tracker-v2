@@ -8,6 +8,7 @@ const upload = multer({ dest: 'uploads/' });
 
 router.post('/invoice', requireAuth, PurchaseController.addInvoice);
 router.get('/weighted-averages', requireAuth, PurchaseController.getWeightedAverages);
+router.get('/garcia-rule', requireAuth, PurchaseController.checkGarciaRule);
 router.post('/process-invoice-ocr', requireAuth, upload.single('invoice'), PurchaseController.processInvoiceOCR);
 router.post('/confirm', requireAuth, PurchaseController.confirmInvoices);
 

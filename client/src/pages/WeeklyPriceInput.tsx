@@ -31,6 +31,28 @@ export const WeeklyPriceInput = () => {
     const [systemItems, setSystemItems] = useState<string[]>([]);
     const [productsLoading, setProductsLoading] = useState(true);
 
+    // Garcia Rule (Compliance Lockout) State
+    const [garciaLocked, setGarciaLocked] = useState(false);
+    const [garciaMessage, setGarciaMessage] = useState('');
+
+    const fetchGarciaRule = async () => {
+        try {
+            const response = await fetch('/api/v1/purchases/garcia-rule', {
+                headers: {
+                    'Authorization': `Bearer ${user?.token}`,
+                    'X-Company-ID': selectedCompany || ''
+                }
+            });
+            const data = await response.json();
+            if (data.compliance_locked) {
+                setGarciaLocked(true);
+                setGarciaMessage(data.message);
+            }
+        } catch (error) {
+            console.error('Garcia Rule Check Failed', error);
+        }
+    };
+
     const fetchProducts = async () => {
         try {
             const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
@@ -41,7 +63,7 @@ export const WeeklyPriceInput = () => {
             });
             const data = await res.json();
             if (Array.isArray(data)) {
-                const standardized = data.map(p => ({
+                const standardized = data.map((p: any) => ({
                     id: p.id,
                     item: p.name,
                     current: 0,
@@ -49,7 +71,7 @@ export const WeeklyPriceInput = () => {
                     unit: 'lb'
                 }));
                 setPrices(standardized);
-                setSystemItems(data.map(p => p.name));
+                setSystemItems(data.map((p: any) => p.name));
             }
         } catch (error) {
             console.error('Failed to fetch company products', error);
@@ -61,8 +83,9 @@ export const WeeklyPriceInput = () => {
     useEffect(() => {
         if (user?.token) {
             fetchProducts();
+            fetchGarciaRule();
         }
-    }, [user?.token]);
+    }, [user?.token, selectedCompany]);
 
     const handlePriceChange = (id: number, newVal: string) => {
         setPrices(prices.map(p => p.id === id ? { ...p, current: parseFloat(newVal) || 0 } : p));
@@ -258,6 +281,41 @@ export const WeeklyPriceInput = () => {
 
     return (
         <div className="max-w-5xl mx-auto p-4 relative">
+            {/* The Garcia Rule - Operational Governance Lockout */}
+            {garciaLocked && (
+                <div className="fixed inset-0 bg-[#0a0000] backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+                    <div className="bg-gradient-to-br from-red-950/40 to-black border border-red-500/30 w-full max-w-2xl shadow-[0_0_100px_rgba(239,68,68,0.15)] relative overflow-hidden">
+                        {/* Decorative background slash */}
+                        <div className="absolute -top-32 -right-32 w-64 h-64 bg-red-500/5 rotate-45 blur-2xl pointer-events-none"></div>
+                        <div className="p-10 flex flex-col items-center text-center relative z-10">
+                            <div className="w-24 h-24 rounded-full bg-red-500/5 border border-red-500/20 flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                                <Lock className="w-12 h-12 text-red-500" />
+                            </div>
+                            <h2 className="text-4xl font-black text-white tracking-tight mb-3 uppercase leading-none">
+                                Operational<br />Governance Lockout
+                            </h2>
+                            <p className="text-red-500 font-bold uppercase tracking-[0.3em] text-sm mb-8">
+                                The Garcia Rule Enforced
+                            </p>
+                            <p className="text-[#a0a0a0] text-lg leading-relaxed mb-8 max-w-lg">
+                                {garciaMessage || "You are attempting to receive new High-Value Protein into inventory, but your store has not recorded the mandatory Waste Log for the previous shift."}
+                            </p>
+                            <div className="bg-[#110000] border-l-2 border-red-500 p-5 mb-10 text-left w-full shadow-inner">
+                                <p className="text-red-300 text-sm font-light italic opacity-90">
+                                    "Brasa Meat Intelligence prevents margin bleed at the door. You cannot buy more meat until you measure what you lost."
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => window.location.href = '/dashboard/waste'}
+                                className="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-5 rounded-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_40px_rgba(239,68,68,0.5)] transform hover:-translate-y-0.5"
+                            >
+                                Take me to Waste Logging
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Review Modal */}
             {isReviewOpen && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">

@@ -5,6 +5,46 @@ const prisma = new PrismaClient();
 
 export class PurchaseController {
     /**
+     * GET /api/v1/purchases/garcia-rule
+     * Pitch Demo: The Garcia Rule (Operational Governance Lockout)
+     */
+    static async checkGarciaRule(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const storeId = user?.storeId || 1;
+
+            // Executives bypass the strict operational lockout
+            if (user.role === 'admin' || user.role === 'director') {
+                return res.json({ compliance_locked: false }); 
+            }
+
+            // Check if store has submitted waste in the last 48 hours
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 2);
+
+            const recentWaste = await (prisma as any).wasteLog.findFirst({
+                where: {
+                    store_id: storeId,
+                    date: { gte: yesterday }
+                }
+            });
+
+            if (!recentWaste) {
+                return res.json({ 
+                    compliance_locked: true,
+                    message: "The Garcia Rule Enforced: You are attempting to receive new High-Value Protein into inventory, but your store has not recorded the mandatory Waste Log for the previous shift."
+                });
+            }
+
+            return res.json({ compliance_locked: false });
+        } catch (error) {
+            console.error('Garcia Rule Check Error:', error);
+            return res.status(500).json({ success: false, error: 'Compliance Check Failed' });
+        }
+    }
+
+    /**
      * POST /api/v1/purchases/invoice
      * Add a new invoice delivery record
      */
