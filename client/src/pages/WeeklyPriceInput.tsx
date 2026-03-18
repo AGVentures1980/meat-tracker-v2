@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Save, DollarSign, TrendingDown, TrendingUp, Loader2, ChevronLeft, ChevronRight, Lock, FileText, Camera, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -15,6 +16,7 @@ const formatProteinName = (raw: string): string => {
 export const WeeklyPriceInput = () => {
     const { user, selectedCompany } = useAuth();
     const { t } = useLanguage();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isProcessingOCR, setIsProcessingOCR] = useState(false);
@@ -306,7 +308,7 @@ export const WeeklyPriceInput = () => {
                                 </p>
                             </div>
                             <button
-                                onClick={() => window.location.href = '/dashboard/waste'}
+                                onClick={() => navigate('/waste')}
                                 className="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-5 rounded-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_40px_rgba(239,68,68,0.5)] transform hover:-translate-y-0.5"
                             >
                                 Take me to Waste Logging
