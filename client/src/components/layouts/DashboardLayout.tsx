@@ -439,6 +439,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     </div>
 
                     <div className="flex items-center gap-4 relative">
+                        {/* Welcome Personalization */}
+                        {user?.email && (
+                            <div className="hidden lg:flex items-center gap-2 mr-2 bg-[#222] px-3 py-1 rounded-full border border-[#333] shadow-sm">
+                                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Welcome</span>
+                                <span className="text-xs font-bold text-[#C5A059] tracking-wide">
+                                    {user.first_name || (user.email.toLowerCase().includes('rodrigo') ? 'Rodrigo' : user.email.toLowerCase().includes('alexandre') ? 'Alexandre' : user.email.toLowerCase().includes('carlos') ? 'Carlos' : user.email.split('@')[0].split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase()))}
+                                </span>
+                            </div>
+                        )}
+
                         <button
                             onClick={() => setShowAlerts(!showAlerts)}
                             className={`flex items-center gap-2 px-3 py-1 rounded border transition-colors cursor-pointer ${showAlerts ? 'bg-[#FF9F1C]/20 border-[#FF9F1C]' : 'bg-[#252525] border-[#333] hover:bg-[#333]'

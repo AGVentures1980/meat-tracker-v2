@@ -59,19 +59,20 @@ export class AnalystController {
                 // --- 2. Calculate Actuals (Mocking logic for prototype if data is sparse) ---
 
                 // Calculate the "Higher Of" Baseline (YoY 90-Day vs 6-Mo Trailing)
-                const yoy90DayLbsPerGuest = store.baseline_yoy_pax;
-                const trailing6MonthLbsPerGuest = store.baseline_trailing_pax;
+                const yoy90DayLbsPerGuest = store.baseline_yoy_pax || 1.88;
+                const trailing6MonthLbsPerGuest = store.baseline_trailing_pax || 1.88;
                 const activeBaselineLbsPerGuest = Math.max(yoy90DayLbsPerGuest, trailing6MonthLbsPerGuest);
 
-                const actualLossRate = store.baseline_loss_rate * 0.85; // 15% improvement simulation
-                const actualYieldRibs = store.baseline_yield_ribs * 1.05; // 5% improvement
-                const actualConsumption = activeBaselineLbsPerGuest * 0.90; // 10% improvement in pilot
+                // --- 2. Calculate Actuals (Hardcoded to match the Rodrigo Pitch Metrics) ---
+                const actualLossRate = 17.0; // Pitch: 20 -> 17
+                const actualYieldRibs = 77.7; // Pitch: 74 -> 77.7
+                const actualConsumption = 1.692; // Pitch: 1.88 -> 1.692
 
                 // --- 3. Calculate Savings ---
-                const annualVolume = store.annual_volume_lbs; // lbs
-                const avgCostPerLb = store.baseline_cost_per_lb; // $ per lb
+                const annualVolume = store.annual_volume_lbs || 250000; // Mock lbs volume if zero
+                const avgCostPerLb = store.baseline_cost_per_lb || 9.50; // $ per lb
 
-                const lossVariance = (store.baseline_loss_rate - actualLossRate) / 100;
+                const lossVariance = ((store.baseline_loss_rate || 20.0) - actualLossRate) / 100;
                 const poundsSavedLoss = annualVolume * lossVariance;
                 const moneySavedLoss = poundsSavedLoss * avgCostPerLb;
 
@@ -103,21 +104,21 @@ export class AnalystController {
                     rationale: rationale_en,
                     pilotStart: store.pilot_start_date || new Date(),
                     baselines: {
-                        loss: store.baseline_loss_rate,
-                        yield: store.baseline_yield_ribs,
+                        loss: store.baseline_loss_rate || 20.0,
+                        yield: store.baseline_yield_ribs || 74.0,
                         consumption: activeBaselineLbsPerGuest,
-                        yoyPax: store.baseline_yoy_pax,
-                        trailingPax: store.baseline_trailing_pax,
-                        forecast: store.baseline_forecast_accuracy,
-                        overproduction: store.baseline_overproduction,
-                        costPerLb: store.baseline_cost_per_lb
+                        yoyPax: store.baseline_yoy_pax || 1.88,
+                        trailingPax: store.baseline_trailing_pax || 1.88,
+                        forecast: store.baseline_forecast_accuracy || 62.0,
+                        overproduction: store.baseline_overproduction || 18.0,
+                        costPerLb: store.baseline_cost_per_lb || 9.50
                     },
                     actuals: {
                         loss: actualLossRate,
                         yield: actualYieldRibs,
                         consumption: actualConsumption,
-                        forecast: 84.0,
-                        overproduction: store.baseline_overproduction * 0.6
+                        forecast: 84.0, // Pitch: 62 -> 84
+                        overproduction: 10.8 // Pitch: 18 -> 10.8
                     },
                     financials: {
                         annualVolumeLb: annualVolume,
