@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MEAT_UNIT_WEIGHTS } from '../config/meat_weights';
 import { Trash2, Lock, CheckCircle, AlertTriangle, Scale, Save, FileText, ChevronDown, ChevronRight, Calendar, ArrowLeft, AlertCircle, Building2 } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Trash2, Lock, CheckCircle, AlertTriangle, Scale, Save, FileText, Chevro
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const WasteHistoryChart = ({ storeId }: { storeId?: number | null }) => {
+    // ... rest of chart ...
     const { user } = useAuth();
     const [data, setData] = useState<any[]>([]);
 
@@ -167,6 +168,7 @@ const WasteLogHistory = ({ storeId }: { storeId?: number | null }) => {
 const WastePage = () => {
     const { user } = useAuth();
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [selectedStore, setSelectedStore] = useState<number | null>(null);
     const [status, setStatus] = useState<any>(null);
     const [networkStatus, setNetworkStatus] = useState<any>(null);

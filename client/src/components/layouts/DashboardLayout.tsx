@@ -66,6 +66,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {
                 section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Accountability)' : 'MARKET DATA'), items: [
                     { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Meat Prices / Invoices') : 'Protein Market Cost', path: '/prices' },
+                    { icon: Trash, label: isStoreLevel ? 'Process Waste' : 'Network Waste Status', path: '/waste' },
                     ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' }] : []),
                 ]
             }

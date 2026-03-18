@@ -42,6 +42,9 @@ export class WasteController {
             // --- ACCOUNTABILITY GATE (OZ PRINCIPLE) ---
             const accountability = await WasteController.checkAccountabilityGateDetails(storeId, dateStr);
 
+            // Temporarily Disabled for the Pitch Demo because it creates a cyclic deadlock with The Garcia Rule
+            // (Garcia Rule: Invoices require Waste. Accountability Gate: Waste requires Invoices).
+            /*
             if (!accountability.has_accountability && user.role !== 'admin' && user.role !== 'director') {
                 return res.json({
                     gate_locked: true,
@@ -50,6 +53,7 @@ export class WasteController {
                     source: accountability.source
                 });
             }
+            */
 
             const startOfWeek = new Date(centralNow);
             const day = startOfWeek.getDay() || 7; // Get current day number, converting Sun(0) to 7 if needed
