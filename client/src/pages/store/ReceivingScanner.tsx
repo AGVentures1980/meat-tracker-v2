@@ -35,20 +35,54 @@ export default function ReceivingScanner() {
     }
   };
 
+  const [extractedWeight, setExtractedWeight] = useState<number | null>(null);
+
   const verifyBarcode = async (scannedCode: string) => {
     if (!scannedCode) return;
     setScanResult('LOADING');
+    setExtractedWeight(null);
     
     try {
       // In production: POST /api/v1/compliance/scan
       // Example payload: { barcode: scannedCode, store_id: user.storeId, company_id: selectedCompany }
       
+      // GS1-128 Parsing Logic
+      const cleanBarcode = scannedCode.replace(/[\(\)\s\u001D]/g, '');
+      let parsedWeight = null;
+
+      // 310n (Net Weight in Kg) or 320n (Net Weight in Lbs)
+      const weightMatch = cleanBarcode.match(/(310|320)(\d)(\d{6})/);
+      if (weightMatch) {
+          const isLbs = weightMatch[1] === '320';
+          const decimals = parseInt(weightMatch[2], 10);
+          const rawWeight = parseInt(weightMatch[3], 10);
+          let weight = rawWeight / Math.pow(10, decimals);
+          if (!isLbs) weight = weight * 2.20462;
+          parsedWeight = parseFloat(weight.toFixed(2));
+      } else {
+          // Fallback patterns
+          const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
+          if (demoWeightMatch) parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
+          const lambMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})$/);
+          if (lambMatch && cleanBarcode.length === 22) {
+              const rawKg = parseInt(lambMatch[2], 10) / 100;
+              parsedWeight = parseFloat((rawKg * 2.20462).toFixed(2));
+          }
+      }
+
+      setExtractedWeight(parsedWeight);
+      
       // MOCK LOGIC for demo
       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API latency
       
-      if (scannedCode === '4964367' || scannedCode === '4580211' || scannedCode === '8820023') {
+      // Check if Corporate Spec is found inside the barcode
+      if (cleanBarcode.includes('4964367') || cleanBarcode.includes('4580211') || cleanBarcode.includes('8820023')) {
         setScanResult('APPROVED');
-        setResultMessage('Match Found! Corporate Spec Authorized.');
+        if (parsedWeight) {
+          setResultMessage(`Corporate Spec Authorized! Box Weight: ${parsedWeight.toFixed(2)} lbs`);
+        } else {
+          setResultMessage('Match Found! Corporate Spec Authorized (No weight extracted).');
+        }
         // Add loud success "BEEP" audio here for the Kitchen environment
       } else {
         setScanResult('REJECTED');
@@ -175,22 +209,36 @@ export default function ReceivingScanner() {
       {/* GREEN APPROVED SCREEN - O "SIM" */}
       {scanResult === 'APPROVED' && (
         <div className="absolute inset-0 bg-emerald-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in slide-in-from-bottom text-center px-6">
-          <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-bounce">
+          <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-bounce">
             <CheckCircle2 className="w-24 h-24 text-emerald-600" />
           </div>
-          <h2 className="text-5xl font-black text-white mb-4 uppercase tracking-tighter">APPROVED</h2>
-          <p className="text-2xl text-emerald-100 font-medium mb-12 max-w-md leading-relaxed">
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-2 uppercase tracking-tighter">APPROVED</h2>
+          <p className="text-xl text-emerald-100 font-medium mb-8 max-w-md leading-relaxed">
             {resultMessage}
           </p>
-          <div className="bg-emerald-900/50 px-6 py-4 rounded-xl border border-emerald-400/30 mb-12 w-full max-w-md">
+
+          {/* New Weight Verification Block as Requested */}
+          {extractedWeight !== null && (
+            <div className="bg-white/10 px-8 py-6 rounded-2xl border-2 border-emerald-300/50 mb-8 w-full max-w-md shadow-2xl backdrop-blur-xl">
+              <p className="text-emerald-200 text-sm uppercase font-bold tracking-widest mb-2">Extracted Box Weight</p>
+              <div className="flex items-end justify-center gap-2">
+                <span className="text-6xl font-black text-white tabular-nums tracking-tighter">{extractedWeight.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-emerald-200 mb-2">LBS</span>
+              </div>
+              <p className="text-emerald-100/70 text-xs mt-4">Manager: Verify this weight matches the physical box label.</p>
+            </div>
+          )}
+
+          <div className="bg-emerald-900/50 px-6 py-4 rounded-xl border border-emerald-400/30 mb-8 w-full max-w-md">
             <p className="text-emerald-200 text-sm uppercase font-bold tracking-widest mb-1">Scanned Code</p>
-            <p className="text-3xl text-white font-mono">{barcode}</p>
+            <p className="text-xl text-white font-mono break-all">{barcode}</p>
           </div>
+          
           <button 
             onClick={resetScanner}
-            className="bg-white text-emerald-700 hover:bg-emerald-50 px-12 py-5 rounded-xl font-black text-xl tracking-wider transition-all shadow-xl uppercase w-full max-w-md"
+            className="bg-white text-emerald-700 hover:bg-emerald-50 px-12 py-5 rounded-xl font-black text-xl tracking-wider transition-all shadow-xl uppercase w-full max-w-md flex items-center justify-center gap-3"
           >
-            Scan Next Box
+            <CheckCircle2 className="w-6 h-6" /> OK - Next Box
           </button>
         </div>
       )}

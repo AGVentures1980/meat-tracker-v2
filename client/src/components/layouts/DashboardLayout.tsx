@@ -90,24 +90,27 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {
                 section: t('nav.section_view') || 'VIEW (Performance)', items: [
                     { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
-                    { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
+                    !isDavid ? { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' } : null,
                     { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
-                ]
+                ].filter(Boolean)
             },
             {
                 section: t('nav.section_learn') || 'LEARN (Training)', items: [
                     { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
                     { icon: FileText, label: 'AGV Support Hub', path: '/support' },
                 ]
-            },
-            {
+            }
+        );
+
+        if (!isDavid) {
+            navItems.push({
                 section: t('nav.section_team') || 'TEAM (Store)', 
                 hideOnMobile: true,
                 items: [
                     { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
                 ]
-            }
-        );
+            });
+        }
 
         // Add Company Settings for Directors/Admins/Master (Company or Global Scope)
         if (isCompanyOrGlobal) {
