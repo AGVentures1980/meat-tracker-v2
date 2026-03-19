@@ -202,10 +202,7 @@ export class PurchaseController {
             let finalOCRResults: any[] = [];
             let isRealExtraction = false;
 
-            // TRY TRUE AI EXTRACTION FIRST
-            const fallbackKey = ['sk-proj-9Y1qNzmNA9zFbnk4-TnJ3WlmZ62JGPFD7UjxzXtKJqEQW8omzd', 'HIfB4IJGXNw61ek10xMW_GWfT3BlbkFJhYzU2mYZ0ohROJZ0_n9OQDiFJSuHVTX5661YPmYdPdCm80kfD6A96ewxVW-4qwkYPR5V1GmhAA'].join('');
-            const apiKey = process.env.OPENAI_API_KEY || fallbackKey;
-            
+            let aiErrorMessage = 'Unknown Failure';
             if (file && apiKey.startsWith('sk-')) {
                 try {
                     const OpenAI = require('openai');
@@ -293,26 +290,27 @@ export class PurchaseController {
                     if (response && response.choices && response.choices[0].message.content) {
                         const responseText = response.choices[0].message.content;
                         // Extract array from standard {"items": [...]} or raw array if returned
-                        const parsed = JSON.parse(responseText);
+                        const parsed = JSON.parse(responseText || "{}");
                         finalOCRResults = Array.isArray(parsed) ? parsed : (parsed.items || parsed.line_items || []);
                         
                         // Map invoice number
-                        finalOCRResults = finalOCRResults.map(r => ({
+                        finalOCRResults = finalOCRResults.map((r: any) => ({
                             ...r,
                             invoice_number: detectedInvoiceNumber
                         }));
                         isRealExtraction = true;
                         console.log(`Real AI Extraction Successful: Mapped ${finalOCRResults.length} items`);
                     }
-                } catch (AI_ERR) {
+                } catch (AI_ERR: any) {
                     console.error('Real AI Extraction Failed. Falling back to Mock Mágico...', AI_ERR);
+                    aiErrorMessage = AI_ERR.message || String(AI_ERR);
                 }
             }
 
             if (!isRealExtraction || finalOCRResults.length === 0) {
                 return res.status(422).json({ 
                     success: false, 
-                    error: 'Falha na Extração (A.I. Engine). A nota fiscal está ilegível ou o serviço está temporariamente indisponível. Por favor, tente novamente.' 
+                    error: `Falha na Extração (A.I. Engine). Detalhes técnicos: ${aiErrorMessage}` 
                 });
             }
 
