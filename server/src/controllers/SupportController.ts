@@ -191,7 +191,7 @@ export class SupportController {
             const requiresRating = ticket.status === 'RESOLVED' && ticket.rating === null;
 
             if (ticket.is_escalated && ticket.status === 'OPEN') {
-                const hasAdminReply = ticket.messages.some(m => m.sender_type === 'ADMIN');
+                const hasAdminReply = ticket.messages.some(m => m.sender_type === 'AI');
                 const highVolumeMsg = "We are aware of your message, but are experiencing higher than expected volume. We will serve you as soon as possible. Please leave your error message or concern.";
                 const hasSentHighVolume = ticket.messages.some(m => m.content === highVolumeMsg);
 
@@ -260,7 +260,7 @@ export class SupportController {
             const message = await prisma.supportMessage.create({
                 data: {
                     ticket_id: ticketId,
-                    sender_type: 'ADMIN',
+                    sender_type: 'AI',
                     content
                 }
             });
