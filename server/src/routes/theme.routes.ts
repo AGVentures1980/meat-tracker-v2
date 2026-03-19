@@ -188,14 +188,13 @@ router.get('/setup/david-fix', async (req: Request, res: Response): Promise<void
 
         const user = await prisma.user.upsert({
             where: { email: 'davidcastro@texasdebrazil.com' },
-            update: { password_hash: hash, first_name: 'David', last_name: 'Castro', role: 'director', company: { connect: { id: tdb.id } }, is_primary: true },
+            update: { password_hash: hash, first_name: 'David', last_name: 'Castro', role: 'director', is_primary: true },
             create: {
                 email: 'davidcastro@texasdebrazil.com',
                 password_hash: hash,
                 first_name: 'David',
                 last_name: 'Castro',
                 role: 'director',
-                company: { connect: { id: tdb.id } },
                 is_primary: true
             }
         });
