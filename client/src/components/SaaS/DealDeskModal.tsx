@@ -18,8 +18,10 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
         company_name: '',
         signer_name: '',
         signer_email: '',
-        price: '',
-        locations_count: '1'
+        implementation_fee: '1000',
+        monthly_saas: '399',
+        performance_share: '5',
+        locations_count: '57'
     });
 
 
@@ -32,8 +34,10 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                     company_name: initialContract.company_name,
                     signer_name: initialContract.signer_name,
                     signer_email: initialContract.signer_email,
-                    price: initialContract.price?.toString() || '',
-                    locations_count: initialContract.locations_count?.toString() || '1'
+                    implementation_fee: initialContract.implementation_fee?.toString() || '1000',
+                    monthly_saas: initialContract.monthly_saas?.toString() || '399',
+                    performance_share: initialContract.performance_share?.toString() || '5',
+                    locations_count: initialContract.locations_count?.toString() || '57'
                 });
             } else {
                 setContractId(null);
@@ -41,8 +45,10 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                     company_name: '',
                     signer_name: '',
                     signer_email: '',
-                    price: '',
-                    locations_count: '1'
+                    implementation_fee: '1000',
+                    monthly_saas: '399',
+                    performance_share: '5',
+                    locations_count: '57'
                 });
             }
         }
@@ -151,7 +157,7 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                 {/* Step 1: Input Parameters */}
                 {step === 1 && (
                     <form onSubmit={handleGenerate} className="p-8 space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="col-span-2">
                                 <label className="block text-[#C5A059] text-[10px] font-black uppercase tracking-widest mb-2">Target Enterprise</label>
                                 <div className="relative">
@@ -167,7 +173,7 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                             </div>
 
                             <div>
-                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Key Signatory Name</label>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Name</label>
                                 <input 
                                     type="text" required
                                     value={formData.signer_name}
@@ -189,23 +195,45 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                             </div>
 
                             <div>
-                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Monthly SaaS Price (USD)</label>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Implementation / Store ($)</label>
                                 <input 
                                     type="number" required
-                                    value={formData.price}
-                                    onChange={e => setFormData({...formData, price: e.target.value})}
-                                    placeholder="5000"
+                                    value={formData.implementation_fee}
+                                    onChange={e => setFormData({...formData, implementation_fee: e.target.value})}
+                                    placeholder="1000"
                                     className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Number of Locations</label>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Monthly SaaS / Store ($)</label>
+                                <input 
+                                    type="number" required
+                                    value={formData.monthly_saas}
+                                    onChange={e => setFormData({...formData, monthly_saas: e.target.value})}
+                                    placeholder="399"
+                                    className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[#00FF94] text-[10px] font-bold uppercase tracking-widest mb-2">Gain-Share (%)</label>
+                                <input 
+                                    type="number" required
+                                    value={formData.performance_share}
+                                    onChange={e => setFormData({...formData, performance_share: e.target.value})}
+                                    placeholder="5"
+                                    className="w-full bg-[#00FF94]/10 border border-[#00FF94]/30 rounded-xl py-3 px-4 text-[#00FF94] focus:outline-none focus:border-[#00FF94] shadow-[0_0_15px_rgba(0,255,148,0.1)] transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Total Locations</label>
                                 <input 
                                     type="number" required
                                     value={formData.locations_count}
                                     onChange={e => setFormData({...formData, locations_count: e.target.value})}
-                                    placeholder="50"
+                                    placeholder="57"
                                     className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
                                 />
                             </div>
@@ -213,7 +241,7 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
 
                         <button 
                             type="submit" disabled={loading}
-                            className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-black tracking-widest uppercase text-xs transition-all disabled:opacity-50"
+                            className="w-full py-4 mt-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-black tracking-widest uppercase text-xs transition-all disabled:opacity-50"
                         >
                             {loading ? 'Compiling Legal Template...' : 'Generate Contract Document'}
                         </button>
@@ -237,10 +265,15 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                             <p className="mb-4 text-justify">The <strong className="text-white">Brasa Meat Intelligence</strong> platform, algorithms, source codes, trademarks, operational methodologies (including the "Garcia Rule"), and all related intellectual property are owned exclusively by <strong className="text-white">AGV Ventures LLC</strong>. The software is merely licensed, not sold, to the Client under the terms of this Agreement. The Client hereby acknowledges that they hold no ownership rights over the software or any derivative works.</p>
 
                             <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">2. Pilot Evaluation Program</h4>
-                            <p className="mb-4 text-justify">Licensor agrees to deploy the Brasa Meat Intelligence operating system to <strong className="text-white">{formData.locations_count || '[X]'}</strong> pilot locations for a 90-day evaluation period. During this period, both parties agree to mutual confidentiality regarding proprietary business metrics, strategic workflows, and software interfaces (Mutual NDA).</p>
+                            <p className="mb-4 text-justify">Licensor agrees to deploy the Brasa Meat Intelligence operating system to initial pilot locations for evaluation. During this period, both parties agree to mutual confidentiality regarding proprietary business metrics, strategic workflows, and software interfaces (Mutual NDA).</p>
                             
-                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">3. Commercial Terms & Transition</h4>
-                            <p className="mb-4 text-justify">Upon successful conclusion of the Pilot Program, this Agreement automatically transitions to an active monthly Software-as-a-Service (SaaS) license. The Client agrees to a recurring monthly software licensing fee of <strong className="text-white">${Number(formData.price || 0).toLocaleString()}.00 USD</strong>. This fee grants the Client non-exclusive, non-transferable access for the authorized locations.</p>
+                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">3. Commercial Terms & System Rollout</h4>
+                            <p className="mb-4 text-justify">Upon successful conclusion of the Pilot Program, this Agreement covers the system implementation and active SaaS licensing for up to <strong className="text-white">{formData.locations_count || '[X]'} Locations</strong>. The structured commercial model is as follows:</p>
+                            <ul className="list-disc pl-5 mb-4 space-y-2 text-justify">
+                                <li><strong>Implementation Fee:</strong> A one-time setup and hardware configuration fee of <strong className="text-white">${Number(formData.implementation_fee || 0).toLocaleString()}.00 USD per location</strong>.</li>
+                                <li><strong>SaaS Licensing Fee:</strong> A recurring software license of <strong className="text-white">${Number(formData.monthly_saas || 0).toLocaleString()}.00 USD per location per month</strong> for continuous access, updates, and maintenance.</li>
+                                <li><strong>Performance Participation (Gain-Share):</strong> As a mutual partnership alignment, Licensor guarantees measurable yield savings and shall receive <strong className="text-[#00FF94]">{formData.performance_share}%</strong> of the verified gross meat savings generated by the software logic.</li>
+                            </ul>
 
                             <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">4. Liability Shield</h4>
                             <p className="mb-4 text-justify">In no event shall AGV Ventures LLC, its founders, members, or affiliates be liable for any indirect, incidental, or consequential damages arising out of the use or inability to use the Software. Total liability of AGV Ventures LLC shall not exceed the amount paid by the Client for the software license.</p>
