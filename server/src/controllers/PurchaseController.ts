@@ -221,7 +221,7 @@ export class PurchaseController {
                             messages: [
                                 {
                                     role: "system",
-                                    content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein/Dairy line items and return them as a strict JSON ARRAY of objects. Each object MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast, Buttermilk), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate), 'confidence' (float between 0 and 1)."
+                                    content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein/Dairy line items and return them as a strict JSON object with a single root array property named 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast, Buttermilk), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1)."
                                 },
                                 {
                                     role: "user",
@@ -250,7 +250,7 @@ export class PurchaseController {
                                 messages: [
                                     {
                                         role: "system",
-                                        content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein/Dairy line items and return them as a strict JSON ARRAY of objects. Each object MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast, Buttermilk), 'quantity' (total lbs received, calculate catch weight if needed), 'price_per_lb' (number), 'confidence' (float between 0 and 1)."
+                                        content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein/Dairy line items and return them as a strict JSON object with a single root array property named 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast, Buttermilk), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1)."
                                     },
                                     {
                                         role: "user",

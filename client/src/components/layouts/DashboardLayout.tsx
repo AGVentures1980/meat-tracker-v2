@@ -62,82 +62,78 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     }
 
     if (selectedCompany) {
-        if (isDavid) {
-            // David's account is STRICTLY for registering Corporate Specs
+        const isStoreLevel = user?.scope?.type === 'STORE';
+        const isAreaLevel = user?.scope?.type === 'AREA';
+        const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
+
+        navItems.push(
+            {
+                section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Accountability)' : 'MARKET DATA'), items: [
+                    { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Meat Prices / Invoices') : 'Protein Market Cost', path: '/prices' },
+                    { icon: ScanLine, label: 'Receiving Dock QC', path: '/receiving' },
+                    { icon: Trash, label: isStoreLevel ? 'Process Waste' : 'Network Waste Status', path: '/waste' },
+                    ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' }] : []),
+                ]
+            }
+        );
+
+        if (isStoreLevel || isAreaLevel) {
             navItems.push({
-                section: 'CORPORATE SPECS',
-                items: [
-                    { icon: ShieldCheck, label: 'Corporate DB Specs', path: '/executive/specs' }
+                section: t('nav.section_run') || 'RUN (Shift Command)', items: [
+                    { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
+                    { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
                 ]
             });
-        } else {
-            // Standard Navigation for all other roles
-            const isStoreLevel = user?.scope?.type === 'STORE';
-            const isAreaLevel = user?.scope?.type === 'AREA';
-            const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
+        }
 
-            navItems.push(
-                {
-                    section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Accountability)' : 'MARKET DATA'), items: [
-                        { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Meat Prices / Invoices') : 'Protein Market Cost', path: '/prices' },
-                        { icon: ScanLine, label: 'Receiving Dock QC', path: '/receiving' },
-                        { icon: Trash, label: isStoreLevel ? 'Process Waste' : 'Network Waste Status', path: '/waste' },
-                        ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' }] : []),
-                    ]
-                }
-            );
+        if (!isDavid) {
+            navItems.push({
+                section: t('nav.section_view') || 'VIEW (Performance)', items: [
+                    { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
+                    { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
+                    { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
+                ]
+            });
+        }
 
-            if (isStoreLevel || isAreaLevel) {
-                navItems.push({
-                    section: t('nav.section_run') || 'RUN (Shift Command)', items: [
-                        { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
-                        { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
-                    ]
-                });
-            }
+        navItems.push({
+            section: t('nav.section_learn') || 'LEARN (Training)', items: [
+                { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
+                { icon: FileText, label: 'AGV Support Hub', path: '/support' },
+            ]
+        });
 
-            navItems.push(
-                {
-                    section: t('nav.section_view') || 'VIEW (Performance)', items: [
-                        { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
-                        { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
-                        { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
-                    ]
-                },
-                {
-                    section: t('nav.section_learn') || 'LEARN (Training)', items: [
-                        { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
-                        { icon: FileText, label: 'AGV Support Hub', path: '/support' },
-                    ]
-                },
-                {
-                    section: t('nav.section_team') || 'TEAM (Store)', 
-                    hideOnMobile: true,
-                    items: [
-                        { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
-                    ]
-                }
-            );
+        if (!isDavid) {
+            navItems.push({
+                section: t('nav.section_team') || 'TEAM (Store)', 
+                hideOnMobile: true,
+                items: [
+                    { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
+                ]
+            });
+        }
 
-            // Add Company Settings for Directors/Admins/Master (Company or Global Scope)
-            if (isCompanyOrGlobal) {
-                const isSystemAdmin = user?.role === 'admin' || isRodrigo || isMaster;
-                const manageItems = [];
-                
+        // Add Company Settings for Directors/Admins/Master (Company or Global Scope)
+        if (isCompanyOrGlobal) {
+            const isSystemAdmin = user?.role === 'admin' || isRodrigo || isMaster;
+            const manageItems = [];
+            
+            if (!isDavid) {
                 manageItems.push(
                     { icon: Activity, label: 'Network Command Center', path: '/owner' },
                     { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' }
                 );
+            }
 
-                if (isSystemAdmin) {
-                    manageItems.push(
-                        { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
-                        { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
-                        { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
-                    );
-                }
+            if (isSystemAdmin) {
+                manageItems.push(
+                    { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
+                    { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
+                    { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
+                );
+            }
 
-                // Push Corporate DB Specs for Rodrigo and Master/Admin too, so they can see what David does
+            if (manageItems.length > 0 || isSystemAdmin || isRodrigo || isDavid) {
                 navItems.push({
                     section: t('nav.section_manage') || 'MANAGE (Company)',
                     items: [
