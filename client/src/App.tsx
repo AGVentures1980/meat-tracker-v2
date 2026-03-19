@@ -51,6 +51,7 @@ import { ContractsVault } from './pages/admin/ContractsVault';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 import CorporateSpecs from './pages/executive/CorporateSpecs';
+import ReceivingScanner from './pages/store/ReceivingScanner';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
