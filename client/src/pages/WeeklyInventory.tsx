@@ -443,27 +443,36 @@ export const WeeklyInventory = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 space-y-6">
                             <div className="bg-[#1a1a1a] border border-[#333] rounded-lg overflow-hidden">
-                                <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]">
-                                    <h2 className="font-bold text-white flex items-center gap-2">
-                                        <Scale className="w-4 h-4 text-[#C5A059]" />
-                                        Physical Count Entry
-                                    </h2>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xs font-mono text-gray-500 bg-[#121212] px-2 py-1 rounded">
-                                            Due: Mon 11AM
-                                        </span>
+                                <div className="p-5 bg-gradient-to-r from-[#121212] to-[#1a1a1a] border-b border-[#333] flex flex-col md:flex-row items-center gap-4 justify-between">
+                                    <div className="flex-1">
+                                        <h3 className="text-[#00FF94] font-bold tracking-widest uppercase mb-1 flex items-center gap-2">
+                                            <ScanLine className="w-5 h-5" />
+                                            1. Scan Sealed Boxes
+                                        </h3>
+                                        <p className="text-gray-400 text-sm leading-relaxed max-w-lg">
+                                            Bluetooth scanner active. Scan GS1-128 barcodes directly to accumulate exact net weights automatically.
+                                        </p>
                                     </div>
-                                </div>
-
-                                <div className="p-4 bg-[#121212] border-b border-[#333]">
                                     <button
                                         type="button"
                                         onClick={() => setIsCameraOpen(true)}
-                                        className="w-full bg-[#C5A059] hover:bg-[#D4AF37] text-black font-bold uppercase tracking-widest py-4 rounded-lg flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[0_0_15px_rgba(197,160,89,0.3)]"
+                                        className="shrink-0 w-full md:w-auto bg-[#1a1a1a] hover:bg-[#252525] text-gray-300 border border-[#333] font-bold uppercase tracking-widest py-3 px-6 rounded-lg flex items-center justify-center gap-3 active:scale-95 transition-all text-xs shadow-inner"
                                     >
-                                        <Camera className="w-6 h-6" />
-                                        OPEN BOX SCANNER
+                                        <Camera className="w-4 h-4 text-gray-400" />
+                                        iPad Camera Fallback
                                     </button>
+                                </div>
+
+                                <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]">
+                                    <h2 className="font-bold text-white flex items-center gap-2 uppercase tracking-widest text-sm">
+                                        <Scale className="w-4 h-4 text-[#C5A059]" />
+                                        2. Manual Entry (Prep Weighing)
+                                    </h2>
+                                    <div className="flex items-center gap-3 hidden sm:flex">
+                                        <span className="text-xs font-mono text-[#C5A059] bg-[#C5A059]/10 border border-[#C5A059]/20 px-3 py-1 rounded">
+                                            Loose Meats Only
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
