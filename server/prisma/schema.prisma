@@ -674,6 +674,7 @@ enum TicketStatus {
 enum SenderType {
   USER
   AI
+  ADMIN
 }
 
 model CorporateProteinSpec {

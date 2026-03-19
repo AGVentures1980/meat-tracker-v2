@@ -526,18 +526,23 @@ export const CommandCenter = () => {
                                     </div>
                                 )}
 
-                                {(!prepData?.is_locked && user?.role !== 'director' && user?.role !== 'admin') && (
+                                {(user?.role !== 'director' && user?.role !== 'admin') && (
                                     <button
-                                        onClick={lockPrepPlan}
-                                        title="Lock Forecast"
-                                        className="ml-2 px-3 py-1 border rounded text-[10px] font-bold uppercase transition-colors bg-white/5 text-gray-300 border-white/10 hover:bg-[#00FF94]/20 hover:text-[#00FF94] hover:border-[#00FF94]/30 print:hidden"
+                                        onClick={prepData?.is_locked ? undefined : lockPrepPlan}
+                                        disabled={prepData?.is_locked}
+                                        title={prepData?.is_locked ? "Plan is Locked" : "Lock Forecast"}
+                                        className={`ml-2 px-3 py-1 border rounded text-[10px] font-bold uppercase transition-colors print:hidden flex items-center gap-1 ${
+                                            prepData?.is_locked 
+                                            ? 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed opacity-50' 
+                                            : 'bg-white/5 text-gray-300 border-white/10 hover:bg-[#00FF94]/20 hover:text-[#00FF94] hover:border-[#00FF94]/30'
+                                        }`}
                                     >
-                                        Lock
+                                        {prepData?.is_locked ? <><ShieldCheck className="w-3 h-3"/> Locked</> : 'Lock'}
                                     </button>
                                 )}
-                                {(prepData?.is_locked) && (
-                                    <span title="Plan is Locked" className="ml-2 print:hidden">
-                                        <ShieldCheck className="w-4 h-4 text-[#00FF94]" />
+                                {(prepData?.is_locked && (user?.role === 'director' || user?.role === 'admin')) && (
+                                    <span title="Plan is Locked" className="ml-2 print:hidden flex items-center gap-1 text-[10px] font-bold text-[#00FF94] uppercase bg-[#00FF94]/10 px-2 py-0.5 rounded border border-[#00FF94]/20">
+                                        <ShieldCheck className="w-3 h-3" /> Locked
                                     </span>
                                 )}
                             </div>

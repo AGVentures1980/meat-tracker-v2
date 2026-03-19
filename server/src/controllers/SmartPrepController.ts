@@ -199,8 +199,8 @@ export class SmartPrepController {
                 holidayInsight = prediction.holiday_insight;
             }
 
-            const lunchGuests = req.query.lunchGuests ? parseInt(req.query.lunchGuests as string) : suggestedLunch;
-            const dinnerGuests = req.query.dinnerGuests ? parseInt(req.query.dinnerGuests as string) : suggestedDinner;
+            const lunchGuests = req.query.lunch_forecast ? parseInt(req.query.lunch_forecast as string) : suggestedLunch;
+            const dinnerGuests = req.query.dinner_forecast ? parseInt(req.query.dinner_forecast as string) : suggestedDinner;
 
             // Total guests for backward compatibility in reporting
             const forecast = lunchGuests + dinnerGuests;
