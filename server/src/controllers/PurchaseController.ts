@@ -212,9 +212,12 @@ export class PurchaseController {
 
                     let isImage = file.mimetype.startsWith('image/') || file.originalname.toLowerCase().endsWith('.heic');
                     
+                    const fs = require('fs');
+                    let rawBuffer = file.buffer || fs.readFileSync(file.path);
+
                     if (isImage) {
                         console.log('Processing Image... Checking format and optimizing...');
-                        let processedBuffer = file.buffer;
+                        let processedBuffer = rawBuffer;
                         let processedMimetype = file.mimetype;
 
                         // Check and Convert HEIC
@@ -222,7 +225,7 @@ export class PurchaseController {
                             console.log('Converting HEIC to JPEG...');
                             const convert = require('heic-convert');
                             processedBuffer = await convert({
-                                buffer: file.buffer,
+                                buffer: rawBuffer,
                                 format: 'JPEG',
                                 quality: 0.8
                             });
@@ -263,10 +266,10 @@ export class PurchaseController {
                         let documentText = '';
                         if (file.mimetype === 'application/pdf') {
                             const pdfParse = require('pdf-parse');
-                            const data = await pdfParse(file.buffer);
+                            const data = await pdfParse(rawBuffer);
                             documentText = data.text;
                         } else if (file.mimetype.startsWith('text/')) {
-                            documentText = file.buffer.toString('utf-8');
+                            documentText = rawBuffer.toString('utf-8');
                         }
 
                         if (documentText && documentText.length > 50) {
