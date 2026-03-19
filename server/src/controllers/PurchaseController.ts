@@ -281,74 +281,11 @@ export class PurchaseController {
                 }
             }
 
-            // FALLBACK TO PERFECT PITCH MOCK IF AI FAILED OR NO KEY
             if (!isRealExtraction || finalOCRResults.length === 0) {
-                finalOCRResults = [
-                    {
-                        raw_text: "BEEF SIRLOIN FLAP CH TXDB",
-                        detected_item: "Fraldinha/Flank Steak",
-                        quantity: 144.20,
-                        price_per_lb: 8.59,
-                        confidence: 0.92,
-                        invoice_number: detectedInvoiceNumber
-                    },
-                    {
-                        raw_text: "TXDEBRL BEEF SIRL COULOT FAT-ON TXDB\nT/WT= 88.30",
-                        detected_item: "Picanha",
-                        quantity: 88.30,
-                        price_per_lb: 5.79,
-                        confidence: 0.98,
-                        invoice_number: detectedInvoiceNumber
-                    },
-                    {
-                        raw_text: "160#AVGTXDEBRL BEEF SIRLOIN FLAP CH TXDB\nT/WT= 72.100",
-                        detected_item: "Fraldinha/Flank Steak",
-                        quantity: 72.10,
-                        price_per_lb: 8.59,
-                        confidence: 0.99,
-                        invoice_number: detectedInvoiceNumber
-                    },
-                    {
-                        raw_text: "CHICKEN DRUMSTICK IQF\nPACK:96 SIZE:3.6oz",
-                        detected_item: "Chicken Legs",
-                        quantity: 86.40,
-                        price_per_lb: 0.98,
-                        confidence: 0.99,
-                        invoice_number: detectedInvoiceNumber
-                    },
-                    {
-                        raw_text: "CHICKEN BREAST BL/SL RANDOM\nPACK:4 SIZE:10 LB",
-                        detected_item: "Chicken Breast",
-                        quantity: 80.00,
-                        price_per_lb: 2.35,
-                        confidence: 0.99,
-                        invoice_number: detectedInvoiceNumber
-                    },
-                    {
-                        raw_text: "130#AVGFARMLND PORK RIB ST. LOUIS\nT/WT= 29.600",
-                        detected_item: "Pork Ribs",
-                        quantity: 29.60,
-                        price_per_lb: 2.90,
-                        confidence: 0.97,
-                        invoice_number: detectedInvoiceNumber
-                    },
-                    {
-                        raw_text: "FARMLND PORK LOIN BNLS CAN\nT/WT= 42.600",
-                        detected_item: "Pork Loin",
-                        quantity: 42.60,
-                        price_per_lb: 2.15,
-                        confidence: 0.97,
-                        invoice_number: detectedInvoiceNumber
-                    },
-                    {
-                        raw_text: "SLOVACK SAUSAGE PORK GARLIC 8/1 TDB\nPACK:1 SIZE:25 LB",
-                        detected_item: "Sausage",
-                        quantity: 50.00,
-                        price_per_lb: 0.83,
-                        confidence: 0.99,
-                        invoice_number: detectedInvoiceNumber
-                    }
-                ];
+                return res.status(422).json({ 
+                    success: false, 
+                    error: 'Falha na Extração (A.I. Engine). A nota fiscal está ilegível ou o serviço está temporariamente indisponível. Por favor, tente novamente.' 
+                });
             }
 
             // Apply Dynamic Mapping Overrides
