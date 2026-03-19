@@ -201,8 +201,31 @@ export class DeliveryController {
             }
 
             const openai = new OpenAI();
-            const mimeType = req.file.mimetype || 'image/jpeg';
-            const base64Image = req.file.buffer.toString('base64');
+            let mimeType = req.file.mimetype || 'image/jpeg';
+            let processedBuffer = req.file.buffer;
+
+            // Check and Convert HEIC
+            if (mimeType === 'image/heic' || mimeType === 'image/heif' || req.file.originalname.toLowerCase().endsWith('.heic')) {
+                console.log(`[OCR DEBUG ${requestId}] Converting HEIC to JPEG...`);
+                const convert = require('heic-convert');
+                processedBuffer = await convert({
+                    buffer: req.file.buffer,
+                    format: 'JPEG',
+                    quality: 0.8
+                });
+                mimeType = 'image/jpeg';
+            }
+
+            // Optimize with Sharp (resize and compress)
+            console.log(`[OCR DEBUG ${requestId}] Optimizing image with Sharp...`);
+            const sharp = require('sharp');
+            processedBuffer = await sharp(processedBuffer)
+                .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
+                .jpeg({ quality: 80 })
+                .toBuffer();
+            mimeType = 'image/jpeg';
+
+            const base64Image = processedBuffer.toString('base64');
             const companyId = user.companyId || 'tdb-main';
 
             let providerSpecificRules = "";
