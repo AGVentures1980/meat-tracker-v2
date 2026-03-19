@@ -249,12 +249,19 @@ export class PurchaseController {
                         const base64Image = processedBuffer.toString('base64');
                         console.log('Image preparation complete. Calling Vision API...');
 
+                        const companyProducts = await (prisma as any).companyProduct.findMany({
+                            where: { company_id: (req as any).user?.companyId || 'tdb-main' }
+                        });
+                        const registeredMeats = companyProducts.map((p: any) => p.name).join(', ');
+
+                        const aiSystemPrompt = `You are a Meat Distributor Invoice reading expert. EXCLUSIVELY extract Meat/Poultry/Pork/Lamb items that match or relate to the company's registered roster: [${registeredMeats}]. You MUST ABSOLUTELY IGNORE all Dairy (Cheese, Milk, Buttermilk, Butter, Ice Cream), Dry Goods, Supplies, Produce, and non-meat items. Return a strict JSON object with a single root array 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (best guess standard name from the roster), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1).`;
+
                         response = await openai.chat.completions.create({
                             model: "gpt-4o", // Must use gpt-4o or gpt-4-vision for image inputs
                             messages: [
                                 {
                                     role: "system",
-                                    content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein/Dairy line items and return them as a strict JSON object with a single root array property named 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast, Buttermilk), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1)."
+                                    content: aiSystemPrompt
                                 },
                                 {
                                     role: "user",
@@ -278,12 +285,19 @@ export class PurchaseController {
                         }
 
                         if (documentText && documentText.length > 50) {
+                            const companyProducts = await (prisma as any).companyProduct.findMany({
+                                where: { company_id: (req as any).user?.companyId || 'tdb-main' }
+                            });
+                            const registeredMeats = companyProducts.map((p: any) => p.name).join(', ');
+
+                            const aiSystemPrompt = `You are a Meat Distributor Invoice reading expert. EXCLUSIVELY extract Meat/Poultry/Pork/Lamb items that match or relate to the company's registered roster: [${registeredMeats}]. You MUST ABSOLUTELY IGNORE all Dairy (Cheese, Milk, Buttermilk, Butter, Ice Cream), Dry Goods, Supplies, Produce, and non-meat items. Return a strict JSON object with a single root array 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (best guess standard name from the roster), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1).`;
+
                             response = await openai.chat.completions.create({
                                 model: "gpt-4o-mini",
                                 messages: [
                                     {
                                         role: "system",
-                                        content: "You are a Meat Distributor Invoice reading expert (Sysco, US Foods, Cheney Brothers). Extract all Meat/Protein/Dairy line items and return them as a strict JSON object with a single root array property named 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (guess standard name like Picanha, Fraldinha, Chicken Breast, Buttermilk), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1)."
+                                        content: aiSystemPrompt
                                     },
                                     {
                                         role: "user",
