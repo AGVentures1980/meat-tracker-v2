@@ -188,7 +188,7 @@ export class PurchaseController {
 
             if (file) {
                 const crypto = require('crypto');
-                const hash = crypto.createHash('md5').update(file.originalname + file.size + Date.now()).digest('hex').substring(0, 8).toUpperCase();
+                const hash = crypto.createHash('md5').update(file.originalname + file.size).digest('hex').substring(0, 8).toUpperCase();
                 detectedInvoiceNumber = `INV-${hash}`;
             }
 
