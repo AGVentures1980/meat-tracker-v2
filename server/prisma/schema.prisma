@@ -9,31 +9,32 @@ datasource db {
 }
 
 model Company {
-  id                          String              @id @default(uuid())
+  id                          String                 @id @default(uuid())
   name                        String
-  plan                        String              @default("enterprise")
-  created_at                  DateTime            @default(now())
+  plan                        String                 @default("enterprise")
+  created_at                  DateTime               @default(now())
   owner_id                    String?
-  annual_growth_rate          Float               @default(5.0)
-  baseline_loss_pct           Float               @default(15.0)
-  baseline_yield              Float               @default(65.0)
-  baseline_overproduction_pct Float               @default(8.0)
-  baseline_ruptura_pct        Float               @default(5.0)
-  contract_savings_fee_pct    Float               @default(5.0)
-  subdomain                   String?             @unique
+  annual_growth_rate          Float                  @default(5.0)
+  baseline_loss_pct           Float                  @default(15.0)
+  baseline_yield              Float                  @default(65.0)
+  baseline_overproduction_pct Float                  @default(8.0)
+  baseline_ruptura_pct        Float                  @default(5.0)
+  contract_savings_fee_pct    Float                  @default(5.0)
+  subdomain                   String?                @unique
   theme_bg_url                String?
   theme_logo_url              String?
   theme_primary_color         String?
-  billing_type                String              @default("STRIPE_AUTO")
-  company_status              String              @default("Pending")
-  stripe_customer_id          String?             @unique
-  api_key                     String?             @unique
+  billing_type                String                 @default("STRIPE_AUTO")
+  company_status              String                 @default("Pending")
+  stripe_customer_id          String?                @unique
+  api_key                     String?                @unique
   products                    CompanyProduct[]
   vault_messages              OwnerVaultMessage[]
   PartnerClient               PartnerClient[]
   stores                      Store[]
   templates                   StoreTemplate[]
   invoices                    SysInvoice[]
+  CorporateProteinSpec        CorporateProteinSpec[]
 }
 
 model CompanyProduct {
@@ -112,6 +113,7 @@ model Store {
   users                      User[]
   waste_compliance           WasteCompliance[]
   waste_logs                 WasteLog[]
+  BarcodeScanEvent           BarcodeScanEvent[]
 
   @@unique([company_id, store_name])
 }
@@ -672,5 +674,26 @@ enum TicketStatus {
 enum SenderType {
   USER
   AI
-  ADMIN
+}
+
+model CorporateProteinSpec {
+  id                 String   @id @default(uuid())
+  company_id         String
+  protein_name       String
+  approved_brand     String
+  approved_item_code String
+  created_by         String
+  created_at         DateTime @default(now())
+
+  company Company @relation(fields: [company_id], references: [id])
+}
+
+model BarcodeScanEvent {
+  id              String   @id @default(uuid())
+  store_id        Int
+  scanned_barcode String
+  is_approved     Boolean
+  scanned_at      DateTime @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
 }

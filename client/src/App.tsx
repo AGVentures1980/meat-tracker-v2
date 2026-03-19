@@ -50,6 +50,7 @@ import { PartnerTraining } from './pages/partner/PartnerTraining';
 import { ContractsVault } from './pages/admin/ContractsVault';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
+import CorporateSpecs from './pages/executive/CorporateSpecs';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -176,6 +177,7 @@ function AppContent() {
                     <Route path="/forecast" element={<GovernanceGuard><ForecastPage /></GovernanceGuard>} />
                     <Route path="/command-center" element={<CommandCenter />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
+                    <Route path="/executive/specs" element={<CorporateSpecs />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />
