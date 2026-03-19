@@ -174,6 +174,7 @@ function AppContent() {
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
                     <Route path="/smart-prep" element={<GovernanceGuard><SmartPrepPage /></GovernanceGuard>} />
                     <Route path="/delivery" element={<DeliveryPage />} />
+                    <Route path="/receiving" element={<ReceivingScanner />} />
                     <Route path="/waste" element={<WastePage />} />
                     <Route path="/forecast" element={<GovernanceGuard><ForecastPage /></GovernanceGuard>} />
                     <Route path="/command-center" element={<CommandCenter />} />
