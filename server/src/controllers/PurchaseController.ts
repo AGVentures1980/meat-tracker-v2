@@ -254,7 +254,19 @@ export class PurchaseController {
                         });
                         const registeredMeats = companyProducts.map((p: any) => p.name).join(', ');
 
-                        const aiSystemPrompt = `You are a Meat Distributor Invoice reading expert. EXCLUSIVELY extract Meat/Poultry/Pork/Lamb items that match or relate to the company's registered roster: [${registeredMeats}]. You MUST ABSOLUTELY IGNORE all Dairy (Cheese, Milk, Buttermilk, Butter, Ice Cream), Dry Goods, Supplies, Produce, and non-meat items. Return a strict JSON object with a single root array 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (best guess standard name from the roster), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1).`;
+                        const userCompanyId = (req as any).user?.companyId || 'tdb-main';
+                        let providerSpecificRules = "";
+                        let expectedVendor = "wholesale food distributor";
+
+                        if (userCompanyId === 'fdc-main') {
+                            expectedVendor = "US Foods";
+                            providerSpecificRules = `CRITICAL US FOODS INVOICE RULES:\n1. Look for 'Catch Weight' explicitly listed under a 'Weight' column.\n2. Be aware of abbreviations: 'CH' (Choice), 'BNLS' (Boneless), 'TXDB' (Texas Double Branded), 'PSMO' (usually Filet Mignon), 'STRIP' (Strip Loin), 'BUTT CAP' or 'COULOTTE' or 'COULOT' (Picanha).`;
+                        } else if (userCompanyId === 'tdb-main') {
+                            expectedVendor = "Sysco";
+                            providerSpecificRules = `CRITICAL SYSCO INVOICE RULES:\n1. Look for Catch Weights explicitly listed next to 'T/WT=' or 'LBS' column. Always use the T/WT= value for accurate poundage.\n2. Common Abbreviations: 'Picanha' is often 'Sirloin Cap' or 'Coulotte' or 'COULOT'. 'Flank' is often 'Flap Meat' or 'Fraldinha'. 'Beef Rib' might be 'Ribs Back Beef' or 'SHORT RIB'.`;
+                        }
+
+                        const aiSystemPrompt = `You are a Meat Distributor Invoice reading expert. EXCLUSIVELY extract Meat/Poultry/Pork/Lamb items that match or relate to the company's registered roster: [${registeredMeats}]. You MUST ABSOLUTELY IGNORE all Dairy (Cheese, Milk, Buttermilk, Butter, Ice Cream), Dry Goods, Supplies, Produce, and non-meat items. \n\n${providerSpecificRules}\n\nReturn a strict JSON object with a single root array 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (best guess standard name from the roster, e.g. map 'Coulotte' or 'Coulot' to 'Picanha', 'Rib' to 'Beef Ribs', etc.), 'quantity' (total lbs received, calculate catch weight from T/WT= if present!), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1).`;
 
                         response = await openai.chat.completions.create({
                             model: "gpt-4o", // Must use gpt-4o or gpt-4-vision for image inputs
@@ -290,7 +302,19 @@ export class PurchaseController {
                             });
                             const registeredMeats = companyProducts.map((p: any) => p.name).join(', ');
 
-                            const aiSystemPrompt = `You are a Meat Distributor Invoice reading expert. EXCLUSIVELY extract Meat/Poultry/Pork/Lamb items that match or relate to the company's registered roster: [${registeredMeats}]. You MUST ABSOLUTELY IGNORE all Dairy (Cheese, Milk, Buttermilk, Butter, Ice Cream), Dry Goods, Supplies, Produce, and non-meat items. Return a strict JSON object with a single root array 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (best guess standard name from the roster), 'quantity' (total lbs received, calculate catch weight if needed or item count if pounds are irrelevant), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1).`;
+                            const userCompanyId = (req as any).user?.companyId || 'tdb-main';
+                            let providerSpecificRules = "";
+                            let expectedVendor = "wholesale food distributor";
+
+                            if (userCompanyId === 'fdc-main') {
+                                expectedVendor = "US Foods";
+                                providerSpecificRules = `CRITICAL US FOODS INVOICE RULES:\n1. Look for 'Catch Weight' explicitly listed under a 'Weight' column.\n2. Be aware of abbreviations: 'CH' (Choice), 'BNLS' (Boneless), 'TXDB' (Texas Double Branded), 'PSMO' (usually Filet Mignon), 'STRIP' (Strip Loin), 'BUTT CAP' or 'COULOTTE' or 'COULOT' (Picanha).`;
+                            } else if (userCompanyId === 'tdb-main') {
+                                expectedVendor = "Sysco";
+                                providerSpecificRules = `CRITICAL SYSCO INVOICE RULES:\n1. Look for Catch Weights explicitly listed next to 'T/WT=' or 'LBS' column. Always use the T/WT= value for accurate poundage.\n2. Common Abbreviations: 'Picanha' is often 'Sirloin Cap' or 'Coulotte' or 'COULOT'. 'Flank' is often 'Flap Meat' or 'Fraldinha'. 'Beef Rib' might be 'Ribs Back Beef' or 'SHORT RIB'.`;
+                            }
+
+                            const aiSystemPrompt = `You are a Meat Distributor Invoice reading expert. EXCLUSIVELY extract Meat/Poultry/Pork/Lamb items that match or relate to the company's registered roster: [${registeredMeats}]. You MUST ABSOLUTELY IGNORE all Dairy (Cheese, Milk, Buttermilk, Butter, Ice Cream), Dry Goods, Supplies, Produce, and non-meat items. \n\n${providerSpecificRules}\n\nReturn a strict JSON object with a single root array 'items'. Each object in the array MUST have these exact keys: 'raw_text' (the exact line from invoice), 'detected_item' (best guess standard name from the roster, e.g. map 'Coulotte' or 'Coulot' to 'Picanha', 'Rib' to 'Beef Ribs', etc.), 'quantity' (total lbs received, calculate catch weight from T/WT= if present!), 'price_per_lb' (unit rate as number), 'confidence' (float between 0 and 1).`;
 
                             response = await openai.chat.completions.create({
                                 model: "gpt-4o-mini",
