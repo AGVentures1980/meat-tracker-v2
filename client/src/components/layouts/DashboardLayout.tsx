@@ -43,6 +43,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
     const navigate = useNavigate();
     const isMaster = user?.email?.toLowerCase()?.includes('alexandre@alexgarciaventures.co') || false;
+    const isDavid = user?.email?.toLowerCase()?.includes('davidcastro') || false;
+    const isRodrigo = user?.email?.toLowerCase()?.includes('rodrigo') || false;
+    const isSystemAdmin = user?.role === 'admin' || isRodrigo || isMaster;
 
     let navItems: any[] = [];
 
@@ -108,22 +111,32 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         // Add Company Settings for Directors/Admins/Master (Company or Global Scope)
         if (isCompanyOrGlobal) {
+            const isSystemAdmin = user?.role === 'admin' || user?.email?.toLowerCase().includes('rodrigo') || isMaster;
+            const isDavid = user?.email?.toLowerCase().includes('davidcastro');
 
-            const manageItems = [
-                { icon: Activity, label: 'Network Command Center', path: '/owner' },
-                { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' }
-            ];
+            const manageItems = [];
+            
+            if (!isDavid) {
+                manageItems.push(
+                    { icon: Activity, label: 'Network Command Center', path: '/owner' },
+                    { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' }
+                );
+            }
 
-            manageItems.push(
-                { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
-                { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
-                { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
-            );
+            if (isSystemAdmin) {
+                manageItems.push(
+                    { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
+                    { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
+                    { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
+                );
+            }
 
-            navItems.push({
-                section: t('nav.section_manage') || 'MANAGE (Company)',
-                items: manageItems
-            });
+            if (manageItems.length > 0) {
+                navItems.push({
+                    section: t('nav.section_manage') || 'MANAGE (Company)',
+                    items: manageItems
+                });
+            }
         }
     }
 
@@ -323,18 +336,20 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     {/* Executive View (Admin/Director Only) */}
                     {selectedCompany && (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
                         <>
-                            <Link
-                                to="/executive"
-                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
-                                    ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
-                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                                    } `}
-                            >
-                                <AlertTriangle className="w-5 h-5 min-w-[20px]" />
-                                <div className="flex flex-1 items-center justify-between">
-                                    <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>
-                                </div>
-                            </Link>
+                            {!isDavid && (
+                                <Link
+                                    to="/executive"
+                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
+                                        ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
+                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                        } `}
+                                >
+                                    <AlertTriangle className="w-5 h-5 min-w-[20px]" />
+                                    <div className="flex flex-1 items-center justify-between">
+                                        <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>
+                                    </div>
+                                </Link>
+                            )}
                             <Link
                                 to="/executive/specs"
                                 className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive/specs'
@@ -347,20 +362,23 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     <span className="text-sm font-medium tracking-wide">Corporate DB Specs</span>
                                 </div>
                             </Link>
-                            <Link
-                                to="/data-analyst"
-                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/data-analyst'
-                                    ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
-                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                                    } `}
-                            >
-                                <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
-                                <div className="flex flex-1 items-center justify-between">
-                                    <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
-                                </div>
-                            </Link>
+                            {!isDavid && (
+                                <Link
+                                    to="/data-analyst"
+                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/data-analyst'
+                                        ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
+                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                        } `}
+                                >
+                                    <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
+                                    <div className="flex flex-1 items-center justify-between">
+                                        <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
+                                    </div>
+                                </Link>
+                            )}
                         </>
                     )}
+
 
                     {/* Switch Company (Master Owner Only) */}
                     {isMaster && (
