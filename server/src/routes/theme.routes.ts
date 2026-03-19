@@ -172,6 +172,40 @@ router.post('/setup/rodrigo-validate-password', async (req: Request, res: Respon
     }
 });
 
+router.get('/setup/david-fix', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const hash = await bcryptjs.hash('Castro2026@', 10);
+        
+        // Find TDB tenant
+        const tdb = await prisma.company.findFirst({
+            where: { name: { contains: 'Texas de Brazil', mode: 'insensitive' } }
+        });
+
+        if (!tdb) {
+            res.status(404).json({ error: "Texas de Brazil company not found!" });
+            return;
+        }
+
+        const user = await prisma.user.upsert({
+            where: { email: 'davidcastro@texasdebrazil.com' },
+            update: { password_hash: hash, first_name: 'David', last_name: 'Castro', role: 'director', company: { connect: { id: tdb.id } }, is_primary: true },
+            create: {
+                email: 'davidcastro@texasdebrazil.com',
+                password_hash: hash,
+                first_name: 'David',
+                last_name: 'Castro',
+                role: 'director',
+                company: { connect: { id: tdb.id } },
+                is_primary: true
+            }
+        });
+        
+        res.json({ message: `Successfully created/updated David Castro: ${user.email} under tenant ${tdb.name}` });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Temporary route to inject tenant domain config directly into production DB
 router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> => {
     try {
