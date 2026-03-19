@@ -213,9 +213,37 @@ export class PurchaseController {
                     
                     let response;
 
-                    if (file.mimetype.startsWith('image/')) {
-                        console.log('Processing Image via Vision API...');
-                        const base64Image = file.buffer.toString('base64');
+                    let isImage = file.mimetype.startsWith('image/') || file.originalname.toLowerCase().endsWith('.heic');
+                    
+                    if (isImage) {
+                        console.log('Processing Image... Checking format and optimizing...');
+                        let processedBuffer = file.buffer;
+                        let processedMimetype = file.mimetype;
+
+                        // Check and Convert HEIC
+                        if (file.mimetype === 'image/heic' || file.mimetype === 'image/heif' || file.originalname.toLowerCase().endsWith('.heic')) {
+                            console.log('Converting HEIC to JPEG...');
+                            const convert = require('heic-convert');
+                            processedBuffer = await convert({
+                                buffer: file.buffer,
+                                format: 'JPEG',
+                                quality: 0.8
+                            });
+                            processedMimetype = 'image/jpeg';
+                        }
+
+                        // Optimize with Sharp (resize and compress)
+                        console.log('Optimizing image with Sharp...');
+                        const sharp = require('sharp');
+                        processedBuffer = await sharp(processedBuffer)
+                            .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
+                            .jpeg({ quality: 80 })
+                            .toBuffer();
+                        processedMimetype = 'image/jpeg';
+
+                        const base64Image = processedBuffer.toString('base64');
+                        console.log('Image preparation complete. Calling Vision API...');
+
                         response = await openai.chat.completions.create({
                             model: "gpt-4o", // Must use gpt-4o or gpt-4-vision for image inputs
                             messages: [
@@ -227,7 +255,7 @@ export class PurchaseController {
                                     role: "user",
                                     content: [
                                         { type: "text", text: "Extract line items from this distributor invoice image:" },
-                                        { type: "image_url", image_url: { url: `data:${file.mimetype};base64,${base64Image}` } }
+                                        { type: "image_url", image_url: { url: `data:${processedMimetype};base64,${base64Image}` } }
                                     ]
                                 }
                             ],
