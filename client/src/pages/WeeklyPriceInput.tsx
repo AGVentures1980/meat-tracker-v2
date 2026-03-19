@@ -192,6 +192,9 @@ export const WeeklyPriceInput = () => {
                     } else {
                         allResults.push(...result.results);
                     }
+                } else {
+                    alert(result.error || 'Erro ao processar a nota fiscal. Verifique a imagem ou tente novamente mais tarde.');
+                    console.error('OCR Error:', result.error);
                 }
             }
 
