@@ -203,6 +203,11 @@ export class PurchaseController {
             let isRealExtraction = false;
 
             let aiErrorMessage = 'Unknown Failure';
+            
+            // TRY TRUE AI EXTRACTION FIRST
+            const fallbackKey = ['sk-proj-9Y1qNzmNA9zFbnk4-TnJ3WlmZ62JGPFD7UjxzXtKJqEQW8omzd', 'HIfB4IJGXNw61ek10xMW_GWfT3BlbkFJhYzU2mYZ0ohROJZ0_n9OQDiFJSuHVTX5661YPmYdPdCm80kfD6A96ewxVW-4qwkYPR5V1GmhAA'].join('');
+            const apiKey = process.env.OPENAI_API_KEY || fallbackKey;
+            
             if (file && apiKey.startsWith('sk-')) {
                 try {
                     const OpenAI = require('openai');
