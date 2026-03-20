@@ -1723,3 +1723,139 @@ Error: listen EADDRINUSE: address already in use :::3002
     at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
     at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
 [ERROR] 13:47:41 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 13:53:13 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/controllers/PurchaseController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 13:53:14 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 13:54:41 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/controllers/PurchaseController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 13:54:41 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 13:55:56 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/controllers/PurchaseController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 13:55:57 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 14:00:36 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/controllers/PurchaseController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 14:00:36 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 14:01:04 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/controllers/PurchaseController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 14:01:05 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 14:06:09 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/controllers/PurchaseController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 14:06:10 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 01:27:47 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/routes/compliance.routes.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 01:27:48 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 01:40:53 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/controllers/PurchaseController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 01:40:54 Error: listen EADDRINUSE: address already in use :::3002
