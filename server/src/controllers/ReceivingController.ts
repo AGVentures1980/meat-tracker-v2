@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { EmailService } from '../services/EmailService';
 
 const prisma = new PrismaClient();
 
@@ -90,6 +91,14 @@ export const ReceivingController = {
                         roster: roster.map(r => r.name)
                     });
                 }
+
+                // If not an admin, it's a hard rejection. Send Alert.
+                await EmailService.sendQCAlert({
+                    storeId,
+                    barcode,
+                    user: user.first_name + " " + user.last_name,
+                    reason: "Unauthorized GTIN scanned during Receiving"
+                });
 
                 return res.json({ status: 'REJECTED' });
             }

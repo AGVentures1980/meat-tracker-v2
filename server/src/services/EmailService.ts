@@ -26,5 +26,28 @@ export const EmailService = {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         return { success: true, timestamp: new Date() };
+    },
+
+    async sendQCAlert(payload: {
+        storeId?: string;
+        barcode: string;
+        user: string;
+        reason: string;
+    }) {
+        const directorEmail = 'david@texasdebrazil.com';
+        
+        console.log('\n⚠️ [RECEIVING DOCK QC ALERT] ⚠️');
+        console.log('---------------------------------------------------');
+        console.log(`To: ${directorEmail}`);
+        console.log(`Subject: 🛑 UNAUTHORIZED SUBSTITUTION REJECTED`);
+        console.log(`Time: ${new Date().toISOString()}`);
+        console.log(`Store ID: ${payload.storeId || 'Unknown'}`);
+        console.log(`Scanned By: ${payload.user}`);
+        console.log(`Barcode Detected: ${payload.barcode}`);
+        console.log(`Action Taken: ${payload.reason}`);
+        console.log('---------------------------------------------------\n');
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return { success: true };
     }
 };
