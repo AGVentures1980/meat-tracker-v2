@@ -203,10 +203,15 @@ export class DashboardController {
             const DEFAULT_LUNCH_GUESTS = 15000;
             const DEFAULT_DINNER_GUESTS = 45000;
 
-            const company = await prisma.company.findUnique({
-                where: { id: user.companyId },
-                select: { annual_growth_rate: true }
-            });
+            const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
+
+            let company = null;
+            if (companyIdReq && companyIdReq !== 'tdb-main') {
+                company = await prisma.company.findUnique({
+                    where: { id: companyIdReq },
+                    select: { annual_growth_rate: true }
+                });
+            }
 
             const data = stores.map(store => {
                 const latestReport = store.reports[0];
@@ -452,10 +457,15 @@ export class DashboardController {
         try {
             const user = (req as any).user;
 
-            // 1. Get Company Baseline
-            const company = await prisma.company.findUnique({
-                where: { id: user.companyId }
-            });
+            const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
+
+            // 1. Get Company Baseline (Skip if no companyId provided)
+            let company = null;
+            if (companyIdReq && companyIdReq !== 'tdb-main') {
+                company = await prisma.company.findUnique({
+                    where: { id: companyIdReq }
+                });
+            }
 
             const baselineLoss = company?.baseline_loss_pct || 15.0; // Default 15% if not set
             const baselineYield = company?.baseline_yield || 65.0;

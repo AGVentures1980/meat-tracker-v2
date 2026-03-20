@@ -11,6 +11,8 @@ export const BillingController = {
     async generateMonthlyInvoice(req: Request, res: Response) {
         try {
             const { companyId } = req.body;
+            if (!companyId) return res.status(400).json({ error: 'Company ID is required' });
+
             const company = await prisma.company.findUnique({
                 where: { id: companyId },
                 include: { _count: { select: { stores: true } } }

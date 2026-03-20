@@ -230,7 +230,11 @@ export class CompanyController {
             // OR have an email matching the company domain as a fallback (since we don't have company_id on User directly)
             
             // To ensure strict multi-tenant boundary even for master admins who can switch companies:
-            const company = await prisma.company.findUnique({ where: { id: user.companyId } });
+            const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
+            let company = null;
+            if (companyIdReq && companyIdReq !== 'tdb-main') {
+                company = await prisma.company.findUnique({ where: { id: companyIdReq } });
+            }
             
             // Default to caller's domain. If they are a legitimate FDC admin, their email is @fogo.com.
             let companyDomain = user.email.split('@')[1]; 
