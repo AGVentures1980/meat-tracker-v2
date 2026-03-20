@@ -35,23 +35,23 @@ export class IntelligenceController {
             const recentRejections = await prisma.barcodeScanEvent.findMany({
                 where: {
                     is_approved: false,
-                    created_at: { gte: twoDaysAgo }
+                    scanned_at: { gte: twoDaysAgo }
                 },
                 include: { store: true },
-                orderBy: { created_at: 'desc' },
+                orderBy: { scanned_at: 'desc' },
                 take: 10
             });
 
             const qcAnomalies = recentRejections.map(rejection => ({
                 storeId: rejection.store_id,
-                name: rejection.store.store_name,
+                name: (rejection as any).store?.store_name || `Store #${rejection.store_id}`,
                 variance: 0,
                 lbsPerGuest: 0,
                 target: 0,
                 impact: 0,
                 type: 'QC_ALERT',
                 barcode: rejection.scanned_barcode,
-                date: rejection.created_at
+                date: rejection.scanned_at
             }));
 
             return res.json({

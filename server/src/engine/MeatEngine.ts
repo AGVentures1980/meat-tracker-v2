@@ -550,7 +550,7 @@ export class MeatEngine {
                 where: {
                     store_id: store.id,
                     is_approved: false,
-                    created_at: { gte: start, lte: end }
+                    scanned_at: { gte: start, lte: end }
                 }
             });
             const hasQCAlert = qcAlertCount > 0;
