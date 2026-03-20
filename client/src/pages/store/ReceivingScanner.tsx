@@ -408,9 +408,16 @@ export default function ReceivingScanner() {
           <div className="bg-black/40 px-6 py-6 rounded-2xl border-2 border-yellow-300/50 mb-8 w-full max-w-md shadow-2xl backdrop-blur-xl text-left">
               <p className="text-yellow-200 text-sm uppercase font-bold tracking-widest mb-4">MAP GTIN TO ROSTER</p>
               
-              <div className="flex gap-2 mb-4">
-                  <span className="bg-white/10 text-white font-mono text-xs px-2 py-1 rounded border border-white/20">GTIN: {scannedGtin}</span>
-                  {extractedWeight && <span className="bg-white/10 text-white font-mono text-xs px-2 py-1 rounded border border-white/20">Weight: {extractedWeight.toFixed(2)} lbs</span>}
+              <div className="flex flex-col gap-2 mb-4">
+                  <label className="text-xs font-bold text-gray-400 uppercase">Item Code / GTIN (Edit if necessary)</label>
+                  <input
+                      type="text"
+                      title="Item Code / GTIN"
+                      value={scannedGtin}
+                      onChange={(e) => setScannedGtin(e.target.value)}
+                      className="w-full bg-[#252525] text-white p-3 border-2 border-white/10 rounded-xl focus:outline-none focus:border-yellow-500 font-mono text-sm"
+                  />
+                  {extractedWeight && <div className="mt-1"><span className="bg-white/10 text-white font-mono text-xs px-2 py-1 rounded border border-white/20">Weight: {extractedWeight.toFixed(2)} lbs</span></div>}
               </div>
               
               <div className="space-y-4">
