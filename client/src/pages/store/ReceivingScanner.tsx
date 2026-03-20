@@ -196,8 +196,6 @@ export default function ReceivingScanner() {
             <h2 className="text-xl font-bold text-white mb-2">Ready to Receive Delivery</h2>
             <p className="text-slate-400 text-sm max-w-md mb-6">
               Use your paired Bluetooth Scanner on the Sysco boxes, or type the code manually below.
-            </p>
-            
             <form onSubmit={handleSubmit} className="w-full max-w-sm relative">
               <input 
                 ref={inputRef}
@@ -205,15 +203,19 @@ export default function ReceivingScanner() {
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
                 placeholder="Awaiting Barcode Input..."
-                className="w-full bg-slate-900 border-2 border-emerald-500/50 text-emerald-400 font-mono text-center text-xl rounded-xl px-4 py-4 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] placeholder:text-slate-600"
+                className="w-full bg-slate-900 border-2 border-emerald-500/50 text-emerald-400 font-mono text-center text-xl rounded-xl px-4 py-4 pr-14 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] placeholder:text-slate-600"
                 autoFocus
                 autoComplete="off"
               />
-              <ScanLine className="w-5 h-5 text-emerald-500/50 flex absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <button 
+                type="submit"
+                disabled={!barcode}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:opacity-50 p-2 text-white rounded-lg transition-colors"
+                title="Verify Barcode"
+              >
+                <ScanLine className="w-6 h-6" />
+              </button>
             </form>
-          </div>
-
-          <div className="text-center">
             <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">OR</span>
           </div>
 
