@@ -61,12 +61,12 @@ export default function ReceivingScanner() {
           });
           if (res.ok) {
               setScannedItems([]);
-              alert('Lote recebido e lançado no estoque com sucesso!');
+              alert('Batch received and committed to inventory successfully!');
           } else {
-              alert('Erro ao enviar o lote.');
+              alert('Error committing batch. Please try again.');
           }
       } catch (err) {
-          alert('Erro de conexão ao enviar o lote.');
+          alert('Network Error while committing batch.');
       } finally {
           setIsSubmittingBatch(false);
       }
@@ -311,7 +311,7 @@ export default function ReceivingScanner() {
              <div className="bg-slate-800/80 border border-emerald-500/30 rounded-2xl p-6 shadow-xl">
                  <div className="flex justify-between items-center mb-4">
                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                         <span className="bg-emerald-500 text-black px-2 py-1 rounded text-sm font-black">{scannedItems.length}</span> Caixas Lidas
+                         <span className="bg-emerald-500 text-black px-2 py-1 rounded text-sm font-black">{scannedItems.length}</span> Boxes Scanned
                      </h3>
                      <h3 className="text-xl font-bold text-emerald-400">
                          {scannedItems.reduce((acc, item) => acc + item.weight, 0).toFixed(2)} LBS
@@ -324,7 +324,7 @@ export default function ReceivingScanner() {
                              <tr>
                                  <th className="px-4 py-2">Protein</th>
                                  <th className="px-4 py-2">Weight</th>
-                                 <th className="px-4 py-2 text-right">Ação</th>
+                                 <th className="px-4 py-2 text-right">Action</th>
                              </tr>
                          </thead>
                          <tbody>
@@ -336,7 +336,7 @@ export default function ReceivingScanner() {
                                          <button 
                                             onClick={() => setScannedItems(prev => prev.filter(i => i.id !== item.id))}
                                             className="text-rose-400 hover:text-rose-300 p-1"
-                                            title="Remover"
+                                            title="Remove"
                                          >
                                             <XCircle className="w-5 h-5 mx-auto" />
                                          </button>
@@ -353,7 +353,7 @@ export default function ReceivingScanner() {
                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl text-lg flex justify-center items-center gap-2 disabled:opacity-50 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                  >
                      {isSubmittingBatch ? <Loader2 className="w-6 h-6 animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
-                     FINALIZAR RECEBIMENTO E LANÇAR NO ESTOQUE
+                     FINALIZE RECEIVING & COMMIT TO INVENTORY
                  </button>
              </div>
           )}
