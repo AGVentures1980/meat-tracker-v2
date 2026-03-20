@@ -12,5 +12,6 @@ router.delete('/specs/:id', controller.deleteCorporateSpec);
 // Receiving Scanner Routes
 router.post('/scan', ReceivingController.scanBarcode);
 router.post('/map-barcode', ReceivingController.mapBarcode);
+router.post('/submit-batch', ReceivingController.submitBatch);
 
 export default router;

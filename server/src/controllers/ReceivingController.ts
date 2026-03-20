@@ -50,18 +50,8 @@ export const ReceivingController = {
                         }
                     });
 
-                    // Add to Inventory! Create a purchase record
-                    if (weight) {
-                        await prisma.purchaseRecord.create({
-                            data: {
-                                store_id: parseInt(storeId, 10),
-                                date: new Date(),
-                                item_name: spec.protein_name,
-                                quantity: weight,
-                                cost_total: 0 
-                            }
-                        });
-                    }
+                    // We no longer automatically Add to Inventory here!
+                    // It will go into the frontend Cart and be submitted via /submit-batch.
                 }
 
                 return res.json({ 
@@ -153,17 +143,8 @@ export const ReceivingController = {
                         }
                  });
 
-                 if (weight) {
-                     await prisma.purchaseRecord.create({
-                            data: {
-                                store_id: parseInt(storeId, 10),
-                                date: new Date(),
-                                item_name: protein_name,
-                                quantity: weight,
-                                cost_total: 0 
-                            }
-                     });
-                 }
+                 // We no longer automatically Add to Inventory here!
+                 // It will go into the frontend Cart and be submitted via /submit-batch.
             }
 
             res.json({ success: true, status: 'APPROVED', protein: protein_name });
@@ -171,6 +152,45 @@ export const ReceivingController = {
         } catch (error) {
             console.error('Map Barcode Error:', error);
             res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+
+    submitBatch: async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            const { store_id, items } = req.body;
+            
+            let storeId = store_id || user.storeId;
+            if (!storeId) return res.status(400).json({ error: 'Store ID required' });
+            
+            const storeIdNum = parseInt(storeId, 10);
+            
+            // Consolidate weights per protein
+            const consolidated: Record<string, number> = {};
+            for (const item of items) {
+                if (!consolidated[item.protein]) consolidated[item.protein] = 0;
+                consolidated[item.protein] += item.weight;
+            }
+
+            // Create a PurchaseRecord for each consolidated protein
+            const records = [];
+            for (const [protein_name, total_weight] of Object.entries(consolidated)) {
+                const record = await prisma.purchaseRecord.create({
+                    data: {
+                        store_id: storeIdNum,
+                        date: new Date(),
+                        item_name: protein_name,
+                        quantity: total_weight,
+                        cost_total: 0 
+                    }
+                });
+                records.push(record);
+            }
+
+            res.json({ status: 'SUCCESS', records_created: records.length });
+        } catch (error) {
+            console.error('Submit Batch Error:', error);
+            res.status(500).json({ error: 'Internal Server Error submitting batch' });
         }
     }
 };

@@ -18,6 +18,60 @@ export default function ReceivingScanner() {
   const [selectedProtein, setSelectedProtein] = useState('');
   const [isMapping, setIsMapping] = useState(false);
 
+  // Batch Receiving States
+  const [scannedItems, setScannedItems] = useState<{ id: string, barcode: string, protein: string, weight: number }[]>([]);
+  const [isSubmittingBatch, setIsSubmittingBatch] = useState(false);
+
+  const handleApproveSuccess = (protein: string, weight: number, code: string) => {
+      setScannedItems(prev => [...prev, {
+          id: Math.random().toString(36).substring(7),
+          barcode: code,
+          protein,
+          weight
+      }]);
+      setScanResult('IDLE');
+      setBarcode('');
+      try {
+          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContext) {
+              const ctx = new AudioContext();
+              const osc = ctx.createOscillator();
+              osc.connect(ctx.destination);
+              osc.frequency.value = 800; // Success Beep
+              osc.start();
+              setTimeout(() => { osc.stop(); ctx.close(); }, 150);
+          }
+      } catch(e) {}
+  };
+
+  const submitBatch = async () => {
+      if (scannedItems.length === 0) return;
+      setIsSubmittingBatch(true);
+      try {
+          const res = await fetch('/api/v1/compliance/submit-batch', {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${user?.token}`,
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  store_id: user?.storeId,
+                  items: scannedItems
+              })
+          });
+          if (res.ok) {
+              setScannedItems([]);
+              alert('Lote recebido e lançado no estoque com sucesso!');
+          } else {
+              alert('Erro ao enviar o lote.');
+          }
+      } catch (err) {
+          alert('Erro de conexão ao enviar o lote.');
+      } finally {
+          setIsSubmittingBatch(false);
+      }
+  };
+
   // Ref for the input to keep focus for Bluetooth physical scanners
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -139,8 +193,7 @@ export default function ReceivingScanner() {
       const data = await res.json();
 
       if (data.status === 'APPROVED') {
-          setScanResult('APPROVED');
-          setResultMessage(`Box Authorized! 🥩 ${data.protein}`);
+          handleApproveSuccess(data.protein, parsedWeight, barcode || cleanBarcode);
       } else if (data.status === 'UNMAPPED_ALLOW_MAPPING') {
           setScanResult('UNMAPPED');
           setResultMessage('New Unknown Barcode Detected! You are an Admin. Please map this product.');
@@ -177,8 +230,7 @@ export default function ReceivingScanner() {
           });
           const data = await res.json();
           if (data.status === 'APPROVED') {
-              setScanResult('APPROVED');
-              setResultMessage(`Successfully Mapped! 🥩 ${data.protein}`);
+              handleApproveSuccess(data.protein, extractedWeight || 0, barcode || scannedGtin);
           } else {
               setScanResult('REJECTED');
               setResultMessage('Failed to map barcode.');
@@ -253,6 +305,58 @@ export default function ReceivingScanner() {
             </form>
             <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">OR</span>
           </div>
+
+          {/* Cart UI */}
+          {scannedItems.length > 0 && (
+             <div className="bg-slate-800/80 border border-emerald-500/30 rounded-2xl p-6 shadow-xl">
+                 <div className="flex justify-between items-center mb-4">
+                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                         <span className="bg-emerald-500 text-black px-2 py-1 rounded text-sm font-black">{scannedItems.length}</span> Caixas Lidas
+                     </h3>
+                     <h3 className="text-xl font-bold text-emerald-400">
+                         {scannedItems.reduce((acc, item) => acc + item.weight, 0).toFixed(2)} LBS
+                     </h3>
+                 </div>
+                 
+                 <div className="max-h-48 overflow-y-auto mb-4 border border-slate-700 rounded-lg">
+                     <table className="w-full text-sm text-left text-slate-300">
+                         <thead className="text-xs text-slate-400 uppercase bg-slate-900 border-b border-slate-700 sticky top-0">
+                             <tr>
+                                 <th className="px-4 py-2">Protein</th>
+                                 <th className="px-4 py-2">Weight</th>
+                                 <th className="px-4 py-2 text-right">Ação</th>
+                             </tr>
+                         </thead>
+                         <tbody>
+                             {scannedItems.slice().reverse().map((item) => (
+                                 <tr key={item.id} className="border-b border-slate-700/50 bg-slate-800/50 hover:bg-slate-700/50 animate-fade-in">
+                                     <td className="px-4 py-2 font-medium bg-slate-800/80 text-white">{item.protein}</td>
+                                     <td className="px-4 py-2 bg-slate-800/80 text-emerald-300">{item.weight.toFixed(2)} LBS</td>
+                                     <td className="px-4 py-2 text-right bg-slate-800/80">
+                                         <button 
+                                            onClick={() => setScannedItems(prev => prev.filter(i => i.id !== item.id))}
+                                            className="text-rose-400 hover:text-rose-300 p-1"
+                                            title="Remover"
+                                         >
+                                            <XCircle className="w-5 h-5 mx-auto" />
+                                         </button>
+                                     </td>
+                                 </tr>
+                             ))}
+                         </tbody>
+                     </table>
+                 </div>
+
+                 <button 
+                     onClick={submitBatch}
+                     disabled={isSubmittingBatch}
+                     className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl text-lg flex justify-center items-center gap-2 disabled:opacity-50 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                 >
+                     {isSubmittingBatch ? <Loader2 className="w-6 h-6 animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
+                     FINALIZAR RECEBIMENTO E LANÇAR NO ESTOQUE
+                 </button>
+             </div>
+          )}
 
           {/* iPad Camera Fallback */}
           <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center flex-1">
@@ -337,42 +441,7 @@ export default function ReceivingScanner() {
         </div>
       )}
 
-      {/* GREEN APPROVED SCREEN - O "SIM" */}
-      {scanResult === 'APPROVED' && (
-        <div className="absolute inset-0 bg-emerald-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in slide-in-from-bottom text-center px-6">
-          <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-bounce">
-            <CheckCircle2 className="w-24 h-24 text-emerald-600" />
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-2 uppercase tracking-tighter">APPROVED</h2>
-          <p className="text-xl text-emerald-100 font-medium mb-8 max-w-md leading-relaxed">
-            {resultMessage}
-          </p>
-
-          {/* New Weight Verification Block as Requested */}
-          {extractedWeight !== null && (
-            <div className="bg-white/10 px-8 py-6 rounded-2xl border-2 border-emerald-300/50 mb-8 w-full max-w-md shadow-2xl backdrop-blur-xl">
-              <p className="text-emerald-200 text-sm uppercase font-bold tracking-widest mb-2">Extracted Box Weight</p>
-              <div className="flex items-end justify-center gap-2">
-                <span className="text-6xl font-black text-white tabular-nums tracking-tighter">{extractedWeight.toFixed(2)}</span>
-                <span className="text-2xl font-bold text-emerald-200 mb-2">LBS</span>
-              </div>
-              <p className="text-emerald-100/70 text-xs mt-4">Manager: Verify this weight matches the physical box label.</p>
-            </div>
-          )}
-
-          <div className="bg-emerald-900/50 px-6 py-4 rounded-xl border border-emerald-400/30 mb-8 w-full max-w-md">
-            <p className="text-emerald-200 text-sm uppercase font-bold tracking-widest mb-1">Scanned Code</p>
-            <p className="text-xl text-white font-mono break-all">{barcode}</p>
-          </div>
-          
-          <button 
-            onClick={resetScanner}
-            className="bg-white text-emerald-700 hover:bg-emerald-50 px-12 py-5 rounded-xl font-black text-xl tracking-wider transition-all shadow-xl uppercase w-full max-w-md flex items-center justify-center gap-3"
-          >
-            <CheckCircle2 className="w-6 h-6" /> OK - Next Box
-          </button>
-        </div>
-      )}
+      {/* GREEN APPROVED SCREEN - REMOVED (Replaced by seamless Cart Appending) */}
 
       {/* RED REJECTED SCREEN (THE GARCIA RULE) - O "NÃO" */}
       {scanResult === 'REJECTED' && (
