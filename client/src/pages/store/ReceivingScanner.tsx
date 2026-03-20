@@ -6,10 +6,17 @@ export default function ReceivingScanner() {
   const { user, selectedCompany } = useAuth();
   const [barcode, setBarcode] = useState('');
   const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<'IDLE' | 'LOADING' | 'APPROVED' | 'REJECTED'>('IDLE');
+  const [scanResult, setScanResult] = useState<'IDLE' | 'LOADING' | 'APPROVED' | 'REJECTED' | 'UNMAPPED'>('IDLE');
   const [resultMessage, setResultMessage] = useState('');
   const [cameraAccess, setCameraAccess] = useState<boolean | null>(null);
+  const [extractedWeight, setExtractedWeight] = useState<number | null>(null);
   
+  // States for Admin On-the-fly mapping
+  const [scannedGtin, setScannedGtin] = useState('');
+  const [roster, setRoster] = useState<string[]>([]);
+  const [selectedProtein, setSelectedProtein] = useState('');
+  const [isMapping, setIsMapping] = useState(false);
+
   // Ref for the input to keep focus for Bluetooth physical scanners
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -35,20 +42,27 @@ export default function ReceivingScanner() {
     }
   };
 
-  const [extractedWeight, setExtractedWeight] = useState<number | null>(null);
-
   const verifyBarcode = async (scannedCode: string) => {
     if (!scannedCode) return;
     setScanResult('LOADING');
     setExtractedWeight(null);
+    setScannedGtin('');
+    setRoster([]);
+    setSelectedProtein('');
     
     try {
-      // In production: POST /api/v1/compliance/scan
-      // Example payload: { barcode: scannedCode, store_id: user.storeId, company_id: selectedCompany }
-      
-      // GS1-128 Parsing Logic
       const cleanBarcode = scannedCode.replace(/[\(\)\s\u001D]/g, '');
       let parsedWeight = null;
+      let parsedGtin = null;
+
+      // Extract GTIN
+      const gtinMatch = cleanBarcode.match(/^01(\d{14})/);
+      if (gtinMatch) {
+          parsedGtin = gtinMatch[1];
+      } else {
+          const fallbackMatch = cleanBarcode.match(/^(\d{14})/);
+          if (fallbackMatch) parsedGtin = fallbackMatch[1];
+      }
 
       // 310n (Net Weight in Kg) or 320n (Net Weight in Lbs)
       const weightMatch = cleanBarcode.match(/(310|320)(\d)(\d{6})/);
@@ -72,22 +86,33 @@ export default function ReceivingScanner() {
 
       setExtractedWeight(parsedWeight);
       
-      // MOCK LOGIC for demo
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API latency
-      
-      // Check if Corporate Spec is found inside the barcode
-      if (cleanBarcode.includes('4964367') || cleanBarcode.includes('4580211') || cleanBarcode.includes('8820023')) {
-        setScanResult('APPROVED');
-        if (parsedWeight) {
-          setResultMessage(`Corporate Spec Authorized! Box Weight: ${parsedWeight.toFixed(2)} lbs`);
-        } else {
-          setResultMessage('Match Found! Corporate Spec Authorized (No weight extracted).');
-        }
-        // Add loud success "BEEP" audio here for the Kitchen environment
+      const res = await fetch('/api/v1/compliance/scan', {
+          method: 'POST',
+          headers: {
+              'Authorization': `Bearer ${user?.token}`,
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              barcode: cleanBarcode,
+              gtin: parsedGtin || cleanBarcode.substring(0, 14),
+              weight: parsedWeight,
+              store_id: user?.storeId
+          })
+      });
+
+      const data = await res.json();
+
+      if (data.status === 'APPROVED') {
+          setScanResult('APPROVED');
+          setResultMessage(`Box Authorized! 🥩 ${data.protein}`);
+      } else if (data.status === 'UNMAPPED_ALLOW_MAPPING') {
+          setScanResult('UNMAPPED');
+          setResultMessage('New Unknown Barcode Detected! You are an Admin. Please map this product.');
+          setScannedGtin(data.gtin);
+          setRoster(data.roster || []);
       } else {
-        setScanResult('REJECTED');
-        setResultMessage('UNAUTHORIZED SUBSTITUTION! Reject this box. Alert sent to David Castro.');
-        // Add loud warning buzzer audio here
+          setScanResult('REJECTED');
+          setResultMessage(data.error || 'UNAUTHORIZED SUBSTITUTION! Reject this box. Alert sent to David Castro.');
       }
       
       setBarcode('');
@@ -96,6 +121,40 @@ export default function ReceivingScanner() {
       setScanResult('REJECTED');
       setResultMessage('NETWORK ERROR. Do not accept delivery until verified.');
     }
+  };
+
+  const handleMapBarcode = async () => {
+      if (!selectedProtein) return;
+      setIsMapping(true);
+      try {
+          const res = await fetch('/api/v1/compliance/map-barcode', {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${user?.token}`,
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  gtin: scannedGtin,
+                  protein_name: selectedProtein,
+                  barcode: barcode || scannedGtin,
+                  weight: extractedWeight,
+                  store_id: user?.storeId
+              })
+          });
+          const data = await res.json();
+          if (data.status === 'APPROVED') {
+              setScanResult('APPROVED');
+              setResultMessage(`Successfully Mapped! 🥩 ${data.protein}`);
+          } else {
+              setScanResult('REJECTED');
+              setResultMessage('Failed to map barcode.');
+          }
+      } catch (err) {
+          setScanResult('REJECTED');
+          setResultMessage('Network Error mapping barcode.');
+      } finally {
+          setIsMapping(false);
+      }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -269,6 +328,63 @@ export default function ReceivingScanner() {
             className="bg-black text-white hover:bg-slate-900 border border-slate-800 px-12 py-5 rounded-xl font-black text-xl tracking-wider transition-all shadow-2xl uppercase w-full max-w-md"
           >
             Return to Delivery Log
+          </button>
+        </div>
+      )}
+
+      {/* YELLOW UNMAPPED SCREEN (ADMIN ON-THE-FLY MAPPING) */}
+      {scanResult === 'UNMAPPED' && (
+        <div className="absolute inset-0 bg-yellow-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in slide-in-from-bottom text-center px-6">
+          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse">
+            <AlertTriangle className="w-16 h-16 text-yellow-600" />
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-2 uppercase tracking-tighter">UNKNOWN PRODUCT</h2>
+          <p className="text-lg text-yellow-100 font-medium mb-6 max-w-md leading-relaxed">
+            {resultMessage}
+          </p>
+
+          <div className="bg-black/40 px-6 py-6 rounded-2xl border-2 border-yellow-300/50 mb-8 w-full max-w-md shadow-2xl backdrop-blur-xl text-left">
+              <p className="text-yellow-200 text-sm uppercase font-bold tracking-widest mb-4">MAP GTIN TO ROSTER</p>
+              
+              <div className="flex gap-2 mb-4">
+                  <span className="bg-white/10 text-white font-mono text-xs px-2 py-1 rounded border border-white/20">GTIN: {scannedGtin}</span>
+                  {extractedWeight && <span className="bg-white/10 text-white font-mono text-xs px-2 py-1 rounded border border-white/20">Weight: {extractedWeight.toFixed(2)} lbs</span>}
+              </div>
+              
+              <div className="space-y-4">
+                  <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Select Target Product</label>
+                      <select 
+                          value={selectedProtein}
+                          onChange={(e) => setSelectedProtein(e.target.value)}
+                          className="w-full bg-[#252525] text-white p-4 border-2 border-white/10 rounded-xl focus:outline-none focus:border-yellow-500 font-bold"
+                      >
+                          <option value="">-- Choose from Master Roster --</option>
+                          {roster.map(item => (
+                              <option key={item} value={item}>{item}</option>
+                          ))}
+                      </select>
+                  </div>
+
+                  <button
+                      onClick={handleMapBarcode}
+                      disabled={!selectedProtein || isMapping}
+                      className="w-full bg-yellow-500 hover:bg-yellow-400 text-black p-4 rounded-xl font-black uppercase tracking-widest disabled:opacity-50 transition-colors flex items-center justify-center gap-2 shadow-xl"
+                  >
+                      {isMapping ? (
+                          <><Loader2 className="w-5 h-5 animate-spin" /> Saving Configuration...</>
+                      ) : (
+                          'Save Mapping & Authorize Box'
+                      )}
+                  </button>
+              </div>
+          </div>
+          
+          <button 
+            onClick={resetScanner}
+            className="text-white hover:text-yellow-200 text-sm font-bold tracking-wider transition-colors uppercase mt-4 underline decoration-yellow-400/50 underline-offset-4"
+          >
+            Cancel and Reject Box
           </button>
         </div>
       )}
