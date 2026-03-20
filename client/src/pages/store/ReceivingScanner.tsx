@@ -78,6 +78,13 @@ export default function ReceivingScanner() {
           parsedGtin = parsedGtinMatch[2];
       }
 
+      // Check for Custom Sysco / Taylor Preston Format
+      // Pattern: 8 digits (Lot), 4 digits (Weight x 100), 10 digits (Serial), remaining chars (SKU like 42-683)
+      const customSyscoMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
+      if (customSyscoMatch) {
+          parsedGtin = customSyscoMatch[4];
+      }
+
       // 3. Extract Weight
       let parsedWeight = 0;
 
@@ -93,6 +100,9 @@ export default function ReceivingScanner() {
               let weight = rawWeight / Math.pow(10, decimals);
               if (!isLbs) weight = weight * 2.20462;
               parsedWeight = parseFloat(weight.toFixed(2));
+          } else if (customSyscoMatch) {
+              const rawKg = parseInt(customSyscoMatch[2], 10) / 100;
+              parsedWeight = parseFloat((rawKg * 2.20462).toFixed(2));
           } else {
               // Fallback patterns
               const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
