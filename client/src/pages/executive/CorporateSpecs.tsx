@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Search, Plus, ShieldCheck, Box, Barcode, Trash2, ShieldAlert } from 'lucide-react';
+import { Network, Search, Plus, ShieldCheck, Box, Barcode, Trash2, ShieldAlert, Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface CorporateSpec {
   id: string;
@@ -10,56 +11,86 @@ interface CorporateSpec {
 }
 
 export default function CorporateSpecs() {
+  const { user, selectedCompany } = useAuth();
   const [specs, setSpecs] = useState<CorporateSpec[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
   const [formData, setFormData] = useState({
     protein_name: '',
     approved_brand: '',
     approved_item_code: ''
   });
 
-  // Example User ID/Company constraint. In a real app we derive companyId from the logged in user context.
-  const userCompanyId = "texas-de-brazil-demo"; 
+  const activeCompanyId = selectedCompany || user?.companyId || 'tdb-main';
 
-  // Mock Fetching on Load
-  useEffect(() => {
-    // In production: fetch(`/api/v1/compliance/specs/${userCompanyId}`)
-    setSpecs([
-      {
-        id: '1',
-        protein_name: 'Picanha / Sirloin Cap',
-        approved_brand: 'Swift Black',
-        approved_item_code: '4580211',
-        created_at: new Date().toISOString()
-      },
-      {
-        id: '2',
-        protein_name: 'Beef Tenderloin (Filet Mignon)',
-        approved_brand: 'Omaha Steaks',
-        approved_item_code: '8820023',
-        created_at: new Date().toISOString()
+  const fetchSpecs = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/v1/compliance/specs/${activeCompanyId}`, {
+        headers: {
+            'Authorization': `Bearer ${user?.token}`
+        }
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSpecs(data.specs || []);
       }
-    ]);
-  }, []);
+    } catch (error) {
+      console.error('Error fetching specs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.token) {
+        fetchSpecs();
+    }
+  }, [user?.token, activeCompanyId]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
     
-    // Optimistic UI Update
-    const newSpec: CorporateSpec = {
-      id: Math.random().toString(),
-      protein_name: formData.protein_name,
-      approved_brand: formData.approved_brand,
-      approved_item_code: formData.approved_item_code,
-      created_at: new Date().toISOString()
-    };
-    
-    setSpecs([newSpec, ...specs]);
-    setIsModalOpen(false);
-    setFormData({ protein_name: '', approved_brand: '', approved_item_code: '' });
+    try {
+        const res = await fetch('/api/v1/compliance/specs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user?.token}`
+            },
+            body: JSON.stringify({
+                company_id: activeCompanyId,
+                protein_name: formData.protein_name,
+                approved_brand: formData.approved_brand,
+                approved_item_code: formData.approved_item_code,
+                created_by: `${user?.first_name} ${user?.last_name}`
+            })
+        });
 
-    // In production: POST /api/v1/compliance/specs
+        const data = await res.json();
+        if (res.ok && data.success) {
+            setSpecs([data.spec, ...specs]);
+            setIsModalOpen(false);
+            setFormData({ protein_name: '', approved_brand: '', approved_item_code: '' });
+        } else {
+            alert('Failed to save compliance spec.');
+        }
+    } catch (error) {
+        console.error('Error saving spec:', error);
+    } finally {
+        setIsSaving(false);
+    }
   };
+
+  const filteredSpecs = specs.filter(spec => 
+    spec.protein_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    spec.approved_item_code.includes(searchTerm) ||
+    spec.approved_brand.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
@@ -131,6 +162,8 @@ export default function CorporateSpecs() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search protein or item code..."
               className="bg-slate-900/50 border border-slate-700 text-slate-200 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-64 pl-10 p-2.5 transition-colors placeholder:text-slate-500"
             />
@@ -149,7 +182,14 @@ export default function CorporateSpecs() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700/50">
-              {specs.map((spec) => (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                    <Loader2 className="w-8 h-8 mx-auto animate-spin mb-4 text-emerald-500" />
+                    Loading Corporate Specs...
+                  </td>
+                </tr>
+              ) : filteredSpecs.map((spec) => (
                 <tr key={spec.id} className="hover:bg-slate-700/20 transition-colors">
                   <td className="px-6 py-4 font-medium text-slate-200">
                     {spec.protein_name}
@@ -176,10 +216,10 @@ export default function CorporateSpecs() {
                   </td>
                 </tr>
               ))}
-              {specs.length === 0 && (
+              {!isLoading && filteredSpecs.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
-                    No approved specifications locked in yet. Click "Add Corporate Spec" to begin.
+                    {searchTerm ? "No specs match your search." : "No approved specifications locked in yet. Click \"Add Corporate Spec\" to begin."}
                   </td>
                 </tr>
               )}
