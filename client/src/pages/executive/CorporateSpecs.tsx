@@ -96,6 +96,29 @@ export default function CorporateSpecs() {
     spec.approved_brand.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this specification? Deliveries using this barcode will no longer be auto-approved.')) return;
+
+    try {
+        const res = await fetch(`/api/v1/compliance/specs/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${user?.token}`
+            }
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            setSpecs(specs.filter(s => s.id !== id));
+        } else {
+            alert(data.error || 'Failed to delete specification.');
+        }
+    } catch (error) {
+        console.error('Error deleting spec:', error);
+        alert('Network error deleting spec.');
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
       {/* Header Section */}
@@ -214,7 +237,11 @@ export default function CorporateSpecs() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-slate-400 hover:text-rose-400 transition-colors p-2 hover:bg-rose-500/10 rounded-lg">
+                    <button 
+                      onClick={() => handleDelete(spec.id)}
+                      className="text-slate-400 hover:text-rose-400 transition-colors p-2 hover:bg-rose-500/10 rounded-lg"
+                      title="Delete specification"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>

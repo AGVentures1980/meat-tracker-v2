@@ -54,4 +54,19 @@ export class ComplianceController {
       res.status(500).json({ success: false, error: 'Database error fetching specs.' });
     }
   }
+  // DELETE /api/v1/compliance/specs/:id
+  async deleteCorporateSpec(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      
+      await prisma.corporateProteinSpec.delete({
+        where: { id }
+      });
+      
+      res.json({ success: true, message: 'Specification deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting spec:', error);
+      res.status(500).json({ success: false, error: 'Database error deleting spec.' });
+    }
+  }
 }

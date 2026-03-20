@@ -2875,3 +2875,41 @@ Error: listen EADDRINUSE: address already in use :::3002
    (No new files found)
 🔍 [ONEDRIVE WATCHER] Checking for new files...
    (No new files found)
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+   (No new files found)
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+   (No new files found)
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+   (No new files found)
+🔍 [ONEDRIVE WATCHER] Checking for new files...
+   (No new files found)
+[INFO] 10:45:32 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/routes/compliance.routes.ts has been modified
+Error: Route.delete() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as delete] (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/router/route.js:216:15)
+    at router.proto.<computed> [as delete] (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/router/index.js:521:19)
+    at Object.<anonymous> (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/routes/compliance.routes.ts:10:14)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1761:14)
+    at Module._compile (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/source-map-support/source-map-support.js:568:25)
+    at Module.m._compile (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-42118289518243557.js:69:33)
+    at node:internal/modules/cjs/loader:1893:10
+    at require.extensions..jsx.require.extensions..js (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-42118289518243557.js:114:20)
+    at require.extensions.<computed> (/private/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-42118289518243557.js:71:20)
+    at Object.nodeDevHook [as .ts] (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/ts-node-dev/lib/hook.js:63:13)
+[ERROR] 10:45:33 Error: Route.delete() requires a callback function but got a [object Undefined]
+[INFO] 10:45:43 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/controllers/ComplianceController.ts has been modified
+[Static] Serving frontend from: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/client/dist
+[Startup] Cleaning up duplicate proteins from the database...
+[Startup] SUCCESS: Removed 0 duplicate proteins.
+[Startup] Ensuring default system settings exist...
+[Startup] SUCCESS: Verified default system settings and store targets.
+[Startup] Ensuring primary store users are marked...
+[Startup] SUCCESS: Marked 0 legacy/system users as primary.
+[Startup] Ensuring critical production accounts are protected with proper auth and roles...
+[Startup] SUCCESS: Production accounts verified and secured.
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
+    at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
+[ERROR] 10:45:43 Error: listen EADDRINUSE: address already in use :::3002
