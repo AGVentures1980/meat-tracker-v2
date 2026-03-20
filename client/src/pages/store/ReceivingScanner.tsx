@@ -196,6 +196,7 @@ export default function ReceivingScanner() {
             <h2 className="text-xl font-bold text-white mb-2">Ready to Receive Delivery</h2>
             <p className="text-slate-400 text-sm max-w-md mb-6">
               Use your paired Bluetooth Scanner on the Sysco boxes, or type the code manually below.
+            </p>
             <form onSubmit={handleSubmit} className="w-full max-w-sm relative">
               <input 
                 ref={inputRef}
