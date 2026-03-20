@@ -546,6 +546,15 @@ export class MeatEngine {
                 // console.log(`[DIAGNOSTIC] Lexington (510) - Guests: ${guests}, Lbs: ${totalLbs}, Target: ${(store as any).target_lbs_guest}, CostGuestVar: ${costPerGuest - ((store as any).target_cost_guest || 9.94)}`);
             }
 
+            const qcAlertCount = await prisma.barcodeScanEvent.count({
+                where: {
+                    store_id: store.id,
+                    is_approved: false,
+                    created_at: { gte: start, lte: end }
+                }
+            });
+            const hasQCAlert = qcAlertCount > 0;
+
             performanceProp.push({
                 id: store.id,
                 name: store.store_name,
@@ -563,6 +572,7 @@ export class MeatEngine {
                 impactYTD: (costPerGuest - ((store as any).target_cost_guest || 9.94)) * guests, // Simple impact calc
                 theoreticalRevenue, // New
                 foodCostPercentage, // New
+                hasQCAlert, // New
                 status: Math.abs(lbsPerGuest - ((store as any).target_lbs_guest || 1.76)) < 0.1 ? 'Optimal' : 'Warning'
             });
         }

@@ -18,6 +18,7 @@ interface StoreData {
     // Impact
     impactYTD: number;
     status: 'Optimal' | 'Warning' | 'Critical';
+    hasQCAlert?: boolean;
 }
 
 export const StorePerformanceTable = () => {
@@ -101,7 +102,17 @@ export const StorePerformanceTable = () => {
                         {data.map((store) => (
                             <tr key={store.id} className="hover:bg-white/5 transition-colors">
                                 <td className="px-4 py-2 text-gray-500">{store.id}</td>
-                                <td className="px-4 py-2 text-white font-bold border-r border-white/10">{store.name}</td>
+                                <td className="px-4 py-2 text-white font-bold border-r border-white/10">
+                                    <div className="flex items-center gap-2">
+                                        {store.name}
+                                        {store.hasQCAlert && (
+                                            <span className="flex h-2 w-2 relative" title="Bait & Switch Unauthorized Scan Detected">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF2A6D]"></span>
+                                            </span>
+                                        )}
+                                    </div>
+                                </td>
 
                                 <td className="px-2 py-2 text-right text-gray-300">{store.usedQty.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
                                 <td className="px-2 py-2 text-right text-gray-300">${store.usedValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>

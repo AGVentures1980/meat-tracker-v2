@@ -13,6 +13,7 @@ interface CorporateSpec {
 export default function CorporateSpecs() {
   const { user, selectedCompany } = useAuth();
   const [specs, setSpecs] = useState<CorporateSpec[]>([]);
+  const [preventedCount, setPreventedCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,6 +38,9 @@ export default function CorporateSpecs() {
       const data = await res.json();
       if (res.ok && data.success) {
         setSpecs(data.specs || []);
+        if (data.preventedCount !== undefined) {
+          setPreventedCount(data.preventedCount);
+        }
       }
     } catch (error) {
       console.error('Error fetching specs:', error);
@@ -146,7 +150,7 @@ export default function CorporateSpecs() {
             </div>
             <h3 className="font-semibold text-slate-200">Bait & Switch Prevented</h3>
           </div>
-          <p className="text-3xl font-bold text-white">0</p>
+          <p className="text-3xl font-bold text-white">{preventedCount}</p>
           <p className="text-sm text-slate-400 mt-1">Unauthorized attempts</p>
         </div>
       </div>

@@ -220,13 +220,19 @@ export const Dashboard = () => {
                             {anomalies.length > 0 ? (
                                 <div className="space-y-3">
                                     {anomalies.slice(0, 3).map((a, i) => (
-                                        <div key={i} className="flex justify-between items-center bg-[#121212] p-2 border border-[#333] group hover:border-[#FF2A6D]/50 transition-all cursor-pointer" onClick={() => navigate(`/dashboard/${a.storeId}`)}>
+                                        <div key={i} className={`flex justify-between items-center bg-[#121212] p-2 border ${a.type === 'QC_ALERT' ? 'border-[#FF2A6D] animate-pulse border-2' : 'border-[#333]'} group hover:border-[#FF2A6D]/50 transition-all cursor-pointer`} onClick={() => navigate(`/dashboard/${a.storeId}`)}>
                                             <div className="truncate mr-2">
                                                 <p className="text-white font-bold text-[11px] truncate tracking-tight">{a.name}</p>
-                                                <p className="text-[9px] text-gray-500 uppercase font-mono">VAR: +{a.variance.toFixed(1)}%</p>
+                                                <p className={`text-[9px] uppercase font-mono ${a.type === 'QC_ALERT' ? 'text-[#FF2A6D] font-black tracking-widest' : 'text-gray-500'}`}>
+                                                    {a.type === 'QC_ALERT' ? 'GARCIA RULE TRIGGERED' : `VAR: +${a.variance.toFixed(1)}%`}
+                                                </p>
                                             </div>
                                             <div className="text-right flex-shrink-0">
-                                                <p className="text-[#FF2A6D] font-mono font-bold text-[10px]">ALERT</p>
+                                                {a.type === 'QC_ALERT' ? (
+                                                    <p className="text-white bg-[#FF2A6D] px-2 py-0.5 rounded font-mono font-bold text-[10px] animate-pulse">QC ALERT</p>
+                                                ) : (
+                                                    <p className="text-[#FF2A6D] font-mono font-bold text-[10px]">ALERT</p>
+                                                )}
                                             </div>
                                         </div>
                                     ))}

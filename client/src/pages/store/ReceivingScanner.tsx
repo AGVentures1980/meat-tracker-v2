@@ -6,10 +6,11 @@ export default function ReceivingScanner() {
   const { user, selectedCompany } = useAuth();
   const [barcode, setBarcode] = useState('');
   const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<'IDLE' | 'LOADING' | 'APPROVED' | 'REJECTED' | 'UNMAPPED'>('IDLE');
+  const [scanResult, setScanResult] = useState<'IDLE' | 'LOADING' | 'APPROVED' | 'REJECTED' | 'UNMAPPED' | 'NEEDS_WEIGHT'>('IDLE');
   const [resultMessage, setResultMessage] = useState('');
   const [cameraAccess, setCameraAccess] = useState<boolean | null>(null);
   const [extractedWeight, setExtractedWeight] = useState<number | null>(null);
+  const [manualWeight, setManualWeight] = useState('');
   
   // States for Admin On-the-fly mapping
   const [scannedGtin, setScannedGtin] = useState('');
@@ -56,8 +57,10 @@ export default function ReceivingScanner() {
     }
   };
 
-  const verifyBarcode = async (scannedCode: string) => {
-    if (!scannedCode) return;
+  const verifyBarcode = async (inputBarcode: string, manualWeightOverride?: number) => {
+    if (!inputBarcode) return;
+    
+    setIsScanning(false);
     setScanResult('LOADING');
     setExtractedWeight(null);
     setScannedGtin('');
@@ -65,40 +68,49 @@ export default function ReceivingScanner() {
     setSelectedProtein('');
     
     try {
-      const cleanBarcode = scannedCode.replace(/[\(\)\s\u001D]/g, '');
-      let parsedWeight = null;
+      // 1. Clean the barcode (remove spaces, braces)
+      const cleanBarcode = inputBarcode.replace(/[\(\)\[\]\s]/g, '');
+      
+      // 2. Extract GTIN
+      const parsedGtinMatch = cleanBarcode.match(/(01|02)(\d{14})/);
       let parsedGtin = null;
-
-      // Extract GTIN
-      const gtinMatch = cleanBarcode.match(/^01(\d{14})/);
-      if (gtinMatch) {
-          parsedGtin = gtinMatch[1];
-      } else {
-          const fallbackMatch = cleanBarcode.match(/^(\d{14})/);
-          if (fallbackMatch) parsedGtin = fallbackMatch[1];
+      if (parsedGtinMatch) {
+          parsedGtin = parsedGtinMatch[2];
       }
 
-      // 310n (Net Weight in Kg) or 320n (Net Weight in Lbs)
-      const weightMatch = cleanBarcode.match(/(310|320)(\d)(\d{6})/);
-      if (weightMatch) {
-          const isLbs = weightMatch[1] === '320';
-          const decimals = parseInt(weightMatch[2], 10);
-          const rawWeight = parseInt(weightMatch[3], 10);
-          let weight = rawWeight / Math.pow(10, decimals);
-          if (!isLbs) weight = weight * 2.20462;
-          parsedWeight = parseFloat(weight.toFixed(2));
+      // 3. Extract Weight
+      let parsedWeight = 0;
+
+      if (manualWeightOverride) {
+          parsedWeight = manualWeightOverride;
       } else {
-          // Fallback patterns
-          const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
-          if (demoWeightMatch) parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
-          const lambMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})$/);
-          if (lambMatch && cleanBarcode.length === 22) {
-              const rawKg = parseInt(lambMatch[2], 10) / 100;
-              parsedWeight = parseFloat((rawKg * 2.20462).toFixed(2));
+          // 310n (Net Weight in Kg) or 320n (Net Weight in Lbs)
+          const weightMatch = cleanBarcode.match(/(310|320)(\d)(\d{6})/);
+          if (weightMatch) {
+              const isLbs = weightMatch[1] === '320';
+              const decimals = parseInt(weightMatch[2], 10);
+              const rawWeight = parseInt(weightMatch[3], 10);
+              let weight = rawWeight / Math.pow(10, decimals);
+              if (!isLbs) weight = weight * 2.20462;
+              parsedWeight = parseFloat(weight.toFixed(2));
+          } else {
+              // Fallback patterns
+              const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
+              if (demoWeightMatch) parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
+              const lambMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})$/);
+              if (lambMatch && cleanBarcode.length === 22) {
+                  const rawKg = parseInt(lambMatch[2], 10) / 100;
+                  parsedWeight = parseFloat((rawKg * 2.20462).toFixed(2));
+              }
           }
       }
 
       setExtractedWeight(parsedWeight);
+      
+      if (parsedWeight === 0) {
+          setScanResult('NEEDS_WEIGHT');
+          return;
+      }
       
       const res = await fetch('/api/v1/compliance/scan', {
           method: 'POST',
@@ -122,14 +134,12 @@ export default function ReceivingScanner() {
       } else if (data.status === 'UNMAPPED_ALLOW_MAPPING') {
           setScanResult('UNMAPPED');
           setResultMessage('New Unknown Barcode Detected! You are an Admin. Please map this product.');
-          setScannedGtin(data.gtin);
+          setScannedGtin(data.gtin || parsedGtin || cleanBarcode.substring(0, 14));
           setRoster(data.roster || []);
       } else {
           setScanResult('REJECTED');
           setResultMessage(data.error || 'UNAUTHORIZED SUBSTITUTION! Reject this box. Alert sent to David Castro.');
       }
-      
-      setBarcode('');
       
     } catch (error) {
       setScanResult('REJECTED');
@@ -282,6 +292,41 @@ export default function ReceivingScanner() {
         </div>
       )}
 
+      {/* NEEDS WEIGHT SCREEN */}
+      {scanResult === 'NEEDS_WEIGHT' && (
+        <div className="absolute inset-0 bg-blue-900/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in slide-in-from-bottom text-center px-6">
+          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse">
+            <ScanLine className="w-12 h-12 text-blue-600" />
+          </div>
+          <h2 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">WEIGHT REQUIRED</h2>
+          <p className="text-blue-100 mb-8 max-w-md">The scanner could not extract the weight from this barcode. Please enter the case weight manually in LBS.</p>
+          <input 
+             type="number" 
+             step="0.01"
+             autoFocus
+             value={manualWeight} 
+             onChange={e => setManualWeight(e.target.value)}
+             className="w-full max-w-xs text-center text-3xl font-black p-4 rounded-xl mb-6 bg-white/10 text-white border-2 border-blue-400 focus:border-white outline-none"
+             placeholder="0.00"
+          />
+          <div className="flex gap-4 w-full max-w-xs">
+            <button 
+              onClick={resetScanner}
+              className="px-6 py-4 rounded-xl bg-white/10 hover:bg-white/20 text-white flex-1 font-bold transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              disabled={!manualWeight || parseFloat(manualWeight) <= 0}
+              onClick={() => verifyBarcode(barcode, parseFloat(manualWeight))}
+              className="px-6 py-4 rounded-xl bg-blue-500 hover:bg-blue-400 text-white flex-1 font-bold disabled:opacity-50 transition-all"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* GREEN APPROVED SCREEN - O "SIM" */}
       {scanResult === 'APPROVED' && (
         <div className="absolute inset-0 bg-emerald-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in slide-in-from-bottom text-center px-6">
@@ -372,6 +417,7 @@ export default function ReceivingScanner() {
                   <div>
                       <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Select Target Product</label>
                       <select 
+                          title="Select Target Product"
                           value={selectedProtein}
                           onChange={(e) => setSelectedProtein(e.target.value)}
                           className="w-full bg-[#252525] text-white p-4 border-2 border-white/10 rounded-xl focus:outline-none focus:border-yellow-500 font-bold"

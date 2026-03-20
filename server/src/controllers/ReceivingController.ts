@@ -27,12 +27,17 @@ export const ReceivingController = {
                  return res.status(400).json({ error: 'No GTIN detected in barcode' });
             }
 
-            const spec = await prisma.corporateProteinSpec.findFirst({
-                where: { 
-                    company_id: companyId,
-                    approved_item_code: gtin 
-                }
+            const specs = await prisma.corporateProteinSpec.findMany({
+                where: { company_id: companyId }
             });
+
+            const spec = specs.find(s => 
+                barcode.includes(s.approved_item_code) ||
+                s.approved_item_code.includes(gtin) ||
+                gtin && gtin.length > 5 && s.approved_item_code.includes(gtin.substring(1)) ||
+                barcode === s.approved_item_code ||
+                s.approved_item_code.replace(/\D/g, '') === barcode.replace(/\D/g, '')
+            );
 
             if (spec) {
                 // GTIN Mapped!

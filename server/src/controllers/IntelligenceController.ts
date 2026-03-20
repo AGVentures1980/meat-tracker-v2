@@ -18,16 +18,45 @@ export class IntelligenceController {
                 return variancePct > 15;
             });
 
+            const baseAnomalies = anomalies.map(a => ({
+                storeId: a.id,
+                name: a.name,
+                variance: (a.lbsGuestVar / a.target_lbs_guest) * 100,
+                lbsPerGuest: a.lbsPerGuest,
+                target: a.target_lbs_guest,
+                impact: a.impactYTD,
+                type: 'VARIANCE'
+            }));
+
+            // Fetch recent QC alerts (last 48 hours)
+            const twoDaysAgo = new Date();
+            twoDaysAgo.setHours(twoDaysAgo.getHours() - 48);
+
+            const recentRejections = await prisma.barcodeScanEvent.findMany({
+                where: {
+                    is_approved: false,
+                    created_at: { gte: twoDaysAgo }
+                },
+                include: { store: true },
+                orderBy: { created_at: 'desc' },
+                take: 10
+            });
+
+            const qcAnomalies = recentRejections.map(rejection => ({
+                storeId: rejection.store_id,
+                name: rejection.store.store_name,
+                variance: 0,
+                lbsPerGuest: 0,
+                target: 0,
+                impact: 0,
+                type: 'QC_ALERT',
+                barcode: rejection.scanned_barcode,
+                date: rejection.created_at
+            }));
+
             return res.json({
                 success: true,
-                anomalies: anomalies.map(a => ({
-                    storeId: a.id,
-                    name: a.name,
-                    variance: (a.lbsGuestVar / a.target_lbs_guest) * 100,
-                    lbsPerGuest: a.lbsPerGuest,
-                    target: a.target_lbs_guest,
-                    impact: a.impactYTD
-                }))
+                anomalies: [...qcAnomalies, ...baseAnomalies]
             });
         } catch (error) {
             return res.status(500).json({ success: false, error: 'Failed to fetch anomalies' });

@@ -39,8 +39,18 @@ export class ComplianceController {
         orderBy: { created_at: 'desc' }
       });
       
-      res.json({ success: true, specs });
+      const preventedCount = await prisma.barcodeScanEvent.count({
+          where: {
+              is_approved: false,
+              store: {
+                  company_id: companyId
+              }
+          }
+      });
+      
+      res.json({ success: true, specs, preventedCount });
     } catch (error: any) {
+      console.error('Error fetching specs:', error);
       res.status(500).json({ success: false, error: 'Database error fetching specs.' });
     }
   }
