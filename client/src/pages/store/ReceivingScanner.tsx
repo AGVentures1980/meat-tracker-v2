@@ -27,6 +27,20 @@ export default function ReceivingScanner() {
     }
   }, [scanResult]);
 
+  // Auto-submit debounce for scanners that don't send Enter
+  useEffect(() => {
+    if (scanResult !== 'IDLE' || !barcode) return;
+    
+    // Scanners input characters very fast. If there is a pause of 500ms and the barcode is > 10 chars, auto-trigger.
+    const timeout = setTimeout(() => {
+        if (barcode.replace(/[\(\)\s\u001D]/g, '').length >= 10) {
+            verifyBarcode(barcode);
+        }
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [barcode, scanResult]);
+
   const toggleCamera = async () => {
     if (!isScanning) {
       try {
