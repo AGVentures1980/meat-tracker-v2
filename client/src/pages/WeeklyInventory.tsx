@@ -156,11 +156,17 @@ const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
 
 export const WeeklyInventory = () => {
     const { user, selectedCompany } = useAuth();
-    const { counts, updateCount, isOnline, hasPendingSync, isSyncing, queueForSync } = useOfflineInventory();
+    const { isOnline, hasPendingSync, isSyncing, queueForSync } = useOfflineInventory();
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [dynamicProteinList, setDynamicProteinList] = useState<ProteinItem[]>(DEFAULT_PROTEIN_LIST);
     const [lastScanned, setLastScanned] = useState<{ name: string, weight: number, status: string } | null>(null);
+
+    // Cart System
+    const [scannedItems, setScannedItems] = useState<{ id: string, name: string, weight: number, isManual: boolean }[]>([]);
+    const [showManualMenu, setShowManualMenu] = useState(false);
+    const [manualProtein, setManualProtein] = useState('');
+    const [manualWeight, setManualWeight] = useState('');
 
     useEffect(() => {
         const fetchProteins = async () => {
@@ -191,9 +197,6 @@ export const WeeklyInventory = () => {
         fetchProteins();
     }, [user, selectedCompany]);
 
-    const handleCountChange = (id: string, value: string) => {
-        updateCount(id, value);
-    };
 
     const handleBarcodeScanned = useCallback((barcodeString: string) => {
         // Minimal anti-bounce / anti-duplication
@@ -291,14 +294,18 @@ export const WeeklyInventory = () => {
 
         setLastScanned({ name: matchedProtein.name, weight: parsedWeight, status: 'success' });
 
-        // Save to offline storage instantly
-        updateCount(matchedProtein.id, String(parsedWeight));
+        setScannedItems(prev => [...prev, {
+            id: Math.random().toString(36).substring(7),
+            name: matchedProtein.name || 'Unknown',
+            weight: parsedWeight,
+            isManual: false
+        }]);
 
         if (navigator.vibrate) navigator.vibrate([100]);
         playBeep('success');
 
         setTimeout(() => setLastScanned(null), 3000);
-    }, [updateCount, lastScanned]);
+    }, [lastScanned, dynamicProteinList]);
 
     // Invisible Bluetooth HID Keyboard Listener
     // Maps physical hardware scanners acting as keyboards seamlessly into the App
@@ -370,19 +377,55 @@ export const WeeklyInventory = () => {
         const randomProtein = dynamicProteinList[Math.floor(Math.random() * dynamicProteinList.length)];
         const weight = parseFloat((Math.random() * (45 - 20) + 20).toFixed(1));
 
-        const currentRaw = String(counts[randomProtein.id] || '');
-        const newRaw = currentRaw.trim() === '' ? String(weight) : `${currentRaw}+${weight}`;
-
-        updateCount(randomProtein.id, newRaw);
+        setScannedItems(prev => [...prev, {
+            id: Math.random().toString(36).substring(7),
+            name: randomProtein.name,
+            weight: weight,
+            isManual: false
+        }]);
 
         setLastScanned({ name: randomProtein.name, weight, status: 'success' });
         if (navigator.vibrate) navigator.vibrate(100);
         setTimeout(() => setLastScanned(null), 2500);
     };
 
+    const handleManualEntry = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!manualProtein || !manualWeight) return;
+        
+        const weight = parseFloat(manualWeight);
+        if (weight <= 0) return;
+
+        setScannedItems(prev => [...prev, {
+            id: Math.random().toString(36).substring(7),
+            name: manualProtein,
+            weight: weight,
+            isManual: true
+        }]);
+        setManualProtein('');
+        setManualWeight('');
+        setShowManualMenu(false);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await queueForSync(counts);
+        if (scannedItems.length === 0) return;
+
+        // Consolidate scanned items into the counts dictionary format for offline queue
+        const compiledCounts: Record<string, string> = {};
+        for (const item of scannedItems) {
+            const proteinObj = dynamicProteinList.find(p => p.name === item.name);
+            const proteinId = proteinObj ? proteinObj.id : item.name;
+            const currentRaw = String(compiledCounts[proteinId] || '');
+            compiledCounts[proteinId] = currentRaw.trim() === '' ? String(item.weight) : `${currentRaw}+${item.weight}`;
+        }
+
+        // Add 0 for any uncounted proteins to ensure the payload is complete
+        for (const p of dynamicProteinList) {
+            if (!compiledCounts[p.id]) compiledCounts[p.id] = '0';
+        }
+
+        await queueForSync(compiledCounts);
         setIsSubmitted(true);
     };
 
@@ -466,89 +509,96 @@ export const WeeklyInventory = () => {
                                 <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]">
                                     <h2 className="font-bold text-white flex items-center gap-2 uppercase tracking-widest text-sm">
                                         <Scale className="w-4 h-4 text-[#C5A059]" />
-                                        2. Manual Entry (Prep Weighing)
+                                        Cart & Manual Entry
                                     </h2>
-                                    <div className="flex items-center gap-3 hidden sm:flex">
-                                        <span className="text-xs font-mono text-[#C5A059] bg-[#C5A059]/10 border border-[#C5A059]/20 px-3 py-1 rounded">
-                                            Loose Meats Only
-                                        </span>
-                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowManualMenu(true)}
+                                        className="text-xs font-bold text-black uppercase tracking-widest bg-[#C5A059] hover:bg-[#D4AF37] px-4 py-2 rounded transition-colors"
+                                    >
+                                        + Add Loose Meat
+                                    </button>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                                    {dynamicProteinList.map((item) => {
-                                        const rawVal = counts[item.id] || '';
-                                        const expressionStr = String(rawVal);
-                                        // Calculate actual evaluated sum
-                                        const actual = expressionStr.split('+').reduce((sum, curr) => sum + (parseFloat(curr) || 0), 0);
-                                        const variance = actual - item.expected;
-                                        const isNegative = variance < 0;
-
-                                        return (
-                                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-3 bg-[#121212] rounded border border-[#333]">
-                                                {/* Meta */}
-                                                <div className="md:col-span-3">
-                                                    <div className="font-bold text-white truncate" title={item.name}>{item.name}</div>
-                                                    <div className="text-xs text-gray-500 font-mono">Target: {item.expected} {item.unit}</div>
-                                                </div>
-
-                                                {/* Input Column (Scans or Manual) */}
-                                                <div className="md:col-span-5 flex items-center gap-2">
-                                                    <div className="relative flex-1">
-                                                        <input
-                                                            type="text"
-                                                            inputMode="decimal"
-                                                            placeholder="Lbs"
-                                                            className="w-full bg-[#1a1a1a] border-2 border-[#333] rounded-lg pl-3 pr-3 py-3 text-white focus:outline-none focus:border-[#C5A059] font-mono text-sm touch-manipulation shadow-inner transition-colors"
-                                                            value={counts[item.id] ?? ''}
-                                                            onChange={(e) => {
-                                                                const val = e.target.value.replace(',', '.').replace(/[^0-9.+]/g, '');
-                                                                handleCountChange(item.id, val);
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                {/* Calculated Total Column */}
-                                                <div className="md:col-span-2 text-center md:text-right flex flex-col justify-center">
-                                                    <div className="text-[10px] text-gray-500 uppercase tracking-widest hidden md:block mb-1">Total</div>
-                                                    <div className="font-mono text-white text-lg md:text-xl font-bold">
-                                                        {actual > 0 ? actual.toFixed(1) : '-'} <span className="text-xs text-gray-500 font-normal">{item.unit}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Variance Column */}
-                                                <div className="md:col-span-2 text-right flex flex-col justify-center items-end mt-2 md:mt-0">
-                                                    {(actual > 0 || String(rawVal) !== '') && (
-                                                        <div className={`font-mono font-bold text-sm px-2 py-1 rounded inline-block ${isNegative ? 'bg-[#FF2A6D]/10 text-[#FF2A6D]' : 'bg-[#00FF94]/10 text-[#00FF94]'}`}>
-                                                            {isNegative ? '' : '+'}{variance.toFixed(1)} <span className="text-[10px] uppercase">VAR</span>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                <form onSubmit={handleSubmit} className="p-4">
+                                     {scannedItems.length === 0 ? (
+                                         <div className="text-center py-12 px-4 border-2 border-dashed border-[#333] rounded-xl flex flex-col items-center justify-center opacity-60 mb-6">
+                                            <ScanLine className="w-16 h-16 text-gray-500 mb-4" />
+                                            <h3 className="text-white font-bold text-xl uppercase tracking-widest mb-2">Cart is Empty</h3>
+                                            <p className="text-gray-400 max-w-sm text-sm">
+                                                Activate the Physical Scanner or tap 'Add Loose Meat' to begin counting. Items will stack here.
+                                            </p>
+                                         </div>
+                                     ) : (
+                                        <div className="bg-black/50 border border-[#C5A059]/30 rounded-xl p-4 shadow-xl mb-6">
+                                            <div className="flex justify-between items-center mb-4 border-b border-[#333] pb-4">
+                                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                                    <span className="bg-[#C5A059] text-black px-2 py-1 rounded text-sm font-black">{scannedItems.length}</span> Items Counted
+                                                </h3>
+                                                <h3 className="text-xl font-bold text-[#C5A059]">
+                                                    {scannedItems.reduce((acc, item) => acc + item.weight, 0).toFixed(2)} LBS TOTAL
+                                                </h3>
                                             </div>
-                                        );
-                                    })}
+                                            
+                                            <div className="max-h-64 overflow-y-auto rounded-lg border border-[#333]">
+                                                <table className="w-full text-sm text-left text-gray-300">
+                                                    <thead className="text-xs text-gray-400 uppercase bg-[#1a1a1a] border-b border-[#333] sticky top-0">
+                                                        <tr>
+                                                            <th className="px-4 py-3 font-bold">Protein</th>
+                                                            <th className="px-4 py-3 font-bold">Weight</th>
+                                                            <th className="px-4 py-3 font-bold text-right">Target</th>
+                                                            <th className="px-4 py-3 font-bold text-right">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {scannedItems.slice().reverse().map((item) => {
+                                                            const expected = dynamicProteinList.find(p => p.name === item.name)?.expected || 0;
+                                                            return (
+                                                            <tr key={item.id} className="border-b border-[#333]/50 bg-[#121212] hover:bg-[#252525] transition-colors">
+                                                                <td className="px-4 py-3 font-bold text-white flex items-center gap-2">
+                                                                    {item.isManual ? <span title="Manual Weighing"><Scale className="w-3 h-3 text-blue-400" /></span> : <span title="Scanned Box"><ScanLine className="w-3 h-3 text-emerald-400" /></span>}
+                                                                    {item.name}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-[#C5A059] font-mono font-bold tracking-widest">{item.weight.toFixed(2)} LBS</td>
+                                                                <td className="px-4 py-3 text-right text-gray-500 font-mono text-xs">{expected} LBS</td>
+                                                                <td className="px-4 py-3 text-right">
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={() => setScannedItems(prev => prev.filter(i => i.id !== item.id))}
+                                                                        className="text-[#FF2A6D] hover:text-white p-1 transition-colors"
+                                                                        title="Remove"
+                                                                    >
+                                                                        <X className="w-5 h-5 mx-auto" />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        )})}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                     )}
 
-                                    <div className="pt-4 mt-6 border-t border-[#333]">
+                                    <div className="pt-4 mt-2 border-t border-[#333]">
                                         <button
                                             type="submit"
-                                            disabled={isSyncing}
-                                            className={`w-full font-bold py-4 px-4 rounded transition-all flex justify-center items-center gap-2 uppercase tracking-widest text-sm shadow-xl active:scale-95 touch-manipulation ${isOnline ? 'bg-[#C5A059] hover:bg-[#D4AF37] text-black' : 'bg-[#333] border border-gray-600 text-white'}`}
+                                            disabled={isSyncing || scannedItems.length === 0}
+                                            className={`w-full font-bold py-5 px-4 rounded-xl transition-all flex justify-center items-center gap-3 uppercase tracking-widest text-base shadow-xl active:scale-95 touch-manipulation disabled:opacity-50 ${isOnline ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-gray-700 border border-gray-600 text-white'}`}
                                         >
                                             {!isOnline ? (
                                                 <>
-                                                    <WifiOff className="w-5 h-5" />
-                                                    Save to Device (Offline Sync)
+                                                    <WifiOff className="w-6 h-6" />
+                                                    SAVE OFFLINE TO DEVICE
                                                 </>
                                             ) : isSyncing ? (
                                                 <>
-                                                    <RefreshCw className="w-5 h-5 animate-spin" />
-                                                    Syncing...
+                                                    <RefreshCw className="w-6 h-6 animate-spin" />
+                                                    SYNCING TO CLOUD...
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Lock className="w-5 h-5" />
-                                                    Submit Pulse & Lock
+                                                    <Lock className="w-6 h-6" />
+                                                    FINALIZE INVENTORY CYCLE
                                                 </>
                                             )}
                                         </button>
@@ -558,6 +608,56 @@ export const WeeklyInventory = () => {
                         </div>
 
                         <div className="space-y-6">
+                            {/* Manual Entry Modal */}
+                            {showManualMenu && (
+                                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                                    <div className="bg-[#1a1a1a] border-2 border-[#C5A059] rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h3 className="text-xl font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                                                <Scale className="w-5 h-5 text-[#C5A059]" /> Add Loose Meat
+                                            </h3>
+                                            <button type="button" onClick={() => setShowManualMenu(false)} className="text-gray-400 hover:text-white"><X className="w-6 h-6" /></button>
+                                        </div>
+                                        
+                                        <form onSubmit={handleManualEntry} className="space-y-6">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Protein Type</label>
+                                                <select 
+                                                    value={manualProtein} 
+                                                    onChange={e => setManualProtein(e.target.value)}
+                                                    className="w-full bg-[#121212] border-2 border-[#333] rounded-lg p-4 text-white font-bold focus:border-[#C5A059] outline-none"
+                                                    required
+                                                >
+                                                    <option value="">-- Choose Protein --</option>
+                                                    {dynamicProteinList.map(p => (
+                                                        <option key={p.id} value={p.name}>{p.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Exact Weight in LBS</label>
+                                                <input 
+                                                    type="number" 
+                                                    step="0.01"
+                                                    value={manualWeight}
+                                                    onChange={e => setManualWeight(e.target.value)}
+                                                    className="w-full bg-[#121212] border-2 border-[#333] rounded-lg p-4 text-white font-mono text-2xl text-center focus:border-[#C5A059] outline-none"
+                                                    placeholder="0.00"
+                                                    required
+                                                />
+                                            </div>
+                                            <button 
+                                                type="submit"
+                                                title="Add to Cart"
+                                                disabled={!manualProtein || !manualWeight}
+                                                className="w-full bg-[#C5A059] hover:bg-[#D4AF37] text-black font-bold uppercase tracking-widest py-4 rounded-xl disabled:opacity-50"
+                                            >
+                                                ADD TO CART
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            )}
                             <div className="bg-[#1a1a1a] border-2 border-[#FF2A6D]/50 p-4 rounded-lg shadow-[0_0_15px_rgba(255,42,109,0.15)]">
                                 <h3 className="text-[#FF2A6D] font-bold text-sm tracking-widest uppercase mb-3 flex items-center gap-2">
                                     <AlertTriangle className="w-5 h-5 animate-pulse" />
