@@ -5,10 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 export default function ReceivingScanner() {
   const { user, selectedCompany } = useAuth();
   const [barcode, setBarcode] = useState('');
-  const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<'IDLE' | 'LOADING' | 'APPROVED' | 'REJECTED' | 'UNMAPPED' | 'NEEDS_WEIGHT'>('IDLE');
   const [resultMessage, setResultMessage] = useState('');
-  const [cameraAccess, setCameraAccess] = useState<boolean | null>(null);
   const [extractedWeight, setExtractedWeight] = useState<number | null>(null);
   const [manualWeight, setManualWeight] = useState('');
   
@@ -96,25 +94,9 @@ export default function ReceivingScanner() {
     return () => clearTimeout(timeout);
   }, [barcode, scanResult]);
 
-  const toggleCamera = async () => {
-    if (!isScanning) {
-      try {
-        await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        setCameraAccess(true);
-        setIsScanning(true);
-      } catch (err) {
-        console.error("Camera access denied:", err);
-        setCameraAccess(false);
-      }
-    } else {
-      setIsScanning(false);
-    }
-  };
-
   const verifyBarcode = async (inputBarcode: string, manualWeightOverride?: number) => {
     if (!inputBarcode) return;
     
-    setIsScanning(false);
     setScanResult('LOADING');
     setExtractedWeight(null);
     setScannedGtin('');
@@ -358,38 +340,7 @@ export default function ReceivingScanner() {
              </div>
           )}
 
-          {/* iPad Camera Fallback */}
-          <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center flex-1">
-             <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
-               <ScanLine className="w-8 h-8 text-slate-400" />
-             </div>
-             <h3 className="text-lg font-bold text-white mb-1">Use iPad Camera</h3>
-             <p className="text-slate-400 text-xs max-w-xs mb-6">
-               If your physical scanner is broken, activate the device camera as a fallback.
-             </p>
-             
-             {cameraAccess === false ? (
-               <p className="text-rose-400 text-sm font-medium bg-rose-500/10 px-4 py-2 rounded-lg">Camera Access Denied. Check Safari/Chrome Settings.</p>
-             ) : (
-               <button 
-                onClick={toggleCamera}
-                className={`px-8 py-3 rounded-xl font-bold text-sm tracking-wide transition-all shadow-lg flex items-center gap-2 ${
-                  isScanning 
-                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/50 hover:bg-rose-500/30' 
-                    : 'bg-slate-700 text-white hover:bg-slate-600 border border-slate-600'
-                }`}
-              >
-                {isScanning ? <><Square className="w-4 h-4 fill-current"/> Stop Camera</> : <><Play className="w-4 h-4 fill-current"/> Start Camera Scanner</>}
-              </button>
-             )}
 
-             {isScanning && (
-               <div className="mt-6 w-full max-w-sm aspect-video bg-black rounded-lg border-2 border-[#C5A059] relative overflow-hidden flex items-center justify-center">
-                  <p className="text-[#C5A059] font-mono text-xs animate-pulse z-10">Searching for visual barcode...</p>
-                  <div className="absolute inset-x-8 h-0.5 bg-red-500/80 top-1/2 -translate-y-1/2 shadow-[0_0_10px_red]"></div>
-               </div>
-             )}
-          </div>
         </div>
       )}
 
