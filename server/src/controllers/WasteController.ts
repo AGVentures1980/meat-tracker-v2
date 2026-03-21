@@ -12,7 +12,7 @@ export class WasteController {
     static async getStatus(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const companyId = user.companyId;
+            const companyId = user.companyId || user.company_id || 'tdb-main';
             let storeId = user.storeId;
             if (!storeId) {
                 const firstStore = await prisma.store.findFirst({ where: { company_id: companyId } });
@@ -234,7 +234,7 @@ export class WasteController {
             const user = (req as any).user;
             const userId = user.userId;
             const userRole = user.role;
-            const companyId = user.companyId;
+            const companyId = user.companyId || user.company_id || 'tdb-main';
             let userStoreId = user.storeId || 1;
 
             const { shift, items, date, store_id } = req.body;
@@ -384,7 +384,7 @@ export class WasteController {
     static async getHistory(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const companyId = user.companyId;
+            const companyId = user.companyId || user.company_id || 'tdb-main';
             let storeId = user.storeId || 1;
 
             if ((user.role === 'admin' || user.role === 'director') && req.query.store_id) {
@@ -448,7 +448,7 @@ export class WasteController {
     static async getDetailedHistory(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const companyId = user.companyId;
+            const companyId = user.companyId || user.company_id || 'tdb-main';
             let storeId = user.storeId || 1;
 
             if ((user.role === 'admin' || user.role === 'director') && req.query.store_id) {
