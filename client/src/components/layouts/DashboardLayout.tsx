@@ -608,6 +608,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <span className="text-[10px] mt-1">Home</span>
                     </button>
                     <button
+                        onClick={() => selectedCompany && navigate('/receiving')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/receiving' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
+                        <ScanLine size={20} />
+                        <span className="text-[10px] mt-1">Receive</span>
+                    </button>
+                    <button
                         onClick={() => selectedCompany && navigate('/prices')}
                         className={`flex flex-col items-center p-2 rounded ${location.pathname === '/prices' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >

@@ -82,83 +82,12 @@ export const playBeep = (type: 'success' | 'warning' | 'error') => {
     } catch (e) { console.error('Beep sound error:', e); }
 };
 
-const ScannerComponent = ({ onScan }: { onScan: (text: string) => void }) => {
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [cameraError, setCameraError] = useState<string | null>(null);
-
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || e.target.files.length === 0) return;
-
-        setIsProcessing(true);
-        setCameraError(null);
-        const file = e.target.files[0];
-        const html5QrCode = new Html5Qrcode("reader");
-
-        try {
-            // Using the new scanFile API
-            const decodedText = await html5QrCode.scanFile(file, true);
-            onScan(decodedText);
-        } catch (err: any) {
-            console.error("File scanning error", err);
-            setCameraError("Nenhum código encontrado na imagem. Tente chegar mais perto ou focar na barra GS1.");
-            // We only play error beep via the parent component usually, but this is a specific image fail
-        } finally {
-            setIsProcessing(false);
-            html5QrCode.clear();
-        }
-    };
-
-    return (
-        <div className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-black border-4 border-[#C5A059] shadow-[0_0_30px_rgba(197,160,89,0.2)] flex flex-col items-center justify-center min-h-[300px] p-6 text-center">
-
-            {/* Hidden div needed to instantiate Html5Qrcode temporarily */}
-            <div id="reader" style={{ display: 'none' }}></div>
-
-            <Camera className="w-16 h-16 text-[#C5A059] mb-4 opacity-50" />
-            <h3 className="text-[#C5A059] font-bold text-lg mb-2 tracking-widest">HIGH-RES PHOTO SCAN</h3>
-            <p className="text-gray-400 text-sm mb-6 max-w-[250px]">
-                Capture a clear, focused photo of the barcode for analysis.
-            </p>
-
-            <label className="relative cursor-pointer group">
-                <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                    disabled={isProcessing}
-                />
-                <div className={`px-8 py-4 bg-[#C5A059]/10 border-2 border-[#C5A059] rounded-lg font-mono tracking-widest text-[#C5A059] transition-all flex items-center gap-3 ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#C5A059]/20'}`}>
-                    {isProcessing ? (
-                        <>
-                            <RefreshCw className="w-5 h-5 animate-spin" />
-                            PROCESSING...
-                        </>
-                    ) : (
-                        <>
-                            <ScanLine className="w-5 h-5" />
-                            TAKE PHOTO
-                        </>
-                    )}
-                </div>
-            </label>
-
-            {cameraError && (
-                <div className="mt-6 flex items-start gap-2 text-left bg-[#FF2A6D]/10 p-3 rounded border border-[#FF2A6D]/30">
-                    <AlertCircle className="w-5 h-5 text-[#FF2A6D] shrink-0 mt-0.5" />
-                    <p className="text-[#FF2A6D] text-xs leading-relaxed">{cameraError}</p>
-                </div>
-            )}
-        </div>
-    );
-};
 
 export const WeeklyInventory = () => {
+
     const { user, selectedCompany } = useAuth();
     const { isOnline, hasPendingSync, isSyncing, queueForSync } = useOfflineInventory();
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [dynamicProteinList, setDynamicProteinList] = useState<ProteinItem[]>(DEFAULT_PROTEIN_LIST);
     const [lastScanned, setLastScanned] = useState<{ name: string, weight: number, status: string } | null>(null);
 
@@ -167,6 +96,10 @@ export const WeeklyInventory = () => {
     const [showManualMenu, setShowManualMenu] = useState(false);
     const [manualProtein, setManualProtein] = useState('');
     const [manualWeight, setManualWeight] = useState('');
+    
+    // Scanner UI States
+    const [barcode, setBarcode] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const fetchProteins = async () => {
@@ -347,47 +280,6 @@ export const WeeklyInventory = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleBarcodeScanned]);
 
-    const simulateContinuousScan = () => {
-        if (!window.sessionStorage.getItem('scannedBarcodes')) {
-            window.sessionStorage.setItem('scannedBarcodes', JSON.stringify([]));
-        }
-        const scannedList = JSON.parse(window.sessionStorage.getItem('scannedBarcodes') || '[]');
-
-        const isDuplicate = Math.random() > 0.85 && scannedList.length > 0;
-        const mockBarcodeId = isDuplicate ? scannedList[0] : `BOX-${Math.floor(Math.random() * 10000)}`;
-
-        if (scannedList.includes(mockBarcodeId)) {
-            setLastScanned({ name: 'Unknown', weight: 0, status: 'duplicate' });
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            setTimeout(() => setLastScanned(null), 3000);
-            return;
-        }
-
-        scannedList.push(mockBarcodeId);
-        window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
-
-        const isUnknown = Math.random() > 0.9;
-        if (isUnknown) {
-            setLastScanned({ name: 'Unknown', weight: 0, status: 'unknown' });
-            if (navigator.vibrate) navigator.vibrate([500]);
-            setTimeout(() => setLastScanned(null), 3500);
-            return;
-        }
-
-        const randomProtein = dynamicProteinList[Math.floor(Math.random() * dynamicProteinList.length)];
-        const weight = parseFloat((Math.random() * (45 - 20) + 20).toFixed(1));
-
-        setScannedItems(prev => [...prev, {
-            id: Math.random().toString(36).substring(7),
-            name: randomProtein.name,
-            weight: weight,
-            isManual: false
-        }]);
-
-        setLastScanned({ name: randomProtein.name, weight, status: 'success' });
-        if (navigator.vibrate) navigator.vibrate(100);
-        setTimeout(() => setLastScanned(null), 2500);
-    };
 
     const handleManualEntry = (e: React.FormEvent) => {
         e.preventDefault();
@@ -427,6 +319,13 @@ export const WeeklyInventory = () => {
 
         await queueForSync(compiledCounts);
         setIsSubmitted(true);
+    };
+    const handleManualBarcodeSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (barcode.trim()) {
+            handleBarcodeScanned(barcode.trim());
+            setBarcode('');
+        }
     };
 
     return (
@@ -486,24 +385,35 @@ export const WeeklyInventory = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 space-y-6">
                             <div className="bg-[#1a1a1a] border border-[#333] rounded-lg overflow-hidden">
-                                <div className="p-5 bg-gradient-to-r from-[#121212] to-[#1a1a1a] border-b border-[#333] flex flex-col md:flex-row items-center gap-4 justify-between">
-                                    <div className="flex-1">
-                                        <h3 className="text-[#00FF94] font-bold tracking-widest uppercase mb-1 flex items-center gap-2">
-                                            <ScanLine className="w-5 h-5" />
-                                            1. Scan Sealed Boxes
-                                        </h3>
-                                        <p className="text-gray-400 text-sm leading-relaxed max-w-lg">
-                                            Bluetooth scanner active. Scan GS1-128 barcodes directly to accumulate exact net weights automatically.
-                                        </p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsCameraOpen(true)}
-                                        className="shrink-0 w-full md:w-auto bg-[#1a1a1a] hover:bg-[#252525] text-gray-300 border border-[#333] font-bold uppercase tracking-widest py-3 px-6 rounded-lg flex items-center justify-center gap-3 active:scale-95 transition-all text-xs shadow-inner"
-                                    >
-                                        <Camera className="w-4 h-4 text-gray-400" />
-                                        iPad Camera Fallback
-                                    </button>
+                                <div className="bg-[#121212] border-b border-[#333] p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:border-[#C5A059]/50 transition-colors">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#C5A059]/5 rounded-bl-full pointer-events-none"></div>
+                                    
+                                    <Scan className="w-16 h-16 text-[#C5A059] mb-4 group-hover:scale-110 transition-transform duration-300" />
+                                    <h2 className="text-2xl font-black text-white uppercase tracking-widest mb-2">Ready to Scan Boxes</h2>
+                                    <p className="text-gray-400 text-sm max-w-md mb-6">
+                                        Use your paired Bluetooth Scanner on the Sysco GS1-128 box labels to instantly add precise netting to the inventory cart.
+                                    </p>
+                                    
+                                    <form onSubmit={handleManualBarcodeSubmit} className="w-full max-w-sm relative">
+                                        <input 
+                                            ref={inputRef}
+                                            type="text" 
+                                            value={barcode}
+                                            onChange={(e) => setBarcode(e.target.value)}
+                                            placeholder="Awaiting Barcode Input..."
+                                            className="w-full bg-[#1a1a1a] border-2 border-[#C5A059]/30 text-[#C5A059] font-mono text-center text-xl rounded-xl px-4 py-4 pr-14 focus:ring-[#C5A059] focus:border-[#C5A059] outline-none transition-all shadow-[0_0_15px_rgba(197,160,89,0.15)] placeholder:text-gray-600"
+                                            autoFocus
+                                            autoComplete="off"
+                                        />
+                                        <button 
+                                            type="submit"
+                                            disabled={!barcode}
+                                            title="Submit Barcode Manually"
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#C5A059] hover:bg-[#D4AF37] disabled:bg-[#333] disabled:opacity-50 p-2 text-black rounded-lg transition-colors"
+                                        >
+                                            <ArrowRight className="w-5 h-5" />
+                                        </button>
+                                    </form>
                                 </div>
 
                                 <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]">
@@ -670,84 +580,9 @@ export const WeeklyInventory = () => {
                                     Unexplained variances &gt; 5 Lbs trigger an immediate alert to Area Management.
                                 </div>
                             </div>
-
-                            <div className="bg-[#1a1a1a] border border-[#333] p-4 rounded-lg">
-                                <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-3 flex items-center gap-2">
-                                    <ArrowRight className="w-4 h-4 text-[#C5A059]" />
-                                    Next Steps
-                                </h3>
-                                <ol className="text-sm text-gray-400 space-y-2 list-decimal list-inside mb-4">
-                                    <li>Count items physically in cooler</li>
-                                    <li>Enter precise weight in Lbs, or</li>
-                                    <li>Tap <ScanLine className="w-3 h-3 inline text-[#C5A059]" /> to **Scan Box Barcode**</li>
-                                    <li>Review generated variances</li>
-                                    <li>Submit to unlock shift center</li>
-                                </ol>
-
-                                <div className="bg-[#121212] p-3 rounded border border-[#333] text-xs font-mono text-[#C5A059] flex items-start gap-2">
-                                    <Camera className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <span className="font-bold uppercase block mb-1">New: GS1-128 Scanner</span>
-                                        Point device camera at meat boxes to auto-accumulate exact weights. Works fully offline.
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 )}
-
-            {/* Global Continuous Camera Overlay */}
-            {isCameraOpen && (
-                <div className="fixed inset-0 bg-black/95 z-[999] flex flex-col backdrop-blur-sm">
-                    <div className="p-4 flex justify-between items-center border-b border-[#333]/50 bg-black">
-                        <div className="flex items-center gap-2 text-[#C5A059]">
-                            <div className="w-2 h-2 rounded-full bg-[#C5A059] animate-pulse" />
-                            <span className="font-mono tracking-widest text-sm uppercase">PMA Active Scanner</span>
-                        </div>
-                        <button type="button" title="Close scanner" aria-label="Close scanner" onClick={() => setIsCameraOpen(false)} className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors">
-                            <X className="w-6 h-6" />
-                        </button>
-                    </div>
-
-                    <div className="flex-1 relative flex flex-col justify-center w-full px-4 overflow-hidden pt-12">
-                        <div className="w-full max-w-md mx-auto relative z-10 box-border rounded-xl border-4 border-[#C5A059] shadow-[0_0_30px_rgba(197,160,89,0.2)] bg-black">
-                            <ScannerComponent onScan={handleBarcodeScanned} />
-                        </div>
-
-                        {/* Status Toasts */}
-                        {lastScanned && (
-                            <div className={`absolute top-4 left-1/2 -translate-x-1/2 w-11/12 max-w-sm px-4 py-3 rounded text-sm font-bold shadow-2xl flex items-center gap-3 transition-all transform animate-in slide-in-from-top-4 z-50 ${lastScanned.status === 'success' ? 'bg-[#00FF94] text-black' :
-                                lastScanned.status === 'duplicate' ? 'bg-[#FF2A6D] text-white' :
-                                    'bg-[#C5A059] text-black'
-                                }`}>
-                                {lastScanned.status === 'success' && <CheckCircle2 className="w-5 h-5 flex-shrink-0" />}
-                                {lastScanned.status === 'duplicate' && <ShieldAlert className="w-5 h-5 flex-shrink-0" />}
-                                {lastScanned.status === 'unknown' && <AlertTriangle className="w-5 h-5 flex-shrink-0" />}
-
-                                <span className="font-mono leading-tight">
-                                    {lastScanned.status === 'success' ? `ALLOCATED: ${lastScanned.weight} LBS ➔ ${lastScanned.name.toUpperCase()}` :
-                                        lastScanned.status === 'duplicate' ? `ERROR: BOX ALREADY SCANNED` :
-                                            `UNKNOWN BARCODE: REQUIRES MANUAL MATCH`}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="p-8 pb-12 bg-black border-t border-[#333]/50 mt-auto shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
-                        <div className="text-center text-xs text-gray-500 font-mono tracking-widest uppercase mb-4">
-                            ALIGN BOX BARCODE WITHIN CAMERA VIEW
-                        </div>
-                        <button
-                            type="button"
-                            onClick={simulateContinuousScan}
-                            className="w-full bg-white/5 hover:bg-white/10 border border-[#333] text-white font-mono tracking-widest py-5 rounded-lg flex items-center justify-center gap-3 active:scale-95 transition-all text-sm"
-                        >
-                            <Maximize className="w-5 h-5 text-[#C5A059]" />
-                            SIMULATE SCAN [PITCH DEMO]
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
