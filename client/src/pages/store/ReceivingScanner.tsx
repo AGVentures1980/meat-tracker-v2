@@ -255,7 +255,7 @@ export default function ReceivingScanner() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto overflow-hidden animate-fade-in relative pt-4">
+    <div className="flex flex-col min-h-[calc(100vh-6rem)] max-w-4xl mx-auto animate-fade-in relative pt-4 pb-24">
       
       {/* Header */}
       <div className="flex justify-between items-center mb-6 px-4">
@@ -395,7 +395,7 @@ export default function ReceivingScanner() {
 
       {/* Loading State */}
       {scanResult === 'LOADING' && (
-        <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center animate-fade-in text-center px-4">
+        <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center animate-fade-in text-center px-4">
           <Loader2 className="w-20 h-20 text-blue-500 animate-spin mb-6" />
           <h2 className="text-4xl font-bold text-white mb-2 font-mono tracking-tight">VERIFYING CODE</h2>
           <p className="text-xl text-blue-400 font-mono tracking-widest">{barcode}</p>
@@ -408,7 +408,7 @@ export default function ReceivingScanner() {
 
       {/* NEEDS WEIGHT SCREEN */}
       {scanResult === 'NEEDS_WEIGHT' && (
-        <div className="absolute inset-0 bg-blue-900/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in slide-in-from-bottom text-center px-6">
+        <div className="fixed inset-0 bg-blue-900/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in slide-in-from-bottom text-center px-6">
           <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse">
             <ScanLine className="w-12 h-12 text-blue-600" />
           </div>
@@ -445,8 +445,8 @@ export default function ReceivingScanner() {
 
       {/* RED REJECTED SCREEN (THE GARCIA RULE) - O "NÃO" */}
       {scanResult === 'REJECTED' && (
-        <div className="absolute inset-0 bg-rose-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in zoom-in-95 text-center px-6">
-          <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse">
+        <div className="fixed inset-0 bg-rose-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-start sm:justify-center animate-in zoom-in-95 text-center px-6 overflow-y-auto py-12 sm:py-6">
+          <div className="w-32 h-32 shrink-0 bg-white rounded-full flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse mt-8 sm:mt-0">
             <XCircle className="w-24 h-24 text-rose-600" />
           </div>
           <h2 className="text-5xl md:text-6xl font-black text-white mb-4 uppercase tracking-tighter leading-none">DO NOT ACCEPT</h2>
@@ -475,8 +475,8 @@ export default function ReceivingScanner() {
 
       {/* YELLOW UNMAPPED SCREEN (ADMIN ON-THE-FLY MAPPING) */}
       {scanResult === 'UNMAPPED' && (
-        <div className="absolute inset-0 bg-yellow-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-center animate-in slide-in-from-bottom text-center px-6">
-          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse">
+        <div className="fixed inset-0 bg-yellow-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-start sm:justify-center animate-in slide-in-from-bottom text-center px-6 overflow-y-auto py-12 sm:py-6">
+          <div className="w-24 h-24 shrink-0 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse mt-8 sm:mt-0">
             <AlertTriangle className="w-16 h-16 text-yellow-600" />
           </div>
           <h2 className="text-3xl md:text-5xl font-black text-white mb-2 uppercase tracking-tighter">UNKNOWN PRODUCT</h2>
