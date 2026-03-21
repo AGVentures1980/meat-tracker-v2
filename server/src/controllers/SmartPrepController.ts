@@ -22,8 +22,9 @@ export class SmartPrepController {
             const date = new Date(dateStr);
 
             const whereClause: any = {};
-            if (user.companyId) {
-                whereClause.company_id = user.companyId;
+            const companyId = user.companyId || user.company_id || 'tdb-main';
+            if (companyId) {
+                whereClause.company_id = companyId;
             }
 
             const stores = await prisma.store.findMany({
@@ -83,8 +84,9 @@ export class SmartPrepController {
             const userId = user.userId;
             const userRole = user.role;
             let userStoreId = user.store_id;
+            const companyId = user.companyId || user.company_id || 'tdb-main';
             if (!userStoreId) {
-                const firstStore = await prisma.store.findFirst({ where: { company_id: user.companyId } });
+                const firstStore = await prisma.store.findFirst({ where: { company_id: companyId } });
                 userStoreId = firstStore ? firstStore.id : 1;
             }
 
@@ -99,7 +101,7 @@ export class SmartPrepController {
                 storeLookup = await prisma.store.findFirst({ where: { id: storeId } });
             } else {
                 storeLookup = await prisma.store.findFirst({
-                    where: { id: storeId, company_id: user.companyId }
+                    where: { id: storeId, company_id: companyId }
                 });
             }
 
@@ -432,8 +434,9 @@ export class SmartPrepController {
             if (user.role === 'admin') {
                 store = await prisma.store.findFirst({ where: { id: targetStoreId } });
             } else {
+                const companyId = user.companyId || user.company_id || 'tdb-main';
                 store = await prisma.store.findFirst({
-                    where: { id: targetStoreId, company_id: user.companyId }
+                    where: { id: targetStoreId, company_id: companyId }
                 });
             }
 
