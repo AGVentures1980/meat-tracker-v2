@@ -126,6 +126,8 @@ export const CompanySelector = () => {
                                     <img src="/fdc-logo-pure-white.png" alt="FDC Watermark" className="w-[150px] object-contain opacity-70" />
                                 ) : company.name === 'Texas de Brazil' ? (
                                     <img src="/tdb-logo-white.svg" alt="TDB Watermark" className="w-[150px] object-contain opacity-70" />
+                                ) : company.name.toLowerCase().includes('outback') ? (
+                                    <img src="/outback-logo-white.png" alt="Outback Watermark" className="w-[150px] object-contain opacity-70" />
                                 ) : (
                                     <Building2 size={80} className="text-white" />
                                 )}
