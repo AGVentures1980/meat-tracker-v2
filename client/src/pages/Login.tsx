@@ -124,7 +124,7 @@ export const Login = () => {
                 )}
 
                 {!theme?.bgUrl && theme?.companyName !== 'Fogo de Chão' && (
-                    <div className="absolute inset-0 opacity-60 bg-cover bg-center bg-[url('/background_clean.jpeg')]"></div>
+                    <div className="absolute inset-0 opacity-50 bg-cover bg-center bg-[url('/brasa-hero.png')]"></div>
                 )}
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>

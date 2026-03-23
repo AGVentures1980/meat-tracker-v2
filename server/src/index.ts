@@ -352,7 +352,7 @@ async function ensureOutbackPilot() {
                     subdomain: 'outback',
                     theme_primary_color: '#ce1226',
                     theme_logo_url: '/outback-logo-white.png',
-                    theme_bg_url: '/outback-bg.png'
+                    theme_bg_url: '/outback-hero.mp4'
                 }
             });
         } else {
@@ -363,7 +363,7 @@ async function ensureOutbackPilot() {
                     subdomain: 'outback',
                     theme_primary_color: '#ce1226',
                     theme_logo_url: '/outback-logo-white.png',
-                    theme_bg_url: '/outback-bg.png'
+                    theme_bg_url: '/outback-hero.mp4'
                 }
             });
         }
