@@ -188,5 +188,124 @@ export const OwnerController = {
             console.error('Email Send Error:', error);
             return res.status(500).json({ error: error.message });
         }
+    },
+
+    async seedOutbackPilot(req: Request, res: Response) {
+        try {
+            console.log('🚀 Starting Outback Steakhouse 30-Day Pilot Seeder (API Route)...');
+
+            let outback = await prisma.company.findFirst({
+                where: { name: { contains: 'Outback Steakhouse', mode: 'insensitive' } }
+            });
+
+            if (!outback) {
+                outback = await prisma.company.create({
+                    data: {
+                        name: 'Outback Steakhouse (Pilot)',
+                        operationType: 'ALACARTE',
+                        plan: 'enterprise',
+                        subdomain: 'outback-pilot'
+                    }
+                });
+            } else {
+                await prisma.company.update({
+                    where: { id: outback.id },
+                    data: { operationType: 'ALACARTE' }
+                });
+            }
+
+            const outbackProducts = [
+                { name: 'Signature Sirloin 6oz', protein_group: 'Sirloin', is_villain: true, standard_target: 6.0 },
+                { name: 'Signature Sirloin 8oz', protein_group: 'Sirloin', is_villain: true, standard_target: 8.0 },
+                { name: 'Signature Sirloin 11oz', protein_group: 'Sirloin', is_villain: true, standard_target: 11.0 },
+                { name: 'Victoria Filet 6oz', protein_group: 'Filet', is_villain: true, standard_target: 6.0 },
+                { name: 'Victoria Filet 8oz', protein_group: 'Filet', is_villain: true, standard_target: 8.0 },
+                { name: 'Ribeye 10oz', protein_group: 'Ribeye', is_villain: true, standard_target: 10.0 },
+                { name: 'Ribeye 13oz', protein_group: 'Ribeye', is_villain: true, standard_target: 13.0 },
+                { name: 'Bone-in Ribeye 18oz', protein_group: 'Ribeye', is_villain: false, standard_target: 18.0 },
+                { name: 'Melbourne Porterhouse 22oz', protein_group: 'Porterhouse', is_villain: false, standard_target: 22.0 },
+                { name: 'Bloomin Onion (Colossal)', protein_group: 'Produce', is_villain: false, standard_target: 1.0 },
+                { name: 'Alice Springs Chicken 8oz', protein_group: 'Chicken', is_villain: false, standard_target: 8.0 }
+            ];
+
+            for (const prod of outbackProducts) {
+                await prisma.companyProduct.upsert({
+                    where: {
+                        company_id_name: {
+                            company_id: outback.id,
+                            name: prod.name
+                        }
+                    },
+                    update: {
+                        protein_group: prod.protein_group,
+                        is_villain: prod.is_villain,
+                        standard_target: prod.standard_target
+                    },
+                    create: {
+                        company_id: outback.id,
+                        name: prod.name,
+                        protein_group: prod.protein_group,
+                        is_villain: prod.is_villain,
+                        standard_target: prod.standard_target
+                    }
+                });
+            }
+
+            let store = await prisma.store.findFirst({
+                where: { store_name: 'Outback - Dallas Pilot', company_id: outback.id }
+            });
+
+            if (!store) {
+                store = await prisma.store.create({
+                    data: {
+                        company_id: outback.id,
+                        store_name: 'Outback - Dallas Pilot',
+                        location: 'Dallas, TX',
+                        is_pilot: true,
+                        pilot_start_date: new Date(),
+                        is_lunch_enabled: true,
+                        lunch_start_time: '11:00',
+                        lunch_end_time: '16:00',
+                        dinner_start_time: '16:00',
+                        dinner_end_time: '22:00',
+                        baseline_loss_rate: 6.5
+                    }
+                });
+            }
+
+            const jvpEmail = 'jvp.dallas@outback.com';
+            const mpEmail = 'mp.dallas1@outback.com';
+
+            await prisma.user.upsert({
+                where: { email: jvpEmail },
+                update: { role: 'director', director_region: 'Dallas Metro' },
+                create: {
+                    email: jvpEmail,
+                    first_name: 'John',
+                    last_name: 'JVP',
+                    password_hash: '$2b$10$xyz', // Dummy hash
+                    role: 'director',
+                    director_region: 'Dallas Metro'
+                }
+            });
+
+            await prisma.user.upsert({
+                where: { email: mpEmail },
+                update: { store_id: store.id, role: 'manager' },
+                create: {
+                    email: mpEmail,
+                    first_name: 'Mike',
+                    last_name: 'MP',
+                    password_hash: '$2b$10$xyz', // Dummy hash
+                    role: 'manager',
+                    store_id: store.id
+                }
+            });
+
+            return res.json({ success: true, message: 'Outback Pilot Seeding Complete via API!' });
+        } catch (error: any) {
+            console.error('Seed outback error:', error);
+            return res.status(500).json({ error: error.message });
+        }
     }
 };
