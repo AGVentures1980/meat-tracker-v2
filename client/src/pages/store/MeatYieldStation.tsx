@@ -10,7 +10,6 @@ import {
   ListRestart
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
 
 type Tab = 'YIELD' | 'PORTION';
 
@@ -35,12 +34,12 @@ export default function MeatYieldStation() {
     const scrap = parseFloat(scrapWeight);
     
     if (isNaN(box) || isNaN(scrap) || box <= 0) {
-      toast.error('Please enter valid weights');
+      alert('Please enter valid weights');
       return;
     }
 
     if (scrap >= box) {
-      toast.error('Scrap cannot be greater than box weight');
+      alert('Scrap cannot be greater than box weight');
       return;
     }
 
@@ -52,7 +51,7 @@ export default function MeatYieldStation() {
     else if (pct < 85) status = 'WARN';
 
     setYieldResult({ pct, status });
-    toast.success('Yield Calculated');
+    // alert('Yield Calculated');
   };
 
   const calculatePortion = () => {
@@ -60,7 +59,7 @@ export default function MeatYieldStation() {
     const actual = parseFloat(actualOz);
 
     if (isNaN(target) || isNaN(actual) || target <= 0) {
-      toast.error('Please enter valid ounces');
+      alert('Please enter valid ounces');
       return;
     }
 

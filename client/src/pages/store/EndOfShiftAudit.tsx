@@ -8,7 +8,6 @@ import {
   Lock,
   ArrowRight
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 export default function EndOfShiftAudit() {
@@ -31,7 +30,8 @@ export default function EndOfShiftAudit() {
   const calculateGhostMath = () => {
     const scraps = parseFloat(totalScrapsWeighedLbs);
     if (isNaN(scraps) || scraps < 0) {
-      return toast.error("Enter a valid weight for the total fat and scraps.");
+      alert("Enter a valid weight for the total fat and scraps.");
+      return;
     }
 
     // Ghost Math Calculation
@@ -53,7 +53,7 @@ export default function EndOfShiftAudit() {
       status
     });
 
-    toast.success("Audit Calculated");
+    // alert("Audit Calculated");
   };
 
   const lockShift = async () => {
@@ -78,11 +78,11 @@ export default function EndOfShiftAudit() {
         throw new Error('Failed to record Ghost Math');
       }
 
-      toast.success("Shift Closed and Ghost Math Recorded!");
+      alert("Shift Closed and Ghost Math Recorded!");
       navigate('/command-center');
     } catch (error) {
       console.error(error);
-      toast.error('Failed to lock shift and record audit.');
+      alert('Failed to lock shift and record audit.');
     }
   };
 

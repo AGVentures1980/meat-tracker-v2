@@ -13,8 +13,6 @@ import {
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
-import toast from 'react-hot-toast';
-
 interface PulledBox {
   id: string;
   barcode: string;
@@ -70,7 +68,7 @@ export default function PullToPrep() {
       const parsedData = parseGS1128(barcode);
       
       if (!parsedData) {
-        toast.error('Invalid GS1-128 Barcode');
+        alert('Invalid GS1-128 Barcode');
         setIsLoading(false);
         setManualBarcode('');
         return;
@@ -92,7 +90,7 @@ export default function PullToPrep() {
       };
 
       setPulledBoxes(prev => [newBox, ...prev]);
-      toast.success(`Pulled ${newBox.weightLbs} lbs of ${newBox.protein}`);
+      // alert(`Pulled ${newBox.weightLbs} lbs of ${newBox.protein}`);
       
       // Vibrate if supported (mobile/tablet UX)
       if (navigator.vibrate) {
@@ -101,7 +99,7 @@ export default function PullToPrep() {
 
     } catch (error) {
       console.error('Error pulling box:', error);
-      toast.error('Failed to register pulled box');
+      alert('Failed to register pulled box');
     } finally {
       setIsLoading(false);
       setManualBarcode('');

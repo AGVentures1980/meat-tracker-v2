@@ -10,8 +10,6 @@ import {
   ShieldCheck,
   TrendingDown
 } from 'lucide-react';
-import toast from 'react-hot-toast';
-
 interface MenuItemLock {
   id: string;
   name: string;
@@ -55,10 +53,10 @@ export default function ALaCarteCommandCenter() {
   };
 
   const submitPrepPlan = () => {
-    if (!selectedCompany) return toast.error('No company selected.');
+    if (!selectedCompany) { alert('No company selected.'); return; }
     
     // In production, send to YieldController or SmartPrepController
-    toast.success('Shift Prep Plan Locked!');
+    alert('Shift Prep Plan Locked!');
     setIsLocked(true);
   };
 
