@@ -146,10 +146,12 @@ export const Login = () => {
                                 alt={theme?.companyName || "Brasa Meat Intelligence"}
                                 className={`mx-auto object-contain ${theme?.companyName === 'Fogo de Chão'
                                     ? 'w-[200px] h-[70px] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]'
+                                    : theme?.companyName?.toLowerCase().includes('outback')
+                                    ? 'w-[240px] h-[80px] drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)]'
                                     : 'w-[280px] h-[100px] drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
                                     }`}
                             />
-                            {theme?.companyName !== 'Fogo de Chão' && (
+                            {theme?.companyName !== 'Fogo de Chão' && !theme?.companyName?.toLowerCase().includes('outback') && (
                                 <div className="mt-2 w-full">
                                     <div className="h-px w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
                                     <p className="text-brand-gold uppercase tracking-[0.2em] text-[9px] font-bold">{theme?.companyName || "Meat Intelligence"}</p>
@@ -233,14 +235,16 @@ export const Login = () => {
                         {!loading && <ArrowRight className="w-4 h-4" />}
                     </button>
 
-                    <div className="mt-4 flex justify-center pb-2">
-                        <a 
-                            href="mailto:contact@agvventures.com?subject=Brasa OS - 30-Day Free Pilot Request"
-                            className="text-xs font-semibold text-brand-gold hover:text-white transition-colors uppercase tracking-widest border border-brand-gold/20 hover:border-brand-gold/60 px-6 py-2 rounded-full cursor-pointer bg-brand-gold/5"
-                        >
-                            Request 30-Day Free Demo
-                        </a>
-                    </div>
+                    {(!theme?.companyName || theme?.companyName === 'Brasa Group') && (
+                        <div className="mt-4 flex justify-center pb-2">
+                            <a 
+                                href="mailto:contact@agvventures.com?subject=Brasa OS - 30-Day Free Pilot Request"
+                                className="text-xs font-semibold text-brand-gold hover:text-white transition-colors uppercase tracking-widest border border-brand-gold/20 hover:border-brand-gold/60 px-6 py-2 rounded-full cursor-pointer bg-brand-gold/5"
+                            >
+                                Request 30-Day Free Demo
+                            </a>
+                        </div>
+                    )}
                 </form>
 
                 {/* Mobile Access Link */}
