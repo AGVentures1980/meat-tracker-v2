@@ -102,12 +102,18 @@ export const OwnerController = {
 
             const userId = user.userId;
             const role = user.role;
+            const email = user.email || '';
+            const isMaster = email.toLowerCase().includes('alexandre@alexgarciaventures.co');
 
             let whereClause: any = {};
 
-            if (role !== 'admin') {
-                // Return companies where user is owner OR companies associated with their assigned store
+            if (role !== 'admin' && !isMaster) {
+                // Return companies where user is owner OR companies associated with their assigned store/domain
                 const conditions: any[] = [{ owner_id: userId }];
+
+                if (user.companyId) {
+                    conditions.push({ id: user.companyId });
+                }
 
                 if (user.storeId) {
                     const userStore = await prisma.store.findUnique({

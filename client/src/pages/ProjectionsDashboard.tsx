@@ -103,15 +103,11 @@ export const ProjectionsDashboard = () => {
     }, [user?.token]);
 
     // Logic: Calculate a single row based on FINANCIAL TARGET
-    const calculateRow = (data: StoreProjectionData, growth: number): StoreProjectionData => {
+    // Logic: Calculate a single row based on FINANCIAL TARGET
+    const calculateRow = (data: StoreProjectionData, growth: number, opType: string): StoreProjectionData => {
         // 1. Calculate Financial Target (Revenue)
-        // We need Last Year's Revenue to apply the growth. 
-        // derived from: (LY_Guests_Lunch * LY_Price_Lunch) + (LY_Guests_Dinner * LY_Price_Dinner)
-        // Note: Ideally backend provides LY_Total_Rev including upsell, but here we estimate based on provided fields.
-        // Let's assume the "Prices" in data are the Rodizio Prices.
-        // User Logic: "PPA is $78, Rodizio is $63, Upsell is $15".
-        // We need an "Average Upsell" constant or input. Let's assume $15.00 for now as a baseline or derive if possible.
-        const AVG_UPSELL = 15.00;
+        const isAla = opType === 'ALACARTE';
+        const AVG_UPSELL = isAla ? 0 : 15.00;
 
         const lyRevenueLunch = data.lunchGuestsLastYear * (data.lunchPrice + AVG_UPSELL);
         const lyRevenueDinner = data.dinnerGuestsLastYear * (data.dinnerPrice + AVG_UPSELL);
@@ -120,13 +116,7 @@ export const ProjectionsDashboard = () => {
         const targetRevenue = lyTotalRevenue * (1 + (growth / 100));
 
         // 2. Calculate New PPA (Projected)
-        // We use the INPUT prices (which user might have raised) + same upsell
-        // Weighted average PPA based on LY mix? Or just sum guests?
-        // Let's solve for Guests assuming the ratio of Lunch/Dinner stays same as LY.
-
         const lyTotalGuests = data.lunchGuestsLastYear + data.dinnerGuestsLastYear;
-
-        // Guard against division by zero (New Stores / No History)
         if (lyTotalGuests === 0) {
             return {
                 ...data,
@@ -148,14 +138,9 @@ export const ProjectionsDashboard = () => {
         const weightedNewPPA = (projectedPPA_Lunch * lunchRatio) + (projectedPPA_Dinner * dinnerRatio);
 
         // 3. Derive Required Guests to hit Target Revenue
-        // TargetRev = Guests * NewPPA  =>  Guests = TargetRev / NewPPA
-
-        // Guard against zero price (unlikely but safe)
         const requiredTotalGuests = weightedNewPPA > 0 ? Math.round(targetRevenue / weightedNewPPA) : 0;
-
-        // Split back into Lunch/Dinner for display
         const projLunch = Math.round(requiredTotalGuests * lunchRatio);
-        const projDinner = requiredTotalGuests - projLunch; // Ensure total matches (rounding diffs)
+        const projDinner = requiredTotalGuests - projLunch;
 
         // 4. Meat Volume (Target)
         const targetLbs = requiredTotalGuests * (data.target_lbs_guest || GLOBAL_TARGET_LBS);
@@ -171,7 +156,7 @@ export const ProjectionsDashboard = () => {
             ...data,
             projectedLunchGuests: projLunch,
             projectedDinnerGuests: projDinner,
-            projectedRevenue: targetRevenue, // This is now the DRIVER
+            projectedRevenue: targetRevenue,
             projectedMeatLbs: targetLbs,
             statusQuoMeatLbs: statusQuoLbs,
             savingsLbs,
@@ -183,35 +168,48 @@ export const ProjectionsDashboard = () => {
     const handleGrowthChange = (val: string) => {
         const num = parseFloat(val) || 0;
         setGrowthRate(num);
-        const updated = storeData.map(d => calculateRow(d, num));
+        const updated = storeData.map(d => calculateRow(d, num, operationType));
         setStoreData(updated);
     };
 
     const handleStoreChange = (id: number, field: keyof StoreProjectionData, val: string) => {
         const num = parseFloat(val) || 0;
-        // If they change price, it changes the PPA -> changes Guest Count (Inverse)
         const updated = storeData.map(d => {
             if (d.id === id) {
                 const newData = { ...d, [field]: num };
-                return calculateRow(newData, growthRate);
+                return calculateRow(newData, growthRate, operationType);
             }
             return d;
         });
         setStoreData(updated);
     };
 
+    // Initialize Data
+    useEffect(() => {
+        const fetchProjections = async () => {
+            if (!user?.token) return;
+            try {
+                const res = await fetch('/api/v1/dashboard/projections-data', {
+                    headers: { 'Authorization': `Bearer ${user.token}` }
+                });
+                if (res.ok) {
+                    const { stores, annualGrowthRate, operationType } = await res.json();
+                    setOperationType(operationType || 'RODIZIO');
+                    setGrowthRate(annualGrowthRate);
+                    const calculated = stores.map((d: any) => calculateRow(d as StoreProjectionData, annualGrowthRate, operationType || 'RODIZIO'));
+                    setStoreData(calculated);
+                }
+            } catch (err) {
+                console.error("Failed to fetch projections data", err);
+            }
+        };
+        fetchProjections();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.token]);
+
     const handleAuthAction = async () => {
-        // Validation: Allow common variants and the user's login password for convenience
         const cleanPass = publishPassword.trim().toLowerCase();
-
-        // Allowed Passwords:
-        // 1. 'admin' (Case Insensitive)
-        // 2. 'admin_master_2026' (Hardcoded Master)
-        // 3. 'ag2113@9' (User's Login)
-        // 4. '1234' (Simple fallback for demo)
-
-        if (cleanPass === 'admin' || cleanPass === 'admin_master_2026' || cleanPass === 'ag2113@9' || cleanPass === '1234') {
-
+        if (['admin', 'admin_master_2026', 'ag2113@9', '1234'].includes(cleanPass)) {
             if (modalMode === 'RESET') {
                 setIsPasswordModalOpen(false);
                 setIsPublished(false);
@@ -219,31 +217,20 @@ export const ProjectionsDashboard = () => {
                 alert("Targets Unlocked. You may now edit projections.");
                 return;
             }
-
             try {
-                // Persist Targets to Backend
                 const targetsPayload = storeData.map(s => ({
                     storeId: s.id,
                     target_lbs_guest: s.target_lbs_guest,
-                    // We could also save projected guests if we had a column for it, but for now we focus on the efficiency driver
                 }));
-
                 const response = await fetch('/api/v1/dashboard/targets', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${user?.token || ''}`
                     },
-                    body: JSON.stringify({
-                        targets: targetsPayload,
-                        annual_growth_rate: growthRate
-                    })
+                    body: JSON.stringify({ targets: targetsPayload, annual_growth_rate: growthRate })
                 });
-
-                if (!response.ok) {
-                    throw new Error('Failed to save targets');
-                }
-
+                if (!response.ok) throw new Error('Failed to save targets');
                 setIsPasswordModalOpen(false);
                 setIsPublished(true);
                 setPublishError('');
@@ -257,26 +244,20 @@ export const ProjectionsDashboard = () => {
         }
     };
 
-    // Handle Enter Key
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            handleAuthAction();
-        }
+        if (e.key === 'Enter') handleAuthAction();
     };
 
-    // Aggregates
     const totalRevenue = storeData.reduce((acc, d) => acc + d.projectedRevenue, 0);
     const totalVolume = storeData.reduce((acc, d) => acc + d.projectedMeatLbs, 0);
     const totalSavingsObs = storeData.reduce((acc, d) => acc + d.savingsDollars, 0);
 
-    // Formatting
     const fmtCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
     const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n));
 
     const isAlacarte = operationType === 'ALACARTE';
     const activeStandards = isAlacarte ? ALACARTE_MEAT_STANDARDS : RODIZIO_MEAT_STANDARDS;
 
-    // Meat Breakdown Calculation
     const totalGuests = storeData.reduce((acc, d) => acc + d.projectedLunchGuests + d.projectedDinnerGuests, 0);
     const meatBreakdown = Object.entries(activeStandards).map(([meat, factor]) => ({
         name: meat,
@@ -392,7 +373,8 @@ export const ProjectionsDashboard = () => {
                         {t('proj_store_forecasting')}
                     </h3>
                     <div className="text-xs text-gray-500 font-mono">
-                        {t('proj_total_rev')}: <span className="text-white font-bold text-sm ml-1">{fmtCurrency(totalRevenue)}</span>
+                        {isAlacarte ? "TOTAL MEAT REVENUE: " : t('proj_total_rev') + ": "} 
+                        <span className="text-white font-bold text-sm ml-1">{fmtCurrency(totalRevenue)}</span>
                     </div>
                 </div>
 
@@ -401,13 +383,13 @@ export const ProjectionsDashboard = () => {
                         <thead>
                             <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
                                 <th className="p-4 font-normal sticky left-0 bg-[#121212] z-10">{t('proj_col_store')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_lunch_ly')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_dinner_ly')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? "Lunch Traffic (LY)" : t('proj_col_lunch_ly')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? "Dinner Traffic (LY)" : t('proj_col_dinner_ly')}</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{isAlacarte ? "Meat Avg(L) $" : t('proj_col_lunch_price')}</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? "Meat Avg(D) $" : t('proj_col_dinner_price')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">{t('proj_col_target_lbs')}</th>
-                                <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_lunch')}</th>
-                                <th className="p-4 font-normal text-right bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_dinner')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">{isAlacarte ? "Target Lbs/Cust" : t('proj_col_target_lbs')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{isAlacarte ? "Proj. Lunch" : "Proj. Lunch Guests"}</th>
+                                <th className="p-4 font-normal text-right bg-brand-gold/5 text-brand-gold">{isAlacarte ? "Proj. Dinner" : "Proj. Dinner Guests"}</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333]">{isAlacarte ? "PROJ. MEAT REV" : t('proj_col_proj_rev')}</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_meat_vol')}</th>
                                 <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
@@ -425,7 +407,7 @@ export const ProjectionsDashboard = () => {
                                     <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             type="number"
-                                            title={`Lunch Guests Last Year - ${store.name}`}
+                                            title={isAlacarte ? `Lunch Traffic Last Year - ${store.name}` : `Lunch Guests Last Year - ${store.name}`}
                                             value={store.lunchGuestsLastYear}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'lunchGuestsLastYear', e.target.value)}
@@ -434,7 +416,7 @@ export const ProjectionsDashboard = () => {
                                     <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             type="number"
-                                            title={`Dinner Guests Last Year - ${store.name}`}
+                                            title={isAlacarte ? `Dinner Traffic Last Year - ${store.name}` : `Dinner Guests Last Year - ${store.name}`}
                                             value={store.dinnerGuestsLastYear}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'dinnerGuestsLastYear', e.target.value)}
@@ -443,7 +425,7 @@ export const ProjectionsDashboard = () => {
                                     <td className="p-2 text-right">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             type="number"
-                                            title={`Lunch Price - ${store.name}`}
+                                            title={isAlacarte ? `Avg Meat PPA Lunch - ${store.name}` : `Lunch Price - ${store.name}`}
                                             value={store.lunchPrice}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'lunchPrice', e.target.value)}
@@ -452,7 +434,7 @@ export const ProjectionsDashboard = () => {
                                     <td className="p-2 text-right border-r border-[#333]">
                                         <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             type="number"
-                                            title={`Dinner Price - ${store.name}`}
+                                            title={isAlacarte ? `Avg Meat PPA Dinner - ${store.name}` : `Dinner Price - ${store.name}`}
                                             value={store.dinnerPrice}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'dinnerPrice', e.target.value)}
@@ -461,7 +443,7 @@ export const ProjectionsDashboard = () => {
                                     <td className="p-2 text-right">
                                         <input className={`bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             type="number"
-                                            title={`Target Lbs per Guest - ${store.name}`}
+                                            title={isAlacarte ? `Target Lbs per Customer - ${store.name}` : `Target Lbs per Guest - ${store.name}`}
                                             value={store.target_lbs_guest}
                                             disabled={isPublished}
                                             onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', e.target.value)}

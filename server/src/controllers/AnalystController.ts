@@ -230,9 +230,9 @@ export class AnalystController {
                 if (isPerforming) lbsGuestVar *= -1;
 
                 // Impact $$
-                const annualVolume = 150000; // Average
+                const annualVolume = store.annual_volume_lbs || 150000;
                 const monthlyVolume = annualVolume / 12;
-                const costPerLb = 9.50;
+                const costPerLb = store.baseline_cost_per_lb || 9.50;
                 const impactYTD = (monthlyVolume * lbsGuestVar) * costPerLb;
 
                 return {
