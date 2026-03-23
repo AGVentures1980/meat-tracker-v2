@@ -127,7 +127,7 @@ export const CompanySelector = () => {
                                 ) : company.name === 'Texas de Brazil' ? (
                                     <img src="/tdb-logo-white.svg" alt="TDB Watermark" className="w-[150px] object-contain opacity-70" />
                                 ) : company.name.toLowerCase().includes('outback') ? (
-                                    <img src="/outback-logo-white.png" alt="Outback Watermark" className="w-[150px] object-contain opacity-70" />
+                                    <img src="/outback-logo.svg" alt="Outback Watermark" className="w-[150px] object-contain opacity-70" />
                                 ) : (
                                     <Building2 size={80} className="text-white" />
                                 )}
@@ -155,7 +155,7 @@ export const CompanySelector = () => {
                                 ) : company.name === 'Brasa Group' ? (
                                     <img src="/brasa-logo-v3.png" alt="Brasa Group" className="h-[55px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md brightness-[5] grayscale" />
                                 ) : company.name.toLowerCase().includes('outback') ? (
-                                    <img src="/outback-logo-white.png" alt="Outback Steakhouse" className="h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                    <img src="/outback-logo.svg" alt="Outback Steakhouse" className="h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : (
                                     <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#C5A059] transition-colors">{company.name}</h3>
                                 )}

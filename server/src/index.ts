@@ -351,7 +351,7 @@ async function ensureOutbackPilot() {
                     plan: 'enterprise',
                     subdomain: 'outback',
                     theme_primary_color: '#ce1226',
-                    theme_logo_url: '/outback-logo-white.png',
+                    theme_logo_url: '/outback-logo.svg',
                     theme_bg_url: '/outback-hero.mp4'
                 }
             });
@@ -362,7 +362,7 @@ async function ensureOutbackPilot() {
                     operationType: 'ALACARTE', 
                     subdomain: 'outback',
                     theme_primary_color: '#ce1226',
-                    theme_logo_url: '/outback-logo-white.png',
+                    theme_logo_url: '/outback-logo.svg',
                     theme_bg_url: '/outback-hero.mp4'
                 }
             });
