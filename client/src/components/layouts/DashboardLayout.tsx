@@ -23,7 +23,9 @@ import {
     BrainCircuit,
     ShieldCheck,
     Database,
-    ScanLine
+    ScanLine,
+    Scissors,
+    AlertOctagon
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -81,6 +83,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             navItems.push({
                 section: t('nav.section_run') || 'RUN (Shift Command)', items: [
                     { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
+                    { icon: ScanLine, label: 'Pull to Prep (Boxes)', path: '/pull-to-prep' },
+                    { icon: Scissors, label: 'Meat Yield Station', path: '/yield-station' },
+                    { icon: AlertOctagon, label: 'EOD Shift Audit', path: '/end-of-shift-audit' },
                     { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
                 ]
             });
@@ -148,6 +153,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const [networkStats, setNetworkStats] = useState<{ totalStores: number, activeReporting: number } | null>(null);
     const [alerts, setAlerts] = useState<any[]>([]);
     const [companyName, setCompanyName] = useState<string | null>(null);
+    const [operationType, setOperationType] = useState<string>('RODIZIO');
 
     useEffect(() => {
         if (selectedCompany && user?.token) {
@@ -157,10 +163,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             .then(res => res.json())
             .then(data => {
                 if (data.name) setCompanyName(data.name);
+                if (data.operationType) setOperationType(data.operationType);
             })
             .catch(err => console.error('Failed to fetch company name:', err));
         } else {
             setCompanyName(null);
+            setOperationType('RODIZIO');
         }
     }, [selectedCompany, user?.token]);
 
@@ -339,19 +347,21 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
 
                     {/* Executive View (Admin/Director Only) */}
-                    {selectedCompany && (user?.role === 'admin' || user?.role === 'director' || user?.email?.includes('admin')) && (
+                    {selectedCompany && (user?.role === 'admin' || user?.role === 'director' || user?.role === 'area_manager' || user?.email?.includes('admin')) && (
                         <>
                             {!isDavid && (
                                 <Link
-                                    to="/executive"
-                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive'
+                                    to={operationType === 'ALACARTE' ? '/jvp-dashboard' : '/executive'}
+                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive' || location.pathname === '/jvp-dashboard'
                                         ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
                                         : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                         } `}
                                 >
                                     <AlertTriangle className="w-5 h-5 min-w-[20px]" />
                                     <div className="flex flex-1 items-center justify-between">
-                                        <span className="text-sm font-medium tracking-wide">{t('nav_executive')}</span>
+                                        <span className="text-sm font-medium tracking-wide">
+                                            {operationType === 'ALACARTE' ? 'JVP Command Center' : t('nav_executive')}
+                                        </span>
                                     </div>
                                 </Link>
                             )}
@@ -568,7 +578,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     <div className="px-4 py-2 border-b border-[#333]">
                                         <p className="text-xs text-gray-500 font-mono underline uppercase tracking-tighter">{t('profile_current_user')}</p>
                                         <p className="text-[11px] text-white font-bold truncate">{user?.email}</p>
-                                        <p className="text-[10px] text-[#C5A059] font-mono uppercase">{user?.role}</p>
+                                        <p className="text-[10px] text-[#C5A059] font-mono uppercase">
+                                            {operationType === 'ALACARTE' && user?.role === 'director' ? 'Joint Venture Partner' : 
+                                             operationType === 'ALACARTE' && user?.role === 'manager' ? 'Managing Partner' : 
+                                             user?.role}
+                                        </p>
                                     </div>
                                     <button
                                         onClick={() => { navigate('/settings'); setShowProfileMenu(false); }}

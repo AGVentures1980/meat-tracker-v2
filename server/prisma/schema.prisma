@@ -25,6 +25,7 @@ model Company {
   theme_logo_url              String?
   theme_primary_color         String?
   billing_type                String                 @default("STRIPE_AUTO")
+  operationType               OperationType          @default(RODIZIO)
   company_status              String                 @default("Pending")
   stripe_customer_id          String?                @unique
   api_key                     String?                @unique
@@ -634,6 +635,11 @@ enum CycleStatus {
   PENDING
   SUBMITTED
   LOCKED
+}
+
+enum OperationType {
+  RODIZIO
+  ALACARTE
 }
 
 enum Role {

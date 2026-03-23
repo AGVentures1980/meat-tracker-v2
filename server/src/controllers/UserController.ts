@@ -313,9 +313,9 @@ export const UserController = {
     getCompanyName: async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const company = await prisma.company.findUnique({ where: { id }, select: { name: true } });
+            const company = await prisma.company.findUnique({ where: { id }, select: { name: true, operationType: true } });
             if (!company) return res.status(404).json({ error: 'Company not found' });
-            return res.json({ name: company.name });
+            return res.json({ name: company.name, operationType: company.operationType });
         } catch (error) {
             console.error('getCompanyName error:', error);
             return res.status(500).json({ error: 'Failed to fetch company name' });

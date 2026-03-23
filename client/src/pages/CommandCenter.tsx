@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import ALaCarteCommandCenter from './store/components/ALaCarteCommandCenter';
 
 export const CommandCenter = () => {
     const { user, selectedCompany } = useAuth();
@@ -34,6 +35,7 @@ export const CommandCenter = () => {
     const [networkPrepStatus, setNetworkPrepStatus] = useState<any>(null);
     const [selectedStoreId, setSelectedStoreId] = useState<number | null>(user?.storeId || null);
     const [isStoreDropdownOpen, setIsStoreDropdownOpen] = useState(false);
+    const [operationType, setOperationType] = useState<'RODIZIO' | 'ALACARTE'>('RODIZIO');
 
     // --- REASON LIST FOR WASTE ---
     const WASTE_REASONS = ['Floor Drop', 'Over-Prep', 'Quality Check', 'Burnt/Cook Error', 'End of Shift', 'Staff Meals (Family Meal)'];
@@ -138,6 +140,14 @@ export const CommandCenter = () => {
                     setVillains(pData.filter((p: any) => p.is_villain).map((p: any) => p.name));
                 }
             }
+
+            // 5. Fetch Company Settings
+            const companyRes = await fetch('/api/v1/dashboard/settings/company', { headers: getHeaders() });
+            if (companyRes.ok) {
+                const cData = await companyRes.json();
+                setOperationType(cData.operationType || 'RODIZIO');
+            }
+
         } catch (err) {
             console.error('Failed to sync with command center.', err);
         } finally {
@@ -383,6 +393,10 @@ export const CommandCenter = () => {
                 </div>
             </div>
         );
+    }
+
+    if (operationType === 'ALACARTE') {
+        return <ALaCarteCommandCenter />;
     }
 
     // --- COMMAND CENTER RENDER ---

@@ -2985,3 +2985,26 @@ Error: listen EADDRINUSE: address already in use :::3002
     at app.listen (/Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/node_modules/express/lib/application.js:635:24)
     at /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts:345:9
 [ERROR] 02:01:03 Error: listen EADDRINUSE: address already in use :::3002
+[INFO] 02:07:58 Restarting: /Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/server/src/index.ts has been modified
+node:internal/modules/cjs/loader:1424
+  throw err;
+  ^
+
+Error: Cannot find module '/var/folders/d7/wzyp1cj90hdbj53pp51_cg8w0000gn/T/ts-node-dev-hook-42118289518243557.js'
+Require stack:
+- internal/preload
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)
+    at Module._load (node:internal/modules/cjs/loader:1227:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1504:12)
+    at node:internal/modules/cjs/loader:2046:12
+    at loadPreloadModules (node:internal/process/pre_execution:698:5)
+    at initializeModuleLoaders (node:internal/process/pre_execution:238:5) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'internal/preload' ]
+}
+
+Node.js v24.13.0

@@ -52,6 +52,10 @@ import { ContractsVault } from './pages/admin/ContractsVault';
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 import CorporateSpecs from './pages/executive/CorporateSpecs';
 import ReceivingScanner from './pages/store/ReceivingScanner';
+import PullToPrep from './pages/store/PullToPrep';
+import MeatYieldStation from './pages/store/MeatYieldStation';
+import EndOfShiftAudit from './pages/store/EndOfShiftAudit';
+import JVPDashboard from './pages/executive/JVPDashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -176,9 +180,13 @@ function AppContent() {
                     <Route path="/delivery" element={<DeliveryPage />} />
                     <Route path="/receiving" element={<ReceivingScanner />} />
                     <Route path="/waste" element={<WastePage />} />
+                    <Route path="/pull-to-prep" element={<GovernanceGuard><PullToPrep /></GovernanceGuard>} />
+                    <Route path="/yield-station" element={<GovernanceGuard><MeatYieldStation /></GovernanceGuard>} />
+                    <Route path="/end-of-shift-audit" element={<GovernanceGuard><EndOfShiftAudit /></GovernanceGuard>} />
                     <Route path="/forecast" element={<GovernanceGuard><ForecastPage /></GovernanceGuard>} />
                     <Route path="/command-center" element={<CommandCenter />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
+                    <Route path="/jvp-dashboard" element={<GovernanceGuard><JVPDashboard /></GovernanceGuard>} />
                     <Route path="/executive/specs" element={<CorporateSpecs />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                     <Route path="/cfo-report" element={<CFOReport />} />

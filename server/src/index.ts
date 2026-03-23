@@ -109,6 +109,7 @@ app.get('/api/v1/public-debug/seed-fdc', DebugController.seedFdcProduction);
 
 import contractsRoutes from './routes/contracts.routes';
 import complianceRoutes from './routes/compliance.routes';
+import yieldRoutes from './routes/yield.routes';
 
 // Protected Routes
 app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
@@ -130,6 +131,7 @@ app.use('/api/v1/partner', partnerRoutes);
 app.use('/api/v1/admin-partner', agvAdminRoutes);
 app.use('/api/v1/contracts', requireAuth, contractsRoutes);
 app.use('/api/v1/compliance', requireAuth, complianceRoutes);
+app.use('/api/v1/yield', requireAuth, yieldRoutes);
 app.use('/api/v1', leadRoutes);
 
 // Temporary Setup Route (Remove in production later)
