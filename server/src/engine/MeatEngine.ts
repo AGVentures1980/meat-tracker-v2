@@ -370,6 +370,12 @@ export class MeatEngine {
     }
 
     static async getNetworkReportCard(year: number, week: number, companyId?: string) {
+        let operationType = 'RODIZIO';
+        if (companyId) {
+            const company = await prisma.company.findUnique({ where: { id: companyId } });
+            if (company) operationType = company.operationType || 'RODIZIO';
+        }
+
         // Mock Data for Network Report Card to match Frontend Interface
         return {
             year,
@@ -381,7 +387,7 @@ export class MeatEngine {
             lbsPerGuestPTD: 1.84,
             lbsPerGuestYTD: 1.83,
             planLbsPerGuestYTD: 1.76,
-            impactYTD: -125000 // Negative means savings in this context? Or Loss? Frontend says: impactYTD < 0 ? '-' : '+'. 
+            impactYTD: -125000, // Negative means savings in this context? Or Loss? Frontend says: impactYTD < 0 ? '-' : '+'. 
             // If impactYTD < 0, it renders with Red color?
             // Frontend: data.impactYTD < 0 ? 'bg-[#FF2A6D]/10' : 'bg-[#00FF94]/10'
             // Text: data.impactYTD < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]' (Red vs Green)
@@ -391,6 +397,12 @@ export class MeatEngine {
             // If I am UNDER budget, variance is negative -> Good -> Green.
             // Let's return positive 45000 (Loss) to test or negative (Savings).
             // Let's set it to valid number.
+            operationType,
+            
+            // ALACARTE Payload
+            boxPriceDrift: 1.15,
+            trimYieldPct: 78.4,
+            specTargetYield: 85.0
         };
     }
 
@@ -573,16 +585,28 @@ export class MeatEngine {
                 theoreticalRevenue, // New
                 foodCostPercentage, // New
                 hasQCAlert, // New
-                status: Math.abs(lbsPerGuest - ((store as any).target_lbs_guest || 1.76)) < 0.1 ? 'Optimal' : 'Warning'
+                status: Math.abs(lbsPerGuest - ((store as any).target_lbs_guest || 1.76)) < 0.1 ? 'Optimal' : 'Warning',
+                
+                // ALACARTE Props (Mocked for ALACARTE operationType)
+                actualYieldPct: 78.4 + (Math.random() * 5 - 2.5),
+                targetYieldPct: 85.0,
+                portionVariancePct: 3.5 + (Math.random() * 2 - 1),
+                priceDriftPerLb: 1.15 + (Math.random() * 0.5 - 0.25),
+                executionImpact: -4500 + (Math.random() * 2000 - 1000)
             });
         }
 
-        return { performance: performanceProp };
+        let operationType = 'RODIZIO';
+        if (stores.length > 0 && stores[0].company) {
+            operationType = (stores[0].company as any).operationType || 'RODIZIO';
+        }
+
+        return { performance: performanceProp, operationType };
     }
 
     static async getExecutiveStats(user: any, start?: Date, end?: Date) {
         // Reuse the logic to get store-level performance
-        const { performance } = await this.getCompanyDashboardStats(user, start, end);
+        const { performance, operationType } = await this.getCompanyDashboardStats(user, start, end);
 
         // Aggregate Defaults
         let totalGuests = 0;
@@ -631,7 +655,8 @@ export class MeatEngine {
                 net_impact_ytd: totalNetImpact,
                 villain_impact: totalVillainLoss,
                 avg_lbs_variance: avgVariance,
-                status: totalNetImpact <= 0 ? 'Savings' : 'Loss'
+                status: totalNetImpact <= 0 ? 'Savings' : 'Loss',
+                operationType
             },
             top_savers: topSavers,
             top_spenders: topSpenders,

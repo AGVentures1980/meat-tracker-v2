@@ -27,6 +27,13 @@ interface StorePerformance {
     theoreticalRevenue?: number;
     foodCostPercentage?: number;
     status: 'Optimal' | 'Warning' | 'Critical';
+    
+    // Alacarte fields
+    actualYieldPct?: number;
+    targetYieldPct?: number;
+    portionVariancePct?: number;
+    priceDriftPerLb?: number;
+    executionImpact?: number;
 }
 
 export const Dashboard = () => {
@@ -297,10 +304,21 @@ export const Dashboard = () => {
                                     <th className="p-4 font-normal">{t('proj_col_store')}</th>
                                     <th className="p-4 font-normal text-right">{t('projected_guests')}</th>
                                     <th className="p-4 font-normal text-right text-[#C5A059]">Food Cost %</th>
-                                    <th className="p-4 font-normal text-right">Lbs/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
-                                    <th className="p-4 font-normal text-right">$/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
-                                    <th className="p-4 font-normal text-right">{t('price_weekly_drift')} $/Guest</th>
-                                    <th className="p-4 font-normal text-right">{t('price_cost_impact')}</th>
+                                    {summary?.operationType === 'ALACARTE' ? (
+                                        <>
+                                            <th className="p-4 font-normal text-right">Yield %<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
+                                            <th className="p-4 font-normal text-right">Portion Var %</th>
+                                            <th className="p-4 font-normal text-right">Price Drift $/Lb</th>
+                                            <th className="p-4 font-normal text-right">Execution Impact $</th>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <th className="p-4 font-normal text-right">Lbs/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
+                                            <th className="p-4 font-normal text-right">$/Guest<br /><span className="text-[9px] opacity-70">(Act / Tgt)</span></th>
+                                            <th className="p-4 font-normal text-right">{t('price_weekly_drift')} $/Guest</th>
+                                            <th className="p-4 font-normal text-right">{t('price_cost_impact')}</th>
+                                        </>
+                                    )}
                                     <th className="p-4 font-normal text-center">Status</th>
                                 </tr>
                             </thead>
@@ -326,43 +344,78 @@ export const Dashboard = () => {
                                                 </div>
                                             </td>
 
-                                            {/* Lbs/Guest (Split View) */}
-                                            <td className="p-4 text-right">
-                                                <div className={`font-bold ${store.lbsPerGuest > (store.target_lbs_guest || 1.76) ? 'text-[#FF9F1C]' : 'text-[#00FF94]'}`}>
-                                                    {store.lbsPerGuest.toFixed(2)}
-                                                </div>
-                                                <div className="text-[9px] text-gray-500 font-mono">
-                                                    Target: {(store.target_lbs_guest || 1.76).toFixed(2)}
-                                                </div>
-                                                {/* v3.2 Shift Ops Detail */}
-                                                <div className="flex justify-end gap-1 mt-1 opacity-60">
-                                                    <span className="text-[8px] bg-[#333] px-1 rounded text-white" title="Lunch Lbs/Guest">
-                                                        L: {(store as any).lbsPerGuestLunch?.toFixed(2) || '-'}
-                                                    </span>
-                                                    <span className="text-[8px] bg-[#333] px-1 rounded text-white" title="Dinner Lbs/Guest">
-                                                        D: {(store as any).lbsPerGuestDinner?.toFixed(2) || '-'}
-                                                    </span>
-                                                </div>
-                                            </td>
+                                            {summary?.operationType === 'ALACARTE' ? (
+                                                <>
+                                                    {/* Yield % */}
+                                                    <td className="p-4 text-right">
+                                                        <div className={`font-bold ${(store.actualYieldPct || 0) < (store.targetYieldPct || 85) ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                                            {store.actualYieldPct?.toFixed(1)}%
+                                                        </div>
+                                                        <div className="text-[9px] text-gray-500 font-mono">
+                                                            Target: {store.targetYieldPct?.toFixed(1)}%
+                                                        </div>
+                                                    </td>
 
-                                            {/* $/Guest */}
-                                            <td className="p-4 text-right">
-                                                <div className={`font-bold ${store.costPerGuest > (store.target_cost_guest || 9.94) ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
-                                                    ${store.costPerGuest.toFixed(2)}
-                                                </div>
-                                                <div className="text-[10px] text-gray-500">
-                                                    / ${(store.target_cost_guest || 9.94).toFixed(2)}
-                                                </div>
-                                            </td>
+                                                    {/* Portion Variance */}
+                                                    <td className="p-4 text-right">
+                                                        <div className={`font-bold ${(store.portionVariancePct || 0) > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                                            {(store.portionVariancePct || 0) > 0 ? '+' : ''}{store.portionVariancePct?.toFixed(1)}%
+                                                        </div>
+                                                    </td>
 
-                                            {/* Cost Variance */}
-                                            <td className={`p-4 text-right ${store.costGuestVar > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
-                                                {store.costGuestVar > 0 ? '+' : ''}${store.costGuestVar.toFixed(2)}
-                                            </td>
+                                                    {/* Price Drift */}
+                                                    <td className="p-4 text-right">
+                                                        <div className={`font-bold ${(store.priceDriftPerLb || 0) > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                                            {(store.priceDriftPerLb || 0) > 0 ? '+' : ''}${store.priceDriftPerLb?.toFixed(2)}
+                                                        </div>
+                                                    </td>
 
-                                            <td className={`p-4 text-right font-bold ${store.impactYTD < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
-                                                {store.impactYTD < 0 ? '-' : '+'}${Math.abs(store.impactYTD).toLocaleString()}
-                                            </td>
+                                                    {/* Execution Impact */}
+                                                    <td className={`p-4 text-right font-bold ${(store.executionImpact || 0) < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                                        {(store.executionImpact || 0) < 0 ? '-' : '+'}${Math.abs(store.executionImpact || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                                    </td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {/* Lbs/Guest (Split View) */}
+                                                    <td className="p-4 text-right">
+                                                        <div className={`font-bold ${store.lbsPerGuest > (store.target_lbs_guest || 1.76) ? 'text-[#FF9F1C]' : 'text-[#00FF94]'}`}>
+                                                            {store.lbsPerGuest.toFixed(2)}
+                                                        </div>
+                                                        <div className="text-[9px] text-gray-500 font-mono">
+                                                            Target: {(store.target_lbs_guest || 1.76).toFixed(2)}
+                                                        </div>
+                                                        {/* v3.2 Shift Ops Detail */}
+                                                        <div className="flex justify-end gap-1 mt-1 opacity-60">
+                                                            <span className="text-[8px] bg-[#333] px-1 rounded text-white" title="Lunch Lbs/Guest">
+                                                                L: {(store as any).lbsPerGuestLunch?.toFixed(2) || '-'}
+                                                            </span>
+                                                            <span className="text-[8px] bg-[#333] px-1 rounded text-white" title="Dinner Lbs/Guest">
+                                                                D: {(store as any).lbsPerGuestDinner?.toFixed(2) || '-'}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* $/Guest */}
+                                                    <td className="p-4 text-right">
+                                                        <div className={`font-bold ${store.costPerGuest > (store.target_cost_guest || 9.94) ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                                            ${store.costPerGuest.toFixed(2)}
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-500">
+                                                            / ${(store.target_cost_guest || 9.94).toFixed(2)}
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Cost Variance */}
+                                                    <td className={`p-4 text-right ${store.costGuestVar > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                                        {store.costGuestVar > 0 ? '+' : ''}${store.costGuestVar.toFixed(2)}
+                                                    </td>
+
+                                                    <td className={`p-4 text-right font-bold ${store.impactYTD < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                                        {store.impactYTD < 0 ? '-' : '+'}${Math.abs(store.impactYTD).toLocaleString()}
+                                                    </td>
+                                                </>
+                                            )}
                                             <td className="p-4 text-center">
                                                 <span className={`inline-block px-2 py-1 text-[10px] rounded-none font-bold uppercase tracking-wide border ${store.status === 'Optimal' ? 'bg-[#00FF94]/10 text-[#00FF94] border-[#00FF94]/30' :
                                                     store.status === 'Warning' ? 'bg-[#FF9F1C]/10 text-[#FF9F1C] border-[#FF9F1C]/30' :

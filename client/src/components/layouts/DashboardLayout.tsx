@@ -63,16 +63,19 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         });
     }
 
+    const hideReceivingFromExecs = user?.role === 'director' || user?.role === 'admin' || isMaster;
+
     if (selectedCompany) {
         const isStoreLevel = user?.scope?.type === 'STORE';
         const isAreaLevel = user?.scope?.type === 'AREA';
         const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
+        const shouldHideReceiving = hideReceivingFromExecs || isCompanyOrGlobal;
 
         navItems.push(
             {
                 section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Accountability)' : 'MARKET DATA'), items: [
                     { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Meat Prices / Invoices') : 'Protein Market Cost', path: '/prices' },
-                    { icon: ScanLine, label: 'Receiving Dock QC', path: '/receiving' },
+                    ...(isStoreLevel || isAreaLevel ? [{ icon: ScanLine, label: 'Receiving Dock QC', path: '/receiving' }] : []),
                     { icon: Trash, label: isStoreLevel ? 'Process Waste' : 'Network Waste Status', path: '/waste' },
                     ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' }] : []),
                 ]

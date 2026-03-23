@@ -205,11 +205,10 @@ export class DashboardController {
 
             const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
 
-            let company = null;
+            let company: any = null;
             if (companyIdReq && companyIdReq !== 'tdb-main') {
                 company = await prisma.company.findUnique({
-                    where: { id: companyIdReq },
-                    select: { annual_growth_rate: true }
+                    where: { id: companyIdReq }
                 });
             }
 
@@ -229,7 +228,8 @@ export class DashboardController {
 
             return res.json({
                 stores: data,
-                annualGrowthRate: company?.annual_growth_rate || 5.0
+                annualGrowthRate: company?.annual_growth_rate || 5.0,
+                operationType: company?.operationType || 'RODIZIO'
             });
         } catch (error) {
             console.error('Projections Data Error:', error);

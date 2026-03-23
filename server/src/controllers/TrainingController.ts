@@ -7,9 +7,9 @@ export const TrainingController = {
     // Get current user's certification status & progress
     getStatus: async (req: Request, res: Response) => {
         try {
-            const userId = (req as any).user.userId;
+            const user = (req as any).user;
             const progress = await prisma.trainingProgress.findMany({
-                where: { user_id: userId }
+                where: { user_id: user.userId }
             });
 
             // Check if all 5 modules are done
@@ -18,13 +18,25 @@ export const TrainingController = {
 
             const isCertified = !!(exam && exam.score >= 80);
 
+            // Fetch company operationType for tailored training
+            let operationType = 'RODIZIO';
+            if (user.companyId) {
+                const company = await prisma.company.findUnique({
+                    where: { id: user.companyId }
+                });
+                if (company && (company as any).operationType) {
+                    operationType = (company as any).operationType;
+                }
+            }
+
             res.json({
                 success: true,
                 progress,
                 completedModules,
                 examAttempts: exam ? exam.attempts : 0,
                 examScore: exam ? exam.score : null,
-                isCertified
+                isCertified,
+                operationType
             });
         } catch (error) {
             console.error('Training status error:', error);

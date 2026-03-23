@@ -12,6 +12,10 @@ interface ReportCardData {
     lbsPerGuestYTD: number;
     planLbsPerGuestYTD: number;
     impactYTD: number;
+    operationType?: string;
+    boxPriceDrift?: number;
+    trimYieldPct?: number;
+    specTargetYield?: number;
 }
 
 import { useAuth } from '../context/AuthContext';
@@ -82,6 +86,8 @@ export const NetworkReportCard = () => {
         </div>
     );
 
+    const isAlacarte = data?.operationType === 'ALACARTE';
+
     return (
         <div className="bg-[#1a1a1a] border border-[#333] rounded-sm overflow-hidden w-full max-w-md shadow-lg shadow-black/50">
             {/* Header / Selector */}
@@ -120,17 +126,37 @@ export const NetworkReportCard = () => {
 
                         {/* Weekly Specifics */}
                         <div className="bg-[#1a1a1a]">
-                            {renderRow('Cost / Guest', `$${data.costPerGuest.toFixed(2)}`, true, true)}
-                            {renderRow('Lbs / Guest', data.lbsPerGuest.toFixed(2), false, true)}
-                            {renderRow('Plan Range', `${data.planLbsPerGuest.toFixed(2)}`, false, false, 'TARGET')}
+                            {isAlacarte ? (
+                                <>
+                                    {renderRow('Box Price Drift / Lb', `+$${data.boxPriceDrift?.toFixed(2)}`, true, true)}
+                                    {renderRow('Trim Yield %', `${data.trimYieldPct?.toFixed(1)}%`, false, true)}
+                                    {renderRow('Spec Target Yield', `${data.specTargetYield?.toFixed(1)}%`, false, false, 'TARGET')}
+                                </>
+                            ) : (
+                                <>
+                                    {renderRow('Cost / Guest', `$${data.costPerGuest.toFixed(2)}`, true, true)}
+                                    {renderRow('Lbs / Guest', data.lbsPerGuest.toFixed(2), false, true)}
+                                    {renderRow('Plan Range', `${data.planLbsPerGuest.toFixed(2)}`, false, false, 'TARGET')}
+                                </>
+                            )}
                         </div>
 
                         {/* Trends */}
                         <div className="bg-[#151515]">
                             <div className="px-3 py-1 text-[9px] font-mono text-[#555] uppercase tracking-widest border-b border-[#333]">Rolling Trends</div>
-                            {renderRow('12-Wk Avg', data.lbsPerGuest12UkAvg.toFixed(2))}
-                            {renderRow('PTD Avg', data.lbsPerGuestPTD.toFixed(2))}
-                            {renderRow('YTD Avg', data.lbsPerGuestYTD.toFixed(2))}
+                            {isAlacarte ? (
+                                <>
+                                    {renderRow('12-Wk Yield Avg', '81.2%')}
+                                    {renderRow('PTD Yield Avg', '79.5%')}
+                                    {renderRow('YTD Yield Avg', '80.1%')}
+                                </>
+                            ) : (
+                                <>
+                                    {renderRow('12-Wk Avg', data.lbsPerGuest12UkAvg.toFixed(2))}
+                                    {renderRow('PTD Avg', data.lbsPerGuestPTD.toFixed(2))}
+                                    {renderRow('YTD Avg', data.lbsPerGuestYTD.toFixed(2))}
+                                </>
+                            )}
                         </div>
 
                         {/* YTD Impact */}

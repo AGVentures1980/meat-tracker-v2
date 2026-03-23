@@ -34,7 +34,7 @@ const GLOBAL_TARGET_LBS = 1.76;
 const GLOBAL_ACTUAL_LBS = 2.15; // Estimating current average for "Status Quo"
 const AVG_PRICE_PER_LB = 6.50;  // Blended average cost
 
-const MEAT_STANDARDS: Record<string, number> = {
+const RODIZIO_MEAT_STANDARDS: Record<string, number> = {
     "Picanha": 0.39,
     "Fraldinha/Flank Steak": 0.24,
     "Tri-Tip": 0.15,
@@ -51,6 +51,16 @@ const MEAT_STANDARDS: Record<string, number> = {
     "Sausage": 0.06
 };
 
+// Outback Model Approximation
+const ALACARTE_MEAT_STANDARDS: Record<string, number> = {
+    "Sirloin (Center Cut)": 0.60,
+    "Ribeye": 0.15,
+    "Filet Mignon": 0.10,
+    "NY Strip": 0.08,
+    "Prime Rib": 0.04,
+    "Bone-In Ribeye": 0.03
+};
+
 // Initial Data Seed - Removed as we now fetch dynamically
 
 export const ProjectionsDashboard = () => {
@@ -65,6 +75,7 @@ export const ProjectionsDashboard = () => {
     const [isPublished, setIsPublished] = useState(false);
     const [showProposal, setShowProposal] = useState(false);
     const [modalMode, setModalMode] = useState<'PUBLISH' | 'RESET'>('PUBLISH');
+    const [operationType, setOperationType] = useState<string>('RODIZIO');
 
     // Initialize Data
     useEffect(() => {
@@ -77,7 +88,8 @@ export const ProjectionsDashboard = () => {
                     }
                 });
                 if (res.ok) {
-                    const { stores, annualGrowthRate } = await res.json();
+                    const { stores, annualGrowthRate, operationType } = await res.json();
+                    if (operationType) setOperationType(operationType);
                     setGrowthRate(annualGrowthRate);
                     const calculated = stores.map((d: any) => calculateRow(d as StoreProjectionData, annualGrowthRate));
                     setStoreData(calculated);
@@ -257,16 +269,19 @@ export const ProjectionsDashboard = () => {
     const totalVolume = storeData.reduce((acc, d) => acc + d.projectedMeatLbs, 0);
     const totalSavingsObs = storeData.reduce((acc, d) => acc + d.savingsDollars, 0);
 
-    // Meat Breakdown Calculation
-    const totalGuests = storeData.reduce((acc, d) => acc + d.projectedLunchGuests + d.projectedDinnerGuests, 0);
-    const meatBreakdown = Object.entries(MEAT_STANDARDS).map(([meat, factor]) => ({
-        name: meat,
-        projectedLbs: totalGuests * factor
-    })).sort((a, b) => b.projectedLbs - a.projectedLbs);
-
     // Formatting
     const fmtCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
     const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n));
+
+    const isAlacarte = operationType === 'ALACARTE';
+    const activeStandards = isAlacarte ? ALACARTE_MEAT_STANDARDS : RODIZIO_MEAT_STANDARDS;
+
+    // Meat Breakdown Calculation
+    const totalGuests = storeData.reduce((acc, d) => acc + d.projectedLunchGuests + d.projectedDinnerGuests, 0);
+    const meatBreakdown = Object.entries(activeStandards).map(([meat, factor]) => ({
+        name: meat,
+        projectedLbs: totalGuests * factor
+    })).sort((a, b) => b.projectedLbs - a.projectedLbs);
 
     return (
         <div className="p-6">
@@ -388,12 +403,12 @@ export const ProjectionsDashboard = () => {
                                 <th className="p-4 font-normal sticky left-0 bg-[#121212] z-10">{t('proj_col_store')}</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_lunch_ly')}</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_dinner_ly')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_lunch_price')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_dinner_price')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{isAlacarte ? "Meat Avg(L) $" : t('proj_col_lunch_price')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? "Meat Avg(D) $" : t('proj_col_dinner_price')}</th>
                                 <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">{t('proj_col_target_lbs')}</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_lunch')}</th>
                                 <th className="p-4 font-normal text-right bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_dinner')}</th>
-                                <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_proj_rev')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333]">{isAlacarte ? "PROJ. MEAT REV" : t('proj_col_proj_rev')}</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_meat_vol')}</th>
                                 <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
                             </tr>
@@ -545,7 +560,7 @@ export const ProjectionsDashboard = () => {
                                         {meatBreakdown.map(item => (
                                             <tr key={item.name} className="hover:bg-[#252525] transition-colors">
                                                 <td className="p-4 font-bold text-white">{item.name}</td>
-                                                <td className="p-4 text-right text-gray-400">{MEAT_STANDARDS[item.name].toFixed(2)}</td>
+                                                <td className="p-4 text-right text-gray-400">{activeStandards[item.name].toFixed(2)}</td>
                                                 <td className="p-4 text-right font-bold text-brand-gold bg-brand-gold/5">
                                                     {fmtNum(item.projectedLbs)}
                                                 </td>

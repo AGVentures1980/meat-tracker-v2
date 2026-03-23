@@ -41,7 +41,7 @@ interface Module {
 }
 
 // ─── Module Data ──────────────────────────────────────────────────────────────
-const MODULES: Module[] = [
+const RODIZIO_MODULES: Module[] = [
     {
         id: 1,
         icon: <BarChart2 className="w-5 h-5" />,
@@ -390,6 +390,355 @@ const MODULES: Module[] = [
     },
 ];
 
+const ALACARTE_MODULES: Module[] = [
+    {
+        id: 1,
+        icon: <BarChart2 className="w-5 h-5" />,
+        title: 'The Ala Carte Dashboard',
+        subtitle: 'Understanding Yield %, Portioning Variance, and Cost Impact',
+        duration: '5 min',
+        img: IMG.m1,
+        slides: [
+            {
+                title: 'Your Core KPIs',
+                body: [
+                    '① YIELD % — The actual usable meat (portion cuts) extracted from a raw box. Example: You should get 60% steaks from a Sirloin box.',
+                    '② BOX PRICE DRIFT — How much your supplier\'s invoice price fluctuated compared to the projected market standard.',
+                    '③ PORTION VARIANCE — Did the kitchen cut the steaks at exactly 9oz, or did they over-portion to 10oz? This causes silent profit loss.',
+                    '④ DAILY COVER RATIO — Guests served vs projected covers.',
+                ],
+                highlight: 'Rule of thumb: A drop in Yield % combined with Portion Variance points to improper butchering in the morning prep.',
+            },
+            {
+                title: 'The Impact Bar Chart',
+                body: [
+                    'The chart shows the financial impact (Leakage or Savings) by specific cut (e.g., Ribeye, Sirloin, Filet).',
+                    'Red bars indicate "Leakage" meaning the cut cost you more than expected either due to low yield or high box price.',
+                    'Green bars mean you exceeded yield expectations, extracting more portions than the standard.',
+                    'Use this in your morning walkthrough with the Head Prep Cook.',
+                ],
+                highlight: 'Pro tip: Watch your top-selling items. 1oz over-portioning on a 9oz Sirloin ruins profitability at scale.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'What does a Low Yield % indicate?',
+                options: ['High guest count', 'More raw meat was wasted during trimming than allowed by the corporate standard', 'Box prices went up', 'Data not entered'],
+                correct: 1,
+                explanation: 'A low yield means the butcher discarded too much trim or fat, resulting in fewer sellable steaks than expected from the box.',
+            },
+            {
+                q: 'What is Portion Variance?',
+                options: ['Customer complaints on size', 'Shift changes', 'Cutting steaks heavier or lighter than the menu specification (e.g., 10oz instead of 9oz)', 'Inventory shortage'],
+                correct: 2,
+                explanation: 'Over-portioning means you are giving away free meat on every plate. It scales into massive daily losses.',
+            },
+            {
+                q: 'What causes "Leakage" on a specific protein?',
+                options: ['Low yield, High Box Price, or Over-portioning', 'Cooking steaks well-done', 'Serving Lamb Chops', 'Running out of stock'],
+                correct: 0,
+                explanation: 'Leakage is the cumulative financial loss caused by poor yield, purchasing over market price, or cutting steaks too large.',
+            },
+        ],
+    },
+    {
+        id: 2,
+        icon: <Bell className="w-5 h-5" />,
+        title: 'Responding to Execution Alerts',
+        subtitle: 'How to act on "Nuclear" and Yield problems',
+        duration: '6 min',
+        img: IMG.m2,
+        slides: [
+            {
+                title: 'What is a System Alert?',
+                body: [
+                    'Fires when a cut consistently misses yield targets or portions are bleeding profit.',
+                    'Two main types: CRITICAL YIELD LOSS (butchering problem) and MARKET PRICE OVERRUN (purchasing problem).',
+                    'Shows severity badge (SEVERE / MODERATE) and estimated $ lost this week.',
+                    'Visible to Managing Partners and Corporate Analysts.',
+                ],
+                highlight: 'Never dismiss a YIELD alert without inspecting the prep station.',
+            },
+            {
+                title: 'How to Respond',
+                body: [
+                    'CRITICAL YIELD LOSS → Physically weigh the trim bin and the finished steaks. Retrain the cutter.',
+                    'MARKET OVERRUN → Check the actual invoice vs the Urner Barry Index. Contact your purveyor.',
+                    'Monitor for 2–3 days. Alert clears automatically when targets are met.',
+                    'If alert persists > 1 week → escalate to the Culinary Director.',
+                ],
+                highlight: 'The system identifies the leak — it is up to the Managing Partner to plug it on the floor.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'When does a Yield Alert fire?',
+                options: ['Single bad day', 'Guest complaint', 'The ratio of boxed raw meat to sellable steaks falls below corporate standard', 'Freezer broke'],
+                correct: 2,
+                explanation: 'Yield alerts are triggered mathematically when the system detects too much raw weight bought for too few portions sold.',
+            },
+            {
+                q: 'Immediate response to a Critical Yield Loss?',
+                options: ['Order more meat', 'Weigh the trim bin and inspect the butcher\'s technique', 'Close store', 'Ignore'],
+                correct: 1,
+                explanation: 'If yield is low, meat is either hitting the trash can as trim, or staffs are taking it home. Inspect immediately.',
+            },
+            {
+                q: 'Who should be notified if a Market Overrun persists despite switching suppliers?',
+                options: ['Delivery Driver', 'Corporate Culinary/Purchasing Director', 'Hostess', 'Never'],
+                correct: 1,
+                explanation: 'Corporate relies on these flags to renegotiate master contracts on behalf of the store.',
+            },
+        ],
+    },
+    {
+        id: 3,
+        icon: <FileText className="w-5 h-5" />,
+        title: 'Weekly Inventory Data',
+        subtitle: 'Keeping the Ala Carte logic accurate',
+        duration: '4 min',
+        img: IMG.m3,
+        slides: [
+            {
+                title: 'The Weekly Report',
+                body: [
+                    '① BOX INVENTORY — Enter exact Box weight received + beginning inventory.',
+                    '② PORTION INVENTORY — Enter exact number of pre-cut steaks in the drawers.',
+                    'The engine subtracts ending inventory to find total raw weight consumed vs portions sold.',
+                    'Save by Monday morning for accurate Yield extraction.',
+                ],
+                highlight: 'In A La Carte, counting the raw boxes AND the cut steaks is critical to catching Portion Variance.',
+            },
+            {
+                title: 'Invoices & Prices',
+                body: [
+                    'Ensure exact Box prices are entered from the Sysco/US Foods invoice.',
+                    'Even a $0.10 difference corrupts the Cost Impact Summary.',
+                    'Only update proteins that changed price this week.',
+                    'System warns if prices look artificially stagnant week-over-week.',
+                ],
+                highlight: 'Monday routine: Count Boxes → Count Steaks → Update Invoice Prices.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'Why must you count BOTH the raw boxes and the pre-cut steaks?',
+                options: ['For health inspectors', 'To calculate the exact Yield % and Portion Variance', 'To look busy', 'It\'s optional'],
+                correct: 1,
+                explanation: 'You need to know how much raw meat went into the prep station, and exactly how many sellable steaks came out.',
+            },
+            {
+                q: 'Effect of not updating invoice prices?',
+                options: ['System shutdown', 'Prices fixed', 'Inaccurate Profit Leakage calculations', 'Director notified immediately'],
+                correct: 2,
+                explanation: 'Stale prices lead to wrong cost/guest metrics and mask purveyor markups.',
+            },
+            {
+                q: 'Deadline for weekly report?',
+                options: ['Friday', 'Monday Morning', 'End of month', 'Anytime'],
+                correct: 1,
+                explanation: 'Monday morning deadline ensures fresh data for executive reviews.',
+            },
+        ],
+    },
+    {
+        id: 4,
+        icon: <Layers className="w-5 h-5" />,
+        title: 'Steakhouse Templates',
+        subtitle: 'Configuring Tiered Store Profiles',
+        duration: '5 min',
+        img: IMG.m4,
+        slides: [
+            {
+                title: 'What is a Template?',
+                body: [
+                    'Controls the baseline standard for your specific store location.',
+                    'A High-Volume Airport store has different Yield/Waste tolerances than a Premium Suburban store.',
+                    'Default assigned by Corporate based on historical data.',
+                    'Applied in Settings → Company Templates.',
+                ],
+                highlight: 'Templates shift the "Goal Posts" so your metrics remain fair and achievable.',
+            },
+            {
+                title: 'Template Variables',
+                body: [
+                    'Expected Trim Waste % by Cut',
+                    'Average Guest Check projected target',
+                    'A La Carte Product Mix (e.g., Heavy Sirloin mix vs Heavy Prime Rib mix)',
+                    'Never change templates without Regional VP approval.',
+                ],
+                highlight: 'If you serve a demographic that buys more Filet than Sirloin, your template must reflect that mix.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'Why do different stores have different Templates?',
+                options: ['Because it looks nice', 'To account for varying volume, product mix, and demographic expectations', 'To make it confusing', 'No reason'],
+                correct: 1,
+                explanation: 'Store footprints dictate different baselines for waste, trim, and top-selling items.',
+            },
+            {
+                q: 'Can a Prep Cook change the store template?',
+                options: ['Keep premium active', 'Only Regional VPs / Area Directors', 'Yes, anytime', 'Delete template'],
+                correct: 1,
+                explanation: 'Changing the template alters the mathematical goal posts. Only Executives can authorize this.',
+            },
+            {
+                q: 'What is a key variable defined in an A La Carte template?',
+                options: ['Chef hat size', 'Expected Trim Waste % by Cut', 'Napkin colors', 'Valet parking'],
+                correct: 1,
+                explanation: 'The template tells the system exactly what % of a raw box should be considered acceptable trim/fat loss.',
+            },
+        ],
+    },
+    {
+        id: 5,
+        icon: <BookOpen className="w-5 h-5" />,
+        title: 'The Director\'s Brief',
+        subtitle: 'The ultimate accountability report',
+        duration: '4 min',
+        img: IMG.m5,
+        slides: [
+            {
+                title: 'The Network View',
+                body: [
+                    'Ranks all stores in the region by Net Meat Profitability (Savings minus Leakage).',
+                    'Highlights the Top 5 "Benchmark" stores and Bottom 5 "Opportunities".',
+                    'Exposes exact $ lost to Over-portioning vs Supplier Price Markups.',
+                    'Reviewed in Regional standups.',
+                ],
+                highlight: 'If your Yield % is consistently red, your store will drag down the Network View.',
+            },
+            {
+                title: 'Targeted Coaching',
+                body: [
+                    'Provides an automatic action plan based on the metrics.',
+                    'If Sirloin is leaking, it tells the Director exactly what to ask the Managing Partner.',
+                    'Keeps the conversation objective, focused on data rather than feelings.',
+                    'Printable to PDF for store visits.',
+                ],
+                highlight: 'Numbers never lie. The Brief cuts straight to the root cause of high food cost.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'What does the Network View rank stores by?',
+                options: ['Oldest stores first', 'Net Meat Profitability (Savings vs Leakage against standards)', 'Alphabetical', 'Menu size'],
+                correct: 1,
+                explanation: 'Net Profitability is the true north—how closely did the store execute the Corporate Standard?',
+            },
+            {
+                q: 'What does the report expose during a Regional Standup?',
+                options: ['Lunch recipes', 'Exact dollars lost to Over-portioning or Supplier markups', 'Dress code', 'Wifi passwords'],
+                correct: 1,
+                explanation: 'It isolates whether the store is failing at the cutting board (Yield) or at the loading dock (Prices).',
+            },
+            {
+                q: 'How should Directors use the Action Plan?',
+                options: ['Throw it away', 'Use data-driven questions for objective coaching visits', 'Send it to guests', 'Auto-email'],
+                correct: 1,
+                explanation: 'It equips Area Directors to ask precise questions like "Why is your Sirloin yield 5% below network average?"',
+            },
+        ],
+    },
+    {
+        id: 6,
+        icon: <Store className="w-5 h-5" />,
+        title: 'Smart Prep Integration',
+        subtitle: 'A La Carte daily volume projections',
+        duration: '4 min',
+        img: IMG.m6,
+        slides: [
+            {
+                title: 'Dynamic Prep Sheets',
+                body: [
+                    'Unlike a buffet which cooks continuously, A La Carte requires precise pre-shift steak cuts.',
+                    'The engine predicts exactly how many 9oz Sirloins, 12oz Ribeyes, and 6oz Filets you need to cut.',
+                    'Predictions are based on Historical Mix + Tonight\'s projected covers.',
+                ],
+                highlight: 'You only cut what you need. Less oxidized meat in the drawers means better quality and less waste.',
+            },
+            {
+                title: 'Entering Waste',
+                body: [
+                    'If a steak is sent back (refire) or dropped, it MUST be logged in the Waste tracker.',
+                    'Without Waste logging, the system will assume the steak was sold, inflating your Leakage.',
+                    'Accountability requires knowing exactly where the protein went: Sold, Trim, or Trash.',
+                ],
+                highlight: 'A high refire rate destroys A La Carte profitability. Log it so Corporate can spot grill training needs.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'How does Smart Prep differ in A La Carte vs Buffet?',
+                options: ['It doesnt', 'It predicts exact quantities of specific portion cuts needed before the shift', 'You just cook everything', 'Based on weather'],
+                correct: 1,
+                explanation: 'Buffets fire continuously based on guest flow. A La Carte requires surgical prep of specific steaks prior to service.',
+            },
+            {
+                q: 'Why MUST dropped or refired steaks be logged in Waste?',
+                options: ['For HR', 'Failure to log waste will falsely flag as over-portioning or yield drop', 'Fun', 'Optional'],
+                correct: 1,
+                explanation: 'The system balances the equation: Raw In = Sold + Trim + Waste. If Waste is missing, the math assumes you over-portioned.',
+            },
+            {
+                q: 'What does a high refire rate indicate?',
+                options: ['Great service', 'Grill station execution issues causing profit loss', 'Happy guests', 'CFO Report'],
+                correct: 1,
+                explanation: 'Cooking steaks incorrectly forces the store to absorb the cost of a second steak. Log it to fix the training gap.',
+            },
+        ],
+    },
+    {
+        id: 7,
+        icon: <Truck className="w-5 h-5" />,
+        title: 'Network Intelligence & OCR',
+        subtitle: 'Validating inbound supply and delivery apps',
+        duration: '6 min',
+        img: IMG.m7,
+        slides: [
+            {
+                title: 'Delivery OCR Integrity',
+                body: [
+                    'Takeout and UberEats orders (Outback To-Go) pull heavily from inventory without dine-in checks.',
+                    'The OCR engine scans the end-of-day printout of To-Go receipts.',
+                    'Extracts and isolates exact steak counts to protect your Dine-In accountability metrics.',
+                ],
+                highlight: 'Never mix To-Go volume with Dine-in volume. Validate the OCR daily.',
+            },
+            {
+                title: 'Invoice Auditing',
+                body: [
+                    'When receiving a truck, taking a picture of the invoice automatically logs the Box price.',
+                    'If Sysco charges $8.50/lb but your contract says $8.10/lb, the AI flags a "Vendor Breach".',
+                    'Corporate recovers this money. Your job is just to snap the picture.',
+                ],
+                highlight: 'Snap the invoice photo on delivery day. The AI does the heavy lifting of contract enforcement.',
+            },
+        ],
+        quiz: [
+            {
+                q: 'Why must Outback To-Go OCR scans be run daily?',
+                options: ['To ruin metrics', 'To isolate off-premise steak volume so Dine-In Yield remains pure', 'It has NO impact', 'To double count'],
+                correct: 1,
+                explanation: 'To-Go sales take steaks out of your fridge but not into the dining room. They must be accurately subtracted.',
+            },
+            {
+                q: 'What happens when you snap a photo of the delivery invoice?',
+                options: ['Manual entry starts', 'AI automatically extracts the prices and flags vendor breaches against contracts', 'Guessing based on weather', 'POS integration'],
+                correct: 1,
+                explanation: 'The Vision model compares the printed price against the Corporate negotiated ceiling price instantaneously.',
+            },
+            {
+                q: 'Who recovers the money if a Vendor Overcharge is detected?',
+                options: ['Stock market', 'Corporate Purchasing (Using the flagged data)', 'Tracking employee performance', 'Setting menu prices'],
+                correct: 1,
+                explanation: 'Managing Partners flag the breach by feeding the photo to the AI. Corporate Purchasing actually collects the credit.',
+            },
+        ],
+    },
+];
+
 // ─── Quiz Component ───────────────────────────────────────────────────────────
 const Quiz = ({ questions, onComplete }: { questions: QuizQuestion[]; onComplete: (score: number) => void }) => {
     const [current, setCurrent] = useState(0);
@@ -465,9 +814,9 @@ const Quiz = ({ questions, onComplete }: { questions: QuizQuestion[]; onComplete
 };
 
 // ─── Certification Exam Component ─────────────────────────────────────────────
-const CertificationExam = ({ onComplete }: { onComplete: (score: number) => void }) => {
+const CertificationExam = ({ modules, onComplete }: { modules: Module[], onComplete: (score: number) => void }) => {
     // Flatten all questions from all modules
-    const allQuestions = MODULES.flatMap(m => m.quiz);
+    const allQuestions = modules.flatMap(m => m.quiz);
     // Shuffle and pick 10
     const [examQuestions] = useState(() => [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, 10));
 
@@ -494,7 +843,11 @@ export const TrainingPage = () => {
     const [examAttempts, setExamAttempts] = useState(0);
     const [locked, setLocked] = useState(false);
     const [isCertified, setIsCertified] = useState(false);
+    const [operationType, setOperationType] = useState<string>('RODIZIO');
     const certRef = useRef<HTMLDivElement>(null);
+
+    // Dynamic Module Selection
+    const MODULES = operationType === 'ALACARTE' ? ALACARTE_MODULES : RODIZIO_MODULES;
 
     // Fetch Status
     const fetchStatus = async () => {
@@ -509,6 +862,7 @@ export const TrainingPage = () => {
                 setCompleted(comp);
                 setExamAttempts(data.examAttempts || 0);
                 setIsCertified(data.isCertified);
+                if (data.operationType) setOperationType(data.operationType);
                 if (data.examAttempts >= 2 && !data.isCertified) setLocked(true);
             }
         } catch (err) { console.error('Failed to fetch training status', err); }
@@ -755,7 +1109,7 @@ export const TrainingPage = () => {
                     <button onClick={() => setPhase('slides')} className="mb-8 flex items-center gap-2 text-gray-500 hover:text-white transition-colors text-sm">
                         <ChevronLeft className="w-4 h-4" /> Cancel Exam
                     </button>
-                    <CertificationExam onComplete={submitExam} />
+                    <CertificationExam modules={MODULES} onComplete={submitExam} />
                 </div>
             </div>
         );
