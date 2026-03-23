@@ -91,6 +91,9 @@ export class AuthController {
                 } else if (user.email.endsWith('@texasdebrazil.com')) {
                     const tdbCompany = await prisma.company.findFirst({ where: { name: { contains: 'Texas' } } });
                     if (tdbCompany) defaultCompanyId = tdbCompany.id;
+                } else if (user.email.endsWith('@outback.com')) {
+                    const outbackCompany = await prisma.company.findFirst({ where: { name: { contains: 'Outback' } } });
+                    if (outbackCompany) defaultCompanyId = outbackCompany.id;
                 }
             }
 
