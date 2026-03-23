@@ -351,12 +351,20 @@ async function ensureOutbackPilot() {
                     plan: 'enterprise',
                     subdomain: 'outback',
                     theme_primary_color: '#ce1226',
+                    theme_logo_url: '/outback-logo-white.png',
+                    theme_bg_url: '/outback-bg.png'
                 }
             });
         } else {
             outback = await (prisma as any).company.update({
                 where: { id: outback.id },
-                data: { operationType: 'ALACARTE', subdomain: 'outback' }
+                data: { 
+                    operationType: 'ALACARTE', 
+                    subdomain: 'outback',
+                    theme_primary_color: '#ce1226',
+                    theme_logo_url: '/outback-logo-white.png',
+                    theme_bg_url: '/outback-bg.png'
+                }
             });
         }
 
