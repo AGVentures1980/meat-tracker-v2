@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: '2023-10-16',
+    apiVersion: '2026-02-25.clover',
 });
 
 // The base URL of the frontend for Stripe redirects
@@ -167,7 +167,6 @@ export const BillingController = {
         } catch (error: any) {
             return res.status(500).json({ error: error.message });
         }
-    }
     },
 
     /**
