@@ -169,6 +169,7 @@ export const ReportsPage = () => {
                                 >
                                     <option value="today">{t('report_range_today')}</option>
                                     <option value="this-week">{t('report_range_week')}</option>
+                                    <option value="last-week">Last Week</option>
                                     <option value="this-month">{t('report_range_month')}</option>
                                     <option value="last-month">{t('report_range_last_month')}</option>
                                     <option value="ytd">{t('report_range_ytd')}</option>
