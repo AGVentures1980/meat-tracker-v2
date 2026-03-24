@@ -42,6 +42,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const location = useLocation();
     const [showAlerts, setShowAlerts] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [networkStats, setNetworkStats] = useState<{ totalStores: number, activeReporting: number } | null>(null);
+    const [alerts, setAlerts] = useState<any[]>([]);
+    const [companyName, setCompanyName] = useState<string | null>(null);
+    const [operationType, setOperationType] = useState<string>('RODIZIO');
 
     const navigate = useNavigate();
     const isMaster = user?.email?.toLowerCase()?.includes('alexandre@alexgarciaventures.co') || false;
@@ -154,11 +158,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             }
         }
     }
-
-    const [networkStats, setNetworkStats] = useState<{ totalStores: number, activeReporting: number } | null>(null);
-    const [alerts, setAlerts] = useState<any[]>([]);
-    const [companyName, setCompanyName] = useState<string | null>(null);
-    const [operationType, setOperationType] = useState<string>('RODIZIO');
 
     useEffect(() => {
         if (selectedCompany && user?.token) {
