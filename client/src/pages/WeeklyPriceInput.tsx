@@ -457,8 +457,8 @@ export const WeeklyPriceInput = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                {/* OCR Invoice Card - UNLOCKED FOR PITCH DEMO */}
-                {true && (
+                {/* OCR Invoice Card - Hidden for Directors/Executives */}
+                {!isExecutive && (
                     <div className="lg:col-span-1 bg-[#1a1a1a] border border-[#333] rounded-sm p-6 relative group overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <FileText className="w-24 h-24" />
