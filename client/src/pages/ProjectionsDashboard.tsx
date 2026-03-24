@@ -108,9 +108,10 @@ export const ProjectionsDashboard = () => {
         // 1. Calculate Financial Target (Revenue)
         const isAla = opType === 'ALACARTE';
         const AVG_UPSELL = isAla ? 0 : 15.00;
+        const MEAT_INCIDENCE = isAla ? 0.35 : 1.0;
 
-        const lyRevenueLunch = data.lunchGuestsLastYear * (data.lunchPrice + AVG_UPSELL);
-        const lyRevenueDinner = data.dinnerGuestsLastYear * (data.dinnerPrice + AVG_UPSELL);
+        const lyRevenueLunch = (data.lunchGuestsLastYear * MEAT_INCIDENCE) * (data.lunchPrice + AVG_UPSELL);
+        const lyRevenueDinner = (data.dinnerGuestsLastYear * MEAT_INCIDENCE) * (data.dinnerPrice + AVG_UPSELL);
         const lyTotalRevenue = lyRevenueLunch + lyRevenueDinner;
 
         const targetRevenue = lyTotalRevenue * (1 + (growth / 100));
@@ -138,7 +139,10 @@ export const ProjectionsDashboard = () => {
         const weightedNewPPA = (projectedPPA_Lunch * lunchRatio) + (projectedPPA_Dinner * dinnerRatio);
 
         // 3. Derive Required Guests to hit Target Revenue
-        const requiredTotalGuests = weightedNewPPA > 0 ? Math.round(targetRevenue / weightedNewPPA) : 0;
+        // targetRevenue is generated strictly from meat-eating guests
+        const requiredMeatGuests = weightedNewPPA > 0 ? (targetRevenue / weightedNewPPA) : 0;
+        const requiredTotalGuests = Math.round(requiredMeatGuests / MEAT_INCIDENCE);
+        
         const projLunch = Math.round(requiredTotalGuests * lunchRatio);
         const projDinner = requiredTotalGuests - projLunch;
 
@@ -146,7 +150,8 @@ export const ProjectionsDashboard = () => {
         const targetLbs = requiredTotalGuests * (data.target_lbs_guest || GLOBAL_TARGET_LBS);
 
         // Status Quo (Inefficiency)
-        const statusQuoLbs = requiredTotalGuests * GLOBAL_ACTUAL_LBS;
+        const ACTUAL_LBS = isAla ? ((data.target_lbs_guest || 0.35) * 1.25) : GLOBAL_ACTUAL_LBS;
+        const statusQuoLbs = requiredTotalGuests * ACTUAL_LBS;
 
         // Savings
         const savingsLbs = statusQuoLbs - targetLbs;

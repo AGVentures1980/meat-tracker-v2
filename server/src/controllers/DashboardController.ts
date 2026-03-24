@@ -209,6 +209,9 @@ export class DashboardController {
                 });
             }
 
+            const isAla = company?.operationType === 'ALACARTE';
+            const fallbackTargetLbs = isAla ? 0.35 : 1.76;
+
             const data = stores.map(store => {
                 const latestReport = store.reports[0];
                 
@@ -226,7 +229,7 @@ export class DashboardController {
                     dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : fallbackDinner,
                     lunchPrice: store.lunch_price || parseFloat((29.0 + ((store.id * 3) % 4)).toFixed(2)),
                     dinnerPrice: store.dinner_price || parseFloat((58.0 + ((store.id * 7) % 5)).toFixed(2)),
-                    target_lbs_guest: store.target_lbs_guest || 1.76
+                    target_lbs_guest: store.target_lbs_guest || fallbackTargetLbs
                 };
             });
 
