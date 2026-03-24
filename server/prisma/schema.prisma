@@ -50,6 +50,7 @@ model CompanyProduct {
   is_villain          Boolean         @default(false)
   is_dinner_only      Boolean         @default(false)
   include_in_delivery Boolean         @default(false)
+  required_usda_grade UsdaGrade?
   standard_target     Float?
   created_at          DateTime        @default(now())
   lbs_per_skewer      Float?
@@ -118,6 +119,7 @@ model Store {
   waste_compliance           WasteCompliance[]
   waste_logs                 WasteLog[]
   BarcodeScanEvent           BarcodeScanEvent[]
+  BurgerInventoryPool        BurgerInventoryPool[]
 
   @@unique([company_id, store_name])
 }
@@ -702,8 +704,38 @@ model BarcodeScanEvent {
   id              String   @id @default(uuid())
   store_id        Int
   scanned_barcode String
+  gtin            String?
+  usda_grade      UsdaGrade?
   is_approved     Boolean
+  is_override     Boolean  @default(false)
   scanned_at      DateTime @default(now())
 
   store Store @relation(fields: [store_id], references: [id])
+}
+
+model BurgerInventoryPool {
+  id               String   @id @default(uuid())
+  store_id         Int
+  date             DateTime @db.Date
+  total_lean_lbs   Float    @default(0)
+  total_fat_waste  Float    @default(0)
+  theoretical_patties Int   @default(0)
+  pos_patties_sold Int      @default(0)
+  fraud_alert_qty  Int      @default(0)
+  is_fraud_flagged Boolean  @default(false)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  store Store @relation(fields: [store_id], references: [id])
+  @@unique([store_id, date])
+}
+
+enum UsdaGrade {
+  PRIME
+  CHOICE
+  SELECT
+  CAB
+  WAGYU
+  STANDARD
+  UNGRADED
 }
