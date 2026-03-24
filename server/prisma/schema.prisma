@@ -28,6 +28,9 @@ model Company {
   operationType               OperationType          @default(RODIZIO)
   company_status              String                 @default("Pending")
   stripe_customer_id          String?                @unique
+  stripe_subscription_id      String?                @unique
+  billing_status              String                 @default("trialing")
+  stores_licensed             Int                    @default(1)
   api_key                     String?                @unique
   products                    CompanyProduct[]
   vault_messages              OwnerVaultMessage[]

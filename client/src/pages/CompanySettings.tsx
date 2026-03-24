@@ -9,7 +9,8 @@ import {
     X,
     Truck,
     UtensilsCrossed,
-    Users
+    Users,
+    CreditCard
 } from 'lucide-react';
 
 export const CompanySettings = () => {
@@ -275,6 +276,7 @@ export const CompanySettings = () => {
                     >
                         <UtensilsCrossed className="w-4 h-4" /> Area Mgrs
                     </button>
+
                 </div>
             </div>
 

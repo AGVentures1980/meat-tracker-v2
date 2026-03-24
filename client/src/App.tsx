@@ -48,6 +48,8 @@ import { PartnerNetwork } from './pages/admin/PartnerNetwork';
 import { PartnerAgreement } from './pages/partner/PartnerAgreement';
 import { PartnerTraining } from './pages/partner/PartnerTraining';
 import { ContractsVault } from './pages/admin/ContractsVault';
+import { SaaSBillingHub } from './pages/admin/SaaSBillingHub';
+import { ClientBillingPage } from './pages/admin/ClientBillingPage';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 import CorporateSpecs from './pages/executive/CorporateSpecs';
@@ -163,8 +165,16 @@ function AppContent() {
                         </div>
                     } />
                 </Route>
+                <Route path="/agv-billing" element={<MasterGuard />}>
+                    <Route index element={
+                        <div className="flex bg-[#121212] min-h-screen w-full text-white">
+                            <SaaSBillingHub />
+                        </div>
+                    } />
+                </Route>
 
                 <Route element={<ProtectedRoute />}>
+                    <Route path="/billing" element={<ClientBillingPage />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/:storeId" element={<Dashboard />} />
                     <Route path="/projections" element={<GovernanceGuard><ProjectionsDashboard /></GovernanceGuard>} />

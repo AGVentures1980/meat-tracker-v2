@@ -137,7 +137,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 manageItems.push(
                     { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
                     { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
-                    { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' }
+                    { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' },
+                    { icon: DollarSign, label: 'SaaS Billing & Invoices', path: '/billing' }
                 );
             }
 
@@ -423,6 +424,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             >
                                 <ShieldCheck className="w-5 h-5 min-w-[20px]" />
                                 <span className="text-sm font-bold tracking-tight">Master Contracts Vault</span>
+                            </Link>
+
+                            <Link
+                                to="/agv-billing"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-blue-400 hover:bg-blue-900/20 mt-2 border border-blue-500/20 border-solid shadow-sm shadow-blue-900/10"
+                            >
+                                <DollarSign className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Master Stripe Console</span>
                             </Link>
                         </>
                     )}
