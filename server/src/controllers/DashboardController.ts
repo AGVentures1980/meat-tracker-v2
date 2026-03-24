@@ -200,9 +200,6 @@ export class DashboardController {
             });
 
             // Fallback rates if no reports exist
-            const DEFAULT_LUNCH_GUESTS = 15000;
-            const DEFAULT_DINNER_GUESTS = 45000;
-
             const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
 
             let company: any = null;
@@ -214,14 +211,21 @@ export class DashboardController {
 
             const data = stores.map(store => {
                 const latestReport = store.reports[0];
+                
+                // Deterministic variance for realistic pitch data if no reports exist
+                const hashL = (store.id * 17) % 5000;
+                const hashD = (store.id * 23) % 15000;
+                const fallbackLunch = 12000 + hashL;
+                const fallbackDinner = 35000 + hashD;
+
                 return {
                     id: store.id,
                     name: store.store_name,
                     location: store.location,
-                    lunchGuestsLastYear: latestReport ? Math.round(latestReport.dine_in_guests) : DEFAULT_LUNCH_GUESTS,
-                    dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : DEFAULT_DINNER_GUESTS,
-                    lunchPrice: store.lunch_price || 34.00,
-                    dinnerPrice: store.dinner_price || 59.00,
+                    lunchGuestsLastYear: latestReport ? Math.round(latestReport.dine_in_guests) : fallbackLunch,
+                    dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : fallbackDinner,
+                    lunchPrice: store.lunch_price || parseFloat((29.0 + ((store.id * 3) % 4)).toFixed(2)),
+                    dinnerPrice: store.dinner_price || parseFloat((58.0 + ((store.id * 7) % 5)).toFixed(2)),
                     target_lbs_guest: store.target_lbs_guest || 1.76
                 };
             });
