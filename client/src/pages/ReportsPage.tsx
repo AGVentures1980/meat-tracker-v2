@@ -28,6 +28,12 @@ export const ReportsPage = () => {
             const report = reports.find(r => r.id === selectedReport);
             if (!report) return;
 
+            if (selectedReport === 'gs1-chargebacks') {
+                setData({ mock: true });
+                setLoading(false);
+                return;
+            }
+
             const headers: HeadersInit = {
                 'Authorization': `Bearer ${user.token}`
             };
