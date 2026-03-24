@@ -190,7 +190,7 @@ export const BillingController = {
 
             const subscriptions = companies.map(c => {
                 const licensed_stores = c._count.stores || 0; // Using actual stores as licensed proxy
-                const mrr = licensed_stores * 150; // $150 per store/month
+                const mrr = licensed_stores * 1000; // $1000 per store/month
                 
                 // Aggregation applies only if they are somehow paying or are considered active pipeline
                 if (c.company_status === 'Active' || c.company_status === 'active' || c.stripe_subscription_id) {

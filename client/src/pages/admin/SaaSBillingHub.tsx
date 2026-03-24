@@ -60,7 +60,7 @@ export const SaaSBillingHub = () => {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#00FF94] opacity-5 rounded-bl-full"></div>
                     <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2 mb-2"><TrendingUp className="w-3 h-3 text-[#00FF94]" /> Global MRR Pipeline</p>
                     <p className="text-4xl font-black text-white font-mono">${(data?.overview?.total_mrr || 0).toLocaleString()}</p>
-                    <p className="text-xs text-[#00FF94] mt-2">Based on $150/store pricing model</p>
+                    <p className="text-xs text-[#00FF94] mt-2">Based on $1000/store pricing model</p>
                 </div>
                 
                 <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 relative overflow-hidden">

@@ -71,7 +71,7 @@ export const ClientBillingPage = () => {
                     <div className="text-right">
                         <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Total Licensed Stores</p>
                         <p className="text-3xl font-black text-white">{stores.length}</p>
-                        <p className="text-[#3b82f6] text-sm font-bold mt-1">Est. ${stores.length * 150} / month</p>
+                        <p className="text-[#3b82f6] text-sm font-bold mt-1">Est. ${stores.length * 1000} / month</p>
                     </div>
                 </div>
 
