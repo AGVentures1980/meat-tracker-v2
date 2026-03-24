@@ -234,8 +234,9 @@ export const Login = () => {
                         {loading ? 'Authenticating...' : 'Initialize Session'}
                         {!loading && <ArrowRight className="w-4 h-4" />}
                     </button>
+                </form>
 
-                    {/* Removed Demo Button for Enterprise Exclusivity */}
+                {/* Removed Demo Button for Enterprise Exclusivity */}
 
                 {/* Mobile Access Link */}
                 <div className="mt-6 flex justify-center pb-2">
