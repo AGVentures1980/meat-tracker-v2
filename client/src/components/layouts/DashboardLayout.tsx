@@ -88,7 +88,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
                     { icon: ScanLine, label: 'Pull to Prep (Boxes)', path: '/pull-to-prep' },
                     { icon: Scissors, label: 'Meat Yield Station', path: '/yield-station' },
-                    ...(companyName === 'Fogo de Chão' || selectedCompany?.toLowerCase().includes('fogo') ? [{ icon: Database, label: 'Burger Grinder Station', path: '/yield-station' }] : []),
+                    ...(selectedCompany?.toLowerCase().includes('fogo') ? [{ icon: Database, label: 'Burger Grinder Station', path: '/yield-station' }] : []),
                     { icon: AlertOctagon, label: 'EOD Shift Audit', path: '/end-of-shift-audit' },
                     { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
                 ]
