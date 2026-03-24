@@ -231,7 +231,12 @@
         "proj_col_steak_vol": "STEAK VOL (TARGET)",
         "proj_annual_steak_req": "Projected Annual Steak Requirement",
         "proj_col_proj_lunch_guests": "Proj. Lunch Guests",
-        "proj_col_proj_dinner_guests": "Proj. Dinner Guests"
+        "proj_col_proj_dinner_guests": "Proj. Dinner Guests",
+        "proj_col_foot_traffic_ly": "Foot Traffic (LY)",
+        "proj_col_steak_incidence": "Steak Incidence %",
+        "proj_col_avg_steak_ticket": "Avg Steak Ticket ($)",
+        "proj_col_avg_lbs_steak": "Avg Lbs / Steak",
+        "proj_col_proj_foot_traffic": "Proj. Foot Traffic"
     },
     "pt": {
         "nav_dashboard": "Dashboard",
@@ -465,6 +470,11 @@
         "proj_col_steak_vol": "VOL STEAK (META)",
         "proj_annual_steak_req": "Necessidade Anual Projetada de Steak",
         "proj_col_proj_lunch_guests": "Proj. CL. Almoço",
-        "proj_col_proj_dinner_guests": "Proj. CL. Jantar"
+        "proj_col_proj_dinner_guests": "Proj. CL. Jantar",
+        "proj_col_foot_traffic_ly": "Tráfego Total (AA)",
+        "proj_col_steak_incidence": "Incidência Steak %",
+        "proj_col_avg_steak_ticket": "Ticket Médio Steak ($)",
+        "proj_col_avg_lbs_steak": "Lbs Médio / Steak",
+        "proj_col_proj_foot_traffic": "Proj. Tráfego Total"
     }
 }
