@@ -8,7 +8,7 @@ import { Role } from '@prisma/client';
 const router = Router();
 
 // Dashboard Stats
-router.get('/stats/network', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), DashboardController.getNetworkStats);
+router.get('/stats/network', requireAuth, DashboardController.getNetworkStats);
 router.get('/stats/audit-logs', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), DashboardController.getAuditLogAnalysis);
 router.get('/stats/villain-deep-dive', requireAuth, requireRole([Role.admin, Role.director, 'area_manager' as Role]), DashboardController.getVillainDeepDive);
 router.get('/stats/report-card', requireAuth, DashboardController.getNetworkReportCard);
