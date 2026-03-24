@@ -218,7 +218,18 @@
         "procurement_intel_btn": "Procurement Intelligence",
         "charts": "Charts",
         "lunch_projection": "Lunch Forecast",
-        "dinner_projection": "Dinner Forecast"
+        "dinner_projection": "Dinner Forecast",
+        "proj_col_lunch_traffic_ly": "Lunch Traffic (LY)",
+        "proj_col_dinner_traffic_ly": "Dinner Traffic (LY)",
+        "proj_col_meat_avg_l": "Meat Avg(L) $",
+        "proj_col_meat_avg_d": "Meat Avg(D) $",
+        "proj_col_target_lbs_cust": "Target Lbs/Cust",
+        "proj_col_proj_lunch_traffic": "Proj. Lunch",
+        "proj_col_proj_dinner_traffic": "Proj. Dinner",
+        "proj_col_proj_meat_rev": "PROJ. MEAT REV",
+        "proj_total_meat_rev": "TOTAL MEAT REVENUE: ",
+        "proj_col_proj_lunch_guests": "Proj. Lunch Guests",
+        "proj_col_proj_dinner_guests": "Proj. Dinner Guests"
     },
     "pt": {
         "nav_dashboard": "Dashboard",
@@ -324,8 +335,8 @@
         "proj_title": "ANNUAL PROJECTIONS & NEGOTIATION",
         "proj_subtitle": "FY 2027 STRATEGIC PLANNING • VOLUME & REVENUE FORECAST",
         "proj_targets_published": "Targets Published",
-        "proj_publish_corporate": "Publish Corporate Targets",
-        "proj_gen_proposal": "Generate Vendor Proposal",
+        "proj_publish_corporate": "Publicar Metas",
+        "proj_gen_proposal": "Proposta Fornecedor",
         "proj_growth_assumption": "Growth Assumption",
         "proj_yoy_growth": "Year-over-Year Growth",
         "proj_neg_power_vol": "Negotiation Power (Vol)",
@@ -439,6 +450,17 @@
         "procurement_intel_btn": "Procurement Intelligence",
         "charts": "Charts",
         "lunch_projection": "Lunch Forecast",
-        "dinner_projection": "Dinner Forecast"
+        "dinner_projection": "Dinner Forecast",
+        "proj_col_lunch_traffic_ly": "Tráfego Almoço (AA)",
+        "proj_col_dinner_traffic_ly": "Tráfego Jantar (AA)",
+        "proj_col_meat_avg_l": "Custo Médio Carne(A) $",
+        "proj_col_meat_avg_d": "Custo Médio Carne(J) $",
+        "proj_col_target_lbs_cust": "Meta Lbs/Cliente",
+        "proj_col_proj_lunch_traffic": "Proj. Almoço",
+        "proj_col_proj_dinner_traffic": "Proj. Jantar",
+        "proj_col_proj_meat_rev": "REC. CARNE PROJ.",
+        "proj_total_meat_rev": "RECEITA TOTAL CARNE: ",
+        "proj_col_proj_lunch_guests": "Proj. CL. Almoço",
+        "proj_col_proj_dinner_guests": "Proj. CL. Jantar"
     }
 }

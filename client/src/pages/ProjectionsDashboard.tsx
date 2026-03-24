@@ -91,7 +91,7 @@ export const ProjectionsDashboard = () => {
                     const { stores, annualGrowthRate, operationType } = await res.json();
                     if (operationType) setOperationType(operationType);
                     setGrowthRate(annualGrowthRate);
-                    const calculated = stores.map((d: any) => calculateRow(d as StoreProjectionData, annualGrowthRate));
+                    const calculated = stores.map((d: any) => calculateRow(d as StoreProjectionData, annualGrowthRate, operationType || 'RODIZIO'));
                     setStoreData(calculated);
                 }
             } catch (err) {
@@ -289,7 +289,7 @@ export const ProjectionsDashboard = () => {
                             }`}
                     >
                         {isPublished ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
-                        {isPublished ? (modalMode === 'RESET' ? "UNLOCK TARGETS?" : "LOCKED (RESET)") : t('proj_publish_targets')}
+                        {isPublished ? (modalMode === 'RESET' ? "UNLOCK TARGETS?" : "LOCKED (RESET)") : t('proj_publish_corporate')}
                     </button>
                     <button
                         onClick={() => setShowProposal(true)}
@@ -373,7 +373,7 @@ export const ProjectionsDashboard = () => {
                         {t('proj_store_forecasting')}
                     </h3>
                     <div className="text-xs text-gray-500 font-mono">
-                        {isAlacarte ? "TOTAL MEAT REVENUE: " : t('proj_total_rev') + ": "} 
+                        {isAlacarte ? t('proj_total_meat_rev') : t('proj_total_rev') + ": "} 
                         <span className="text-white font-bold text-sm ml-1">{fmtCurrency(totalRevenue)}</span>
                     </div>
                 </div>
@@ -383,14 +383,14 @@ export const ProjectionsDashboard = () => {
                         <thead>
                             <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
                                 <th className="p-4 font-normal sticky left-0 bg-[#121212] z-10">{t('proj_col_store')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? "Lunch Traffic (LY)" : t('proj_col_lunch_ly')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? "Dinner Traffic (LY)" : t('proj_col_dinner_ly')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{isAlacarte ? "Meat Avg(L) $" : t('proj_col_lunch_price')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? "Meat Avg(D) $" : t('proj_col_dinner_price')}</th>
-                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">{isAlacarte ? "Target Lbs/Cust" : t('proj_col_target_lbs')}</th>
-                                <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{isAlacarte ? "Proj. Lunch" : "Proj. Lunch Guests"}</th>
-                                <th className="p-4 font-normal text-right bg-brand-gold/5 text-brand-gold">{isAlacarte ? "Proj. Dinner" : "Proj. Dinner Guests"}</th>
-                                <th className="p-4 font-normal text-right border-l border-[#333]">{isAlacarte ? "PROJ. MEAT REV" : t('proj_col_proj_rev')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? t('proj_col_lunch_traffic_ly') : t('proj_col_lunch_ly')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? t('proj_col_dinner_traffic_ly') : t('proj_col_dinner_ly')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{isAlacarte ? t('proj_col_meat_avg_l') : t('proj_col_lunch_price')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{isAlacarte ? t('proj_col_meat_avg_d') : t('proj_col_dinner_price')}</th>
+                                <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">{isAlacarte ? t('proj_col_target_lbs_cust') : t('proj_col_target_lbs')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{isAlacarte ? t('proj_col_proj_lunch_traffic') : t('proj_col_proj_lunch_guests')}</th>
+                                <th className="p-4 font-normal text-right bg-brand-gold/5 text-brand-gold">{isAlacarte ? t('proj_col_proj_dinner_traffic') : t('proj_col_proj_dinner_guests')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333]">{isAlacarte ? t('proj_col_proj_meat_rev') : t('proj_col_proj_rev')}</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_meat_vol')}</th>
                                 <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
                             </tr>
