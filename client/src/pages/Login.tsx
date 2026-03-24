@@ -235,17 +235,7 @@ export const Login = () => {
                         {!loading && <ArrowRight className="w-4 h-4" />}
                     </button>
 
-                    {(!theme?.companyName || theme?.companyName === 'Brasa Group') && (
-                        <div className="mt-4 flex justify-center pb-2">
-                            <a 
-                                href="mailto:contact@agvventures.com?subject=Brasa OS - 30-Day Free Pilot Request"
-                                className="text-xs font-semibold text-brand-gold hover:text-white transition-colors uppercase tracking-widest border border-brand-gold/20 hover:border-brand-gold/60 px-6 py-2 rounded-full cursor-pointer bg-brand-gold/5"
-                            >
-                                Request 30-Day Free Demo
-                            </a>
-                        </div>
-                    )}
-                </form>
+                    {/* Removed Demo Button for Enterprise Exclusivity */}
 
                 {/* Mobile Access Link */}
                 <div className="mt-6 flex justify-center pb-2">
