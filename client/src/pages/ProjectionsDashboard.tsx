@@ -350,7 +350,7 @@ export const ProjectionsDashboard = () => {
                         {fmtNum(totalVolume)} <span className="text-lg text-gray-500">LBS</span>
                     </div>
                     <div className="text-xs text-gray-400 flex justify-between items-center">
-                        <span>{t('proj_annual_meat_req')}</span>
+                        <span>{isAlacarte ? t('proj_annual_steak_req') : t('proj_annual_meat_req')}</span>
                         <span className="text-brand-gold font-bold text-[10px] animate-pulse">{t('proj_view_breakdown')}</span>
                     </div>
                 </div>
@@ -396,7 +396,7 @@ export const ProjectionsDashboard = () => {
                                 <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{isAlacarte ? t('proj_col_proj_lunch_traffic') : t('proj_col_proj_lunch_guests')}</th>
                                 <th className="p-4 font-normal text-right bg-brand-gold/5 text-brand-gold">{isAlacarte ? t('proj_col_proj_dinner_traffic') : t('proj_col_proj_dinner_guests')}</th>
                                 <th className="p-4 font-normal text-right border-l border-[#333]">{isAlacarte ? t('proj_col_proj_meat_rev') : t('proj_col_proj_rev')}</th>
-                                <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_meat_vol')}</th>
+                                <th className="p-4 font-normal text-right border-l border-[#333]">{isAlacarte ? t('proj_col_steak_vol') : t('proj_col_meat_vol')}</th>
                                 <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
                             </tr>
                         </thead>
