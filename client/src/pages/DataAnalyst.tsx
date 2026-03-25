@@ -47,7 +47,7 @@ interface AnalystResponse {
 }
 
 export const DataAnalyst = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     // const { t } = useLanguage();
     const [data, setData] = useState<AnalystResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -73,8 +73,10 @@ export const DataAnalyst = () => {
     const fetchReport = async () => {
         try {
             const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            const headers: any = { 'Authorization': `Bearer ${user?.token}` };
+            if (selectedCompany) headers['x-company-id'] = selectedCompany;
             const res = await fetch(`${API_URL}/api/v1/analyst/roi`, {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers
             });
             const jsonData = await res.json();
             if (jsonData.success) setData(jsonData);
@@ -104,12 +106,14 @@ export const DataAnalyst = () => {
     const handleSave = async (storeId: number) => {
         try {
             const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            const headers: any = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user?.token}`
+            };
+            if (selectedCompany) headers['x-company-id'] = selectedCompany;
             await fetch(`${API_URL}/api/v1/analyst/roi/${storeId}/baselines`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user?.token}`
-                },
+                headers,
                 body: JSON.stringify({
                     baseline_loss_rate: editValues.loss,
                     baseline_yield_ribs: editValues.yield,
@@ -124,8 +128,10 @@ export const DataAnalyst = () => {
             });
             setEditingStoreId(null);
             // Reload data
+            const headers2: any = { 'Authorization': `Bearer ${user?.token}` };
+            if (selectedCompany) headers2['x-company-id'] = selectedCompany;
             const res = await fetch(`${API_URL}/api/v1/analyst/roi`, {
-                headers: { 'Authorization': `Bearer ${user?.token}` }
+                headers: headers2
             });
             const jsonData = await res.json();
             if (jsonData.success) setData(jsonData);

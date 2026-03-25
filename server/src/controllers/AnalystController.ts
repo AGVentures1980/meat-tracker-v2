@@ -10,9 +10,10 @@ export class AnalystController {
             const user = (req as any).user;
 
             const whereClause: any = { is_pilot: true };
-            if (user.companyId) {
+            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
+            if (activeCompanyId) {
                 // Strict Isolation: Always scope to the active company
-                whereClause.company_id = user.companyId;
+                whereClause.company_id = activeCompanyId;
             }
 
             if (user.role !== 'admin' && user.role !== 'director') {
@@ -35,8 +36,8 @@ export class AnalystController {
             if (pilotStores.length === 0) {
                 const fallbackWhere: any = {};
                 // Strict Isolation
-                if (user.companyId) {
-                    fallbackWhere.company_id = user.companyId;
+                if (activeCompanyId) {
+                    fallbackWhere.company_id = activeCompanyId;
                 }
 
                 if (user.role !== 'admin' && user.role !== 'director') {
@@ -195,9 +196,10 @@ export class AnalystController {
             const user = (req as any).user;
 
             const whereClause: any = {};
-            if (user.companyId) {
+            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
+            if (activeCompanyId) {
                 // Strict Isolation: Always scope to the active company
-                whereClause.company_id = user.companyId;
+                whereClause.company_id = activeCompanyId;
             }
 
             if (user.role !== 'admin' && user.role !== 'director') {
