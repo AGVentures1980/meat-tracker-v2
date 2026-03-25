@@ -349,9 +349,10 @@ export class DashboardController {
         try {
             const user = (req as any).user;
 
+            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
             const whereStore: any = {};
-            if (user.companyId) {
-                whereStore.company_id = user.companyId;
+            if (activeCompanyId) {
+                whereStore.company_id = activeCompanyId;
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
@@ -413,9 +414,10 @@ export class DashboardController {
             const lastWeek = new Date(today);
             lastWeek.setDate(today.getDate() - 7);
 
+            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
             const whereStore: any = {};
-            if (user.companyId) {
-                whereStore.company_id = user.companyId;
+            if (activeCompanyId) {
+                whereStore.company_id = activeCompanyId;
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {

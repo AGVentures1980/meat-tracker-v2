@@ -29,8 +29,9 @@ export const UserController = {
                     storeIds = allStores.map(s => s.id);
                 } else if (user.scope.type === 'GLOBAL') {
                     // Admin can see everything, optionally filtered by current view
+                    const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
                     const allStores = await prisma.store.findMany({
-                        where: { company_id: user.companyId }, // using the requested company scope or default
+                        where: { company_id: activeCompanyId }, // using the requested company scope or default
                         select: { id: true }
                     });
                     storeIds = allStores.map(s => s.id);
