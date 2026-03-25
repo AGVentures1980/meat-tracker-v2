@@ -173,8 +173,9 @@ export class DashboardController {
 
             const where: any = {};
             // Strict Multi-Tenant Enforcement: Always scope to the user's active company
-            if (user.companyId) {
-                where.company_id = user.companyId;
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+            if (activeCompanyId) {
+                where.company_id = activeCompanyId;
             }
 
             // Scoping: Managers only see their own store
@@ -200,7 +201,7 @@ export class DashboardController {
             });
 
             // Fallback rates if no reports exist
-            const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
+            const companyIdReq = activeCompanyId;
 
             let company: any = null;
             if (companyIdReq && companyIdReq !== 'tdb-main') {
@@ -479,8 +480,8 @@ export class DashboardController {
 
             // 2. Fetch Stores with relevant data
             const where: any = {};
-            if (user.companyId) {
-                where.company_id = user.companyId;
+            if (companyIdReq) {
+                where.company_id = companyIdReq;
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
