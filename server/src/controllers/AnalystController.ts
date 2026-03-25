@@ -87,16 +87,41 @@ export class AnalystController {
                 const feePct = 8.0; // Forced to 8% for Pilot
                 const saasFee = totalSavings * (feePct / 100);
 
-                let rationale_en = "Pilot Location";
+                let rationale_en = "Pilot Location • Efficiency Test";
                 let demoStoreName = store.store_name;
 
-                // Keep the rationale but use actual store names instead of hardcoding Addison/Miami
-                if (index === 0) {
+                // Dynamic Rationales based on specific Pilot Stores for all Tenants
+                const name = store.store_name.toLowerCase();
+                
+                // Texas de Brazil
+                if (name.includes('addison')) {
                     rationale_en = "Control Group • HQ Proximity • Stability Test";
-                } else if (index === 1) {
+                } else if (name.includes('miami')) {
                     rationale_en = "High Volume • Yield Stress Test • Tourism";
-                } else if (index === 2) {
+                } else if (name.includes('las vegas')) {
                     rationale_en = "High Cost Market • Margin Proof • Complexity";
+                } 
+                // Fogo de Chão
+                else if (name.includes('santa monica')) {
+                    rationale_en = "High Profile Market • Coastal Operations • Volume Test";
+                } else if (name.includes('rancho cucamonga')) {
+                    rationale_en = "Suburban High Volume • Inland Enterprise • Family Demographics";
+                } else if (name.includes('el segundo')) {
+                    rationale_en = "Corporate Proximity • Control Group • Lunch Traffic Mix";
+                } 
+                // Outback Steakhouse
+                else if (name.includes('plano')) {
+                    rationale_en = "HQ Proximity • Baseline Calibration • Suburban Mix";
+                } else if (name.includes('dallas')) {
+                    rationale_en = "Urban Core • High Volume • Labor Variance Test";
+                } else if (name.includes('fort worth')) {
+                    rationale_en = "Traditional Market • Consistency Proof • Yield Focus";
+                } 
+                // Fallback for Generic Stores
+                else {
+                    if (index === 0) rationale_en = "Control Group • Core Market • Stability";
+                    else if (index === 1) rationale_en = "High Volume • Stress Test • Consistency";
+                    else if (index === 2) rationale_en = "High Cost Market • Margin Proof • Complexity";
                 }
 
                 return {
