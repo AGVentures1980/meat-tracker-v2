@@ -462,8 +462,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <span className="text-gray-500">{new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} // {new Date().toLocaleTimeString()}</span>
                         </div>
                         
-                        <div className="pt-5 mt-2 flex items-center gap-2 opacity-30 hover:opacity-100 transition-opacity justify-center w-full">
-                            <span className="text-[9px] font-bold text-white uppercase tracking-[0.3em] font-sans">POWERED BY AGV INTEL</span>
+                        <div className="pt-5 mt-2 flex flex-col items-center gap-1 opacity-40 hover:opacity-100 transition-opacity justify-center w-full text-center">
+                            <span className="text-[9px] font-bold text-white uppercase tracking-[0.3em] font-sans mb-1">POWERED BY AGV INTEL</span>
+                            <span className="text-[8px] text-gray-500 font-mono tracking-widest uppercase">© {new Date().getFullYear()} Brasa OS.</span>
+                            <span className="text-[8px] text-gray-500 font-mono tracking-widest uppercase">Proprietary & Confidential</span>
                         </div>
                     </div>
                 </div>
