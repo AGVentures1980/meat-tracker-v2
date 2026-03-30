@@ -42,6 +42,10 @@ export const StorePerformanceTable = ({ data, loading, summary }: StorePerforman
     const totalMeat = data.reduce((acc, s) => acc + s.usedQty, 0);
     const totalImpact = data.reduce((acc, s) => acc + s.impactYTD, 0); // Positive impact = loss/shrinkage
     const avgLbsGuest = totalGuests > 0 ? totalMeat / totalGuests : 0;
+    
+    // Average Metrics
+    const avgCostGuest = totalGuests > 0 ? data.reduce((acc, s) => acc + (s.costPerGuest * s.guests), 0) / totalGuests : 0;
+    const avgLbsGuestVar = totalGuests > 0 ? data.reduce((acc, s) => acc + (s.lbsGuestVar * s.guests), 0) / totalGuests : 0;
 
     const totalNetworkSavings = -totalImpact; // Invert so positive is savings
 
@@ -164,8 +168,12 @@ export const StorePerformanceTable = ({ data, loading, summary }: StorePerforman
                         <tr className="bg-[#080808] font-bold border-t border-white/20 text-white text-sm">
                             <td colSpan={3} className="px-4 py-5 text-right uppercase tracking-widest border-r border-white/10 text-gray-400">Network Grand Total</td>
                             <td className="px-4 py-5 text-right">{avgLbsGuest.toFixed(2)}</td>
-                            <td className="px-4 py-5 text-right text-gray-500">-</td>
-                            <td className="px-4 py-5 text-right border-r border-white/10 text-gray-500">-</td>
+                            <td className="px-4 py-5 text-right">${avgCostGuest.toFixed(2)}</td>
+                            <td className="px-4 py-5 text-right border-r border-white/10">
+                                <span className={`px-2 py-1 rounded ${avgLbsGuestVar > 0 ? 'bg-red-900/30 text-red-500' : avgLbsGuestVar < 0 ? 'bg-green-900/20 text-green-500' : 'text-gray-400'}`}>
+                                    {avgLbsGuestVar > 0 ? '+' : ''}{avgLbsGuestVar.toFixed(2)} lbs
+                                </span>
+                            </td>
                             <td className={`px-4 py-5 text-right text-lg ${totalNetworkSavings < 0 ? 'text-red-500 bg-red-900/10' : 'text-green-500 bg-green-900/10'}`}>
                                 {totalNetworkSavings < 0 ? 'SHRINKAGE: -$' : 'SAVINGS: +$'}{Math.abs(totalNetworkSavings).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                             </td>
