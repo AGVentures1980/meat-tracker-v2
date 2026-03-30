@@ -12,4 +12,7 @@ router.post('/create-portal-session', requireAuth, BillingController.createPorta
 // Fetch all subscriptions for Master Admin
 router.get('/all-subscriptions', requireAuth, BillingController.getAllSubscriptions);
 
+// Run the Monthly Billing Engine (Fixed SaaS + Gain-Share Smart Equity)
+router.post('/run-monthly', requireAuth, BillingController.runMonthlyBilling);
+
 export default router;

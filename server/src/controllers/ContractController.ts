@@ -10,19 +10,22 @@ export const ContractController = {
     // Generate a new Deal Contract
     generateContract: async (req: Request, res: Response) => {
         try {
-            const { company_name, signer_name, signer_email, price, locations_count } = req.body;
+            const { contract_type, company_name, signer_name, signer_email, implementation_fee, monthly_saas, performance_share, locations_count } = req.body;
 
-            if (!company_name || !signer_name || !signer_email || !price || !locations_count) {
+            if (!company_name || !signer_name || !signer_email || !locations_count) {
                 return res.status(400).json({ error: 'Missing required contract parameters.' });
             }
 
             // Create record in Database as DRAFT
             const contract = await prisma.contractDocument.create({
                 data: {
+                    contract_type: contract_type || 'pilot',
                     company_name,
                     signer_name,
                     signer_email,
-                    price: parseFloat(price),
+                    implementation_fee: parseFloat(implementation_fee || '0'),
+                    monthly_saas: parseFloat(monthly_saas || '0'),
+                    performance_share: parseFloat(performance_share || '0'),
                     locations_count: parseInt(locations_count, 10),
                     status: 'DRAFT'
                 }
@@ -112,19 +115,27 @@ export const ContractController = {
                         <span class="logo-sub">Technology Holdings & Licensing</span>
                     </div>
                     
-                    <div class="title">Master Software Evaluation & SaaS Agreement</div>
+                    <div class="title">${contract.contract_type === 'master' ? 'Master Software & SaaS Rollout Agreement' : 'Software Evaluation & Mutual NDA (Pilot Agreement)'}</div>
                     
-                    <p>This Master Agreement (the "Agreement") is entered into as of <span class="highlight">${contract.created_at.toLocaleDateString()}</span> (the "Effective Date") by and between <span class="highlight">AGV Ventures LLC</span> ("Licensor" or "Owner") and <span class="highlight">${contract.company_name}</span> ("Client").</p>
+                    <p>This Agreement is entered into as of <span class="highlight">${contract.created_at.toLocaleDateString()}</span> (the "Effective Date") by and between <span class="highlight">AGV Ventures LLC</span> ("Licensor" or "Owner") and <span class="highlight">${contract.company_name}</span> ("Client").</p>
                     
                     <div class="section-title">1. Ownership & Intellectual Property</div>
-                    <p>The <span class="highlight">Brasa Meat Intelligence</span> platform, algorithms, source codes, trademarks, operational methodologies (including the "Garcia Rule"), and all related intellectual property are owned exclusively by <span class="highlight">AGV Ventures LLC</span>. The software is merely licensed, not sold, to the Client under the terms of this Agreement. The Client hereby acknowledges that they hold no ownership rights over the software or any derivative works.</p>
+                    <p>The <span class="highlight">Brasa Meat Intelligence</span> platform, algorithms, source codes, trademarks, operational methodologies (including the "Garcia Rule"), and all related intellectual property are owned exclusively by <span class="highlight">AGV Ventures LLC</span>. The software is merely licensed or tested, not sold, to the Client under the terms of this Agreement. The Client hereby acknowledges that they hold no ownership rights over the software or any derivative works.</p>
 
                     <div class="section-title">2. Pilot Evaluation Program</div>
-                    <p>Licensor agrees to deploy the Brasa Meat Intelligence operating system to <span class="highlight">${contract.locations_count}</span> pilot locations for a 90-day evaluation period. During this period, both parties agree to mutual confidentiality regarding proprietary business metrics, strategic workflows, and software interfaces (Mutual NDA).</p>
-                    
-                    <div class="section-title">3. Commercial Terms & Transition</div>
-                    <p>Upon successful conclusion of the Pilot Program, this Agreement automatically transitions to an active monthly Software-as-a-Service (SaaS) license. The Client agrees to a recurring monthly software licensing fee of <span class="highlight">$${contract.price.toLocaleString()}.00 USD</span>. This fee grants the Client non-exclusive, non-transferable access for the authorized locations.</p>
-
+                    <p>Licensor agrees to deploy the Brasa Meat Intelligence operating system to <span class="highlight">${contract.locations_count}</span> pilot locations for a rigorous evaluation period. During this period, both parties agree to mutual confidentiality regarding proprietary business metrics, strategic workflows, and software interfaces (Mutual NDA).</p>
+                    ` + (contract.contract_type === 'master' ? `
+                    <div class="section-title">3. Commercial Terms & System Rollout</div>
+                    <p>Upon successful conclusion of the Pilot Program, this Agreement covers the system implementation and active SaaS licensing for up to <span class="highlight">${contract.locations_count}</span> Locations.</p>
+                    <ul style="font-size: 12px; margin-bottom: 15px; text-align: justify;">
+                        <li><strong>Implementation Fee:</strong> <span class="highlight">$${contract.implementation_fee.toLocaleString()}.00 USD</span> per location.</li>
+                        <li><strong>SaaS Licensing Fee:</strong> A recurring software license of <span class="highlight">$${contract.monthly_saas.toLocaleString()}.00 USD</span> per location per month.</li>
+                        <li><strong>Performance Gain-Share:</strong> Licensor guarantees measurable yield savings and shall receive <span class="highlight">${contract.performance_share}%</span> of the verified gross meat savings generated by the software logic.</li>
+                    </ul>
+                    ` : `
+                    <div class="section-title">3. Commercial Conversion (Post-Pilot)</div>
+                    <p>Upon the successful validation of the yield savings generated during this Pilot in the <span class="highlight">${contract.locations_count}</span> pilot stores, the parties agree to negotiate in good faith a separate Master SaaS Agreement to govern the formal rollout of the technology across the wider enterprise. No permanent commercial licensing terms are executed until the Pilot is formally finalized.</p>
+                    `) + `
                     <div class="section-title">4. Liability Shield</div>
                     <p>In no event shall AGV Ventures LLC, its founders, members, or affiliates be liable for any indirect, incidental, or consequential damages arising out of the use or inability to use the Software. Total liability of AGV Ventures LLC shall not exceed the amount paid by the Client for the software license.</p>
 
@@ -224,21 +235,86 @@ export const ContractController = {
         try {
             const { contractId } = req.body;
 
-            const updated = await prisma.contractDocument.update({
-                where: { id: contractId },
-                data: {
-                    status: 'EXECUTED'
-                }
+            const contract = await prisma.contractDocument.findUnique({
+                where: { id: contractId }
             });
 
+            if (!contract) return res.status(404).json({ error: 'Contract not found' });
+
+            const updated = await prisma.contractDocument.update({
+                where: { id: contractId },
+                data: { status: 'EXECUTED' }
+            });
+
+            // --- PROVISIONING THE B2B ENVIRONMENT ---
+            const subdomain = contract.company_name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const bcrypt = require('bcryptjs');
+
+            // 1. Create or Find Company
+            let company = await prisma.company.findFirst({ where: { 
+                OR: [ { name: contract.company_name }, { subdomain } ] 
+            }});
+
+            if (!company) {
+                company = await prisma.company.create({
+                    data: {
+                        name: contract.company_name,
+                        subdomain,
+                        plan: contract.contract_type === 'master' ? 'enterprise' : 'pilot',
+                        company_status: 'Active',
+                        stores_licensed: contract.locations_count,
+                        contract_savings_fee_pct: contract.performance_share,
+                        theme_primary_color: '#C5A059'
+                    }
+                });
+            }
+
+            // 2. Create the Primary Director User
+            let user = await prisma.user.findUnique({ where: { email: contract.signer_email } });
+            if (!user) {
+                const password_hash = bcrypt.hashSync('Brasa!2024', 10);
+                user = await prisma.user.create({
+                    data: {
+                        email: contract.signer_email,
+                        first_name: contract.signer_name.split(' ')[0],
+                        last_name: contract.signer_name.split(' ').slice(1).join(' '),
+                        password_hash,
+                        role: 'director',
+                        is_primary: true
+                    }
+                });
+            }
+
+            // Link Owner ID to company if it was just created
+            if (!company.owner_id) {
+                await prisma.company.update({
+                    where: { id: company.id },
+                    data: { owner_id: user.id }
+                });
+            }
+
+            // 3. Create the first Pilot Store if none exist for this company
+            const storesCount = await prisma.store.count({ where: { company_id: company.id } });
+            if (storesCount === 0) {
+                await prisma.store.create({
+                    data: {
+                        company_id: company.id,
+                        store_name: `${contract.company_name} - HQ Pilot`,
+                        location: 'Headquarters',
+                        is_pilot: true
+                    }
+                });
+            }
+
             return res.status(200).json({
-                message: 'Webhook processed. Contract is legally Executed.',
-                contract: updated
+                message: 'Contract executed & Tenant environment fully provisioned.',
+                contract: updated,
+                tenant: { company: company.name, admin: user.email }
             });
 
         } catch (error) {
             console.error('Error processing webhook:', error);
-            return res.status(500).json({ error: 'Failed to process webhook.' });
+            return res.status(500).json({ error: 'Failed to process webhook + provisioning.' });
         }
     },
 
@@ -261,7 +337,7 @@ export const ContractController = {
     updateContract: async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const { company_name, signer_name, signer_email, price, locations_count } = req.body;
+            const { contract_type, company_name, signer_name, signer_email, implementation_fee, monthly_saas, performance_share, locations_count } = req.body;
 
             const existing = await prisma.contractDocument.findUnique({ where: { id } });
             if (!existing || existing.status !== 'DRAFT') {
@@ -271,10 +347,13 @@ export const ContractController = {
             const updated = await prisma.contractDocument.update({
                 where: { id },
                 data: {
+                    contract_type: contract_type || existing.contract_type,
                     company_name,
                     signer_name,
                     signer_email,
-                    price: parseFloat(price),
+                    implementation_fee: parseFloat(implementation_fee || '0'),
+                    monthly_saas: parseFloat(monthly_saas || '0'),
+                    performance_share: parseFloat(performance_share || '0'),
                     locations_count: parseInt(locations_count, 10),
                 }
             });

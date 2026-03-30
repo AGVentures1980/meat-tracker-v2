@@ -603,17 +603,20 @@ model Payout {
 }
 
 model ContractDocument {
-  id              String   @id @default(uuid())
-  company_name    String
-  signer_name     String
-  signer_email    String
-  price           Float
-  locations_count Int
-  status          String   @default("DRAFT")
-  api_envelope_id String?
-  contract_url    String?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  company_name       String
+  signer_name        String
+  signer_email       String
+  contract_type      String   @default("pilot")
+  implementation_fee Float    @default(0)
+  monthly_saas       Float    @default(0)
+  performance_share  Float    @default(0)
+  locations_count    Int
+  status             String   @default("DRAFT")
+  api_envelope_id    String?
+  contract_url       String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
 }
 
 model PilotDailyAudit {

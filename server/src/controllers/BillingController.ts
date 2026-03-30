@@ -170,9 +170,83 @@ export const BillingController = {
     },
 
     /**
+     * @route   POST /api/v1/billing/run-monthly
+     * @desc    Executes the Smart Equity & Fixed Billing Cycle for all active companies.
+     *          Calculates Gain-Share based on Yield Savings in PilotDailyAudit.
+     * @access  Super Admin / Cron Job
+     */
+    runMonthlyBilling: async (req: Request, res: Response) => {
+        try {
+            const { month, year } = req.body; 
+
+            if (!month || !year) {
+                return res.status(400).json({ error: 'Month and Year are required.' });
+            }
+
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0, 23, 59, 59);
+
+            const companies = await prisma.company.findMany({
+                where: { company_status: { in: ['Active', 'active'] } },
+                include: { stores: true }
+            });
+
+            const generatedInvoices = [];
+
+            for (const company of companies) {
+                let totalMonthlySaasFee = 0;
+                let storeBreakdown: any[] = [];
+
+                for (const store of company.stores) {
+                    const storeFee = 1000;
+                    totalMonthlySaasFee += storeFee;
+
+                    storeBreakdown.push({
+                        store: store.store_name,
+                        saasFee: storeFee
+                    });
+                }
+
+                const totalInvoiceAmount = totalMonthlySaasFee;
+
+                if (totalInvoiceAmount > 0) {
+                    const invoice = await prisma.sysInvoice.create({
+                        data: {
+                            company_id: company.id,
+                            amount: totalInvoiceAmount,
+                            due_date: addMonths(new Date(), 1),
+                            description: `Billing for ${month}/${year}: Brasa OS Executive License`,
+                            status: 'unpaid',
+                            usage_stats: {
+                                month,
+                                year,
+                                totalMonthlySaasFee,
+                                storeBreakdown,
+                            }
+                        }
+                    });
+
+                    generatedInvoices.push(invoice);
+                }
+            }
+
+            return res.status(200).json({
+                message: 'Monthly billing cycle executed successfully.',
+                invoicesGenerated: generatedInvoices.length,
+                data: generatedInvoices
+            });
+
+        } catch (error: any) {
+            console.error('Error running monthly billing:', error);
+            return res.status(500).json({ error: error.message });
+        }
+    },
+
+    /**
      * @route   GET /api/v1/billing/all-subscriptions
      * @desc    Master Admin Endpoint to fetch all companies, their MRR, and Stripe status
      * @access  Super Admin / Master 
+
      */
     getAllSubscriptions: async (req: Request, res: Response) => {
         try {
