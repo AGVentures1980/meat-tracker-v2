@@ -1,51 +1,41 @@
-import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface StoreData {
+export interface StorePerformance {
     id: number;
     name: string;
     location: string;
-    // Week Actual
     guests: number;
-    usedQty: number; // Lbs
+    usedQty: number; // lbs
     usedValue: number; // $
-    costPerLb: number; // $ / Lbs
-    costPerGuest: number; // $ / Guest
-    lbsPerGuest: number; // Lbs / Guest
-    // Var to Plan
-    lbsGuestVar: number;
-    costGuestVar: number;
-    // Impact
+    costPerLb: number;
+    costPerGuest: number;
+    lbsPerGuest: number;
+    lbsGuestVar: number; // Variance from 1.76
+    target_lbs_guest?: number; // Dynamic Target
+    target_cost_guest?: number; // Dynamic Cost Target
+    costGuestVar: number; // Variance from Plan
     impactYTD: number;
+    theoreticalRevenue?: number;
+    foodCostPercentage?: number;
     status: 'Optimal' | 'Warning' | 'Critical';
-    hasQCAlert?: boolean;
+    
+    // Alacarte fields
+    actualYieldPct?: number;
+    targetYieldPct?: number;
+    portionVariancePct?: number;
+    priceDriftPerLb?: number;
+    executionImpact?: number;
 }
 
-export const StorePerformanceTable = () => {
-    const [data, setData] = useState<StoreData[]>([]);
-    const [loading, setLoading] = useState(true);
+interface StorePerformanceTableProps {
+    data: StorePerformance[];
+    loading?: boolean;
+    summary?: any;
+}
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const baseUrl = '/api/v1';
-                const res = await fetch(`${baseUrl}/dashboard/bi-network`);
-
-                if (res.ok) {
-                    const realData = await res.json();
-                    setData(realData);
-                } else {
-                    console.error('Failed to fetch BI data');
-                }
-            } catch (err) {
-                console.error('Error loading BI data:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
+export const StorePerformanceTable = ({ data, loading, summary }: StorePerformanceTableProps) => {
+    const navigate = useNavigate();
 
     // Helper for Summing Up Totals
     const totalGuests = data.reduce((acc, s) => acc + s.guests, 0);
@@ -56,7 +46,7 @@ export const StorePerformanceTable = () => {
     const totalNetworkSavings = -totalImpact; // Invert so positive is savings
 
     // Helper to calculate a proxy Daily Score out of 100 based on variance
-    const getDailyScore = (store: StoreData) => {
+    const getDailyScore = (store: StorePerformance) => {
         let score = 100;
         if (store.lbsGuestVar > 0) {
             // Penalize score for over-portioning
@@ -66,7 +56,7 @@ export const StorePerformanceTable = () => {
             // Slight boost for saving
             score += 2;
         }
-        if (store.hasQCAlert) score -= 15;
+        // if (store.hasQCAlert) score -= 15;
         return Math.max(0, Math.min(100, score));
     };
 
