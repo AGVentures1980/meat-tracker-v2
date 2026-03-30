@@ -84,7 +84,7 @@ export const StorePerformanceTable = ({ data, loading, summary }: StorePerforman
                         {/* Top Header Row */}
                         <tr className="bg-[#0a0a0a] text-gray-500 border-b border-white/10">
                             <th colSpan={3} className="px-4 py-2 border-r border-white/10 text-center font-bold">Store Execution</th>
-                            <th colSpan={4} className="px-4 py-2 border-r border-white/10 text-center font-bold bg-blue-900/10 text-blue-300">Consumption Metrics</th>
+                            <th colSpan={3} className="px-4 py-2 border-r border-white/10 text-center font-bold bg-blue-900/10 text-blue-300">Consumption Metrics</th>
                             <th colSpan={1} className="px-4 py-2 text-center font-bold bg-brand-gold/10 text-brand-gold">Executive Financials</th>
                         </tr>
                         {/* Sub Header Row */}
