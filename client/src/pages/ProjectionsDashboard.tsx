@@ -18,6 +18,7 @@ interface StoreProjectionData {
     lunchPrice: number;
     dinnerPrice: number;
     target_lbs_guest: number;
+    target_cost_guest?: number;
 
     // Calculated
     projectedLunchGuests: number;
@@ -576,7 +577,7 @@ export const ProjectionsDashboard = () => {
                                                 />
                                             </td>
                                             <td className="p-4 text-right border-r border-[#333] font-bold text-orange-400">
-                                                {fmtCurrency(store.target_lbs_guest * 9.50)}
+                                                {fmtCurrency(store.target_cost_guest || 9.94)}
                                             </td>
                                             <td className="p-4 text-right border-r border-[#333] font-bold text-gray-400">
                                                 {fmtNum(store.projectedMeatLbs)}

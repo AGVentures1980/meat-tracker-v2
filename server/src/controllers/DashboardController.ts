@@ -230,7 +230,8 @@ export class DashboardController {
                     dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : fallbackDinner,
                     lunchPrice: store.lunch_price || parseFloat((29.0 + ((store.id * 3) % 4)).toFixed(2)),
                     dinnerPrice: store.dinner_price || parseFloat((58.0 + ((store.id * 7) % 5)).toFixed(2)),
-                    target_lbs_guest: store.target_lbs_guest || fallbackTargetLbs
+                    target_lbs_guest: store.target_lbs_guest || fallbackTargetLbs,
+                    target_cost_guest: store.target_cost_guest || 9.94
                 };
             });
 
