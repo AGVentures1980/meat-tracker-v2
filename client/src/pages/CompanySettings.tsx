@@ -268,7 +268,7 @@ export const CompanySettings = () => {
                         onClick={() => setActiveTab('templates')}
                         className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'templates' ? 'bg-[#C5A059] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
                     >
-                        <Plus className="w-4 h-4" /> templates
+                        <Plus className="w-4 h-4" /> Tiers / Templates
                     </button>
                     <button
                         onClick={() => setActiveTab('areaManagers')}
@@ -286,7 +286,7 @@ export const CompanySettings = () => {
                     onClick={() => setIsAdding(true)}
                     className="px-6 py-3 bg-[#0F0F0F] border border-[#C5A059]/30 text-[#C5A059] rounded hover:bg-[#C5A059] hover:text-black transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2"
                 >
-                    <Plus className="w-4 h-4" /> Add {activeTab === 'products' ? 'Product' : activeTab === 'stores' ? 'Store' : activeTab === 'areaManagers' ? 'Area Manager' : 'Template'}
+                    <Plus className="w-4 h-4" /> Add {activeTab === 'products' ? 'Product' : activeTab === 'stores' ? 'Store' : activeTab === 'areaManagers' ? 'Area Manager' : 'Corporate Tier'}
                 </button>
             </div>
 
@@ -299,7 +299,7 @@ export const CompanySettings = () => {
                         </button>
                         <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <Plus className="w-6 h-6 text-[#C5A059]" />
-                            Add New {activeTab === 'products' ? 'Product' : activeTab === 'stores' ? 'Store' : activeTab === 'areaManagers' ? 'Area Manager' : 'Template'}
+                            Add New {activeTab === 'products' ? 'Product' : activeTab === 'stores' ? 'Store' : activeTab === 'areaManagers' ? 'Area Manager' : 'Corporate Tier'}
                         </h2>
 
                         <div className="space-y-4">
@@ -426,11 +426,11 @@ export const CompanySettings = () => {
                             {activeTab === 'templates' && (
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Description</label>
+                                        <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Tier Name / Description</label>
                                         <input
                                             type="text"
                                             className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
-                                            placeholder="e.g., Standard 2024 Operation Model"
+                                            placeholder="e.g., TIER 1 - Flagship (High Volume)"
                                             value={newItemLocation}
                                             onChange={(e) => setNewItemLocation(e.target.value)}
                                         />
@@ -589,14 +589,14 @@ export const CompanySettings = () => {
                                             Edit Ops
                                         </button>
                                         <select
-                                            title="Apply Template"
+                                            title="Assign Tier"
                                             className="bg-[#111] border border-white/10 text-white text-[10px] p-1 rounded outline-none w-24"
                                             onChange={(e) => {
                                                 if (e.target.value) handleApplyTemplate(s.id, e.target.value);
                                                 e.target.value = ''; // Reset
                                             }}
                                         >
-                                            <option value="">Apply Template...</option>
+                                            <option value="">Assign Tier...</option>
                                             {templates.map(t => (
                                                 <option key={t.id} value={t.id}>{t.name}</option>
                                             ))}
@@ -621,7 +621,7 @@ export const CompanySettings = () => {
                     /* Templates Tab */
                     <div className="p-6 space-y-4">
                         <div className="flex justify-between items-center mb-2">
-                            <p className="text-gray-500 text-xs">Pre-configured operational templates. Apply to any store via Settings → Stores.</p>
+                            <p className="text-gray-500 text-xs text-balance">Create Operation Tiers (Templates). Once created, you can assign them to your stores in the Stores tab. When assigned, the store inherits the mathematical constants of that tier (e.g., Target Lbs/Guest, Cost, and Pricing).</p>
                             {(user?.role === 'admin' || user?.role === 'director') && (
                                 <button onClick={() => setIsAdding(true)} className="px-4 py-2 bg-[#C5A059]/10 border border-[#C5A059]/30 text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded hover:bg-[#C5A059] hover:text-black transition-all flex items-center gap-2">
                                     <Plus className="w-3 h-3" /> Start from Scratch
