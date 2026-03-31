@@ -58,11 +58,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     // Global Executive Items (Always visible for Master, but require a selected company for context)
     if (isMaster && selectedCompany) {
         navItems.push({
-            section: 'EXECUTIVE STEALTH',
+            section: 'GLOBAL PROCUREMENT',
             items: [
-                { icon: DollarSign, label: 'Corp Procurement (Stealth)', path: '/procurement' },
-                { icon: BrainCircuit, label: 'A.I. Procurement (Shadow)', path: '/intelligence/procurement-shadow' },
-                { icon: ShieldCheck, label: 'Master Contracts Vault', path: '/agv-vault' }
+                { icon: DollarSign, label: 'Global Procurement', path: '/procurement' },
+                { icon: BrainCircuit, label: 'A.I. Strategic Sourcing', path: '/intelligence/procurement-shadow' },
+                { icon: ShieldCheck, label: 'Legal & Contracts Vault', path: '/agv-vault' }
             ]
         });
     }
@@ -77,20 +77,20 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         navItems.push(
             {
-                section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Accountability)' : 'MARKET DATA'), items: [
-                    { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Meat Prices / Invoices') : 'Protein Market Cost', path: '/prices' },
+                section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Supply & Yield)' : 'MARKET DATA'), items: [
+                    { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Protein Cost & Invoices') : 'Protein Market Cost', path: '/prices' },
                     ...(isStoreLevel || isAreaLevel ? [{ icon: ScanLine, label: 'Receiving Dock QC', path: '/receiving' }] : []),
-                    { icon: Trash, label: isStoreLevel ? 'Process Waste' : 'Network Waste Status', path: '/waste' },
-                    ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Weekly Pulse (Inventory)', path: '/inventory' }] : []),
+                    { icon: Trash, label: isStoreLevel ? 'Process Yield & Variance' : 'Network Variance Status', path: '/waste' },
+                    ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Period End Inventory', path: '/inventory' }] : []),
                 ]
             }
         );
 
         if (isStoreLevel || isAreaLevel) {
             navItems.push({
-                section: t('nav.section_run') || 'RUN (Shift Command)', items: [
-                    { icon: PlayCircle, label: t('nav.commandCenter') || 'Shift Command Center', path: '/command-center' },
-                    { icon: ScanLine, label: 'Pull to Prep (Boxes)', path: '/pull-to-prep' },
+                section: t('nav.section_run') || 'RUN (Daily Operations)', items: [
+                    { icon: PlayCircle, label: t('nav.commandCenter') || 'Manager Shift Log', path: '/command-center' },
+                    { icon: ScanLine, label: 'Daily Prep Par Levels', path: '/pull-to-prep' },
                     { icon: Scissors, label: 'Meat Yield Station', path: '/yield-station' },
                     ...((companyName?.toLowerCase().includes('fogo') || (typeof window !== 'undefined' && window.location.hostname.includes('fdc'))) ? [{ icon: Database, label: 'Burger Grinder Station', path: '/yield-station' }] : []),
                     { icon: AlertOctagon, label: 'EOD Shift Audit', path: '/end-of-shift-audit' },
@@ -101,16 +101,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         if (!isDavid) {
             navItems.push({
-                section: t('nav.section_view') || 'VIEW (Performance)', items: [
+                section: t('nav.section_view') || 'VIEW (Financial Analytics)', items: [
                     { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
                     { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
-                    { icon: StickyNote, label: t('nav.reports') || 'Executive Reports', path: '/reports' },
+                    { icon: StickyNote, label: t('nav.reports') || 'P&L Executive Reports', path: '/reports' },
                 ]
             });
         }
 
         navItems.push({
-            section: t('nav.section_learn') || 'LEARN (Training)', items: [
+            section: t('nav.section_learn') || 'LEARN (L&D)', items: [
                 { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
                 { icon: FileText, label: 'AGV Support Hub', path: '/support' },
             ]
@@ -118,10 +118,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         if (!isDavid) {
             navItems.push({
-                section: t('nav.section_team') || 'TEAM (Store)', 
+                section: t('nav.section_team') || 'TEAM (Labor & Roster)', 
                 hideOnMobile: true,
                 items: [
-                    { icon: Users, label: t('nav.team') || 'Team Management', path: '/users' },
+                    { icon: Users, label: t('nav.team') || 'Labor Management', path: '/users' },
                 ]
             });
         }
@@ -133,26 +133,26 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             
             if (!isDavid) {
                 manageItems.push(
-                    { icon: Activity, label: 'Network Command Center', path: '/owner' },
+                    { icon: Activity, label: 'Corporate Command Center', path: '/owner' },
                     { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' }
                 );
             }
 
             if (isSystemAdmin) {
                 manageItems.push(
-                    { icon: Users, label: t('nav.performance_audit') || 'Performance Audit', path: '/audit' },
+                    { icon: Users, label: t('nav.performance_audit') || 'Operational Audit', path: '/audit' },
                     { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
                     { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' },
-                    { icon: DollarSign, label: 'SaaS Billing & Invoices', path: '/billing' }
+                    { icon: DollarSign, label: 'Subscription Billing', path: '/billing' }
                 );
             }
 
             if (manageItems.length > 0 || isSystemAdmin || isRodrigo || isDavid) {
                 navItems.push({
-                    section: t('nav.section_manage') || 'MANAGE (Company)',
+                    section: t('nav.section_manage') || 'MANAGE (Corporate Admin)',
                     items: [
                         ...manageItems,
-                        { icon: ShieldCheck, label: 'Corporate DB Specs', path: '/executive/specs' }
+                        { icon: ShieldCheck, label: 'Master Recipe & Specs', path: '/executive/specs' }
                     ]
                 });
             }
@@ -378,7 +378,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             >
                                 <ShieldCheck className="w-5 h-5 min-w-[20px]" />
                                 <div className="flex flex-1 items-center justify-between">
-                                    <span className="text-sm font-medium tracking-wide">Corporate DB Specs</span>
+                                    <span className="text-sm font-medium tracking-wide">Master Recipe & Specs</span>
                                 </div>
                             </Link>
                             {!isDavid && (
@@ -423,7 +423,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 className="w-full flex items-center gap-3 p-3 rounded transition-colors text-emerald-400 hover:bg-emerald-900/20 mt-2 border border-emerald-500/20 border-solid shadow-sm shadow-emerald-900/10"
                             >
                                 <ShieldCheck className="w-5 h-5 min-w-[20px]" />
-                                <span className="text-sm font-bold tracking-tight">Master Contracts Vault</span>
+                                <span className="text-sm font-bold tracking-tight">Legal & Contracts Vault</span>
                             </Link>
 
                             <Link
@@ -431,7 +431,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 className="w-full flex items-center gap-3 p-3 rounded transition-colors text-blue-400 hover:bg-blue-900/20 mt-2 border border-blue-500/20 border-solid shadow-sm shadow-blue-900/10"
                             >
                                 <DollarSign className="w-5 h-5 min-w-[20px]" />
-                                <span className="text-sm font-bold tracking-tight">Master Stripe Console</span>
+                                <span className="text-sm font-bold tracking-tight">Executive Billing Console</span>
                             </Link>
                         </>
                     )}
@@ -497,19 +497,19 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <div className="hidden md:flex items-center space-x-6 ml-4">
                             <div className="flex items-center space-x-2 px-3 py-1 bg-[#222] rounded-full border border-[#333]">
                                 <Network className="w-4 h-4 text-[#C5A059]" />
-                                <span className="text-xs text-gray-400 uppercase tracking-wider">Store Network</span>
+                                <span className="text-xs text-gray-400 uppercase tracking-wider">Systemwide Units</span>
                                 <span className="text-sm font-bold text-white">{networkStats ? networkStats.totalStores : 57} <span className="text-[10px] text-gray-500 font-normal">ACTIVE</span></span>
                             </div>
                             <div className="h-4 w-px bg-[#333]"></div>
                             <div className="flex items-center space-x-2">
                                 <DollarSign className="w-4 h-4 text-green-500" />
-                                <span className="text-xs text-gray-400 uppercase">System Sales</span>
+                                <span className="text-xs text-gray-400 uppercase">Top-Line Revenue</span>
                                 <span className="text-sm font-mono text-white">$45.5</span>
                             </div>
                             <div className="h-4 w-px bg-[#333]"></div>
                             <div className="flex items-center space-x-2">
                                 <Users className="w-4 h-4 text-blue-500" />
-                                <span className="text-xs text-gray-400 uppercase">System Labor</span>
+                                <span className="text-xs text-gray-400 uppercase">Consolidated Labor %</span>
                                 <span className="text-sm font-mono text-white">28.4%</span>
                             </div>
                         </div>
@@ -660,7 +660,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         className={`flex flex-col items-center p-2 rounded ${location.pathname === '/waste' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
                         <Trash size={20} />
-                        <span className="text-[10px] mt-1">Waste</span>
+                        <span className="text-[10px] mt-1">Variance</span>
                     </button>
                     <button
                         title="Inventory"

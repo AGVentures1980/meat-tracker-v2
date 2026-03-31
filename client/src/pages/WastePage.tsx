@@ -459,7 +459,7 @@ const WastePage = () => {
                     )}
                     <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
                         <Trash2 className="w-8 h-8 text-[#FF2A6D]" />
-                        {selectedStore ? (stores.find(s => s.id === selectedStore)?.name || 'Store Report') : 'Process Waste'}
+                        {selectedStore ? (stores.find(s => s.id === selectedStore)?.name || 'Store Report') : 'Yield & Variance Log'}
                     </h1>
                 </div>
 

@@ -161,7 +161,7 @@ export default function PullToPrep() {
               <ArrowLeft className="w-6 h-6 text-neutral-400" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold">Pull to Prep (Checkout)</h1>
+              <h1 className="text-2xl font-bold">Daily Prep Par Levels</h1>
               <p className="text-neutral-400">Transfer primal cuts from Cooler to WIP</p>
             </div>
           </div>

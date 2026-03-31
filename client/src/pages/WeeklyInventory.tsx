@@ -333,7 +333,7 @@ export const WeeklyInventory = () => {
             <header className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
                     <ShieldAlert className="w-8 h-8 text-[#C5A059]" />
-                    <h1 className="text-3xl font-bold tracking-tight text-white">Weekly Pulse: Smart Inventory</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Period End Inventory</h1>
                 </div>
                 <p className="text-gray-400">
                     Mandatory cycle count for All Network Proteins to enforce <span className="text-[#C5A059] font-mono">The Garcia Rule</span>.
@@ -379,7 +379,7 @@ export const WeeklyInventory = () => {
                     <div className="bg-[#00FF94]/10 border border-[#00FF94]/20 rounded-lg p-8 text-center space-y-4" >
                         <CheckCircle2 className="w-16 h-16 text-[#00FF94] mx-auto" />
                         <h2 className="text-2xl font-bold text-white">Inventory Locked</h2>
-                        <p className="text-gray-400">Weekly pulse submitted successfully. The operational dashboard is unlocked.</p>
+                        <p className="text-gray-400">Inventory count submitted successfully. The operational dashboard is unlocked.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
