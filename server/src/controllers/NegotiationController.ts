@@ -12,10 +12,27 @@ export class NegotiationController {
      */
     static async getProposal(req: Request, res: Response) {
         try {
-            const user = (req as any).user;
+            const userTokenData = (req as any).user;
+
+            // Fetch company details from token context
+            let companyName = 'Network Partner';
+            if (userTokenData.companyId) {
+                const company = await prisma.company.findUnique({
+                    where: { id: userTokenData.companyId }
+                });
+                if (company) companyName = company.name;
+            }
+
+            // Fetch full user for sender info
+            const fullUser = await prisma.user.findUnique({
+                where: { id: userTokenData.id }
+            });
+            const senderName = fullUser?.first_name 
+                ? `${fullUser.first_name} ${fullUser.last_name || ''}`.trim() 
+                : 'Executive Director';
 
             // 1. Fetch Executive Stats (contains performance list of all stores)
-            const stats = await MeatEngine.getExecutiveStats(user);
+            const stats = await MeatEngine.getExecutiveStats(userTokenData);
             const stores = stats.performance;
 
             // 2. Aggregate Annual Volume Projections
@@ -81,7 +98,7 @@ export class NegotiationController {
             const proposalContent = {
                 title: "Annual Protein Supply & Strategic Partnership Proposal",
                 recipient: "Valued Supplier Partner",
-                sender: "Alex Garcia - Executive Director, Texas de Brazil Network",
+                sender: `${senderName} - Executive Director, ${companyName} Network`,
                 date: format(new Date(), 'MMMM dd, yyyy'),
                 summary: `Based on our current network performance across ${stores.length} locations, we are projecting a combined annual consumption of ${totalAnnualLbs.toLocaleString()} lbs of premium proteins. We are seeking to consolidate our supply chain to achieve a target average cost optimization of 5%.`,
                 highlights: [
