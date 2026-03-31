@@ -67,13 +67,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         });
     }
 
+    const isStoreLevel = user?.scope?.type === 'STORE';
+    const isAreaLevel = user?.scope?.type === 'AREA';
+    const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
     const hideReceivingFromExecs = user?.role === 'director' || user?.role === 'admin' || isMaster;
+    const shouldHideReceiving = hideReceivingFromExecs || isCompanyOrGlobal;
 
     if (selectedCompany) {
-        const isStoreLevel = user?.scope?.type === 'STORE';
-        const isAreaLevel = user?.scope?.type === 'AREA';
-        const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
-        const shouldHideReceiving = hideReceivingFromExecs || isCompanyOrGlobal;
 
         navItems.push(
             {
@@ -369,18 +369,20 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     </div>
                                 </Link>
                             )}
-                            <Link
-                                to="/executive/specs"
-                                className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive/specs'
-                                    ? 'bg-[#00FF94]/10 text-[#00FF94] border-l-2 border-[#00FF94]'
-                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                                    } `}
-                            >
-                                <ShieldCheck className="w-5 h-5 min-w-[20px]" />
-                                <div className="flex flex-1 items-center justify-between">
-                                    <span className="text-sm font-medium tracking-wide">Master Recipe & Specs</span>
-                                </div>
-                            </Link>
+                            {!isCompanyOrGlobal && (
+                                <Link
+                                    to="/executive/specs"
+                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive/specs'
+                                        ? 'bg-[#00FF94]/10 text-[#00FF94] border-l-2 border-[#00FF94]'
+                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                        } `}
+                                >
+                                    <ShieldCheck className="w-5 h-5 min-w-[20px]" />
+                                    <div className="flex flex-1 items-center justify-between">
+                                        <span className="text-sm font-medium tracking-wide">Master Recipe & Specs</span>
+                                    </div>
+                                </Link>
+                            )}
                             {!isDavid && (
                                 <Link
                                     to="/data-analyst"
