@@ -26,6 +26,7 @@ interface StoreProjectionData {
     projectedRevenue: number;
     projectedMeatLbs: number; // Based on Target
     statusQuoMeatLbs: number; // Based on Current Actual
+    avg_lbs_steak: number;
 
     savingsLbs: number;
     savingsDollars: number;
@@ -87,7 +88,7 @@ export const ProjectionsDashboard = () => {
             const FOOT_TRAFFIC_LY = data.lunchGuestsLastYear + data.dinnerGuestsLastYear;
             const STEAK_INCIDENCE = data.target_lbs_guest || 0.35; // e.g., 0.35 represents 35%
             const AVG_STEAK_TICKET = data.lunchPrice; 
-            const AVG_STEAK_LBS = 1.0; 
+            const AVG_STEAK_LBS = data.avg_lbs_steak || 0.65; // ~10.4 oz average steak size, now dynamic based on POS mix 
 
             const STEAK_GUESTS_LY = FOOT_TRAFFIC_LY * STEAK_INCIDENCE;
             const STEAK_REVENUE_LY = STEAK_GUESTS_LY * AVG_STEAK_TICKET;
@@ -138,6 +139,7 @@ export const ProjectionsDashboard = () => {
                 projectedRevenue: 0,
                 projectedMeatLbs: 0,
                 statusQuoMeatLbs: 0,
+                avg_lbs_steak: 0.65,
                 savingsLbs: 0,
                 savingsDollars: 0
             };
@@ -176,6 +178,7 @@ export const ProjectionsDashboard = () => {
             projectedRevenue: targetRevenue,
             projectedMeatLbs: targetLbs,
             statusQuoMeatLbs: statusQuoLbs,
+            avg_lbs_steak: data.avg_lbs_steak || 0.65,
             savingsLbs,
             savingsDollars
         };
@@ -216,7 +219,7 @@ export const ProjectionsDashboard = () => {
                     const { stores, annualGrowthRate, operationType } = await res.json();
                     setOperationType(operationType || 'RODIZIO');
                     setGrowthRate(annualGrowthRate);
-                    const calculated = stores.map((d: any) => calculateRow(d as StoreProjectionData, annualGrowthRate, operationType || 'RODIZIO'));
+                    const calculated = stores.map((d: any) => calculateRow({ ...d, avg_lbs_steak: 0.65 } as StoreProjectionData, annualGrowthRate, operationType || 'RODIZIO'));
                     setStoreData(calculated);
                 }
             } catch (err) {
@@ -426,16 +429,40 @@ export const ProjectionsDashboard = () => {
                             {isAlacarte ? (
                                 <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
                                     {/* Revenue Mandate */}
-                                    <th className="p-4 font-normal text-right border-r border-[#333] text-white bg-brand-gold/5">{t('proj_col_proj_meat_rev')}</th>
+                                    <th className="p-4 font-normal text-right border-r border-[#333] text-white bg-brand-gold/5">
+                                        {t('proj_col_proj_meat_rev')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">($ Target)</div>
+                                    </th>
                                     {/* Commercial Targets */}
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_avg_steak_ticket')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_steak_incidence')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_foot_traffic_ly')}</th>
-                                    <th className="p-4 font-normal text-right border-r border-[#333]">{t('proj_col_proj_foot_traffic')}</th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_avg_steak_ticket')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Avg plate price)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_steak_incidence')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(% Guests order steak)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_foot_traffic_ly')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Base Volume)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right border-r border-[#333]">
+                                        Proj. Foot Traffic
+                                        <div className="text-[8px] text-brand-gold font-normal lowercase tracking-wide mt-1">(Required to hit target)</div>
+                                    </th>
                                     {/* Yield & Contribution */}
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_avg_lbs_steak')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_steak_vol')}</th>
-                                    <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_avg_lbs_steak')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(10.4 oz average)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_steak_vol')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Required Lbs)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">
+                                        {t('proj_col_savings_opp')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Yield optimization)</div>
+                                    </th>
                                 </tr>
                             ) : (
                                 <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
@@ -486,7 +513,7 @@ export const ProjectionsDashboard = () => {
                                                     <input className={`bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         type="number"
                                                         title={`Steak Incidence % - ${store.name}`}
-                                                        value={Math.round((store.target_lbs_guest || 0.35) * 100)}
+                                                        value={Math.round((store.target_lbs_guest > 1.0 ? 0.35 : (store.target_lbs_guest || 0.35)) * 100)}
                                                         disabled={isPublished}
                                                         onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', (Number(e.target.value) / 100).toString())}
                                                     />
@@ -509,9 +536,16 @@ export const ProjectionsDashboard = () => {
                                             <td className="p-4 text-right border-r border-[#333] font-bold text-gray-300">
                                                 {fmtNum(store.projectedLunchGuests)}
                                             </td>
-                                            {/* Yield & Contribution */}
-                                            <td className="p-4 text-right border-r border-[#333] text-gray-500">
-                                                1.0 <span className="text-[10px]">LBS</span>
+                                            <td className="p-2 text-right border-r border-[#333]">
+                                                    <input className={`bg-[#111] border border-[#333] text-gray-500 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        type="number"
+                                                        step="0.01"
+                                                        title={`Average Steak Lbs - ${store.name}`}
+                                                        value={store.avg_lbs_steak || 0.65}
+                                                        disabled={isPublished}
+                                                        onChange={(e) => handleStoreChange(store.id, 'avg_lbs_steak', e.target.value)}
+                                                    />
+                                                    <span className="text-gray-500 ml-1 font-mono text-[10px]">LBS</span>
                                             </td>
                                             <td className="p-4 text-right border-r border-[#333] font-bold text-gray-400">
                                                 {fmtNum(store.projectedMeatLbs)}

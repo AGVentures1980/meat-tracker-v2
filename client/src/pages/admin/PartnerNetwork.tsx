@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Network, Search, AlertTriangle, CheckCircle, Clock, PlusCircle, Trash2, ChevronLeft, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export const PartnerNetwork: React.FC = () => {
@@ -160,6 +160,7 @@ export const PartnerNetwork: React.FC = () => {
                 {/* Header */}
                 <div className="mb-6 mb-12">
                     <button 
+                        title="Back to Command Center"
                         onClick={() => navigate('/select-company')}
                         className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg text-gray-300 hover:text-white transition-all text-sm mb-8 shadow-lg w-max font-medium"
                     >
@@ -177,6 +178,7 @@ export const PartnerNetwork: React.FC = () => {
                         </div>
                         
                         <button 
+                            title="New Smart Proposal"
                             onClick={() => navigate('/partner/proposal/new')}
                             className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(79,70,229,0.3)] border border-indigo-400/30 whitespace-nowrap"
                         >
@@ -276,6 +278,7 @@ export const PartnerNetwork: React.FC = () => {
                                             </td>
                                             <td className="p-4 text-right">
                                                 <button 
+                                                    title="Draft Proposal"
                                                     onClick={() => navigate('/partner/proposal/new', { state: { prefill: lead } })}
                                                     className="bg-indigo-900/40 hover:bg-indigo-600 text-indigo-300 hover:text-white px-4 py-2 rounded text-xs font-bold transition-colors border border-indigo-500/30 group-hover:border-indigo-400 whitespace-nowrap"
                                                 >
@@ -323,6 +326,7 @@ export const PartnerNetwork: React.FC = () => {
 
                             {partner.metrics.pendingPayouts > 0 ? (
                                 <button 
+                                    title="Execute Pending Payouts"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleExecutePayouts(partner.id, partner.name);

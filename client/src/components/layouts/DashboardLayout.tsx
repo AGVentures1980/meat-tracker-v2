@@ -304,7 +304,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <span className="text-xl font-bold tracking-tighter text-[#C5A059]">BRASA</span>
                         <span className="text-xs text-gray-500 uppercase tracking-widest">INTEL</span>
                     </div>
-                    <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-[#333] rounded">
+                    <button title="Close Sidebar" onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-[#333] rounded">
                         <Menu className="w-5 h-5 text-gray-400" />
                     </button>
                 </div>
@@ -477,6 +477,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between print:hidden">
                     <div className="flex items-center gap-4 overflow-hidden text-xs font-mono">
                         <button
+                            title="Toggle Sidebar"
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                             className="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors border border-white/5"
                         >
@@ -526,6 +527,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         )}
 
                         <button
+                            title="View Alerts"
                             onClick={() => setShowAlerts(!showAlerts)}
                             className={`flex items-center gap-2 px-3 py-1 rounded border transition-colors cursor-pointer ${showAlerts ? 'bg-[#FF9F1C]/20 border-[#FF9F1C]' : 'bg-[#252525] border-[#333] hover:bg-[#333]'
                                 } `}
@@ -560,7 +562,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                                 onClick={() => handleAlertClick(alert.id, alert.path)}
                                             >
                                                 <div className="flex justify-between mb-1">
-                                                    <span className={`text-[${alert.color}] text-xs font-bold font-mono`} style={{ color: alert.type === 'WARNING' ? '#FF9F1C' : undefined }}>{alert.type}</span>
+                                                    <span className={`text-xs font-bold font-mono ${alert.type === 'WARNING' ? 'text-[#FF9F1C]' : 'text-gray-400'}`}>{alert.type}</span>
                                                     <span className="text-[10px] text-gray-600">{alert.time}</span>
                                                 </div>
                                                 <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{
@@ -581,6 +583,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
                         <div className="flex items-center gap-2">
                             <button
+                                title="User Profile Menu"
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C5A059] to-[#F0E68C] border-2 border-[#121212] cursor-pointer hover:ring-2 hover:ring-[#C5A059] transition-all overflow-hidden"
                             >
@@ -631,11 +634,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
                 {/* Mobile Bottom Navigation */}
                 <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex justify-around p-2 z-[9999] pb-safe print:hidden">
-                    <button onClick={() => navigate('/dashboard')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/dashboard' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                    <button title="Home" onClick={() => navigate('/dashboard')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/dashboard' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
                         <LayoutDashboard size={20} />
                         <span className="text-[10px] mt-1">Home</span>
                     </button>
                     <button
+                        title="Receive"
                         onClick={() => selectedCompany && navigate('/receiving')}
                         className={`flex flex-col items-center p-2 rounded ${location.pathname === '/receiving' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
@@ -643,6 +647,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <span className="text-[10px] mt-1">Receive</span>
                     </button>
                     <button
+                        title="Prices"
                         onClick={() => selectedCompany && navigate('/prices')}
                         className={`flex flex-col items-center p-2 rounded ${location.pathname === '/prices' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
@@ -650,6 +655,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <span className="text-[10px] mt-1">Prices</span>
                     </button>
                     <button
+                        title="Waste"
                         onClick={() => selectedCompany && navigate('/waste')}
                         className={`flex flex-col items-center p-2 rounded ${location.pathname === '/waste' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
@@ -657,6 +663,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <span className="text-[10px] mt-1">Waste</span>
                     </button>
                     <button
+                        title="Inventory"
                         onClick={() => selectedCompany && navigate('/inventory')}
                         className={`flex flex-col items-center p-2 rounded ${location.pathname === '/inventory' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
@@ -664,6 +671,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <span className="text-[10px] mt-1">Inventory</span>
                     </button>
                     <button
+                        title="Reports"
                         onClick={() => selectedCompany && navigate('/reports')}
                         className={`flex flex-col items-center p-2 rounded ${location.pathname === '/reports' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >

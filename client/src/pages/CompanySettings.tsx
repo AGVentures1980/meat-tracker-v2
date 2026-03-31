@@ -283,6 +283,7 @@ export const CompanySettings = () => {
             {/* ACTION BAR */}
             <div className="flex justify-end">
                 <button
+                    title="Add New Item"
                     onClick={() => setIsAdding(true)}
                     className="px-6 py-3 bg-[#0F0F0F] border border-[#C5A059]/30 text-[#C5A059] rounded hover:bg-[#C5A059] hover:text-black transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2"
                 >
@@ -334,6 +335,7 @@ export const CompanySettings = () => {
                                     <div>
                                         <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Category</label>
                                         <select
+                                            title="Select Category"
                                             className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none"
                                             value={newItemCategory}
                                             onChange={(e) => setNewItemCategory(e.target.value)}
@@ -438,19 +440,19 @@ export const CompanySettings = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Target LBS/Guest</label>
-                                            <input type="number" step="0.01" value={tplLbs} onChange={(e) => setTplLbs(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
+                                            <input title="Target LBS/Guest" placeholder="0.00" type="number" step="0.01" value={tplLbs} onChange={(e) => setTplLbs(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
                                         </div>
                                         <div>
                                             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Target Cost/Guest</label>
-                                            <input type="number" step="0.01" value={tplCost} onChange={(e) => setTplCost(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
+                                            <input title="Target Cost/Guest" placeholder="0.00" type="number" step="0.01" value={tplCost} onChange={(e) => setTplCost(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
                                         </div>
                                         <div>
                                             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Dinner Price</label>
-                                            <input type="number" step="0.01" value={tplDinner} onChange={(e) => setTplDinner(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
+                                            <input title="Dinner Price" placeholder="0.00" type="number" step="0.01" value={tplDinner} onChange={(e) => setTplDinner(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
                                         </div>
                                         <div>
                                             <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Lunch Price</label>
-                                            <input type="number" step="0.01" value={tplLunch} onChange={(e) => setTplLunch(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
+                                            <input title="Lunch Price" placeholder="0.00" type="number" step="0.01" value={tplLunch} onChange={(e) => setTplLunch(e.target.value)} className="w-full bg-black border border-white/10 rounded p-3 text-white focus:border-[#C5A059] outline-none" />
                                         </div>
                                     </div>
                                     <label className="flex items-center gap-3 p-3 bg-black border border-white/10 rounded cursor-pointer hover:border-white/30 transition-colors">
@@ -461,6 +463,7 @@ export const CompanySettings = () => {
                             )}
 
                             <button
+                                title="Create Item"
                                 onClick={handleAdd}
                                 disabled={activeTab === 'areaManagers' && (!newAmEmail || !newAmPassword || !newAmFirstName)}
                                 className="w-full py-4 bg-[#C5A059] text-black font-black uppercase tracking-widest rounded hover:bg-[#d6b579] disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-4"
@@ -559,7 +562,7 @@ export const CompanySettings = () => {
                                         )}
                                     </td>
                                     <td className="p-4 text-right">
-                                        <button onClick={() => handleDelete(p.id)} className="text-gray-600 hover:text-red-500 transition-colors p-2">
+                                        <button title="Delete Item" onClick={() => handleDelete(p.id)} className="text-gray-600 hover:text-red-500 transition-colors p-2">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </td>
@@ -583,6 +586,7 @@ export const CompanySettings = () => {
                                     <td className="p-4 text-gray-400 text-xs">{s.location}</td>
                                     <td className="p-4 text-right flex items-center justify-end gap-2">
                                         <button
+                                            title="Edit Ops"
                                             onClick={() => navigate('/settings/store', { state: { storeId: s.id } })}
                                             className="text-[#C5A059] hover:text-[#d6b579] transition-colors p-2 flex items-center gap-1 border border-[#C5A059]/30 rounded text-[10px] font-bold uppercase tracking-wider bg-[#C5A059]/10"
                                         >

@@ -74,6 +74,7 @@ export const PartnerAgreement: React.FC = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-400 mb-2">Legal Entity Type</label>
                                 <select 
+                                    title="Legal Entity Type"
                                     className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
                                     value={formData.legal_entity_type}
                                     onChange={(e) => setFormData({...formData, legal_entity_type: e.target.value})}
@@ -96,6 +97,7 @@ export const PartnerAgreement: React.FC = () => {
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-400 mb-2">Country of Jurisdiction</label>
                                 <select 
+                                    title="Country of Jurisdiction"
                                     className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
                                     value={formData.country}
                                     onChange={(e) => setFormData({...formData, country: e.target.value})}

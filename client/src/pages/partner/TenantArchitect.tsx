@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, Bone, UploadCloud, ScanLine, Sparkles, Link as LinkIcon, Palette } from 'lucide-react';
+import { Building2, ShieldAlert, ArrowRight, CheckCircle2, UserPlus, FileSpreadsheet, Plus, Trash2, MapPin, UploadCloud, ScanLine, Sparkles, Link as LinkIcon, Palette } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const TenantArchitect: React.FC = () => {
@@ -208,7 +208,7 @@ export const TenantArchitect: React.FC = () => {
                                             <Input label="Region" value={am.region} onChange={(v: string) => { const newAm = [...areaManagers]; newAm[index].region = v; setAreaManagers(newAm); }} required />
                                         </div>
                                         <div className="col-span-1 pb-2">
-                                            <button type="button" onClick={() => removeAreaManager(am.temp_id)} className="text-red-500 hover:text-red-400">
+                                            <button title="Remove Area Manager" type="button" onClick={() => removeAreaManager(am.temp_id)} className="text-red-500 hover:text-red-400">
                                                 <Trash2 className="w-5 h-5" />
                                             </button>
                                         </div>
@@ -237,6 +237,7 @@ export const TenantArchitect: React.FC = () => {
                                             <div className="space-y-1">
                                                 <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider">Area Manager Supervisor</label>
                                                 <select 
+                                                    title="Assign Area Manager"
                                                     value={store.area_manager_temp_id} 
                                                     onChange={(e) => { const newS = [...stores]; newS[index].area_manager_temp_id = e.target.value; setStores(newS); }}
                                                     className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-emerald-500 transition-colors text-sm"
@@ -255,7 +256,7 @@ export const TenantArchitect: React.FC = () => {
                                             <Input label="Target Cost / Guest" type="number" step="0.01" value={store.target_cost.toString()} onChange={(v: string) => { const newS = [...stores]; newS[index].target_cost = parseFloat(v); setStores(newS); }} required />
                                         </div>
                                         <div className="col-span-1 pb-2 text-right">
-                                            <button type="button" onClick={() => removeStore(store.id)} className="text-red-500 hover:text-red-400">
+                                            <button title="Remove Store" type="button" onClick={() => removeStore(store.id)} className="text-red-500 hover:text-red-400">
                                                 <Trash2 className="w-5 h-5 mx-auto" />
                                             </button>
                                         </div>
@@ -336,7 +337,7 @@ export const TenantArchitect: React.FC = () => {
                                             <Input label="Cost per LB ($)" type="number" step="0.01" value={p.cost_per_lb.toString()} onChange={(v: string) => { const n = [...proteins]; n[index].cost_per_lb = parseFloat(v); setProteins(n); }} required />
                                         </div>
                                         <div className="pb-2">
-                                            <button type="button" onClick={() => removeProtein(p.id)} className="text-red-500 hover:text-red-400 shadow-md">
+                                            <button title="Remove Protein" type="button" onClick={() => removeProtein(p.id)} className="text-red-500 hover:text-red-400 shadow-md">
                                                 <Trash2 className="w-5 h-5" />
                                             </button>
                                         </div>
@@ -362,6 +363,7 @@ export const TenantArchitect: React.FC = () => {
                                 <div className="space-y-1">
                                     <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider">Primary POS Provider</label>
                                     <select 
+                                        title="Select POS Provider"
                                         value={integrations.pos_provider} 
                                         onChange={(e) => setIntegrations({...integrations, pos_provider: e.target.value})}
                                         className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-emerald-500 transition-colors text-sm"
@@ -497,6 +499,7 @@ const Input = ({ label, type = 'text', value, onChange, required = false, placeh
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         <input 
+            title={label}
             type={type} 
             value={value}
             step={step}
