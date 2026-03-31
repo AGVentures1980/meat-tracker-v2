@@ -273,6 +273,9 @@ export const ProjectionsDashboard = () => {
     const totalVolume = storeData.reduce((acc, d) => acc + d.projectedMeatLbs, 0);
     const totalSavingsObs = storeData.reduce((acc, d) => acc + d.savingsDollars, 0);
 
+    const avgTargetLbs = storeData.length > 0 ? storeData.reduce((acc, d) => acc + d.target_lbs_guest, 0) / storeData.length : 0;
+    const avgTargetCost = storeData.length > 0 ? storeData.reduce((acc, d) => acc + (d.target_cost_guest || 0), 0) / storeData.length : 0;
+
     const fmtCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
     const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n));
 
@@ -628,8 +631,11 @@ export const ProjectionsDashboard = () => {
                                     <td className="p-4 text-right border-r border-[#333] text-brand-gold">
                                         {fmtNum(storeData.reduce((a, b) => a + b.projectedDinnerGuests, 0))}
                                     </td>
-                                    <td colSpan={2} className="p-4 text-center text-gray-500 text-xs font-normal uppercase tracking-widest border-r border-[#333]">
-                                        {t('proj_network_cons')}
+                                    <td className="p-4 text-right border-r border-[#333] font-bold text-brand-gold bg-brand-gold/10">
+                                        {avgTargetLbs.toFixed(2)}
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333] font-bold text-orange-400 bg-orange-400/10">
+                                        {fmtCurrency(avgTargetCost)}
                                     </td>
                                     <td className="p-4 text-right border-r border-[#333]">
                                         {fmtNum(totalVolume)}
