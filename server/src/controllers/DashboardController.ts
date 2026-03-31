@@ -228,7 +228,9 @@ export class DashboardController {
                 const finalTargetLbs = store.target_lbs_guest || parseFloat((fallbackTargetLbs + lbsVar).toFixed(2));
 
                 const costVar = ((hashVar / 100) * 1.5) - 0.75; // +/- $0.75 per guest
-                const finalTargetCost = store.target_cost_guest || parseFloat((9.94 + costVar).toFixed(2));
+                const finalTargetCost = (store.target_cost_guest && store.target_cost_guest !== 9.94)
+                    ? store.target_cost_guest 
+                    : parseFloat((9.94 + costVar).toFixed(2));
 
                 return {
                     id: store.id,
