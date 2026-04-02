@@ -1,31 +1,34 @@
 =============================================================================
-DECLARAÇÃO DE DIREITOS AUTORAIS E PROPRIEDADE INTELECTUAL
-(COPYRIGHT AND PROPRIETARY RIGHTS NOTICE)
+COPYRIGHT AND PROPRIETARY RIGHTS NOTICE
 =============================================================================
 
 SOFTWARE: Brasa Meat Intelligence (v3.0+)
-UM PRODUTO AGV VENTURES (AN AGV VENTURES PRODUCT)
-PROPRIEDADE DE: Alexandre Garcia / AGV VENTURES
-ANO DE REGISTRO/CRIAÇÃO: 2023 - 2026
+AN AGV VENTURES PRODUCT
+OWNERSHIP: Alexandre Garcia / AGV VENTURES
+CREATION/REGISTRATION YEAR: 2023 - 2026
 
-1. DIREITOS AUTORAIS DO CÓDIGO FONTE (SOURCE CODE COPYRIGHT)
-O código-fonte completo deste software, abrangendo tanto os componentes de front-end (React/TypeScript, PWAs) quanto os componentes de back-end (Node.js, Express, Integrações com MS Graph e Agentes de Inteligência Artificial), é de propriedade exclusiva do detentor dos direitos supramencionado. É estritamente proibida a cópia, reprodução, distribuição, modificação ou engenharia reversa (reverse engineering) de qualquer linha de código sem a autorização prévia, expressa e por escrito do proprietário.
+1. SOURCE CODE COPYRIGHT
+The complete source code of this software, encompassing both front-end components (React/TypeScript, PWAs) and back-end components (Node.js, Express, MS Graph Integrations, and Artificial Intelligence Agents), is the exclusive property of the aforementioned rights holder. Copying, reproducing, distributing, modifying, or reverse engineering any line of code without prior, express, and written authorization from the owner is strictly prohibited.
 
-2. PROTEÇÃO DE ARQUITETURA DE SISTEMAS (SYSTEM ARCHITECTURE)
-A arquitetura de software desenvolvida para o Brasa Meat Intelligence constitui Segredo de Negócio (Trade Secret). Estão protegidos legalmente os padrões de design (Design Patterns), fluxos de comunicação entre microserviços, automações de ingestão de documentos via IA, integrações de APIs externas, e a metodologia de sincronização PWA offline/online. A replicação desta exata estrutura em sistemas concorrentes constitui quebra de propriedade intelectual.
+2. SYSTEM ARCHITECTURE PROTECTION
+The software architecture developed for Brasa Meat Intelligence constitutes a Trade Secret. Legal protection covers Design Patterns, microservice communication flows, AI-driven document ingestion automations, external API integrations, and the offline/online PWA synchronization methodology. Replicating this exact structure in competing systems constitutes a breach of intellectual property.
 
-3. ESTRUTURA DE BANCO DE DADOS E ENGENHARIA DE DADOS (DATABASE SCHEMA & ENGINEERING)
-O modelo de banco de dados (Relational Prisma/PostgreSQL Schema), suas tabelas, relações (Foreign Keys), restrições (Constraints), e estruturas de indexação criadas especificamente para o gerenciamento de inventário de carnes em formato rodízio estão integralmente protegidos. A proteção cobre especificamente a estrutura desenhada para sustentar o "Master Ledger", "Store Meat Targets", "Waste Logs", e a modelagem matemática para apuração de LBS/Guest e Cost/Guest.
+3. DATABASE SCHEMA & DATA ENGINEERING
+The database model (Relational Prisma/PostgreSQL Schema), its tables, relations (Foreign Keys), constraints, and indexing structures created specifically for the management of "rodízio" format meat inventory are fully protected. Protection specifically covers the structure designed to sustain the "Master Ledger," "Store Meat Targets," "Waste Logs," and the mathematical modeling for LBS/Guest and Cost/Guest calculation.
 
-4. LÓGICA DE NEGÓCIOS E ALGORITMOS MATEMÁTICOS (BUSINESS LOGIC & ALGORITHMS)
-Todos os motores de cálculo (Calculation Engines) embutidos no sistema estão protegidos sob direitos autorais, incluindo, mas não se limitando a:
-- A fórmula e algoritmo de rastreamento "The Garcia Rule" (Travamento Operacional e Accountability).
-- O motor paramétrico do "Smart Prep" utilizado para projeção de escala (Yield & Consumption Matrix).
-- Os agrupamentos de proteínas ("Protein Groups" e Mapeamento de "Villains").
-- Engenharia de Prompts (Prompt Engineering) e lógicas utilizadas nos Agentes de Inteligência Artificial para leitura de faturas e processamento de dados (Automation Ingestion).
+4. BUSINESS LOGIC & ALGORITHMS
+All Calculation Engines embedded in the system are protected under copyright, including, but not limited to:
+- "The Garcia Rule" tracking algorithm (Operational Lockout and Accountability).
+- The "Smart Prep" parametric engine used for scaling projection (Yield & Consumption Matrix).
+- Protein Groupings and "Villains" mapping.
+- "Inverted Pyramid Projections" (Dynamic per-store predictive modeling based on avg_lbs_steak).
+- "CFO Monthly Report" algorithmic compilation (Automated calculation of Identified Leakage vs Total Savings).
+- "GS1-128" industrial parsing engine (Real-time barcode traceability for the global meat supply chain).
+- "Multi-Tenant Whitelabel" architecture (Dynamic CSS/Theme injection via Subdomain Routing).
+- Prompt Engineering and logics used in Artificial Intelligence Agents for invoice reading and data processing (Automation Ingestion).
 
-AVISO LEGAL (LEGAL WARNING):
-Este sistema contém dados proprietários e confidenciais. O acesso não autorizado, extração de código, duplicação não autorizada ou cópia da lógica de software para uso comercial de terceiros resultará em ações legais em conformidade com as leis internacionais de proteção à Propriedade Intelectual (Intellectual Property - IP) e Direitos Autorais em vigor (Lei de Direitos Autorais / DMCA - Digital Millennium Copyright Act / Trade Secrets Acts).
+LEGAL WARNING:
+This system contains proprietary and confidential data. Unauthorized access, code extraction, unauthorized duplication, or copying of software logic for third-party commercial use will result in legal action in accordance with international Intellectual Property (IP) and Copyright laws in force (Copyright Act / DMCA - Digital Millennium Copyright Act / Trade Secrets Acts / Defend Trade Secrets Act).
 
-© 2023-2026 AGV VENTURES / Alexandre Garcia. Todos os direitos reservados. (All rights reserved).
+© 2023-2026 AGV VENTURES / Alexandre Garcia. All rights reserved.
 =============================================================================

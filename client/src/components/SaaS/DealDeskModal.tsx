@@ -188,23 +188,23 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                             </div>
 
                             <div>
-                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Name</label>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Name(s) (Comma separated)</label>
                                 <input 
                                     type="text" required
                                     value={formData.signer_name}
                                     onChange={e => setFormData({...formData, signer_name: e.target.value})}
-                                    placeholder="Rodrigo Davila"
+                                    placeholder="e.g. Eric Browning, Pat Hafner"
                                     className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Email</label>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Email(s) (Comma separated)</label>
                                 <input 
-                                    type="email" required
+                                    type="text" required
                                     value={formData.signer_email}
                                     onChange={e => setFormData({...formData, signer_email: e.target.value})}
-                                    placeholder="rdavila@texasdebrazil.com"
+                                    placeholder="ericbrowning@outback.com, pathafner@outback.com"
                                     className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
                                 />
                             </div>

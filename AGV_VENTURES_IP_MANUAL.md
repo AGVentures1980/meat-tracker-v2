@@ -80,6 +80,10 @@ The backbone of AGV VENTURES' intellectual property lies in the mathematical cal
 - "The Garcia Rule" tracking algorithm.
 - "Smart Prep" parametric engine.
 - Protein Groupings and "Villains" mapping.
+- "Inverted Pyramid Projections" (Dynamic per-store modeling based on avg_lbs_steak).
+- "CFO Monthly Report" algorithm (Automated calculation of Identified Leakage vs Total Savings).
+- "GS1-128" industrial parsing engine (Real-time barcode traceability for the global meat supply chain).
+- "Multi-Tenant Whitelabel" architecture (Dynamic CSS/Theme injection via Subdomain Routing).
 - Prompt Engineering and logic used in AI Agents.
 
 **LEGAL WARNING:** Unauthorized access, code extraction, or copying of software logic for third-party commercial use will result in legal action under international Intellectual Property (IP) and Copyright laws (including Trade Secrets Acts).

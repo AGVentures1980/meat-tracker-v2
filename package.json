@@ -4,10 +4,10 @@
     "version": "2.5.2",
     "type": "module",
     "scripts": {
-        "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
-        "build": "npm run build --prefix client && npm run build --prefix server",
+        "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\" \"npm run dev --prefix agv-website\"",
+        "build": "npm run build --prefix client && npm run build --prefix server && npm run build --prefix agv-website",
         "start": "NODE_ENV=production npm run start --prefix server",
-        "install:all": "npm install && npm install --prefix client && npm install --prefix server",
+        "install:all": "npm install && npm install --prefix client && npm install --prefix server && npm install --prefix agv-website",
         "prisma:generate": "npm run prisma:generate --prefix server"
     },
     "dependencies": {

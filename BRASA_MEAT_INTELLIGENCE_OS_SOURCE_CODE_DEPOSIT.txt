@@ -1,0 +1,1540 @@
+
+
+=============================================================================
+FILE: COPYRIGHT.txt
+=============================================================================
+
+=============================================================================
+COPYRIGHT AND PROPRIETARY RIGHTS NOTICE
+=============================================================================
+
+SOFTWARE: Brasa Meat Intelligence (v3.0+)
+AN AGV VENTURES PRODUCT
+OWNERSHIP: Alexandre Garcia / AGV VENTURES
+CREATION/REGISTRATION YEAR: 2023 - 2026
+
+1. SOURCE CODE COPYRIGHT
+The complete source code of this software, encompassing both front-end components (React/TypeScript, PWAs) and back-end components (Node.js, Express, MS Graph Integrations, and Artificial Intelligence Agents), is the exclusive property of the aforementioned rights holder. Copying, reproducing, distributing, modifying, or reverse engineering any line of code without prior, express, and written authorization from the owner is strictly prohibited.
+
+2. SYSTEM ARCHITECTURE PROTECTION
+The software architecture developed for Brasa Meat Intelligence constitutes a Trade Secret. Legal protection covers Design Patterns, microservice communication flows, AI-driven document ingestion automations, external API integrations, and the offline/online PWA synchronization methodology. Replicating this exact structure in competing systems constitutes a breach of intellectual property.
+
+3. DATABASE SCHEMA & DATA ENGINEERING
+The database model (Relational Prisma/PostgreSQL Schema), its tables, relations (Foreign Keys), constraints, and indexing structures created specifically for the management of "rodízio" format meat inventory are fully protected. Protection specifically covers the structure designed to sustain the "Master Ledger," "Store Meat Targets," "Waste Logs," and the mathematical modeling for LBS/Guest and Cost/Guest calculation.
+
+4. BUSINESS LOGIC & ALGORITHMS
+All Calculation Engines embedded in the system are protected under copyright, including, but not limited to:
+- "The Garcia Rule" tracking algorithm (Operational Lockout and Accountability).
+- The "Smart Prep" parametric engine used for scaling projection (Yield & Consumption Matrix).
+- Protein Groupings and "Villains" mapping.
+- "Inverted Pyramid Projections" (Dynamic per-store predictive modeling based on avg_lbs_steak).
+- "CFO Monthly Report" algorithmic compilation (Automated calculation of Identified Leakage vs Total Savings).
+- "GS1-128" industrial parsing engine (Real-time barcode traceability for the global meat supply chain).
+- "Multi-Tenant Whitelabel" architecture (Dynamic CSS/Theme injection via Subdomain Routing).
+- Prompt Engineering and logics used in Artificial Intelligence Agents for invoice reading and data processing (Automation Ingestion).
+
+LEGAL WARNING:
+This system contains proprietary and confidential data. Unauthorized access, code extraction, unauthorized duplication, or copying of software logic for third-party commercial use will result in legal action in accordance with international Intellectual Property (IP) and Copyright laws in force (Copyright Act / DMCA - Digital Millennium Copyright Act / Trade Secrets Acts / Defend Trade Secrets Act).
+
+© 2023-2026 AGV VENTURES / Alexandre Garcia. All rights reserved.
+=============================================================================
+
+
+=============================================================================
+FILE: server/src/controllers/DashboardController.ts
+=============================================================================
+
+// Copyright (c) 2023-2026 AGV VENTURES / Alexandre Garcia. All rights reserved.
+// This code is proprietary and confidential. An AGV VENTURES Product.
+
+import { Request, Response } from 'express';
+import { MeatEngine } from '../engine/MeatEngine';
+import { PrismaClient } from '@prisma/client';
+import { AuditService } from '../services/AuditService';
+
+const prisma = new PrismaClient();
+
+export class DashboardController {
+    static async getStats(req: Request, res: Response) {
+        try {
+            const { storeId } = req.params;
+            const user = (req as any).user;
+
+            if (!storeId) {
+                return res.status(400).json({ error: 'Store ID is required' });
+            }
+
+            const id = parseInt(storeId);
+            if (isNaN(id)) {
+                return res.status(400).json({ error: 'Invalid Store ID' });
+            }
+
+            // 1. Verify Store exists and belongs to User's Company
+            const store = await prisma.store.findFirst({
+                where: {
+                    id,
+                    company_id: user.companyId
+                }
+            });
+
+            if (!store) {
+                return res.status(403).json({ error: 'Access Denied: Store not found or belongs to another company.' });
+            }
+
+            // 2. Role Check: Managers/Viewers can only see their assigned store
+            if (user.role !== 'admin' && user.role !== 'director' && user.storeId !== id) {
+                return res.status(403).json({ error: 'Access Denied: You do not have permission to view this specific store.' });
+            }
+
+            const stats = await MeatEngine.getDashboardStats(id);
+            return res.json(stats);
+        } catch (error) {
+            console.error('Dashboard Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+        }
+    }
+
+    static async getNetworkStats(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const { year, week } = req.query;
+            const y = year ? parseInt(year as string) : undefined;
+            const w = week ? parseInt(week as string) : undefined;
+
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+
+            // Enforcement: Network stats must be filtered by companyId
+            const stats = await MeatEngine.getNetworkBiStats(y, w, activeCompanyId, user);
+
+            return res.json(stats);
+        } catch (error) {
+            console.error('Network BI Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch network stats' });
+        }
+    }
+
+
+
+    static async getNetworkReportCard(req: Request, res: Response) {
+        try {
+            const { year, week } = req.query;
+            const y = year ? parseInt(year as string) : new Date().getFullYear();
+            const w = week ? parseInt(week as string) : 8; // Default to week 8 for demo
+
+            const user = (req as any).user;
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+
+            const stats = await MeatEngine.getNetworkReportCard(y, w, activeCompanyId);
+            return res.json(stats);
+        } catch (error) {
+            console.error('Report Card Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch report card' });
+        }
+    }
+
+    static async getCompanyAggregateStats(req: Request, res: Response) {
+        try {
+            const { year, week } = req.query;
+            const y = year ? parseInt(year as string) : undefined;
+            const w = week ? parseInt(week as string) : undefined;
+
+            const stats = await MeatEngine.getCompanyAggregateStats(y || 2026, w || 10);
+            return res.json(stats);
+        } catch (error) {
+            console.error('Company Aggregate Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch company stats' });
+        }
+    }
+
+    static async getCompanyStats(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+
+            // Override user's active company context for the query if provided
+            if (activeCompanyId) {
+                user.companyId = activeCompanyId;
+            }
+
+            const stats = await MeatEngine.getExecutiveStats(user);
+            return res.json(stats);
+        } catch (error) {
+            console.error('Executive Stats Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch executive stats' });
+        }
+    }
+
+    static async updateStoreTargets(req: Request, res: Response) {
+        try {
+            const { targets, annual_growth_rate } = req.body;
+            const user = (req as any).user;
+
+            if (annual_growth_rate !== undefined && (user.role === 'admin' || user.role === 'director')) {
+                await prisma.company.update({
+                    where: { id: user.companyId },
+                    data: { annual_growth_rate: parseFloat(annual_growth_rate) }
+                });
+            }
+
+            if (!targets || !Array.isArray(targets)) {
+                return res.json({ success: true, message: 'Growth rate updated' });
+            }
+
+            const updated = [];
+            for (const t of targets) {
+                if (t.storeId) {
+                    const updateData: any = {};
+                    if (t.target_lbs_guest !== undefined) updateData.target_lbs_guest = parseFloat(t.target_lbs_guest);
+                    if (t.target_cost_guest !== undefined) updateData.target_cost_guest = parseFloat(t.target_cost_guest);
+
+                    if (Object.keys(updateData).length > 0) {
+                        const result = await (prisma.store as any).update({
+                            where: { id: t.storeId },
+                            data: updateData
+                        });
+                        updated.push(result);
+                    }
+                }
+            }
+
+            // Audit Log
+            await AuditService.logAction(
+                user.userId,
+                'UPDATE_STORE_TARGETS',
+                'Store',
+                { count: updated.length, storeIds: targets.map(t => t.storeId) }
+            );
+
+            return res.json({ message: `Updated ${updated.length} stores`, updated });
+        } catch (error) {
+            console.error('Update Targets Error:', error);
+            return res.status(500).json({ error: 'Failed to update targets' });
+        }
+    }
+
+    static async getProjectionsData(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const { storeId } = req.query;
+
+            const where: any = {};
+            // Strict Multi-Tenant Enforcement: Always scope to the user's active company
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+            if (activeCompanyId) {
+                where.company_id = activeCompanyId;
+            }
+
+            // Scoping: Managers only see their own store
+            // Admin/Director can see all stores in their company, or a specific one if provided
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    where.area_manager_id = user.userId;
+                } else {
+                    where.id = user.storeId;
+                }
+            } else if (storeId) {
+                where.id = parseInt(storeId as string);
+            }
+
+            const stores = await prisma.store.findMany({
+                where,
+                include: {
+                    reports: {
+                        orderBy: { generated_at: 'desc' },
+                        take: 1
+                    }
+                }
+            });
+
+            // Fallback rates if no reports exist
+            const companyIdReq = activeCompanyId;
+
+            let company: any = null;
+            if (companyIdReq && companyIdReq !== 'tdb-main') {
+                company = await prisma.company.findUnique({
+                    where: { id: companyIdReq }
+                });
+            }
+
+            const isAla = company?.operationType === 'ALACARTE';
+            const fallbackTargetLbs = isAla ? 0.35 : 1.76;
+
+            const data = stores.map(store => {
+                const latestReport = store.reports[0];
+                
+                // Deterministic variance for realistic pitch data if no reports exist
+                const hashL = (store.id * 17) % 5000;
+                const hashD = (store.id * 23) % 15000;
+                const fallbackLunch = 12000 + hashL;
+                const fallbackDinner = 35000 + hashD;
+
+                // Fuzz Target Lbs and Target Cost to make the Pitch Deck Table look realistic and dynamic
+                const hashVar = (store.id * 11) % 100; // 0 to 99
+                const lbsVar = isAla ? ((hashVar / 100) * 0.1) - 0.05 : ((hashVar / 100) * 0.1) - 0.05; // +/- 0.05 Lbs
+                const finalTargetLbs = store.target_lbs_guest || parseFloat((fallbackTargetLbs + lbsVar).toFixed(2));
+
+                const costVar = ((hashVar / 100) * 1.5) - 0.75; // +/- $0.75 per guest
+                const finalTargetCost = (store.target_cost_guest && store.target_cost_guest !== 9.94)
+                    ? store.target_cost_guest 
+                    : parseFloat((9.94 + costVar).toFixed(2));
+
+                return {
+                    id: store.id,
+                    name: store.store_name,
+                    location: store.location,
+                    lunchGuestsLastYear: latestReport ? Math.round(latestReport.dine_in_guests) : fallbackLunch,
+                    dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : fallbackDinner,
+                    lunchPrice: store.lunch_price || parseFloat((29.0 + ((store.id * 3) % 4)).toFixed(2)),
+                    dinnerPrice: store.dinner_price || parseFloat((58.0 + ((store.id * 7) % 5)).toFixed(2)),
+                    target_lbs_guest: finalTargetLbs,
+                    target_cost_guest: finalTargetCost
+                };
+            });
+
+            return res.json({
+                stores: data,
+                annualGrowthRate: company?.annual_growth_rate || 5.0,
+                operationType: company?.operationType || 'RODIZIO'
+            });
+        } catch (error) {
+            console.error('Projections Data Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch projections data' });
+        }
+    }
+
+
+    static async syncStoreTargets(req: Request, res: Response) {
+        try {
+            console.log('🔄 Syncing Store Targets from Standards...');
+
+            // Specific Targets defined by User (Phase 12 - Derived from Batch 2-8 Raw Data Sums)
+            const TARGET_OVERRIDES: Record<string, number> = {
+                // Direct Matches & Primary Proxies
+                'Addison': 1.23,
+                'Dallas': 1.77,   // Dallas Uptown
+                'Orlando': 1.89,
+                'Vegas': 1.83,
+                'SanAnt': 1.57,
+                'Houston': 1.68,
+                'Irvine': 1.78,
+                'Denver': 1.71,
+                'Pitt': 1.79,
+                'MiamiB': 1.75,
+                'Buffalo': 1.77,  // Proxy for Burlington
+                'FairOak': 1.75,  // AVG for DC Metro
+                'Jax': 1.77,
+                'Omaha': 1.77,    // Proxy for Kansas City
+                'Rich': 1.56,     // Proxy for Bethesda
+                'Saw': 1.63,      // Proxy for Fort Lauderdale
+                'Tacoma': 1.80,   // Proxy for PNW
+                'Yonkers': 1.70,  // AVG for NY Metro
+                'Carls': 1.79,    // Proxy for San Diego
+                'BRouge': 1.72,   // Proxy for New Orleans
+                'Birming': 1.78,  // Proxy for Atlanta/Dunwoody
+                'Fresno': 1.85,   // AVG for NorCal
+                'Milwauk': 1.72,  // Proxy for Minneapolis
+                'Cucamon': 1.72,  // AVG for LA Metro
+                'Schaum': 1.76,   // AVG for Chicago Metro
+                'WHart': 1.73,    // Proxy for New England
+                'Detroit': 1.72,  // Proxy for Troy
+
+                // Manual / Geo Matches (Batch 1 & Geo)
+                'Albuquerque': 1.77,
+                'Atlanta': 1.84,
+                'Austin': 1.80,
+                'Baltimore': 1.90,
+                'Bellevue': 1.80,
+                'SanJuan': 1.95,
+                'Honolulu': 1.95,
+                'Phila': 1.82,
+                'Wash': 1.82,        // Metro
+                'Chicago': 1.82,     // Metro
+                'New York': 1.82,    // Metro
+                'Los Angeles': 1.82, // Metro
+                'San Francisco': 1.82 // Metro
+            };
+
+            const TOURIST_CITIES = ['Orlando', 'Vegas', 'Miami', 'Anaheim', 'Fort Lauderdale', 'Hallandale', 'San Juan', 'Honolulu'];
+            const METRO_CITIES = ['Dallas', 'Chicago', 'New York', 'Detroit', 'Houston', 'SanAnt', 'Denver', 'Wash', 'Phila', 'Boston', 'Los Angeles', 'San Francisco', 'Atlanta'];
+
+            const stores = await prisma.store.findMany();
+            let updatedCount = 0;
+
+            for (const s of stores) {
+                const store = s as any;
+                const storeName = store.store_name;
+                let targetLbs = TARGET_OVERRIDES[storeName];
+
+                if (!targetLbs) {
+                    if (TOURIST_CITIES.some(c => storeName.includes(c))) {
+                        targetLbs = 1.95;
+                    } else if (METRO_CITIES.some(c => storeName.includes(c))) {
+                        targetLbs = 1.82;
+                    } else {
+                        targetLbs = 1.76;
+                    }
+                }
+
+                if (store.target_lbs_guest !== targetLbs) {
+                    await prisma.store.update({
+                        where: { id: store.id },
+                        data: { target_lbs_guest: targetLbs } as any
+                    });
+                    updatedCount++;
+                }
+            }
+
+            // Audit Log
+            const user = (req as any).user;
+            await AuditService.logAction(
+                user.userId,
+                'SYNC_STORE_TARGETS',
+                'Store',
+                { updatedCount }
+            );
+
+            return res.json({ message: `Synced targets for ${updatedCount} stores.` });
+        } catch (error) {
+            console.error('Sync Targets Error:', error);
+            return res.status(500).json({ error: 'Failed to sync targets' });
+        }
+    }
+
+    // --- GOVERNO 3.1: THE AI EXECUTIVE ---
+
+    static async getAuditLogAnalysis(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+
+            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
+            const whereStore: any = {};
+            if (activeCompanyId) {
+                whereStore.company_id = activeCompanyId;
+            }
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    whereStore.area_manager_id = user.userId;
+                } else {
+                    whereStore.id = user.storeId;
+                }
+            }
+
+            const validStores = await prisma.store.findMany({
+                where: whereStore,
+                select: { store_name: true, location: true }
+            });
+            // Audit logs sometimes use store_name or location
+            const validNames = validStores.map(s => s.store_name);
+
+            // Find recent gate overrides ('No Delivery' flags)
+            const today = new Date();
+            const lastWeek = new Date(today);
+            lastWeek.setDate(today.getDate() - 7);
+
+            const logs = await prisma.auditLog.findMany({
+                where: {
+                    action: 'NO_DELIVERY_FLAG',
+                    created_at: {
+                        gte: lastWeek
+                    },
+                    location: { in: validNames }
+                },
+                orderBy: { created_at: 'desc' }
+            });
+
+            // Group by Store/User to find repeat offenders
+            const analysis: Record<string, number> = {};
+            logs.forEach(log => {
+                const key = log.location || 'Unknown Store';
+                analysis[key] = (analysis[key] || 0) + 1;
+            });
+
+            const suspicious = Object.entries(analysis)
+                .filter(([_, count]) => count >= 2) // 2+ overrides in a week is suspicious
+                .map(([store, count]) => ({ store, count, status: 'HIGH RISK' }));
+
+            return res.json({ logs, suspicious });
+        } catch (error) {
+            console.error('Audit Analysis Error:', error);
+            // Return empty if auditLog table not ready
+            return res.json({ logs: [], suspicious: [] });
+        }
+    }
+
+    static async getVillainDeepDive(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            // Aggregate waste for VILLAIN items across the network
+            const VILLAINS = ['Picanha', 'Picanha with Garlic', 'Lamb Picanha', 'Beef Ribs', 'Lamb Chops', 'Filet Mignon', 'Filet Mignon with Bacon', 'Fraldinha', 'Flap Steak'];
+
+            const today = new Date();
+            const lastWeek = new Date(today);
+            lastWeek.setDate(today.getDate() - 7);
+
+            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
+            const whereStore: any = {};
+            if (activeCompanyId) {
+                whereStore.company_id = activeCompanyId;
+            }
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    whereStore.area_manager_id = user.userId;
+                } else {
+                    whereStore.id = user.storeId;
+                }
+            }
+
+            const wasteLogs = await prisma.wasteLog.findMany({
+                where: {
+                    date: { gte: lastWeek.toISOString().split('T')[0] },
+                    store: whereStore
+                },
+                include: { store: true }
+            });
+
+            const villainStats: Record<string, { weight: number, instances: number }> = {};
+
+            wasteLogs.forEach(log => {
+                const items = log.items as any[];
+                items.forEach(item => {
+                    if (VILLAINS.some(v => item.protein.includes(v))) {
+                        if (!villainStats[item.protein]) {
+                            villainStats[item.protein] = { weight: 0, instances: 0 };
+                        }
+                        villainStats[item.protein].weight += (item.weight || 0);
+                        villainStats[item.protein].instances += 1;
+                    }
+                });
+            });
+
+            const rankedVillains = Object.entries(villainStats)
+                .map(([name, stats]) => ({ name, ...stats }))
+                .sort((a, b) => b.weight - a.weight);
+
+            return res.json({ rankedVillains });
+        } catch (error) {
+            console.error('Villain Deep Dive Error:', error);
+            return res.json({ rankedVillains: [] });
+        }
+    }
+
+    // --- PHASE 14: CORPORATE PERFORMANCE & ROI ---
+
+    static async getPerformanceAudit(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+
+            const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
+
+            // 1. Get Company Baseline (Skip if no companyId provided)
+            let company = null;
+            if (companyIdReq && companyIdReq !== 'tdb-main') {
+                company = await prisma.company.findUnique({
+                    where: { id: companyIdReq }
+                });
+            }
+
+            const baselineLoss = company?.baseline_loss_pct || 15.0; // Default 15% if not set
+            const baselineYield = company?.baseline_yield || 65.0;
+
+            // 2. Fetch Stores with relevant data
+            const where: any = {};
+            if (companyIdReq) {
+                where.company_id = companyIdReq;
+            }
+            if (user.role !== 'admin' && user.role !== 'director') {
+                if (user.role === 'area_manager') {
+                    where.area_manager_id = user.userId;
+                } else {
+                    where.id = user.storeId;
+                }
+            }
+
+            const stores = await prisma.store.findMany({
+                where,
+                include: {
+                    users: {
+                        include: { training_progress: true }
+                    },
+                    // Fetch recent waste logs (last 30 days) to calculate Current Loss
+                    waste_logs: {
+                        where: {
+                            date: {
+                                gte: new Date(new Date().setDate(new Date().getDate() - 30))
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Process Metrics
+            let totalSavingsAnnualized = 0;
+
+            const audit = stores.map(store => {
+                // A. Certification Agility
+                const totalStaff = store.users.length;
+                const certifiedUsers = store.users.filter(u =>
+                    u.training_progress.some(p => p.module_id === 'exam' && p.score >= 80)
+                );
+                const certifiedPct = totalStaff > 0 ? Math.round((certifiedUsers.length / totalStaff) * 100) : 0;
+                const avgScore = totalStaff > 0
+                    ? Math.round(store.users.reduce((acc, u) => {
+                        const exam = u.training_progress.find(p => p.module_id === 'exam');
+                        return acc + (exam?.score || 0);
+                    }, 0) / totalStaff)
+                    : 0;
+
+                // B. Waste Performance (Current Month)
+                let totalWasteLbs = 0;
+                store.waste_logs.forEach(l => {
+                    const items = l.items as any[];
+                    items.forEach(i => totalWasteLbs += i.weight);
+                });
+
+                // Mock Projection for now (Consistent with WasteController)
+                // 30 days * 150 guests * target
+                const daysReported = new Set(store.waste_logs.map(l => new Date(l.date).toISOString().split('T')[0])).size || 1;
+                // Use daysReported to avoid diluting waste if they only logged 2 days
+                // Projected Usage for the DAYS REPORTED
+                const projectedUsage = daysReported * 150 * (store.target_lbs_guest || 1.76);
+
+                const wastePct = projectedUsage > 0 ? (totalWasteLbs / projectedUsage) * 100 : 0;
+                const wastePctFixed = parseFloat(wastePct.toFixed(1));
+
+                // C. Status Determinism
+                let status = 'CRITICAL';
+                if (certifiedPct >= 80 && wastePctFixed <= 5.0) status = 'HEALTHY';
+                else if (certifiedPct >= 80 && wastePctFixed > 5.0) status = 'RISK'; // Trained but failing execution
+                else if (certifiedPct < 80 && wastePctFixed <= 5.0) status = 'RISK'; // Results good but training bad (Luck/Risk)
+
+                // D. ROI Calculator (Savings vs Baseline)
+                // Savings = (BaselineLoss - CurrentLoss) * Usage * AvgMeatPrice($10)
+                // Annualized
+                const lossDiff = Math.max(0, baselineLoss - wastePctFixed); // % Saved
+                const monthlyUsage = 30 * 150 * (store.target_lbs_guest || 1.76);
+                const monthlySavings = (lossDiff / 100) * monthlyUsage * 10; // $10/lb avg cost
+                const annualSavings = monthlySavings * 12;
+
+                if (status === 'HEALTHY' || status === 'RISK') {
+                    totalSavingsAnnualized += annualSavings;
+                }
+
+                return {
+                    id: store.id,
+                    name: store.store_name,
+                    certifiedPct,
+                    avgScore,
+                    wastePct: wastePctFixed,
+                    baselineLoss,
+                    savings: Math.round(annualSavings),
+                    status
+                };
+            });
+
+            // Sort by Status Priority (Critical first)
+            const statusOrder: Record<string, number> = { 'CRITICAL': 0, 'RISK': 1, 'HEALTHY': 2 };
+            audit.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
+            return res.json({
+                baseline: {
+                    loss: baselineLoss,
+                    yield: baselineYield
+                },
+                network: {
+                    totalLikelySavings: Math.round(totalSavingsAnnualized),
+                    stores: audit
+                }
+            });
+
+        } catch (error) {
+            console.error('Performance Audit Error:', error);
+            return res.status(500).json({ error: 'Failed to generate performance audit' });
+        }
+    }
+}
+
+
+
+=============================================================================
+FILE: client/src/components/NetworkReportCard.tsx
+=============================================================================
+
+import React, { useEffect, useState } from 'react';
+import { Calendar } from 'lucide-react';
+
+interface ReportCardData {
+    year: number;
+    week: number;
+    costPerGuest: number;
+    lbsPerGuest: number;
+    planLbsPerGuest: number;
+    lbsPerGuest12UkAvg: number;
+    lbsPerGuestPTD: number;
+    lbsPerGuestYTD: number;
+    planLbsPerGuestYTD: number;
+    impactYTD: number;
+    operationType?: string;
+    boxPriceDrift?: number;
+    trimYieldPct?: number;
+    specTargetYield?: number;
+}
+
+import { useAuth } from '../context/AuthContext';
+
+export const NetworkReportCard = () => {
+    const { user, selectedCompany } = useAuth();
+    const [year, setYear] = useState(2026);
+    const [week, setWeek] = useState(9);
+    const [data, setData] = useState<ReportCardData | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = async () => {
+        if (!user) return; // Wait for auth
+
+        setLoading(true);
+        try {
+            const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            const baseUrl = `${API_URL}/api/v1`;
+
+            // Use Real JWT from Auth Context
+            const token = `Bearer ${user.token}`;
+
+            // Correct Endpoint matching backend routes
+            const res = await fetch(`${baseUrl}/dashboard/stats/report-card?year=${year}&week=${week}`, {
+                headers: { 
+                    'Authorization': token,
+                    'x-company-id': selectedCompany || user?.companyId || ''
+                }
+            });
+
+            if (res.ok) {
+                const json = await res.json();
+                setData(json);
+            } else {
+                console.warn("Report Card Access Denied or Failed");
+                setData(null);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        console.log("DEBUG: NetworkReportCard v2.1 Loaded - /report-card");
+        fetchData();
+    }, [year, week, user]);
+
+    // Helpers for rendering rows
+    const renderRow = (label: string, value: string | number, isCurrency = false, highlight = false, subtext = '', variance?: number) => (
+        <div className={`flex justify-between items-center py-2 px-3 border-b border-[#333] ${highlight ? 'bg-[#252525]' : ''}`}>
+            <div>
+                <span className="text-gray-500 font-mono text-[10px] uppercase tracking-wider">{label}</span>
+                {subtext && <span className="text-gray-600 text-[10px] ml-2 font-mono">[{subtext}]</span>}
+            </div>
+            <div className="text-right">
+                <span className={`font-mono font-bold text-sm ${highlight ? 'text-[#00FF94]' : 'text-gray-300'
+                    }`}>
+                    {value}
+                </span>
+                {variance !== undefined && (
+                    <span className={`ml-2 text-[10px] font-mono ${variance > 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                        {variance > 0 ? '▲' : '▼'}{Math.abs(variance).toFixed(1)}%
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+
+    const isAlacarte = data?.operationType === 'ALACARTE';
+
+    return (
+        <div className="bg-[#1a1a1a] border border-[#333] rounded-sm overflow-hidden w-full max-w-md shadow-lg shadow-black/50">
+            {/* Header / Selector */}
+            <div className="p-3 bg-[#121212] border-b border-[#333] flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-[#00FF94] rounded-full animate-pulse"></span>
+                    <span className="text-white font-mono font-bold text-xs tracking-widest uppercase">Network Intel</span>
+                </div>
+                <div className="flex space-x-1">
+                    <select
+                        value={year}
+                        onChange={(e) => setYear(Number(e.target.value))}
+                        className="bg-[#222] border border-[#333] text-gray-300 text-[10px] font-mono rounded-none px-2 py-1 focus:outline-none focus:border-[#00FF94]"
+                    >
+                        <option value={2025}>2025</option>
+                        <option value={2026}>2026</option>
+                    </select>
+                    <select
+                        value={week}
+                        onChange={(e) => setWeek(Number(e.target.value))}
+                        className="bg-[#222] border border-[#333] text-[#00FF94] font-bold text-[10px] font-mono rounded-none px-2 py-1 focus:outline-none focus:border-[#00FF94]"
+                    >
+                        {Array.from({ length: 52 }, (_, i) => i + 1).map(w => (
+                            <option key={w} value={w}>WK {w.toString().padStart(2, '0')}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-0">
+                {loading ? (
+                    <div className="p-8 text-center text-gray-600 font-mono text-xs animate-pulse">ESTABLISHING UPLINK...</div>
+                ) : data ? (
+                    <div className="divide-y divide-[#333]">
+
+                        {/* Weekly Specifics */}
+                        <div className="bg-[#1a1a1a]">
+                            {isAlacarte ? (
+                                <>
+                                    {renderRow('Box Price Drift / Lb', `+$${data.boxPriceDrift?.toFixed(2)}`, true, true)}
+                                    {renderRow('Trim Yield %', `${data.trimYieldPct?.toFixed(1)}%`, false, true)}
+                                    {renderRow('Spec Target Yield', `${data.specTargetYield?.toFixed(1)}%`, false, false, 'TARGET')}
+                                </>
+                            ) : (
+                                <>
+                                    {renderRow('Cost / Guest', `$${data.costPerGuest.toFixed(2)}`, true, true)}
+                                    {renderRow('Lbs / Guest', data.lbsPerGuest.toFixed(2), false, true)}
+                                    {renderRow('Plan Range', `${data.planLbsPerGuest.toFixed(2)}`, false, false, 'TARGET')}
+                                </>
+                            )}
+                        </div>
+
+                        {/* Trends */}
+                        <div className="bg-[#151515]">
+                            <div className="px-3 py-1 text-[9px] font-mono text-[#555] uppercase tracking-widest border-b border-[#333]">Rolling Trends</div>
+                            {isAlacarte ? (
+                                <>
+                                    {renderRow('12-Wk Yield Avg', '81.2%')}
+                                    {renderRow('PTD Yield Avg', '79.5%')}
+                                    {renderRow('YTD Yield Avg', '80.1%')}
+                                </>
+                            ) : (
+                                <>
+                                    {renderRow('12-Wk Avg', data.lbsPerGuest12UkAvg.toFixed(2))}
+                                    {renderRow('PTD Avg', data.lbsPerGuestPTD.toFixed(2))}
+                                    {renderRow('YTD Avg', data.lbsPerGuestYTD.toFixed(2))}
+                                </>
+                            )}
+                        </div>
+
+                        {/* YTD Impact */}
+                        <div className="bg-[#1a1a1a]">
+                            <div className="grid grid-cols-2">
+                                <div className="p-3 border-r border-[#333]">
+                                    <div className="text-[9px] font-mono text-gray-500 uppercase mb-1">Plan YTD</div>
+                                    <div className="text-gray-300 font-mono font-bold">{data.planLbsPerGuestYTD.toFixed(2)}</div>
+                                </div>
+                                <div className={`p-3 ${data.impactYTD < 0 ? 'bg-[#FF2A6D]/10' : 'bg-[#00FF94]/10'}`}>
+                                    <div className={`text-[9px] font-mono uppercase mb-1 ${data.impactYTD < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                        Financial Impact
+                                    </div>
+                                    <div className={`font-mono font-bold text-lg ${data.impactYTD < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]'}`}>
+                                        {data.impactYTD < 0 ? '-' : '+'}${Math.abs(data.impactYTD).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="p-4 text-center text-[#FF2A6D] font-mono text-xs border-l-2 border-[#FF2A6D]">Connection Failed</div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+=============================================================================
+FILE: client/src/components/layouts/DashboardLayout.tsx
+=============================================================================
+
+
+import React, { useState, useEffect } from 'react';
+import {
+    LayoutDashboard,
+    TrendingUp,
+    LogOut,
+    Menu,
+    StickyNote,
+    ArrowUpRight,
+    AlertTriangle,
+    Users,
+    Network,
+    DollarSign,
+    Trash,
+    Truck,
+    Zap,
+    Building2,
+    PlayCircle,
+    GraduationCap,
+    FileText,
+    Activity,
+    ShieldAlert,
+    BrainCircuit,
+    ShieldCheck,
+    Database,
+    ScanLine,
+    Scissors,
+    AlertOctagon
+} from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+
+interface DashboardLayoutProps {
+    children: React.ReactNode;
+}
+
+import { useLanguage } from '../../context/LanguageContext';
+
+export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+    const { logout, user, selectedCompany } = useAuth();
+    const { t } = useLanguage();
+    const location = useLocation();
+    const [showAlerts, setShowAlerts] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [networkStats, setNetworkStats] = useState<{ totalStores: number, activeReporting: number } | null>(null);
+    const [alerts, setAlerts] = useState<any[]>([]);
+    const [companyName, setCompanyName] = useState<string | null>(null);
+    const [operationType, setOperationType] = useState<string>('RODIZIO');
+
+    const navigate = useNavigate();
+    const isMaster = user?.email?.toLowerCase()?.includes('alexandre@alexgarciaventures.co') || false;
+    const isDavid = user?.email?.toLowerCase()?.includes('davidcastro') || false;
+    const isRodrigo = user?.email?.toLowerCase()?.includes('rodrigo') || false;
+    const isSystemAdmin = user?.role === 'admin' || isRodrigo || isMaster;
+
+    let navItems: any[] = [];
+
+    // Global Executive Items (Always visible for Master, but require a selected company for context)
+    if (isMaster && selectedCompany) {
+        navItems.push({
+            section: 'GLOBAL PROCUREMENT',
+            items: [
+                { icon: DollarSign, label: 'Global Procurement', path: '/procurement' },
+                { icon: BrainCircuit, label: 'A.I. Strategic Sourcing', path: '/intelligence/procurement-shadow' },
+                { icon: ShieldCheck, label: 'Legal & Contracts Vault', path: '/agv-vault' }
+            ]
+        });
+    }
+
+    const isStoreLevel = user?.scope?.type === 'STORE';
+    const isAreaLevel = user?.scope?.type === 'AREA';
+    const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
+    const hideReceivingFromExecs = user?.role === 'director' || user?.role === 'admin' || isMaster;
+    const shouldHideReceiving = hideReceivingFromExecs || isCompanyOrGlobal;
+
+    if (selectedCompany) {
+
+        navItems.push(
+            {
+                section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Supply & Yield)' : 'MARKET DATA'), items: [
+                    { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Protein Cost & Invoices') : 'Protein Market Cost', path: '/prices' },
+                    ...(isStoreLevel || isAreaLevel ? [{ icon: ScanLine, label: 'Receiving Dock QC', path: '/receiving' }] : []),
+                    { icon: Trash, label: isStoreLevel ? 'Process Yield & Variance' : 'Network Variance Status', path: '/waste' },
+                    ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Period End Inventory', path: '/inventory' }] : []),
+                ]
+            }
+        );
+
+        if (isStoreLevel || isAreaLevel) {
+            navItems.push({
+                section: t('nav.section_run') || 'RUN (Daily Operations)', items: [
+                    { icon: PlayCircle, label: t('nav.commandCenter') || 'Manager Shift Log', path: '/command-center' },
+                    { icon: ScanLine, label: 'Daily Prep Par Levels', path: '/pull-to-prep' },
+                    { icon: Scissors, label: 'Meat Yield Station', path: '/yield-station' },
+                    ...((companyName?.toLowerCase().includes('fogo') || (typeof window !== 'undefined' && window.location.hostname.includes('fdc'))) ? [{ icon: Database, label: 'Burger Grinder Station', path: '/yield-station' }] : []),
+                    { icon: AlertOctagon, label: 'EOD Shift Audit', path: '/end-of-shift-audit' },
+                    { icon: Truck, label: 'Delivery (OLO)', path: '/delivery' },
+                ]
+            });
+        }
+
+        if (!isDavid) {
+            navItems.push({
+                section: t('nav.section_view') || 'VIEW (Financial Analytics)', items: [
+                    { icon: LayoutDashboard, label: t('nav.performanceHub') || 'Performance Hub', path: '/dashboard' },
+                    { icon: TrendingUp, label: t('nav.projections') || 'Projections', path: '/projections' },
+                    { icon: StickyNote, label: t('nav.reports') || 'P&L Executive Reports', path: '/reports' },
+                ]
+            });
+        }
+
+        navItems.push({
+            section: t('nav.section_learn') || 'LEARN (L&D)', items: [
+                { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
+                { icon: FileText, label: 'AGV Support Hub', path: '/support' },
+            ]
+        });
+
+        if (!isDavid) {
+            navItems.push({
+                section: t('nav.section_team') || 'TEAM (Labor & Roster)', 
+                hideOnMobile: true,
+                items: [
+                    { icon: Users, label: t('nav.team') || 'Labor Management', path: '/users' },
+                ]
+            });
+        }
+
+        // Add Company Settings for Directors/Admins/Master (Company or Global Scope)
+        if (isCompanyOrGlobal) {
+            const isSystemAdmin = user?.role === 'admin' || isRodrigo || isMaster;
+            const manageItems = [];
+            
+            if (!isDavid) {
+                manageItems.push(
+                    { icon: Activity, label: 'Corporate Command Center', path: '/owner' },
+                    { icon: ShieldAlert, label: 'Support Triage', path: '/admin-support' }
+                );
+            }
+
+            if (isSystemAdmin) {
+                manageItems.push(
+                    { icon: Users, label: t('nav.performance_audit') || 'Operational Audit', path: '/audit' },
+                    { icon: FileText, label: t('nav.cfo_report') || 'CFO Monthly Report', path: '/cfo-report' },
+                    { icon: Building2, label: t('nav.settings') || 'Company Settings', path: '/settings/company' },
+                    { icon: DollarSign, label: 'Subscription Billing', path: '/billing' }
+                );
+            }
+
+            if (manageItems.length > 0 || isSystemAdmin || isRodrigo || isDavid) {
+                navItems.push({
+                    section: t('nav.section_manage') || 'MANAGE (Corporate Admin)',
+                    items: [
+                        ...manageItems,
+                        { icon: ShieldCheck, label: 'Master Recipe & Specs', path: '/executive/specs' }
+                    ]
+                });
+            }
+        }
+    }
+
+    useEffect(() => {
+        if (selectedCompany && user?.token) {
+            fetch(`/api/v1/users/company-name/${selectedCompany}`, {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.name) setCompanyName(data.name);
+                if (data.operationType) setOperationType(data.operationType);
+            })
+            .catch(err => console.error('Failed to fetch company name:', err));
+        } else {
+            setCompanyName(null);
+            setOperationType('RODIZIO');
+        }
+    }, [selectedCompany, user?.token]);
+
+    useEffect(() => {
+        const fetchNetworkStats = async () => {
+            if (!user?.token) return;
+            try {
+                const res = await fetch('/api/v1/dashboard/stats/network', {
+                    headers: { 
+                        'Authorization': `Bearer ${user.token}`,
+                        'x-company-id': selectedCompany || ''
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setNetworkStats(data);
+                }
+            } catch (err) { }
+        };
+        fetchNetworkStats();
+    }, [user, selectedCompany]);
+
+    useEffect(() => {
+        const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
+        if (user?.role === 'admin' || user?.role === 'director' || user?.email?.toLowerCase().includes('admin') || isMaster) {
+            const fetchEscalationsAndVault = async () => {
+                try {
+                    const token = user?.token;
+                    if (!token) return;
+
+                    let escalationAlerts: any[] = [];
+                    const res = await fetch('/api/v1/support/tickets', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const tickets = await res.json();
+                        escalationAlerts = tickets.map((t: any) => ({
+                            id: `escalation-${t.id}`,
+                            type: 'ESCALATION',
+                            time: 'Just now',
+                            message: `Store ${t.store.store_name} reported an issue: ${t.title}`,
+                            path: '/admin-support',
+                            color: '#FF2A6D'
+                        }));
+                    }
+
+                    let vaultAlerts: any[] = [];
+                    if (isMaster) {
+                        if ('Notification' in window && Notification.permission === 'default') {
+                            Notification.requestPermission();
+                        }
+
+                        const vRes = await fetch('/api/v1/vault/unread', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (vRes.ok) {
+                            const vData = await vRes.json();
+                            if (vData.count > 0) {
+                                vaultAlerts.push({
+                                    id: 'vault-unread',
+                                    type: 'VAULT ALERT',
+                                    time: 'Just now',
+                                    message: `You have ${vData.count} unread message(s) in the Idea Vault. Click to view.`,
+                                    path: '/vault',
+                                    color: '#00FF94'
+                                });
+
+                                const lastCount = parseInt(localStorage.getItem('lastNotifiedVaultCount') || '0');
+                                if (vData.count > lastCount) {
+                                    if ('Notification' in window && Notification.permission === 'granted') {
+                                        new Notification('AGV Idea Vault', {
+                                            body: `New Sentinel Alert! You have ${vData.count} unread messages.`,
+                                            icon: '/favicon.ico'
+                                        });
+                                    }
+                                    localStorage.setItem('lastNotifiedVaultCount', vData.count.toString());
+                                }
+                            } else {
+                                localStorage.setItem('lastNotifiedVaultCount', '0');
+                            }
+                        }
+                    }
+
+                    setAlerts(prev => {
+                        const systemAlerts = prev.filter(a => typeof a.id === 'number');
+                        return [...vaultAlerts, ...escalationAlerts, ...systemAlerts];
+                    });
+                } catch (error) {
+                    console.error('Failed to fetch alerts', error);
+                }
+            };
+
+            fetchEscalationsAndVault();
+            const interval = setInterval(fetchEscalationsAndVault, 15000);
+            return () => clearInterval(interval);
+        }
+    }, [user]);
+
+    const handleAlertClick = (id: string | number, path: string) => {
+        setAlerts(prev => prev.filter(a => a.id !== id));
+        setShowAlerts(false);
+        navigate(path);
+    };
+
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) setIsSidebarOpen(true);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return (
+        <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden print:h-auto print:overflow-visible">
+            {/* Overlay for mobile/retractable mode */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:hidden print:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            {/* Retractable Sidebar */}
+            <aside className={`fixed md:relative inset-y-0 left-0 z-[100] w-64 bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 transform ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:w-0 md:pointer-events-none'} flex flex-col print:hidden`}>
+                <div className="p-4 border-b border-[#333] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold tracking-tighter text-[#C5A059]">BRASA</span>
+                        <span className="text-xs text-gray-500 uppercase tracking-widest">INTEL</span>
+                    </div>
+                    <button title="Close Sidebar" onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-[#333] rounded">
+                        <Menu className="w-5 h-5 text-gray-400" />
+                    </button>
+                </div>
+
+                <nav className="flex-1 p-2 space-y-4 overflow-y-auto">
+                    {navItems.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-48 px-4 text-center">
+                            <Building2 className="w-8 h-8 text-[#C5A059] mb-3 opacity-50" />
+                            <p className="text-sm font-medium text-gray-300">No Location Selected</p>
+                            <p className="text-xs text-gray-500 mt-2">Please select a store from the top menu to view the operational command center.</p>
+                        </div>
+                    ) : (
+                        navItems.map((section: any) => (
+                            <div key={section.section} className={`space-y-1 ${section.hideOnMobile ? 'hidden md:block' : ''}`}>
+                                <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
+                                {section.items.map((item: any) => {
+                                    const active = location.pathname === item.path || (item.path === '/settings/company' && location.pathname.startsWith('/settings/'));
+                                    const isGlobalExecutivePath = item.path === '/procurement' || item.path === '/intelligence/procurement-shadow';
+                                    const isLocked = !selectedCompany && item.path !== '/dashboard' && !isGlobalExecutivePath;
+
+                                    return (
+                                        <Link
+                                            key={item.path}
+                                            to={isLocked ? '#' : item.path}
+                                            onClick={(e) => isLocked && e.preventDefault()}
+                                            className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
+                                                ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
+                                                : isLocked
+                                                    ? 'text-gray-600 cursor-not-allowed opacity-50'
+                                                    : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                                } `}
+                                        >
+                                            <item.icon className={`w-5 h-5 min-w-[20px] ${isLocked ? 'text-gray-700' : ''}`} />
+                                            <div className="flex flex-1 items-center justify-between">
+                                                <span className="text-sm font-medium tracking-wide">{item.label}</span>
+                                                {isLocked && <AlertTriangle className="w-3 h-3 text-red-900/50" />}
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        ))
+                    )}
+
+
+                    {/* Executive View (Admin/Director Only) */}
+                    {selectedCompany && (user?.role === 'admin' || user?.role === 'director' || user?.role === 'area_manager' || user?.email?.includes('admin')) && (
+                        <>
+                            {!isDavid && (
+                                <Link
+                                    to={operationType === 'ALACARTE' ? '/jvp-dashboard' : '/executive'}
+                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive' || location.pathname === '/jvp-dashboard'
+                                        ? 'bg-[#FF2A6D]/10 text-[#FF2A6D] border-l-2 border-[#FF2A6D]'
+                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                        } `}
+                                >
+                                    <AlertTriangle className="w-5 h-5 min-w-[20px]" />
+                                    <div className="flex flex-1 items-center justify-between">
+                                        <span className="text-sm font-medium tracking-wide">
+                                            {operationType === 'ALACARTE' ? 'JVP Command Center' : t('nav_executive')}
+                                        </span>
+                                    </div>
+                                </Link>
+                            )}
+                            {!isCompanyOrGlobal && (
+                                <Link
+                                    to="/executive/specs"
+                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive/specs'
+                                        ? 'bg-[#00FF94]/10 text-[#00FF94] border-l-2 border-[#00FF94]'
+                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                        } `}
+                                >
+                                    <ShieldCheck className="w-5 h-5 min-w-[20px]" />
+                                    <div className="flex flex-1 items-center justify-between">
+                                        <span className="text-sm font-medium tracking-wide">Master Recipe & Specs</span>
+                                    </div>
+                                </Link>
+                            )}
+                            {!isDavid && (
+                                <Link
+                                    to="/data-analyst"
+                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/data-analyst'
+                                        ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
+                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                                        } `}
+                                >
+                                    <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
+                                    <div className="flex flex-1 items-center justify-between">
+                                        <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
+                                    </div>
+                                </Link>
+                            )}
+                        </>
+                    )}
+
+
+                    {/* Switch Company (Master Owner Only) */}
+                    {isMaster && (
+                        <>
+                            <Link
+                                to="/select-company"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
+                            >
+                                <Building2 className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Switch Company</span>
+                            </Link>
+                            
+                            <Link
+                                to="/agv-network"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-indigo-400 hover:bg-indigo-900/20 mt-2 border border-indigo-500/20 border-solid shadow-sm shadow-indigo-900/10"
+                            >
+                                <Network className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Global Partner Network</span>
+                            </Link>
+
+                            <Link
+                                to="/agv-vault"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-emerald-400 hover:bg-emerald-900/20 mt-2 border border-emerald-500/20 border-solid shadow-sm shadow-emerald-900/10"
+                            >
+                                <ShieldCheck className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Legal & Contracts Vault</span>
+                            </Link>
+
+                            <Link
+                                to="/agv-billing"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-blue-400 hover:bg-blue-900/20 mt-2 border border-blue-500/20 border-solid shadow-sm shadow-blue-900/10"
+                            >
+                                <DollarSign className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Executive Billing Console</span>
+                            </Link>
+                        </>
+                    )}
+                </nav>
+
+                <div className="p-5 border-t border-[#333] bg-[#121212] mt-auto relative shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-10">
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-3 px-4 py-3 w-full text-left rounded border border-transparent text-sm font-bold transition-all text-gray-400 hover:text-[#FF2A6D] hover:bg-[#FF2A6D]/10 hover:border-[#FF2A6D]/30"
+                    >
+                        <LogOut className="w-5 h-5 flex-shrink-0" />
+                        <span className="tracking-widest uppercase text-xs">{t('nav_logout')}</span>
+                    </button>
+                    
+                    <div className="mt-8 px-1 space-y-2">
+                        <div className="text-[10px] text-gray-500 font-mono tracking-wider flex items-center justify-between">
+                            VERSION 4.2.0
+                            <span className="text-[#00FF94] flex items-center gap-1.5 py-0.5 px-2 bg-[#00FF94]/10 rounded border border-[#00FF94]/20"><span className="w-1.5 h-1.5 bg-[#00FF94] rounded-full animate-pulse" /> LIVE</span>
+                        </div>
+                        
+                        <div className="text-[10px] text-[#C5A059] font-mono font-bold tracking-widest flex items-center gap-2 bg-[#C5A059]/5 p-2 rounded border border-[#C5A059]/10">
+                            <Database className="w-3 h-3 text-[#C5A059]" />
+                            POSTGRES_V3_LINK
+                        </div>
+                        
+                        <div className="text-[9px] text-gray-600 font-mono tracking-widest uppercase pt-3 border-t border-[#333] mt-4 flex flex-col gap-1">
+                            <span>Build Stamp:</span>
+                            <span className="text-gray-500">{new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} // {new Date().toLocaleTimeString()}</span>
+                        </div>
+                        
+                        <div className="pt-5 mt-2 flex flex-col items-center gap-1 opacity-40 hover:opacity-100 transition-opacity justify-center w-full text-center">
+                            <span className="text-[9px] font-bold text-white uppercase tracking-[0.3em] font-sans mb-1">POWERED BY AGV INTEL</span>
+                            <span className="text-[8px] text-gray-500 font-mono tracking-widest uppercase">© {new Date().getFullYear()} Brasa OS.</span>
+                            <span className="text-[8px] text-gray-500 font-mono tracking-widest uppercase">Proprietary & Confidential</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col min-w-0 relative pb-20 md:pb-0 print:block print:pb-0">
+                {/* Ticker Header */}
+                <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between print:hidden">
+                    <div className="flex items-center gap-4 overflow-hidden text-xs font-mono">
+                        <button
+                            title="Toggle Sidebar"
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors border border-white/5"
+                        >
+                            <Menu className="w-5 h-5 text-[#C5A059]" />
+                        </button>
+                        <div className="flex items-center gap-2 text-gray-400">
+                            <span className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse"></span>
+                            <span className="hidden md:inline">{t('system_online')}</span>
+                        </div>
+                        {selectedCompany && (
+                            <div className="hidden lg:flex items-center gap-2 ml-4 px-3 py-1 bg-[#C5A059]/10 border border-[#C5A059]/30 rounded-full shadow-[0_0_10px_rgba(197,160,89,0.2)]">
+                                <Building2 className="w-3 h-3 text-[#C5A059]" />
+                                <span className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest">{companyName || selectedCompany}</span>
+                            </div>
+                        )}
+                        {/* Ticker */}
+                        <div className="hidden md:flex items-center space-x-6 ml-4">
+                            <div className="flex items-center space-x-2 px-3 py-1 bg-[#222] rounded-full border border-[#333]">
+                                <Network className="w-4 h-4 text-[#C5A059]" />
+                                <span className="text-xs text-gray-400 uppercase tracking-wider">Systemwide Units</span>
+                                <span className="text-sm font-bold text-white">{networkStats ? networkStats.totalStores : 57} <span className="text-[10px] text-gray-500 font-normal">ACTIVE</span></span>
+                            </div>
+                            <div className="h-4 w-px bg-[#333]"></div>
+                            <div className="flex items-center space-x-2">
+                                <DollarSign className="w-4 h-4 text-green-500" />
+                                <span className="text-xs text-gray-400 uppercase">Top-Line Revenue</span>
+                                <span className="text-sm font-mono text-white">$45.5</span>
+                            </div>
+                            <div className="h-4 w-px bg-[#333]"></div>
+                            <div className="flex items-center space-x-2">
+                                <Users className="w-4 h-4 text-blue-500" />
+                                <span className="text-xs text-gray-400 uppercase">Consolidated Labor %</span>
+                                <span className="text-sm font-mono text-white">28.4%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 relative">
+                        {/* Welcome Personalization */}
+                        {user?.email && (
+                            <div className="hidden lg:flex items-center gap-2 mr-2 bg-[#222] px-3 py-1 rounded-full border border-[#333] shadow-sm">
+                                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Welcome</span>
+                                <span className="text-xs font-bold text-[#C5A059] tracking-wide">
+                                    {user.first_name || (user.email.toLowerCase().includes('rodrigo') ? 'Rodrigo' : user.email.toLowerCase().includes('alexandre') ? 'Alexandre' : user.email.toLowerCase().includes('carlos') ? 'Carlos' : user.email.split('@')[0].split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase()))}
+                                </span>
+                            </div>
+                        )}
+
+                        <button
+                            title="View Alerts"
+                            onClick={() => setShowAlerts(!showAlerts)}
+                            className={`flex items-center gap-2 px-3 py-1 rounded border transition-colors cursor-pointer ${showAlerts ? 'bg-[#FF9F1C]/20 border-[#FF9F1C]' : 'bg-[#252525] border-[#333] hover:bg-[#333]'
+                                } `}
+                        >
+                            <AlertTriangle className={`w-3 h-3 ${alerts.length > 0 ? 'text-[#FF9F1C]' : 'text-gray-500'} `} />
+                            <span className={`text-xs font-mono ${alerts.length > 0 ? 'text-[#FF9F1C] blinking' : 'text-gray-500'} `}>
+                                {alerts.length} {t('alerts')}
+                            </span>
+                        </button>
+
+                        {/* Alerts Dropdown/Modal */}
+                        {showAlerts && (
+                            <div className="absolute top-10 right-0 w-80 bg-[#1a1a1a] border border-[#333] shadow-2xl z-50 rounded-sm overflow-hidden">
+                                <div className="p-2 bg-[#252525] border-b border-[#333] flex justify-between items-center">
+                                    <span className="text-xs font-mono text-gray-400 uppercase tracking-widest">System Alerts</span>
+                                    {alerts.length > 0 ? (
+                                        <span className="text-[10px] bg-[#FF9F1C] text-black px-1 rounded font-bold">{alerts.length} NEW</span>
+                                    ) : (
+                                        <span className="text-[10px] text-gray-500">NO NEW ALERTS</span>
+                                    )}
+                                </div>
+                                <div className="divide-y divide-[#333]">
+                                    {alerts.length === 0 ? (
+                                        <div className="p-4 text-center text-xs text-gray-500 italic">
+                                            {t('all_systems_op')}
+                                        </div>
+                                    ) : (
+                                        alerts.map(alert => (
+                                            <div
+                                                key={alert.id}
+                                                className="p-3 hover:bg-white/5 cursor-pointer group"
+                                                onClick={() => handleAlertClick(alert.id, alert.path)}
+                                            >
+                                                <div className="flex justify-between mb-1">
+                                                    <span className={`text-xs font-bold font-mono ${alert.type === 'WARNING' ? 'text-[#FF9F1C]' : 'text-gray-400'}`}>{alert.type}</span>
+                                                    <span className="text-[10px] text-gray-600">{alert.time}</span>
+                                                </div>
+                                                <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{
+                                                    __html: alert.message.replace(
+                                                        /(Dallas|3 Stores)/g,
+                                                        '<strong>$1</strong>'
+                                                    )
+                                                }} />
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                <div className="p-2 bg-[#151515] border-t border-[#333] text-center">
+                                    <button onClick={() => navigate('/reports')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider">{t('view_all_logs')}</button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                title="User Profile Menu"
+                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C5A059] to-[#F0E68C] border-2 border-[#121212] cursor-pointer hover:ring-2 hover:ring-[#C5A059] transition-all overflow-hidden"
+                            >
+                                <img src={`https://ui-avatars.com/api/?name=${user?.email}&background=C5A059&color=fff`} alt="User" />
+                            </button >
+
+                            {showProfileMenu && (
+                                <div className="absolute top-10 right-0 w-48 bg-[#1a1a1a] border border-[#333] shadow-2xl z-[60] rounded-sm py-1 animate-in fade-in slide-in-from-top-2">
+                                    <div className="px-4 py-2 border-b border-[#333]">
+                                        <p className="text-xs text-gray-500 font-mono underline uppercase tracking-tighter">{t('profile_current_user')}</p>
+                                        <p className="text-[11px] text-white font-bold truncate">{user?.email}</p>
+                                        <p className="text-[10px] text-[#C5A059] font-mono uppercase">
+                                            {operationType === 'ALACARTE' && user?.role === 'director' ? 'Joint Venture Partner' : 
+                                             operationType === 'ALACARTE' && user?.role === 'manager' ? 'Managing Partner' : 
+                                             user?.role}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => { navigate('/settings'); setShowProfileMenu(false); }}
+                                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2"
+                                    >
+                                        <Users className="w-3 h-3" /> {t('profile_settings')}
+                                    </button>
+                                    <button
+                                        onClick={() => { navigate('/reports'); setShowProfileMenu(false); }}
+                                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2"
+                                    >
+                                        <StickyNote className="w-3 h-3" /> {t('security_logs')}
+                                    </button>
+                                    <div className="border-t border-[#333] mt-1 pt-1">
+                                        <button
+                                            onClick={logout}
+                                            className="w-full text-left px-4 py-2 text-xs text-[#FF2A6D] hover:bg-[#FF2A6D]/10 flex items-center gap-2"
+                                        >
+                                            <LogOut className="w-3 h-3" /> {t('profile_logout_system')}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div >
+                    </div >
+                </header >
+
+                {/* Page Content */}
+                <div className="flex-1 overflow-auto p-4 md:p-6 bg-[#121212] print:overflow-visible print:p-0 print:bg-white" onClick={() => setShowAlerts(false)}>
+                    {children}
+                </div>
+
+                {/* Mobile Bottom Navigation */}
+                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex justify-around p-2 z-[9999] pb-safe print:hidden">
+                    <button title="Home" onClick={() => navigate('/dashboard')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/dashboard' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
+                        <LayoutDashboard size={20} />
+                        <span className="text-[10px] mt-1">Home</span>
+                    </button>
+                    <button
+                        title="Receive"
+                        onClick={() => selectedCompany && navigate('/receiving')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/receiving' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
+                        <ScanLine size={20} />
+                        <span className="text-[10px] mt-1">Receive</span>
+                    </button>
+                    <button
+                        title="Prices"
+                        onClick={() => selectedCompany && navigate('/prices')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/prices' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
+                        <ArrowUpRight size={20} />
+                        <span className="text-[10px] mt-1">Prices</span>
+                    </button>
+                    <button
+                        title="Waste"
+                        onClick={() => selectedCompany && navigate('/waste')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/waste' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
+                        <Trash size={20} />
+                        <span className="text-[10px] mt-1">Variance</span>
+                    </button>
+                    <button
+                        title="Inventory"
+                        onClick={() => selectedCompany && navigate('/inventory')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/inventory' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
+                        <ShieldAlert size={20} />
+                        <span className="text-[10px] mt-1">Inventory</span>
+                    </button>
+                    <button
+                        title="Reports"
+                        onClick={() => selectedCompany && navigate('/reports')}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/reports' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                    >
+                        <StickyNote size={20} />
+                        <span className="text-[10px] mt-1">Reports</span>
+                    </button>
+                </div>
+            </main >
+        </div >
+    );
+};

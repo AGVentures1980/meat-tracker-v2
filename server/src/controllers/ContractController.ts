@@ -90,6 +90,9 @@ export const ContractController = {
             const envDef = new ds.EnvelopeDefinition();
             envDef.emailSubject = `Signature Required: Software License Agreement - ${contract.company_name}`;
             
+            const emailsList = contract.signer_email.split(',').map((e: string) => e.trim());
+            const namesList = contract.signer_name.split(',').map((n: string) => n.trim());
+
             // Generate HTML Document for Contract
             const documentHtml = `
             <!DOCTYPE html>
@@ -140,9 +143,14 @@ export const ContractController = {
                     <p>In no event shall AGV Ventures LLC, its founders, members, or affiliates be liable for any indirect, incidental, or consequential damages arising out of the use or inability to use the Software. Total liability of AGV Ventures LLC shall not exceed the amount paid by the Client for the software license.</p>
 
                     <div class="signature-block">
-                        <p>Execution of this digital document legally binds the signatory, <span class="highlight">${contract.signer_name} (${contract.signer_email})</span> representing ${contract.company_name}, to these terms.</p>
-                        <div class="sign-box">
-                            <span style="color:#fafafa; font-size:1px;">SIGN_HERE</span>
+                        <p>Execution of this digital document legally binds the signatories representing ${contract.company_name} to these terms.</p>
+                        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                            ${namesList.map((name: string, i: number) => `
+                            <div class="sign-box" style="flex: 1; min-width: 200px;">
+                                <p style="font-size: 10px; margin-bottom: 5px; font-weight: bold; color: #111; text-transform: uppercase;">${name}</p>
+                                <span style="color:#fafafa; font-size:1px;">SIGN_HERE_${i+1}</span>
+                            </div>
+                            `).join('')}
                         </div>
                     </div>
 
@@ -163,29 +171,34 @@ export const ContractController = {
 
             envDef.documents = [document];
 
-            // Setup Signer
-            const signer = ds.Signer.constructFromObject({
-                email: contract.signer_email,
-                name: contract.signer_name,
-                recipientId: '1',
-                routingOrder: '1'
-            });
+            // Setup Signers dynamically
+            const docusignSigners = emailsList.map((email: string, index: number) => {
+                const name = namesList[index] || namesList[0];
+                const recipientId = (index + 1).toString();
+                
+                const signer = ds.Signer.constructFromObject({
+                    email: email,
+                    name: name,
+                    recipientId: recipientId,
+                    routingOrder: recipientId
+                });
 
-            // Anchor Tab (Signature Box Placement)
-            const signHere = ds.SignHere.constructFromObject({
-                anchorString: 'SIGN_HERE',
-                anchorYOffset: '10',
-                anchorUnits: 'pixels',
-                anchorXOffset: '20'
-            });
+                const signHere = ds.SignHere.constructFromObject({
+                    anchorString: `SIGN_HERE_${recipientId}`,
+                    anchorYOffset: '10',
+                    anchorUnits: 'pixels',
+                    anchorXOffset: '20'
+                });
 
-            const tabs = ds.Tabs.constructFromObject({
-                signHereTabs: [signHere]
+                const tabs = ds.Tabs.constructFromObject({
+                    signHereTabs: [signHere]
+                });
+                signer.tabs = tabs;
+                return signer;
             });
-            signer.tabs = tabs;
 
             envDef.recipients = ds.Recipients.constructFromObject({
-                signers: [signer]
+                signers: docusignSigners
             });
 
             // Set envelope status to 'sent' to fire it immediately
