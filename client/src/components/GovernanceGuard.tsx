@@ -13,8 +13,8 @@ export const GovernanceGuard = ({ children }: GovernanceGuardProps) => {
     const [loading, setLoading] = useState(true);
     const [isCertified, setIsCertified] = useState(false);
 
-    // Admin/Director Bypass
-    if (user?.role === 'admin' || user?.role === 'director') {
+    // Admin/Director/Demo Bypass
+    if (user?.role === 'admin' || user?.role === 'director' || user?.email === 'addison@texasdebrazil.com') {
         return <>{children}</>;
     }
 
