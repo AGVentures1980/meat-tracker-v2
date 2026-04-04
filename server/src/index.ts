@@ -121,7 +121,6 @@ app.use('/api/v1/upload', requireAuth, uploadRoutes);
 app.use('/api/v1/inventory', requireAuth, inventoryRoutes);
 app.use('/api/v1/delivery', requireAuth, deliveryRoutes);
 app.use('/api/v1/purchases', requireAuth, purchaseRoutes);
-app.get('/api/v1/emergency-reset', async (req, res) => { const { PrismaClient } = require('@prisma/client'); const p = new PrismaClient(); await p.supportMessage.deleteMany({}); await p.supportTicket.deleteMany({}); await require('./services/sentinel.service').SentinelService.runDailyAudit(); res.send('OK'); });
 app.use('/api/v1/intelligence', requireAuth, intelligenceRoutes);
 app.use('/api/v1/analyst', requireAuth, analystRoutes);
 app.use('/api/v1/negotiation', requireAuth, negotiationRoutes);
