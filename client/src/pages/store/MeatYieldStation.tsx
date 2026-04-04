@@ -195,7 +195,15 @@ export default function MeatYieldStation() {
                       </div>
                     )}
 
-                    <button className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white font-bold text-xl py-4 rounded-xl transition-colors">
+                    <button 
+                      onClick={() => {
+                        setYieldResult(null);
+                        setBoxWeight('');
+                        setScrapWeight('');
+                        // alert('Yield Logged Successfully'); // Optional UI feedback
+                      }}
+                      className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white font-bold text-xl py-4 rounded-xl transition-colors"
+                    >
                       Log Result & Clear
                     </button>
                   </div>
@@ -287,7 +295,13 @@ export default function MeatYieldStation() {
                       </div>
                     )}
 
-                    <button className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white font-bold text-xl py-4 rounded-xl transition-colors">
+                    <button 
+                      onClick={() => {
+                        setPortionResult(null);
+                        setActualOz('');
+                      }}
+                      className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white font-bold text-xl py-4 rounded-xl transition-colors"
+                    >
                       Log Audit & Next
                     </button>
                   </div>
