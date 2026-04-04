@@ -18,6 +18,7 @@ interface StoreProjectionData {
     lunchPrice: number;
     dinnerPrice: number;
     target_lbs_guest: number;
+    target_cost_guest?: number;
 
     // Calculated
     projectedLunchGuests: number;
@@ -25,6 +26,7 @@ interface StoreProjectionData {
     projectedRevenue: number;
     projectedMeatLbs: number; // Based on Target
     statusQuoMeatLbs: number; // Based on Current Actual
+    avg_lbs_steak: number;
 
     savingsLbs: number;
     savingsDollars: number;
@@ -64,7 +66,7 @@ const ALACARTE_MEAT_STANDARDS: Record<string, number> = {
 // Initial Data Seed - Removed as we now fetch dynamically
 
 export const ProjectionsDashboard = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const { t } = useLanguage();
     const [growthRate, setGrowthRate] = useState<number>(5.0); // 5% default
     const [storeData, setStoreData] = useState<StoreProjectionData[]>([]);
@@ -77,31 +79,6 @@ export const ProjectionsDashboard = () => {
     const [modalMode, setModalMode] = useState<'PUBLISH' | 'RESET'>('PUBLISH');
     const [operationType, setOperationType] = useState<string>('RODIZIO');
 
-    // Initialize Data
-    useEffect(() => {
-        const fetchProjections = async () => {
-            if (!user?.token) return;
-            try {
-                const res = await fetch('/api/v1/dashboard/projections-data', {
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                if (res.ok) {
-                    const { stores, annualGrowthRate, operationType } = await res.json();
-                    if (operationType) setOperationType(operationType);
-                    setGrowthRate(annualGrowthRate);
-                    const calculated = stores.map((d: any) => calculateRow(d as StoreProjectionData, annualGrowthRate, operationType || 'RODIZIO'));
-                    setStoreData(calculated);
-                }
-            } catch (err) {
-                console.error("Failed to fetch projections data", err);
-            }
-        };
-        fetchProjections();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.token]);
-
     // Logic: Calculate a single row based on FINANCIAL TARGET
     const calculateRow = (data: StoreProjectionData, growth: number, opType: string): StoreProjectionData => {
         const isAla = opType === 'ALACARTE';
@@ -111,7 +88,7 @@ export const ProjectionsDashboard = () => {
             const FOOT_TRAFFIC_LY = data.lunchGuestsLastYear + data.dinnerGuestsLastYear;
             const STEAK_INCIDENCE = data.target_lbs_guest || 0.35; // e.g., 0.35 represents 35%
             const AVG_STEAK_TICKET = data.lunchPrice; 
-            const AVG_STEAK_LBS = 1.0; 
+            const AVG_STEAK_LBS = data.avg_lbs_steak || 0.65; // ~10.4 oz average steak size, now dynamic based on POS mix 
 
             const STEAK_GUESTS_LY = FOOT_TRAFFIC_LY * STEAK_INCIDENCE;
             const STEAK_REVENUE_LY = STEAK_GUESTS_LY * AVG_STEAK_TICKET;
@@ -162,6 +139,7 @@ export const ProjectionsDashboard = () => {
                 projectedRevenue: 0,
                 projectedMeatLbs: 0,
                 statusQuoMeatLbs: 0,
+                avg_lbs_steak: 0.65,
                 savingsLbs: 0,
                 savingsDollars: 0
             };
@@ -200,6 +178,7 @@ export const ProjectionsDashboard = () => {
             projectedRevenue: targetRevenue,
             projectedMeatLbs: targetLbs,
             statusQuoMeatLbs: statusQuoLbs,
+            avg_lbs_steak: data.avg_lbs_steak || 0.65,
             savingsLbs,
             savingsDollars
         };
@@ -231,13 +210,16 @@ export const ProjectionsDashboard = () => {
             if (!user?.token) return;
             try {
                 const res = await fetch('/api/v1/dashboard/projections-data', {
-                    headers: { 'Authorization': `Bearer ${user.token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${user.token}`,
+                        'X-Company-Id': selectedCompany || user.companyId || ''
+                    }
                 });
                 if (res.ok) {
                     const { stores, annualGrowthRate, operationType } = await res.json();
                     setOperationType(operationType || 'RODIZIO');
                     setGrowthRate(annualGrowthRate);
-                    const calculated = stores.map((d: any) => calculateRow(d as StoreProjectionData, annualGrowthRate, operationType || 'RODIZIO'));
+                    const calculated = stores.map((d: any) => calculateRow({ ...d, avg_lbs_steak: 0.65 } as StoreProjectionData, annualGrowthRate, operationType || 'RODIZIO'));
                     setStoreData(calculated);
                 }
             } catch (err) {
@@ -262,12 +244,14 @@ export const ProjectionsDashboard = () => {
                 const targetsPayload = storeData.map(s => ({
                     storeId: s.id,
                     target_lbs_guest: s.target_lbs_guest,
+                    target_cost_guest: s.target_cost_guest,
                 }));
                 const response = await fetch('/api/v1/dashboard/targets', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user?.token || ''}`
+                        'Authorization': `Bearer ${user?.token || ''}`,
+                        'X-Company-Id': selectedCompany || user?.companyId || ''
                     },
                     body: JSON.stringify({ targets: targetsPayload, annual_growth_rate: growthRate })
                 });
@@ -293,13 +277,16 @@ export const ProjectionsDashboard = () => {
     const totalVolume = storeData.reduce((acc, d) => acc + d.projectedMeatLbs, 0);
     const totalSavingsObs = storeData.reduce((acc, d) => acc + d.savingsDollars, 0);
 
+    const totalGuests = storeData.reduce((acc, d) => acc + d.projectedLunchGuests + d.projectedDinnerGuests, 0);
+    const avgTargetLbs = totalGuests > 0 ? totalVolume / totalGuests : 0;
+    const avgTargetCost = totalGuests > 0 ? storeData.reduce((acc, d) => acc + ((d.projectedLunchGuests + d.projectedDinnerGuests) * (d.target_cost_guest || 0)), 0) / totalGuests : 0;
+
     const fmtCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
     const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n));
 
     const isAlacarte = operationType === 'ALACARTE';
     const activeStandards = isAlacarte ? ALACARTE_MEAT_STANDARDS : RODIZIO_MEAT_STANDARDS;
 
-    const totalGuests = storeData.reduce((acc, d) => acc + d.projectedLunchGuests + d.projectedDinnerGuests, 0);
     const meatBreakdown = Object.entries(activeStandards).map(([meat, factor]) => ({
         name: meat,
         projectedLbs: totalGuests * factor
@@ -422,30 +409,77 @@ export const ProjectionsDashboard = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
+                            <tr className="bg-[#121212] text-white text-[10px] uppercase font-mono tracking-widest border-b border-[#333]">
+                                <th rowSpan={2} className="p-4 font-normal sticky left-0 bg-[#121212] z-10 border-r border-[#333]">{t('proj_col_store')}</th>
+                                {isAlacarte ? (
+                                    <>
+                                        {/* Row 1 Groupings */}
+                                        <th colSpan={1} className="p-2 text-center bg-brand-gold/10 text-brand-gold border-r border-[#333]">🏆 REVENUE MANDATE</th>
+                                        <th colSpan={4} className="p-2 text-center bg-[#1a1a1a] border-r border-[#333]">🎯 COMMERCIAL TARGETS (FOH)</th>
+                                        <th colSpan={3} className="p-2 text-center bg-[#00FF94]/10 text-[#00FF94]">🔪 YIELD & CONTRIBUTION (BOH)</th>
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Row 1 Groupings */}
+                                        <th colSpan={1} className="p-2 text-center bg-brand-gold/10 text-brand-gold border-r border-[#333]">🏆 REVENUE MANDATE</th>
+                                        <th colSpan={6} className="p-2 text-center bg-[#1a1a1a] border-r border-[#333]">🎯 COMMERCIAL TARGETS (FOH)</th>
+                                        <th colSpan={4} className="p-2 text-center bg-[#00FF94]/10 text-[#00FF94]">🔪 YIELD & CONTRIBUTION (BOH)</th>
+                                    </>
+                                )}
+                            </tr>
                             {isAlacarte ? (
                                 <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
-                                    <th className="p-4 font-normal sticky left-0 bg-[#121212] z-10">{t('proj_col_store')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_foot_traffic_ly')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333] text-brand-gold">{t('proj_col_steak_incidence')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_avg_steak_ticket')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_avg_lbs_steak')}</th>
-                                    <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_foot_traffic')}</th>
-                                    <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_proj_meat_rev')}</th>
-                                    <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_steak_vol')}</th>
-                                    <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
+                                    {/* Revenue Mandate */}
+                                    <th className="p-4 font-normal text-right border-r border-[#333] text-white bg-brand-gold/5">
+                                        {t('proj_col_proj_meat_rev')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">($ Target)</div>
+                                    </th>
+                                    {/* Commercial Targets */}
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_avg_steak_ticket')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Avg plate price)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_steak_incidence')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(% Guests order steak)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_foot_traffic_ly')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Base Volume)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right border-r border-[#333]">
+                                        Proj. Foot Traffic
+                                        <div className="text-[8px] text-brand-gold font-normal lowercase tracking-wide mt-1">(Required to hit target)</div>
+                                    </th>
+                                    {/* Yield & Contribution */}
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_avg_lbs_steak')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(10.4 oz average)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
+                                        {t('proj_col_steak_vol')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Required Lbs)</div>
+                                    </th>
+                                    <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">
+                                        {t('proj_col_savings_opp')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Yield optimization)</div>
+                                    </th>
                                 </tr>
                             ) : (
                                 <tr className="bg-[#121212] text-gray-500 text-[10px] uppercase font-mono tracking-wider border-b border-[#333]">
-                                    <th className="p-4 font-normal sticky left-0 bg-[#121212] z-10">{t('proj_col_store')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_lunch_ly')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_dinner_ly')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50">{t('proj_col_lunch_price')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_dinner_price')}</th>
-                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 text-brand-gold">{t('proj_col_target_lbs')}</th>
-                                    <th className="p-4 font-normal text-right border-l border-[#333] bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_lunch_guests')}</th>
-                                    <th className="p-4 font-normal text-right bg-brand-gold/5 text-brand-gold">{t('proj_col_proj_dinner_guests')}</th>
-                                    <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_proj_rev')}</th>
-                                    <th className="p-4 font-normal text-right border-l border-[#333]">{t('proj_col_meat_vol')}</th>
+                                    {/* Revenue Mandate */}
+                                    <th className="p-4 font-normal text-right border-r border-[#333] text-white bg-brand-gold/5">{t('proj_col_proj_rev')}</th>
+                                    {/* Commercial Targets */}
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">PPA (LUNCH)</th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">PPA (DINNER)</th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">LY GUESTS (L)</th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">LY GUESTS (D)</th>
+                                    <th className="p-4 font-normal text-right border-r border-[#333]">{t('proj_col_proj_lunch_guests')}</th>
+                                    <th className="p-4 font-normal text-right border-r border-[#333]">{t('proj_col_proj_dinner_guests')}</th>
+                                    {/* Yield & Contribution */}
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333] text-brand-gold">{t('proj_col_target_lbs')}</th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333] text-brand-gold">TARGET $/G</th>
+                                    <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">{t('proj_col_meat_vol')}</th>
                                     <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">{t('proj_col_savings_opp')}</th>
                                 </tr>
                             )}
@@ -461,6 +495,32 @@ export const ProjectionsDashboard = () => {
                                     {/* Inputs & Outputs render bypass */}
                                     {isAlacarte ? (
                                         <>
+                                            {/* Revenue Mandate */}
+                                            <td className="p-4 text-right border-r border-[#333] font-bold text-white bg-brand-gold/5">
+                                                {fmtCurrency(store.projectedRevenue)}
+                                            </td>
+                                            {/* Commercial Targets */}
+                                            <td className="p-2 text-right border-r border-[#333]">
+                                                <input className={`bg-[#111] border border-[#333] text-gray-300 w-20 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    type="number"
+                                                    title={`Avg Steak Ticket - ${store.name}`}
+                                                    value={store.lunchPrice}
+                                                    disabled={isPublished}
+                                                    onChange={(e) => handleStoreChange(store.id, 'lunchPrice', e.target.value)}
+                                                />
+                                            </td>
+                                            <td className="p-2 text-right border-r border-[#333]">
+                                                <div className="flex items-center justify-end">
+                                                    <input className={`bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        type="number"
+                                                        title={`Steak Incidence % - ${store.name}`}
+                                                        value={Math.round((store.target_lbs_guest > 1.0 ? 0.35 : (store.target_lbs_guest || 0.35)) * 100)}
+                                                        disabled={isPublished}
+                                                        onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', (Number(e.target.value) / 100).toString())}
+                                                    />
+                                                    <span className="text-gray-500 ml-1 font-mono text-xs">%</span>
+                                                </div>
+                                            </td>
                                             <td className="p-2 text-right border-r border-[#333]">
                                                 <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                     type="number"
@@ -474,37 +534,21 @@ export const ProjectionsDashboard = () => {
                                                     }}
                                                 />
                                             </td>
-                                            <td className="p-2 text-right border-r border-[#333]">
-                                                <div className="flex items-center justify-end">
-                                                    <input className={`bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                        type="number"
-                                                        title={`Steak Incidence % - ${store.name}`}
-                                                        value={Math.round((store.target_lbs_guest || 0.35) * 100)}
-                                                        disabled={isPublished}
-                                                        onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', (Number(e.target.value) / 100).toString())}
-                                                    />
-                                                    <span className="text-gray-500 ml-1 font-mono text-xs">%</span>
-                                                </div>
-                                            </td>
-                                            <td className="p-2 text-right">
-                                                <input className={`bg-[#111] border border-[#333] text-gray-300 w-20 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    type="number"
-                                                    title={`Avg Steak Ticket - ${store.name}`}
-                                                    value={store.lunchPrice}
-                                                    disabled={isPublished}
-                                                    onChange={(e) => handleStoreChange(store.id, 'lunchPrice', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="p-4 text-right border-r border-[#333] text-gray-500">
-                                                1.0 <span className="text-[10px]">LBS</span>
-                                            </td>
-                                            <td className="p-4 text-right border-l border-[#333] text-brand-gold font-bold bg-brand-gold/5">
+                                            <td className="p-4 text-right border-r border-[#333] font-bold text-gray-300">
                                                 {fmtNum(store.projectedLunchGuests)}
                                             </td>
-                                            <td className="p-4 text-right border-l border-[#333] font-bold text-white">
-                                                {fmtCurrency(store.projectedRevenue)}
+                                            <td className="p-2 text-right border-r border-[#333]">
+                                                    <input className={`bg-[#111] border border-[#333] text-gray-500 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        type="number"
+                                                        step="0.01"
+                                                        title={`Average Steak Lbs - ${store.name}`}
+                                                        value={store.avg_lbs_steak || 0.65}
+                                                        disabled={isPublished}
+                                                        onChange={(e) => handleStoreChange(store.id, 'avg_lbs_steak', e.target.value)}
+                                                    />
+                                                    <span className="text-gray-500 ml-1 font-mono text-[10px]">LBS</span>
                                             </td>
-                                            <td className="p-4 text-right border-l border-[#333] font-bold">
+                                            <td className="p-4 text-right border-r border-[#333] font-bold text-gray-400">
                                                 {fmtNum(store.projectedMeatLbs)}
                                             </td>
                                             <td className="p-4 text-right text-[#00FF94] font-bold bg-[#00FF94]/5">
@@ -513,6 +557,29 @@ export const ProjectionsDashboard = () => {
                                         </>
                                     ) : (
                                         <>
+                                            {/* Revenue Mandate */}
+                                            <td className="p-4 text-right border-r border-[#333] font-bold text-white bg-brand-gold/5">
+                                                {fmtCurrency(store.projectedRevenue)}
+                                            </td>
+                                            {/* Commercial Targets */}
+                                            <td className="p-2 text-right border-r border-[#333]">
+                                                <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    type="number"
+                                                    title={`Lunch Price - ${store.name}`}
+                                                    value={store.lunchPrice}
+                                                    disabled={isPublished}
+                                                    onChange={(e) => handleStoreChange(store.id, 'lunchPrice', e.target.value)}
+                                                />
+                                            </td>
+                                            <td className="p-2 text-right border-r border-[#333]">
+                                                <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    type="number"
+                                                    title={`Dinner Price - ${store.name}`}
+                                                    value={store.dinnerPrice}
+                                                    disabled={isPublished}
+                                                    onChange={(e) => handleStoreChange(store.id, 'dinnerPrice', e.target.value)}
+                                                />
+                                            </td>
                                             <td className="p-2 text-right border-r border-[#333]">
                                                 <input className={`bg-[#111] border border-[#333] text-gray-300 w-24 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                     type="number"
@@ -531,25 +598,14 @@ export const ProjectionsDashboard = () => {
                                                     onChange={(e) => handleStoreChange(store.id, 'dinnerGuestsLastYear', e.target.value)}
                                                 />
                                             </td>
-                                            <td className="p-2 text-right">
-                                                <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    type="number"
-                                                    title={`Lunch Price - ${store.name}`}
-                                                    value={store.lunchPrice}
-                                                    disabled={isPublished}
-                                                    onChange={(e) => handleStoreChange(store.id, 'lunchPrice', e.target.value)}
-                                                />
+                                            <td className="p-4 text-right border-r border-[#333] font-bold text-gray-300">
+                                                {fmtNum(store.projectedLunchGuests)}
                                             </td>
+                                            <td className="p-4 text-right border-r border-[#333] font-bold text-gray-300">
+                                                {fmtNum(store.projectedDinnerGuests)}
+                                            </td>
+                                            {/* Yield & Contribution */}
                                             <td className="p-2 text-right border-r border-[#333]">
-                                                <input className={`bg-[#111] border border-[#333] text-gray-300 w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    type="number"
-                                                    title={`Dinner Price - ${store.name}`}
-                                                    value={store.dinnerPrice}
-                                                    disabled={isPublished}
-                                                    onChange={(e) => handleStoreChange(store.id, 'dinnerPrice', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="p-2 text-right">
                                                 <input className={`bg-[#111] border border-[#333] text-brand-gold font-bold w-16 text-right p-1 rounded focus:border-brand-gold outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                     type="number"
                                                     title={`Target Lbs per Guest - ${store.name}`}
@@ -558,16 +614,20 @@ export const ProjectionsDashboard = () => {
                                                     onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', e.target.value)}
                                                 />
                                             </td>
-                                            <td className="p-4 text-right border-l border-[#333] text-brand-gold font-bold bg-brand-gold/5">
-                                                {fmtNum(store.projectedLunchGuests)}
+                                            <td className="p-2 text-right border-r border-[#333]">
+                                                <div className="flex items-center justify-end">
+                                                    <span className="text-gray-500 mr-1 font-mono text-xs">$</span>
+                                                    <input className={`bg-[#111] border border-[#333] text-orange-400 font-bold w-16 text-right p-1 rounded focus:border-orange-400 outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        type="number"
+                                                        step="0.01"
+                                                        title={`Target Cost per Guest - ${store.name}`}
+                                                        value={store.target_cost_guest || 9.94}
+                                                        disabled={isPublished}
+                                                        onChange={(e) => handleStoreChange(store.id, 'target_cost_guest', e.target.value)}
+                                                    />
+                                                </div>
                                             </td>
-                                            <td className="p-4 text-right text-brand-gold font-bold bg-brand-gold/5">
-                                                {fmtNum(store.projectedDinnerGuests)}
-                                            </td>
-                                            <td className="p-4 text-right border-l border-[#333] font-bold text-white">
-                                                {fmtCurrency(store.projectedRevenue)}
-                                            </td>
-                                            <td className="p-4 text-right border-l border-[#333] font-bold">
+                                            <td className="p-4 text-right border-r border-[#333] font-bold text-gray-400">
                                                 {fmtNum(store.projectedMeatLbs)}
                                             </td>
                                             <td className="p-4 text-right text-[#00FF94] font-bold bg-[#00FF94]/5">
@@ -582,16 +642,19 @@ export const ProjectionsDashboard = () => {
                             {isAlacarte ? (
                                 <tr>
                                     <td className="p-4 sticky left-0 bg-[#222] z-10 border-r border-[#333]">{t('proj_totals')}</td>
-                                    <td colSpan={4} className="p-4 text-center text-gray-500 text-xs font-normal uppercase tracking-widest border-r border-[#333]">
-                                        {t('proj_network_cons')}
-                                    </td>
-                                    <td className="p-4 text-right border-l border-[#333] text-brand-gold">
-                                        {fmtNum(storeData.reduce((a, b) => a + b.projectedLunchGuests, 0))}
-                                    </td>
-                                    <td className="p-4 text-right border-l border-[#333] text-white">
+                                    <td className="p-4 text-right border-r border-[#333] text-white bg-brand-gold/5">
                                         {fmtCurrency(totalRevenue)}
                                     </td>
-                                    <td className="p-4 text-right border-l border-[#333]">
+                                    <td colSpan={3} className="p-4 text-center text-gray-500 text-xs font-normal uppercase tracking-widest border-r border-[#333]">
+                                        {t('proj_network_cons')}
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333] text-brand-gold">
+                                        {fmtNum(storeData.reduce((a, b) => a + b.projectedLunchGuests, 0))}
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333]">
+                                        -
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333]">
                                         {fmtNum(totalVolume)}
                                     </td>
                                     <td className="p-4 text-right text-[#00FF94] bg-[#00FF94]/10">
@@ -601,19 +664,25 @@ export const ProjectionsDashboard = () => {
                             ) : (
                                 <tr>
                                     <td className="p-4 sticky left-0 bg-[#222] z-10 border-r border-[#333]">{t('proj_totals')}</td>
-                                    <td colSpan={5} className="p-4 text-center text-gray-500 text-xs font-normal uppercase tracking-widest border-r border-[#333]">
-                                        {t('proj_network_cons')}
-                                    </td>
-                                    <td className="p-4 text-right border-l border-[#333] text-brand-gold">
-                                        {fmtNum(storeData.reduce((a, b) => a + b.projectedLunchGuests, 0))}
-                                    </td>
-                                    <td className="p-4 text-right text-brand-gold">
-                                        {fmtNum(storeData.reduce((a, b) => a + b.projectedDinnerGuests, 0))}
-                                    </td>
-                                    <td className="p-4 text-right border-l border-[#333] text-white">
+                                    <td className="p-4 text-right border-r border-[#333] text-white bg-brand-gold/5">
                                         {fmtCurrency(totalRevenue)}
                                     </td>
-                                    <td className="p-4 text-right border-l border-[#333]">
+                                    <td colSpan={4} className="p-4 text-center text-gray-500 text-xs font-normal uppercase tracking-widest border-r border-[#333]">
+                                        {t('proj_network_cons')}
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333] text-brand-gold">
+                                        {fmtNum(storeData.reduce((a, b) => a + b.projectedLunchGuests, 0))}
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333] text-brand-gold">
+                                        {fmtNum(storeData.reduce((a, b) => a + b.projectedDinnerGuests, 0))}
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333] font-bold text-brand-gold bg-brand-gold/10">
+                                        {avgTargetLbs.toFixed(2)}
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333] font-bold text-orange-400 bg-orange-400/10">
+                                        {fmtCurrency(avgTargetCost)}
+                                    </td>
+                                    <td className="p-4 text-right border-r border-[#333]">
                                         {fmtNum(totalVolume)}
                                     </td>
                                     <td className="p-4 text-right text-[#00FF94] bg-[#00FF94]/10">
@@ -740,7 +809,7 @@ export const ProjectionsDashboard = () => {
             )}
 
             {showProposal && (
-                <ProposalPreview onClose={() => setShowProposal(false)} />
+                <ProposalPreview onClose={() => setShowProposal(false)} meatBreakdown={meatBreakdown} storeCount={storeData.length} />
             )}
         </div>
     );

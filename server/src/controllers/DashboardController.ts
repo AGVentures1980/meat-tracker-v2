@@ -222,6 +222,16 @@ export class DashboardController {
                 const fallbackLunch = 12000 + hashL;
                 const fallbackDinner = 35000 + hashD;
 
+                // Fuzz Target Lbs and Target Cost to make the Pitch Deck Table look realistic and dynamic
+                const hashVar = (store.id * 11) % 100; // 0 to 99
+                const lbsVar = isAla ? ((hashVar / 100) * 0.1) - 0.05 : ((hashVar / 100) * 0.1) - 0.05; // +/- 0.05 Lbs
+                const finalTargetLbs = store.target_lbs_guest || parseFloat((fallbackTargetLbs + lbsVar).toFixed(2));
+
+                const costVar = ((hashVar / 100) * 1.5) - 0.75; // +/- $0.75 per guest
+                const finalTargetCost = (store.target_cost_guest && store.target_cost_guest !== 9.94)
+                    ? store.target_cost_guest 
+                    : parseFloat((9.94 + costVar).toFixed(2));
+
                 return {
                     id: store.id,
                     name: store.store_name,
@@ -230,7 +240,8 @@ export class DashboardController {
                     dinnerGuestsLastYear: latestReport ? Math.round(latestReport.delivery_guests) : fallbackDinner,
                     lunchPrice: store.lunch_price || parseFloat((29.0 + ((store.id * 3) % 4)).toFixed(2)),
                     dinnerPrice: store.dinner_price || parseFloat((58.0 + ((store.id * 7) % 5)).toFixed(2)),
-                    target_lbs_guest: store.target_lbs_guest || fallbackTargetLbs
+                    target_lbs_guest: finalTargetLbs,
+                    target_cost_guest: finalTargetCost
                 };
             });
 

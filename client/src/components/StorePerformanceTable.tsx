@@ -1,62 +1,56 @@
-import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface StoreData {
+export interface StorePerformance {
     id: number;
     name: string;
     location: string;
-    // Week Actual
     guests: number;
-    usedQty: number; // Lbs
+    usedQty: number; // lbs
     usedValue: number; // $
-    costPerLb: number; // $ / Lbs
-    costPerGuest: number; // $ / Guest
-    lbsPerGuest: number; // Lbs / Guest
-    // Var to Plan
-    lbsGuestVar: number;
-    costGuestVar: number;
-    // Impact
+    costPerLb: number;
+    costPerGuest: number;
+    lbsPerGuest: number;
+    lbsGuestVar: number; // Variance from 1.76
+    target_lbs_guest?: number; // Dynamic Target
+    target_cost_guest?: number; // Dynamic Cost Target
+    costGuestVar: number; // Variance from Plan
     impactYTD: number;
+    theoreticalRevenue?: number;
+    foodCostPercentage?: number;
     status: 'Optimal' | 'Warning' | 'Critical';
-    hasQCAlert?: boolean;
+    
+    // Alacarte fields
+    actualYieldPct?: number;
+    targetYieldPct?: number;
+    portionVariancePct?: number;
+    priceDriftPerLb?: number;
+    executionImpact?: number;
 }
 
-export const StorePerformanceTable = () => {
-    const [data, setData] = useState<StoreData[]>([]);
-    const [loading, setLoading] = useState(true);
+interface StorePerformanceTableProps {
+    data: StorePerformance[];
+    loading?: boolean;
+    summary?: any;
+}
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const baseUrl = '/api/v1';
-                const res = await fetch(`${baseUrl}/dashboard/bi-network`);
-
-                if (res.ok) {
-                    const realData = await res.json();
-                    setData(realData);
-                } else {
-                    console.error('Failed to fetch BI data');
-                }
-            } catch (err) {
-                console.error('Error loading BI data:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
+export const StorePerformanceTable = ({ data, loading, summary }: StorePerformanceTableProps) => {
+    const navigate = useNavigate();
 
     // Helper for Summing Up Totals
     const totalGuests = data.reduce((acc, s) => acc + s.guests, 0);
     const totalMeat = data.reduce((acc, s) => acc + s.usedQty, 0);
     const totalImpact = data.reduce((acc, s) => acc + s.impactYTD, 0); // Positive impact = loss/shrinkage
     const avgLbsGuest = totalGuests > 0 ? totalMeat / totalGuests : 0;
+    
+    // Average Metrics
+    const avgCostGuest = totalGuests > 0 ? data.reduce((acc, s) => acc + (s.costPerGuest * s.guests), 0) / totalGuests : 0;
+    const avgLbsGuestVar = totalGuests > 0 ? data.reduce((acc, s) => acc + (s.lbsGuestVar * s.guests), 0) / totalGuests : 0;
 
     const totalNetworkSavings = -totalImpact; // Invert so positive is savings
 
     // Helper to calculate a proxy Daily Score out of 100 based on variance
-    const getDailyScore = (store: StoreData) => {
+    const getDailyScore = (store: StorePerformance) => {
         let score = 100;
         if (store.lbsGuestVar > 0) {
             // Penalize score for over-portioning
@@ -66,7 +60,7 @@ export const StorePerformanceTable = () => {
             // Slight boost for saving
             score += 2;
         }
-        if (store.hasQCAlert) score -= 15;
+        // if (store.hasQCAlert) score -= 15;
         return Math.max(0, Math.min(100, score));
     };
 
@@ -94,7 +88,7 @@ export const StorePerformanceTable = () => {
                         {/* Top Header Row */}
                         <tr className="bg-[#0a0a0a] text-gray-500 border-b border-white/10">
                             <th colSpan={3} className="px-4 py-2 border-r border-white/10 text-center font-bold">Store Execution</th>
-                            <th colSpan={4} className="px-4 py-2 border-r border-white/10 text-center font-bold bg-blue-900/10 text-blue-300">Consumption Metrics</th>
+                            <th colSpan={3} className="px-4 py-2 border-r border-white/10 text-center font-bold bg-blue-900/10 text-blue-300">Consumption Metrics</th>
                             <th colSpan={1} className="px-4 py-2 text-center font-bold bg-brand-gold/10 text-brand-gold">Executive Financials</th>
                         </tr>
                         {/* Sub Header Row */}
@@ -174,8 +168,12 @@ export const StorePerformanceTable = () => {
                         <tr className="bg-[#080808] font-bold border-t border-white/20 text-white text-sm">
                             <td colSpan={3} className="px-4 py-5 text-right uppercase tracking-widest border-r border-white/10 text-gray-400">Network Grand Total</td>
                             <td className="px-4 py-5 text-right">{avgLbsGuest.toFixed(2)}</td>
-                            <td className="px-4 py-5 text-right text-gray-500">-</td>
-                            <td className="px-4 py-5 text-right border-r border-white/10 text-gray-500">-</td>
+                            <td className="px-4 py-5 text-right">${avgCostGuest.toFixed(2)}</td>
+                            <td className="px-4 py-5 text-right border-r border-white/10">
+                                <span className={`px-2 py-1 rounded ${avgLbsGuestVar > 0 ? 'bg-red-900/30 text-red-500' : avgLbsGuestVar < 0 ? 'bg-green-900/20 text-green-500' : 'text-gray-400'}`}>
+                                    {avgLbsGuestVar > 0 ? '+' : ''}{avgLbsGuestVar.toFixed(2)} lbs
+                                </span>
+                            </td>
                             <td className={`px-4 py-5 text-right text-lg ${totalNetworkSavings < 0 ? 'text-red-500 bg-red-900/10' : 'text-green-500 bg-green-900/10'}`}>
                                 {totalNetworkSavings < 0 ? 'SHRINKAGE: -$' : 'SAVINGS: +$'}{Math.abs(totalNetworkSavings).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                             </td>

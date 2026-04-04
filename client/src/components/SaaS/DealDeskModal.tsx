@@ -188,39 +188,40 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                             </div>
 
                             <div>
-                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Name</label>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Name(s) (Comma separated)</label>
                                 <input 
                                     type="text" required
                                     value={formData.signer_name}
                                     onChange={e => setFormData({...formData, signer_name: e.target.value})}
-                                    placeholder="Rodrigo Davila"
+                                    placeholder="e.g. Eric Browning, Pat Hafner"
                                     className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Email</label>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Signatory Email(s) (Comma separated)</label>
                                 <input 
-                                    type="email" required
+                                    type="text" required
                                     value={formData.signer_email}
                                     onChange={e => setFormData({...formData, signer_email: e.target.value})}
-                                    placeholder="rdavila@texasdebrazil.com"
+                                    placeholder="ericbrowning@outback.com, pathafner@outback.com"
+                                    className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">{formData.contract_type === 'pilot' ? 'Pilot Hard-Cost Setup Fee ($)' : 'Implementation / Store ($)'}</label>
+                                <input 
+                                    type="number" required
+                                    value={formData.implementation_fee}
+                                    onChange={e => setFormData({...formData, implementation_fee: e.target.value})}
+                                    placeholder={formData.contract_type === 'pilot' ? '25000' : '1000'}
                                     className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
                                 />
                             </div>
 
                             {formData.contract_type === 'master' && (
                                 <>
-                                    <div>
-                                        <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Implementation / Store ($)</label>
-                                        <input 
-                                            type="number" required={formData.contract_type === 'master'}
-                                            value={formData.implementation_fee}
-                                            onChange={e => setFormData({...formData, implementation_fee: e.target.value})}
-                                            placeholder="1000"
-                                            className="w-full bg-[#050505] border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#C5A059] transition-all"
-                                        />
-                                    </div>
 
                                     <div>
                                         <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">Monthly SaaS / Store ($)</label>
@@ -285,27 +286,33 @@ export const DealDeskModal = ({ isOpen, onClose, initialContract }: DealDeskModa
                             <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">1. Ownership & Intellectual Property</h4>
                             <p className="mb-4 text-justify">The <strong className="text-white">Brasa Meat Intelligence</strong> platform, algorithms, source codes, trademarks, operational methodologies (including the "Garcia Rule"), and all related intellectual property are owned exclusively by <strong className="text-white">AGV Ventures LLC</strong>. The software is merely licensed or tested, not sold, to the Client under the terms of this Agreement. The Client hereby acknowledges that they hold no ownership rights over the software or any derivative works.</p>
 
-                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">2. 90-Day Pilot Evaluation Program</h4>
-                            <p className="mb-4 text-justify">Licensor agrees to deploy the Brasa Meat Intelligence operating system to <strong className="text-white">{formData.locations_count || '[X]'}</strong> initial pilot locations for a rigorous 90-Day evaluation. During this period, both parties agree to mutual confidentiality regarding proprietary business metrics, strategic workflows, and software interfaces (Mutual NDA). The focus of this pilot is to measure and validate gross meat usage efficiencies against historical baselines.</p>
+                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">2. 90-Day Pilot Evaluation Scope</h4>
+                            <p className="mb-4 text-justify">Licensor agrees to deploy the Brasa Meat Intelligence operating system to <strong className="text-white">{formData.locations_count || '[X]'}</strong> designated locations for a rigorous 90-Day evaluation. During this period, both parties agree to mutual confidentiality regarding proprietary business metrics, strategic workflows, and software interfaces (Mutual NDA).</p>
                             
                             {formData.contract_type === 'master' ? (
                                 <>
                                     <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">3. Commercial Terms & System Rollout</h4>
-                                    <p className="mb-4 text-justify">Upon successful conclusion of the Pilot Program, this Agreement covers the system implementation and active SaaS licensing for up to <strong className="text-white">{formData.locations_count || '[X]'} Locations</strong>. The structured commercial model is as follows:</p>
+                                    <p className="mb-4 text-justify">This Agreement covers the system implementation and active SaaS licensing for up to <strong className="text-white">{formData.locations_count || '[X]'} Locations</strong>. Post-Pilot physical hardware procurement is the sole responsibility of the Client.</p>
                                     <ul className="list-disc pl-5 mb-4 space-y-2 text-justify">
-                                        <li><strong>Implementation Fee:</strong> A one-time setup and hardware configuration fee of <strong className="text-white">${Number(formData.implementation_fee || 0).toLocaleString()}.00 USD per location</strong>.</li>
-                                        <li><strong>SaaS Licensing Fee:</strong> A recurring software license of <strong className="text-white">${Number(formData.monthly_saas || 0).toLocaleString()}.00 USD per location per month</strong> for continuous access, updates, and maintenance.</li>
-                                        <li><strong>Performance Participation (Gain-Share):</strong> As a mutual partnership alignment, Licensor guarantees measurable yield savings and shall receive <strong className="text-[#00FF94]">{formData.performance_share}%</strong> of the verified gross meat savings generated by the software logic.</li>
+                                        <li><strong>Implementation Fee:</strong> A one-time setup and data onboarding fee of <strong className="text-white">${Number(formData.implementation_fee || 0).toLocaleString()}.00 USD per location</strong>.</li>
+                                        <li><strong>SaaS Licensing Fee:</strong> A recurring software license of <strong className="text-white">${Number(formData.monthly_saas || 0).toLocaleString()}.00 USD per location per month</strong>.</li>
+                                        <li><strong>Performance Participation:</strong> Licensor guarantees measurable yield savings and shall receive <strong className="text-[#00FF94]">{formData.performance_share}%</strong> of the verified gross meat savings generated.</li>
                                     </ul>
                                 </>
                             ) : (
                                 <>
-                                    <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">3. Commercial Conversion (Post-Pilot)</h4>
-                                    <p className="mb-4 text-justify">Upon the successful validation of the yield savings generated during this 90-Day Pilot in the <strong className="text-white">{formData.locations_count || '[X]'}</strong> pilot stores, the parties agree to negotiate in good faith a separate Master SaaS Agreement to govern the formal rollout of the technology across the wider enterprise. No permanent commercial licensing terms are executed until the Pilot is formally finalized.</p>
+                                    <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">3. Pilot Hardware & Configuration Fee</h4>
+                                    <p className="mb-4 text-justify">To cover Capital Expenditure (CapEx) for physical hardware, travel, cloud provisioning, and on-site training, Client agrees to pay AGV Ventures a non-refundable Implementation & Setup Fee of <strong className="text-white">${Number(formData.implementation_fee || 25000).toLocaleString()}.00 USD</strong>. AGV will provide proprietary "Turnkey Pilot Kits" (iPads, Pelican Cases, Zebra Scanners) to bypass internal procurement delays.</p>
+                                    
+                                    <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">4. Enterprise SLA (Success Criteria)</h4>
+                                    <p className="mb-4 text-justify">This Pilot shall be deemed a "Success" if, at the conclusion of the 90-day period, the Software successfully proves that the Total Premium Meat Variance within the target Walk-in Cooler has stabilized at or below <strong className="text-[#00FF94]">1.5% of Theoretical POS Sales</strong>.</p>
+
+                                    <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">5. Post-Pilot Commercial Rollout</h4>
+                                    <p className="mb-4 text-justify">Upon the successful validation of the SLA criteria defined above, the parties agree to escalate this pilot into a formal Enterprise Rollout governed by a Master SaaS Agreement, triggering tiered monthly SaaS licensing. No permanent SaaS fees are assessed until the Pilot SLA is fulfilled.</p>
                                 </>
                             )}
 
-                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">4. Liability Shield</h4>
+                            <h4 className="font-bold text-white border-b border-white/10 pb-1 mt-6 mb-3 uppercase tracking-wide text-[11px]">{formData.contract_type === 'master' ? '4. Liability Shield' : '6. Liability Shield'}</h4>
                             <p className="mb-4 text-justify">In no event shall AGV Ventures LLC, its founders, members, or affiliates be liable for any indirect, incidental, or consequential damages arising out of the use or inability to use the Software. Total liability of AGV Ventures LLC shall not exceed the amount paid by the Client for the software license.</p>
 
                             <div className="mt-8 border-t border-dashed border-gray-700 pt-6">

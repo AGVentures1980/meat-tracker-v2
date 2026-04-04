@@ -17,7 +17,15 @@ interface ProposalData {
     }[];
 }
 
-export const ProposalPreview = ({ onClose }: { onClose: () => void }) => {
+export const ProposalPreview = ({ 
+    onClose, 
+    meatBreakdown = [], 
+    storeCount = 0 
+}: { 
+    onClose: () => void; 
+    meatBreakdown?: { name: string; projectedLbs: number; }[]; 
+    storeCount?: number; 
+}) => {
     const { user } = useAuth();
     const [data, setData] = useState<ProposalData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -28,7 +36,12 @@ export const ProposalPreview = ({ onClose }: { onClose: () => void }) => {
             if (!user?.token) return;
             try {
                 const res = await fetch('/api/v1/negotiation/proposal', {
-                    headers: { 'Authorization': `Bearer ${user.token}` }
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${user.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ meatBreakdown, storeCount })
                 });
                 if (res.ok) {
                     const result = await res.json();

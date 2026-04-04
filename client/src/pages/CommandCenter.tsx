@@ -354,7 +354,7 @@ export const CommandCenter = () => {
                     </div>
 
                     <p className="text-gray-400 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
-                        To maintain financial integrity, you must either log today's <span className="text-white font-bold italic underline decoration-[#FF2A6D]">Meat Invoices</span> or flag that <span className="text-white font-bold italic underline decoration-[#FF2A6D]">No Delivery</span> was received before opening the Shift Command Center.
+                        To maintain financial integrity, you must either log today's <span className="text-white font-bold italic underline decoration-[#FF2A6D]">Protein Cost Invoices</span> or flag that <span className="text-white font-bold italic underline decoration-[#FF2A6D]">No Delivery</span> was received before opening the Manager Shift Log.
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -408,7 +408,7 @@ export const CommandCenter = () => {
                 <div>
                     <div className="flex items-center gap-3">
                         <PlayCircle className="w-8 h-8 text-[#C5A059] print:hidden" />
-                        <h1 className="text-3xl font-black text-white tracking-tight uppercase print:text-5xl print:text-black">Shift Command Center</h1>
+                        <h1 className="text-3xl font-black text-white tracking-tight uppercase print:text-5xl print:text-black">Manager Shift Log</h1>
                     </div>
                     <div className="flex items-center gap-3 mt-1 print:hidden">
                         {(user?.role === 'director' || user?.role === 'admin') && networkPrepStatus ? (

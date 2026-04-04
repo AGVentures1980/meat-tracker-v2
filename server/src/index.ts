@@ -90,6 +90,8 @@ import leadRoutes from './routes/lead.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
+import { SentinelService } from './services/sentinel.service';
+import cron from 'node-cron';
 
 import path from 'path';
 
@@ -490,5 +492,15 @@ cleanupDuplicateProteins()
             console.log(`🕒 Scheduled AI Scan Triggered...`);
             ProspectingAgent.discoverNewProspects();
         }, 6 * 60 * 60 * 1000);
+
+        // 🔴 24/7 SENTINEL AI METRIC AUDITOR
+        console.log(`🛡️ Sentinel AI Background Auditor: ONLINE (Cron Mode)`);
+        
+        // Schedule to run every hour at minute 0 (0 * * * *) 
+        // For testing/demonstration purposes, we will also run it on startup
+        SentinelService.runDailyAudit();
+        cron.schedule('0 * * * *', () => {
+            SentinelService.runDailyAudit();
+        });
     });
 });
