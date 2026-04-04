@@ -376,7 +376,7 @@ const WastePage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {networkStatus?.stores.map((store: any) => (
+                    {networkStatus?.stores.slice().sort((a: any, b: any) => a.name.localeCompare(b.name)).map((store: any) => (
                         <button
                             key={store.id}
                             onClick={() => setSelectedStore(store.id)}
