@@ -17,4 +17,18 @@ router.get('/pilot-dashboard', requireAuth, IntelligenceController.getPilotDashb
 router.get('/procurement-shadow', requireAuth, ProcurementIntelligenceController.getShadowDashboardData);
 router.post('/procurement-feedback', requireAuth, ProcurementIntelligenceController.submitFeedback);
 
+router.get('/sentinel/force-reset', async (req, res) => {
+    try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        await prisma.supportMessage.deleteMany({});
+        await prisma.supportTicket.deleteMany({});
+        const { SentinelService } = require('../services/sentinel.service');
+        await SentinelService.runDailyAudit();
+        return res.json({ success: true, message: 'All alerts wiped and Sentinel re-fired' });
+    } catch (e: any) {
+         return res.json({ success: false, error: e.message });
+    }
+});
+
 export default router;
