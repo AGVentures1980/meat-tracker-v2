@@ -1,140 +1,164 @@
-import { PrismaClient, CycleStatus, CycleType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🚀 Starting Texas de Brazil 90-Day Pilot Seeder...');
+    console.log('🔥 ------------------------------------------ 🔥');
+    console.log('🥩 INITIATING TEXAS DE BRAZIL ZOOM DEMO SEEDER');
+    console.log('🔥 ------------------------------------------ 🔥\n');
 
-    // 1. Find Texas de Brazil Company
-    const tdb = await prisma.company.findFirst({
+    // 1. Ensure Texas de Brazil Company exists with RODIZIO mode
+    let tdb = await prisma.company.findFirst({
         where: { name: { contains: 'Texas de Brazil', mode: 'insensitive' } }
     });
 
     if (!tdb) {
-        console.error('❌ Could not find Texas de Brazil company');
-        return;
-    }
-
-    console.log(`✅ Found Company: ${tdb.name} (ID: ${tdb.id})`);
-
-    // 2. Find the 3 Pilot Stores
-    const targetNames = ['addison', 'miami beach', 'las vegas'];
-    const stores = await prisma.store.findMany({
-        where: {
-            company_id: tdb.id,
-            OR: targetNames.map(name => ({
-                store_name: { contains: name, mode: 'insensitive' }
-            }))
-        }
-    });
-
-    if (stores.length === 0) {
-        console.error('❌ Could not find any of the target stores.');
-        return;
-    }
-
-    console.log(`✅ Found ${stores.length} out of 3 target stores: ${stores.map(s => s.store_name).join(', ')}`);
-
-    // 3. Update their baselines to match the Pitch Deck perfectly
-    const pilotStartDate = new Date();
-    pilotStartDate.setDate(pilotStartDate.getDate() - 90); // 90 days ago
-
-    for (const store of stores) {
-        await prisma.store.update({
-            where: { id: store.id },
+        tdb = await prisma.company.create({
             data: {
-                is_pilot: true,
-                pilot_start_date: pilotStartDate,
-                baseline_loss_rate: 20.0,
-                baseline_yield_ribs: 74.0,
-                baseline_yoy_pax: 1.88,
-                baseline_trailing_pax: 1.88,
-                baseline_forecast_accuracy: 62.0,
-                baseline_overproduction: 18.0,
-                baseline_cost_per_lb: 9.50,
-                annual_volume_lbs: 250000 // $2.3M spend roughly at $9.5/lb
+                name: 'Texas de Brazil',
+                operationType: 'RODIZIO',
+                plan: 'enterprise',
+                subdomain: 'texas',
+                theme_primary_color: '#8b0000', // Dark corporate red
+                theme_logo_url: '/tdb-logo.svg', // Assuming placeholder or existent
+                theme_bg_url: '/tdb-hero.mp4' // Atmospheric rodizio fire
             }
         });
-        console.log(`✅ Updated Baselines & Activated Pilot Status for: ${store.store_name}`);
+        console.log(`[+] Created Texas de Brazil Company (ID: ${tdb.id})`);
+    } else {
+        tdb = await prisma.company.update({
+            where: { id: tdb.id },
+            data: { operationType: 'RODIZIO', subdomain: 'texas' }
+        });
+        console.log(`[~] Updated TDB Company settings (ID: ${tdb.id})`);
     }
 
-    // 4. Generate 90 Days of Fake Yield and Waste Data
-    // We want to show a progressive improvement curve over 90 days.
-    // Start: 20% loss, 74% yield. End: 17% loss, 77.7% yield.
-    const meatItems = await prisma.companyProduct.findMany({
-        where: { company_id: tdb.id }
-    });
+    const cid = tdb.id;
 
-    if (meatItems.length === 0) {
-        console.error('❌ No meat items found for TDB');
-        return;
+    // 2. Establish Rodizio Proteins
+    const proteins = [
+        { name: 'Picanha', group: 'Sirloin', is_villain: true, target: 0.39 },
+        { name: 'Filet Mignon', group: 'Filet', is_villain: true, target: 0.10 },
+        { name: 'Fraldinha', group: 'Flank', is_villain: true, target: 0.24 },
+        { name: 'Rack of Lamb', group: 'Lamb', is_villain: false, target: 0.08 },
+        { name: 'Beef Ribs', group: 'Ribeye', is_villain: false, target: 0.08 }
+    ];
+
+    for (const p of proteins) {
+        await prisma.companyProduct.upsert({
+            where: { company_id_name: { company_id: cid, name: p.name } },
+            update: { protein_group: p.group, is_villain: p.is_villain, standard_target: p.target },
+            create: { company_id: cid, name: p.name, protein_group: p.group, is_villain: p.is_villain, standard_target: p.target }
+        });
     }
+    console.log(`[+] Seeded ${proteins.length} Core Proteins for TDB`);
 
-    const picanha = meatItems.find(m => m.name.toLowerCase().includes('picanha')) || meatItems[0];
+    // 3. Setup Addison Store (and Tampa to show multiple stores)
+    const stores = [
+        { name: 'Addison (Pilot)', loc: 'Addison, TX' },
+        { name: 'Tampa', loc: 'Tampa, FL' },
+        { name: 'Miami Beach', loc: 'Miami, FL' }
+    ];
 
-    console.log('⏳ Generating 90 days of rolling data for each store...');
-
-    for (const store of stores) {
-        // Clear old logs to ensure a clean chart
-        await prisma.wasteLog.deleteMany({ where: { store_id: store.id } });
-        await prisma.inventoryItem.deleteMany({ where: { cycle: { store_id: store.id } } });
-        
-        let currentDate = new Date(pilotStartDate);
-        const today = new Date();
-
-        let dayCount = 0;
-        while (currentDate <= today) {
-            // Calculate progressive improvement based on how far we are into the 90 days
-            const progressRatio = Math.min(dayCount / 90, 1.0); // 0.0 to 1.0
-            
-            // Current Loss %: 20 -> 17
-            const currentLoss = 20.0 - (3.0 * progressRatio) + (Math.random() * 0.5 - 0.25);
-            
-            // Current Yield %: 74 -> 77.7
-            const currentYield = 74.0 + (3.7 * progressRatio) + (Math.random() * 1.0 - 0.5);
-
-            // Insert daily waste log
-            await prisma.wasteLog.create({
+    const createdStores = [];
+    for (const s of stores) {
+        let store = await prisma.store.findFirst({
+            where: { store_name: s.name, company_id: cid }
+        });
+        if (!store) {
+            store = await prisma.store.create({
                 data: {
-                    store_id: store.id,
-                    date: new Date(currentDate),
-                    shift: 'PM', // added required field
-                    input_by: 'Manager', // added required field
-                    user_id: 'auto-seed', // added required field
-                    items: [{ product_id: picanha.id, weight_lbs: 15 * (currentLoss / 20), reason: 'Trim/Fat' }], // added required items array structure
-                    // The old code tried to put product_id and weight_lbs directly on WasteLog, but the schema uses `items: Json`
+                    company_id: cid,
+                    store_name: s.name,
+                    location: s.loc,
+                    is_pilot: true,
+                    pilot_start_date: new Date()
                 }
             });
-
-            // Insert weekly yield audit (every 7 days)
-            if (dayCount % 7 === 0) {
-                const cycle = await prisma.inventoryCycle.create({
-                    data: {
-                        store_id: store.id,
-                        cycle_type: CycleType.WEEKLY,
-                        start_date: new Date(currentDate),
-                        end_date: new Date(currentDate),
-                        status: CycleStatus.SUBMITTED
-                    }
-                });
-
-                await prisma.inventoryItem.create({
-                    data: {
-                        cycle_id: cycle.id,
-                        protein_id: picanha.id,
-                        expected_lbs: 120, // Received
-                        actual_lbs: 120 * (currentYield / 100) // Yield percent simulation via lbs difference
-                    }
-                });
-            }
-
-            currentDate.setDate(currentDate.getDate() + 1);
-            dayCount++;
         }
-        console.log(`📈 Embedded progressive 90-day curve for: ${store.store_name}`);
+        createdStores.push(store);
     }
+    const addison = createdStores[0];
+    const tampa = createdStores[1];
+    console.log(`[+] Seeded 3 Stores. Primary Pilot: ADDISON (ID: ${addison.id})`);
 
-    console.log('🎉 TDB Pilot Data Seeding Complete! The Executive Analyst will look incredible.');
+    // 4. Create the Zoom Demo Hierarchy (Rodrigo, Carlos, Store GM)
+    const password = await bcrypt.hash('SenhaDemo2026!', 10);
+    
+    // The Director (sees ALL 60 stores)
+    await prisma.user.upsert({
+        where: { email: 'rodrigo.davila@texasdebrazil.com' },
+        update: { role: 'director', is_primary: true },
+        create: {
+            email: 'rodrigo.davila@texasdebrazil.com',
+            first_name: 'Rodrigo', last_name: 'Davila',
+            password_hash: password,
+            role: 'director',
+            director_region: 'National',
+            is_primary: true
+        }
+    });
+
+    // The AM (sees his specific stores in TX)
+    await prisma.user.upsert({
+        where: { email: 'carlos.am@texasdebrazil.com' },
+        update: { role: 'area_manager', is_primary: true },
+        create: {
+            email: 'carlos.am@texasdebrazil.com',
+            first_name: 'Carlos', last_name: 'AM',
+            password_hash: password,
+            role: 'area_manager',
+            is_primary: true
+        }
+    });
+
+    // We link Addison to Carlos (assuming we have an elegant way, but let's just use raw role for now)
+
+    // The Store GM (sees only Addison)
+    await prisma.user.upsert({
+        where: { email: 'gm.addison@texasdebrazil.com' },
+        update: { store_id: addison.id, role: 'manager', is_primary: true },
+        create: {
+            email: 'gm.addison@texasdebrazil.com',
+            first_name: 'Addison', last_name: 'Manager',
+            password_hash: password,
+            role: 'manager',
+            store_id: addison.id,
+            is_primary: true
+        }
+    });
+    console.log(`[+] Seeded Accounts (Passwords: SenhaDemo2026!)`);
+
+    // 5. Ghost Math Injection (The Sentinel Bait for Rodrigo to see)
+    // We clear current open tickets for Addison so the new one pops up cleanly
+    await prisma.supportTicket.deleteMany({
+        where: { store_id: addison.id, title: { contains: '[SENTINEL' } }
+    });
+
+    const ticket = await prisma.supportTicket.create({
+        data: {
+            store_id: addison.id,
+            user_id: (await prisma.user.findFirst({ where: { role: 'director' } }))?.id || '',
+            title: '[SENTINEL ALERT] Consumo Atípico: Filet Mignon Yield Crash & 2.2 Lbs/Pax (Addison)',
+            status: 'OPEN',
+            is_escalated: true,
+        }
+    });
+
+    await prisma.supportMessage.create({
+        data: {
+            ticket_id: ticket.id,
+            sender_type: 'AI',
+            content: `ALERTA DE SISTEMA (Brasa Intelligence):\n\nA auditoria matemática cruzada detectou uma anomalia grave na loja Addison, TX.\n\nVariante de Escape Detectada: Over-Yielding (Falha Grosseira de Aproveitamento).\nProduto: Filet Mignon\n\nA última caixa primária de 60 lbs bipada pela inteligência GS1-128 tem um padrão ouro de aproveitamento de 80% na limpeza. Porém, nossos algoritmos indicam que apenas 35 lbs efetivas dessa caixa chegaram ao salão. Paralelamente, o consumo global puxou para um Lbs/Pax gritante de 2.2 lbs.\n\nGap Identificado = ~13 lbs evaporadas no lixo ou má queima.\nRisco Financeiro: USD $180.00/caixa (Prejuízo de Margem).\n\nAção: Audite as lixeiras de descarte do açougueiro e verifique ponto de queima da equipe de Passadores (Gauchos).`
+        }
+    });
+
+    console.log(`[+] 🛑 Injected Sentinel Escalation in Addison for Rodrigo's Dashboard`);
+
+    console.log('\n✅ ------------------------------------------ ✅');
+    console.log('DEMO SEEDER SUCESSFULLY EXECUTED. ENV READY!');
+    console.log('✅ ------------------------------------------ ✅');
 }
 
 main()
