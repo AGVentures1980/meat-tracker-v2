@@ -155,7 +155,7 @@ export default function PullToPrep() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button 
-              onClick={() => navigate(`/store/${storeId}/dashboard`)}
+              onClick={() => navigate(`/dashboard`)}
               className="p-2 hover:bg-neutral-800 rounded-full transition-colors"
             >
               <ArrowLeft className="w-6 h-6 text-neutral-400" />
