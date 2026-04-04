@@ -277,8 +277,9 @@ export const ProjectionsDashboard = () => {
     const totalVolume = storeData.reduce((acc, d) => acc + d.projectedMeatLbs, 0);
     const totalSavingsObs = storeData.reduce((acc, d) => acc + d.savingsDollars, 0);
 
-    const avgTargetLbs = storeData.length > 0 ? storeData.reduce((acc, d) => acc + d.target_lbs_guest, 0) / storeData.length : 0;
-    const avgTargetCost = storeData.length > 0 ? storeData.reduce((acc, d) => acc + (d.target_cost_guest || 0), 0) / storeData.length : 0;
+    const totalGuests = storeData.reduce((acc, d) => acc + d.projectedLunchGuests + d.projectedDinnerGuests, 0);
+    const avgTargetLbs = totalGuests > 0 ? totalVolume / totalGuests : 0;
+    const avgTargetCost = totalGuests > 0 ? storeData.reduce((acc, d) => acc + ((d.projectedLunchGuests + d.projectedDinnerGuests) * (d.target_cost_guest || 0)), 0) / totalGuests : 0;
 
     const fmtCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
     const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n));
@@ -286,7 +287,6 @@ export const ProjectionsDashboard = () => {
     const isAlacarte = operationType === 'ALACARTE';
     const activeStandards = isAlacarte ? ALACARTE_MEAT_STANDARDS : RODIZIO_MEAT_STANDARDS;
 
-    const totalGuests = storeData.reduce((acc, d) => acc + d.projectedLunchGuests + d.projectedDinnerGuests, 0);
     const meatBreakdown = Object.entries(activeStandards).map(([meat, factor]) => ({
         name: meat,
         projectedLbs: totalGuests * factor
