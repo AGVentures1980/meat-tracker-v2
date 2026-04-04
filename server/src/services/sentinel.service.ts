@@ -47,11 +47,22 @@ export class SentinelService {
                     // Fire Anomaly Execution Logic - "Variante de Escape 3: Baixo Rendimento no Corte"
                     console.log(`[Sentinel AI] 🚨 Anomaly Detected in ${store.store_name} (Ghost Math). Firing Escalation to Command Center.`);
                     
+                    let alertTitle = '';
+                    let alertContent = '';
+
+                    if (store.company.operationType === 'RODIZIO') {
+                        alertTitle = '[SENTINEL ALERT] Consumo Atípico: Filet Mignon Yield Crash & 2.2 Lbs/Pax';
+                        alertContent = `ALERTA DE SISTEMA (Brasa Intelligence):\n\nA auditoria matemática cruzada detectou uma anomalia grave na loja ${store.store_name}.\n\nVariante de Escape Detectada: Over-Yielding (Falha de Rendimento da Peça).\nProduto: Filet Mignon / Tenderloin\n\nA última caixa primária de 60 lbs bipada pela Inteligência GS1-128 tem um padrão ouro de aproveitamento de 80% (48 lbs limpas para espeto). Porém a média de consumo fechou indicando que apenas 35 lbs chegaram efetivamente ao salão.\n\nO consumo global da loja (Lbs/Pax) no turno bateu um pico de 2.2 Lbs/cliente.\n\nGap Identificado = ~13 lbs evaporadas (Drenagem de lixo ou Queima).\nRisco Financeiro Imediato: Estimado USD $180.00/caixa perdida.\n\nAção Necessária: Auditar técnica do açougueiro do turno (Over-trimming pesando no lixo) ou investigar se a equipe do salão não bipou covers no sistema.`;
+                    } else {
+                        alertTitle = '[SENTINEL ALERT] Ghost Math Anomaly: 15% Gap in Filet Mignon Yield';
+                        alertContent = `ALERTA DE SISTEMA (Brasa Intelligence):\n\nA auditoria matemática cruzada detectou uma anomalia grave na loja ${store.store_name}.\n\nVariante de Escape Detectada: Baixo Rendimento no Corte.\nProduto: Filet Mignon / Tenderloin\n\nA última caixa de 20 lbs bipada pela nossa inteligência GS1-128 na sua câmara fria deveria produzir matematicamente 80 cortes de 4oz (com 10% de margem de sebo e limpeza contidos no sistema).\n\nDados do PDV (POS) de ontem indicaram vendas correspondentes a menos de 65 cortes consumidos em faturamento.\n\nGap Identificado = ~15 bifes evaporados / extraviados.\nRisco Financeiro Imediato: Estimado USD $85.00/caixa perdida.\n\nAção Necessária: Avaliar técnica do açougueiro do turno ou investigar desvios no lixo. Acesso as câmeras do inventário recomendado.`;
+                    }
+
                     const ticket = await prisma.supportTicket.create({
                         data: {
                             store_id: store.id,
                             user_id: adminUser.id,
-                            title: '[SENTINEL ALERT] Consumo Atípico: Filet Mignon Yield Crash & 2.2 Lbs/Pax',
+                            title: alertTitle,
                             status: 'OPEN',
                             is_escalated: true,
                         }
@@ -61,7 +72,7 @@ export class SentinelService {
                         data: {
                             ticket_id: ticket.id,
                             sender_type: 'AI',
-                            content: `ALERTA DE SISTEMA (Brasa Intelligence):\n\nA auditoria matemática cruzada detectou uma anomalia grave na loja ${store.store_name}.\n\nVariante de Escape Detectada: Over-Yielding (Falha de Rendimento da Peça).\nProduto: Filet Mignon / Tenderloin\n\nA última caixa primária de 60 lbs bipada pela Inteligência GS1-128 tem um padrão ouro de aproveitamento de 80% (48 lbs limpas para espeto). Porém a média de consumo fechou indicando que apenas 35 lbs chegaram efetivamente ao salão.\n\nO consumo global da loja (Lbs/Pax) no turno bateu um pico de 2.2 Lbs/cliente.\n\nGap Identificado = ~13 lbs evaporadas (Drenagem de lixo ou Queima).\nRisco Financeiro Imediato: Estimado USD $180.00/caixa perdida.\n\nAção Necessária: Auditar técnica do açougueiro do turno (Over-trimming pesando no lixo) ou investigar se a equipe do salão não bipou covers no sistema.`
+                            content: alertContent
                         }
                     });
                 } else {

@@ -244,6 +244,7 @@ export const ProjectionsDashboard = () => {
                 const targetsPayload = storeData.map(s => ({
                     storeId: s.id,
                     target_lbs_guest: s.target_lbs_guest,
+                    target_cost_guest: s.target_cost_guest,
                 }));
                 const response = await fetch('/api/v1/dashboard/targets', {
                     method: 'POST',
@@ -613,8 +614,18 @@ export const ProjectionsDashboard = () => {
                                                     onChange={(e) => handleStoreChange(store.id, 'target_lbs_guest', e.target.value)}
                                                 />
                                             </td>
-                                            <td className="p-4 text-right border-r border-[#333] font-bold text-orange-400">
-                                                {fmtCurrency(store.target_cost_guest || 9.94)}
+                                            <td className="p-2 text-right border-r border-[#333]">
+                                                <div className="flex items-center justify-end">
+                                                    <span className="text-gray-500 mr-1 font-mono text-xs">$</span>
+                                                    <input className={`bg-[#111] border border-[#333] text-orange-400 font-bold w-16 text-right p-1 rounded focus:border-orange-400 outline-none ${isPublished ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        type="number"
+                                                        step="0.01"
+                                                        title={`Target Cost per Guest - ${store.name}`}
+                                                        value={store.target_cost_guest || 9.94}
+                                                        disabled={isPublished}
+                                                        onChange={(e) => handleStoreChange(store.id, 'target_cost_guest', e.target.value)}
+                                                    />
+                                                </div>
                                             </td>
                                             <td className="p-4 text-right border-r border-[#333] font-bold text-gray-400">
                                                 {fmtNum(store.projectedMeatLbs)}
@@ -798,7 +809,7 @@ export const ProjectionsDashboard = () => {
             )}
 
             {showProposal && (
-                <ProposalPreview onClose={() => setShowProposal(false)} />
+                <ProposalPreview onClose={() => setShowProposal(false)} meatBreakdown={meatBreakdown} storeCount={storeData.length} />
             )}
         </div>
     );
