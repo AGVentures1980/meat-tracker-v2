@@ -1,19 +1,20 @@
 import { Router } from 'express';
 import { ComplianceController } from '../controllers/ComplianceController';
 import { ReceivingController } from '../controllers/ReceivingController';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 const controller = new ComplianceController();
 
-router.post('/specs', controller.createCorporateSpec);
-router.get('/specs/:companyId', controller.getCorporateSpecs);
-router.delete('/specs/:id', controller.deleteCorporateSpec);
+router.post('/specs', requireAuth, controller.createCorporateSpec);
+router.get('/specs/:companyId', requireAuth, controller.getCorporateSpecs);
+router.delete('/specs/:id', requireAuth, controller.deleteCorporateSpec);
 
 // Receiving Scanner Routes
-router.post('/scan', ReceivingController.scanBarcode);
-router.post('/map-barcode', ReceivingController.mapBarcode);
-router.post('/submit-batch', ReceivingController.submitBatch);
-router.get('/purge-ai', ReceivingController.purgeAI);
-router.get('/raw-specs', ReceivingController.rawSpecs);
+router.post('/scan', requireAuth, ReceivingController.scanBarcode);
+router.post('/map-barcode', requireAuth, ReceivingController.mapBarcode);
+router.post('/submit-batch', requireAuth, ReceivingController.submitBatch);
+router.get('/purge-ai', requireAuth, ReceivingController.purgeAI);
+router.get('/raw-specs', requireAuth, ReceivingController.rawSpecs);
 
 export default router;
