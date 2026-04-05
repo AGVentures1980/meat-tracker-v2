@@ -160,6 +160,23 @@ app.get('/api/v1/debug/raw-specs', async (req, res) => {
     }
 });
 
+app.get('/api/v1/debug/wipe-picanha', async (req, res) => {
+    try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        const deleted = await prisma.corporateProteinSpec.deleteMany({
+            where: {
+                approved_item_code: {
+                    contains: '88851'
+                }
+            }
+        });
+        res.json({ success: true, message: `Wiped ${deleted.count} corrupted Fraldinha records.` });
+    } catch(err: any) {
+        res.json({ success: false, err: err.message });
+    }
+});
+
 import { exec } from 'child_process';
 app.get('/api/v1/debug/run-fix', async (req, res) => {
     if (req.query.key === 'fatality') {

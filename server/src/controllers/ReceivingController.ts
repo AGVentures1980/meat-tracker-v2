@@ -85,65 +85,8 @@ export const ReceivingController = {
                     weight 
                 });
             } else {
-                // Unmapped -- Try AI Auto-Map!
-                const roster = await prisma.companyProduct.findMany({
-                    where: { company_id: companyId },
-                    select: { name: true },
-                    orderBy: { name: 'asc' }
-                });
-
-                try {
-                    const openai = new OpenAI();
-                    const prompt = `You are an expert meat industry supply chain AI. 
-A user has scanned a raw GS1-128 barcode string: ${barcode} (Parsed GTIN: ${gtin}). 
-
-Your task is to identify the Manufacturer/Packer and the EXACT Generic Protein Name associated with this GTIN.
-DO NOT assume the protein just based on the prefix, because companies like JBS use the same prefix for Picanha, Fraldinha, and Ribs. Analyze the specific item reference.
-
-Available exact roster of strictly permitted protein names: 
-${roster.map(r => r.name).join(', ')}
-
-You MUST select the closest exact string from the Available roster above. If you identify it is Fraldinha or Flank Steak, match it to the roster element for Fraldinha. If it's Ribs, match it to ribs.
-
-Respond ONLY with a JSON object:
-{"success": true, "protein_name_from_roster": "exact string from roster"}
-If absolutely unknown, set "protein_name_from_roster": null`;
-
-                    const completion = await openai.chat.completions.create({
-                        messages: [{ role: 'user', content: prompt }],
-                        model: 'gpt-4o',
-                        temperature: 0.1,
-                        response_format: { type: "json_object" }
-                    });
-
-                    const resultText = completion.choices[0].message.content;
-                    if (resultText) {
-                        const result = JSON.parse(resultText);
-                        if (result.success && result.protein_name_from_roster) {
-                            // AI Confident -> Approve the scan for THIS box only.
-                            // DO NOT inject into CorporateProteinSpec! That table is strictly for Supply Chain (David) to manually register master GTINs.
-
-                            if (storeId) {
-                                await prisma.barcodeScanEvent.create({
-                                    data: {
-                                        store_id: parseInt(storeId, 10),
-                                        scanned_barcode: barcode,
-                                        gtin: gtin,
-                                        is_approved: true
-                                    }
-                                });
-                            }
-
-                            return res.json({ 
-                                status: 'APPROVED', 
-                                protein: result.protein_name_from_roster, 
-                                weight 
-                            });
-                        }
-                    }
-                } catch (aiError) {
-                    console.error("AI Auto-Map failed", aiError);
-                }
+                // GTIN is Unmapped! The Garcia Rule forbids auto-approval via AI.
+                // We proceed directly to Manual Fallback / Rejection.
 
                 // AI Failed or Unrecognized - Proceed to Manual Fallback
                 if (storeId) {
