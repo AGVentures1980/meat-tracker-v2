@@ -101,19 +101,19 @@ If absolutely unknown, set "protein_name_from_roster": null`;
                     if (resultText) {
                         const result = JSON.parse(resultText);
                         if (result.success && result.protein_name_from_roster) {
-                            // AI Confident -> Auto-Map it!
-                            await prisma.corporateProteinSpec.create({
-                                data: {
-                                    company_id: companyId,
-                                    protein_name: result.protein_name_from_roster,
-                                    approved_item_code: gtin || barcode,
-                                    approved_brand: "AI Auto-Mapped Manufacturer",
-                                    created_by: user.first_name + " " + user.last_name
-                                }
-                            });
+                            // AI Confident -> Approve the scan for THIS box only.
+                            // DO NOT inject into CorporateProteinSpec! That table is strictly for Supply Chain (David) to manually register master GTINs.
 
                             if (storeId) {
                                 await prisma.barcodeScanEvent.create({
+                                    data: {
+                                        store_id: parseInt(storeId, 10),
+                                        scanned_barcode: barcode,
+                                        gtin: gtin,
+                                        is_approved: true
+                                    }
+                                });
+                            }
                                     data: {
                                         store_id: parseInt(storeId, 10),
                                         scanned_barcode: barcode,
