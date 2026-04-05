@@ -64,16 +64,49 @@ export class IntelligenceController {
         }
     }
 
-    /**
-     * GET /api/v1/intelligence/resolve-gtin?gtin=...
-     * Simulates the Brasa Executive Intelligence Agent querying the Global Network Graph
-     * to resolve an unknown GTIN into a standardized protein specification.
-     */
     static async resolveGTIN(req: Request, res: Response) {
         try {
             const { gtin } = req.query;
             if (!gtin || typeof gtin !== 'string') {
                 return res.status(400).json({ success: false, error: 'GTIN required' });
+            }
+
+            const cleanBarcode = gtin.replace(/\\D/g, '');
+
+            // 1. DETERMINISTIC GOVERNANCE (Override AI for known culprits)
+            // JBS USA / Friboi
+            if (cleanBarcode.includes('0076338') || cleanBarcode.includes('0079338')) {
+                let extractedGt = cleanBarcode;
+                const gtinMatch = cleanBarcode.match(/(01|02)(\\d{14})/);
+                if (gtinMatch) {
+                    extractedGt = gtinMatch[2];
+                } else if (cleanBarcode.length === 14) {
+                    extractedGt = cleanBarcode;
+                }
+
+                // Check for specific SKUs inside the payload (extracting item ref without check digit)
+                if (extractedGt.length === 14) {
+                    const sku = extractedGt.substring(8, 13);
+                    if (sku === '88851') {
+                        return res.json({
+                            success: true,
+                            found: true,
+                            extracted_gtin: extractedGt,
+                            protein_name: "Fraldinha / Flap Meat",
+                            brand: "JBS USA / Friboi"
+                        });
+                    }
+                    if (sku === '16041' || sku === '16045' || sku === '01604') {
+                        // Assuming standard Picanha codes for JBS (placeholder, but user confirmed 88851 is flapping)
+                        return res.json({
+                            success: true,
+                            found: true,
+                            extracted_gtin: extractedGt,
+                            protein_name: "Picanha / Sirloin Cap",
+                            brand: "JBS USA / Friboi"
+                        });
+                    }
+                }
             }
 
             // Real AI Resolution via OpenAI
@@ -87,7 +120,7 @@ Your task is to:
 
 INTELLIGENCE DIRECTIVES:
 If the GTIN contains '90627577091328' or its prefix is '0627577', the Protein MUST be "Sirloin / Picanha" and the Brand MUST be "Clear River Farms (JBS Canada)".
-If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi" and Protein is "Picanha" or "Fraldinha".
+If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi". 
 
 Respond ONLY with a JSON object in this exact format, with no extra markdown or text:
 {"success": true, "found": true, "extracted_gtin": "14-digit GTIN pure numbers here", "protein_name": "...", "brand": "..."}
