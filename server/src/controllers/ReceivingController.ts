@@ -133,14 +133,6 @@ If absolutely unknown, set "protein_name_from_roster": null`;
                                     }
                                 });
                             }
-                                    data: {
-                                        store_id: parseInt(storeId, 10),
-                                        scanned_barcode: barcode,
-                                        gtin: gtin,
-                                        is_approved: true
-                                    }
-                                });
-                            }
 
                             return res.json({ 
                                 status: 'APPROVED', 
