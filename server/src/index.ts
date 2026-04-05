@@ -154,7 +154,12 @@ app.get('/api/v1/debug/raw-specs', async (req, res) => {
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
         const specs = await prisma.corporateProteinSpec.findMany();
-        res.json({ success: true, specs });
+        const traces = await prisma.barcodeScanEvent.findMany({
+            where: { is_approved: false },
+            orderBy: { scanned_at: 'desc' },
+            take: 10
+        });
+        res.json({ success: true, specs, traces });
     } catch(err: any) {
         res.json({ success: false, err: err.message });
     }
