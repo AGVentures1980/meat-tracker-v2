@@ -76,14 +76,6 @@ export class IntelligenceController {
                 return res.status(400).json({ success: false, error: 'GTIN required' });
             }
 
-            // Fallback for demo specific codes to guarantee speedy, exact responses:
-            const globalMockDatabase: Record<string, { protein_name: string, brand: string }> = {
-                '00012345678905': { protein_name: 'Test Filet Mignon', brand: 'Global Network Vendor' },
-            };
-            if (globalMockDatabase[gtin]) {
-                return res.json({ success: true, found: true, ...globalMockDatabase[gtin] });
-            }
-
             // Real AI Resolution via OpenAI
             const openai = new OpenAI(); // Automatically uses process.env.OPENAI_API_KEY
             const prompt = `You are an expert meat industry supply chain AI. 

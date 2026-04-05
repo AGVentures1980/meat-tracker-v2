@@ -38,17 +38,9 @@ export const ReceivingController = {
                 if (cleanGtin && cleanAppCode) {
                     // 1. Exact Intersection Match
                     if (cleanAppCode.includes(cleanGtin) || cleanGtin.includes(cleanAppCode)) return true;
-                    
-                    // 2. Company Prefix Smart Match (First 8 digits GS1 Prefix override)
-                    // If the master spec and the scanned GTIN share the exact same 8-digit manufacturing prefix, we authorize it.
-                    if (cleanAppCode.length >= 14 && cleanGtin.length >= 14) {
-                        const appPrefix = cleanAppCode.substring(0, 8);
-                        const scanPrefix = cleanGtin.substring(0, 8);
-                        if (appPrefix === scanPrefix) return true;
-                    }
                 }
 
-                // 3. Fallback to basic string inclusion
+                // 2. Fallback to basic string inclusion
                 return (
                     barcode.includes(s.approved_item_code) ||
                     (gtin && s.approved_item_code.includes(gtin)) ||

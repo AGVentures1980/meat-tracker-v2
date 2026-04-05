@@ -141,8 +141,6 @@ export default function ReceivingScanner() {
               parsedWeight = parseFloat((rawKg * 2.20462).toFixed(2));
           } else {
               // Fallback patterns
-              const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
-              if (demoWeightMatch) parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
               const lambMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})$/);
               if (lambMatch && cleanBarcode.length === 22) {
                   const rawKg = parseInt(lambMatch[2], 10) / 100;

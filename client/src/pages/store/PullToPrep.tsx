@@ -43,25 +43,27 @@ export default function PullToPrep() {
   }, [isScanning]);
 
   const parseGS1128 = (barcode: string) => {
-    // Extremely simplified mock parser for UI demonstration
-    // In production, this would use a robust GS1-128 library
     if (barcode.length < 10) return null;
     
-    // Mock parsing based on length/format
-    const weightMatch = barcode.match(/(3102|3202|W)(\d{4,6})/);
-    let weight = (Math.random() * 20 + 40).toFixed(2);
+    let weight = 0;
+    // Extract weight based on standard GS1 (3102 / 3202) for Meat boxes
+    const weightMatch = barcode.match(/(310|320)(\d)(\d{6})/);
     if (weightMatch) {
-        if (weightMatch[1] === 'W') {
-            weight = (parseInt(weightMatch[2]) / 100).toFixed(2);
-        } else {
-            weight = (parseInt(weightMatch[2]) / 100).toFixed(2);
-        }
+        const isLbs = weightMatch[1] === '320';
+        const decimals = parseInt(weightMatch[2], 10);
+        const rawWeight = parseInt(weightMatch[3], 10);
+        let calculatedWeight = rawWeight / Math.pow(10, decimals);
+        if (!isLbs) calculatedWeight = calculatedWeight * 2.20462;
+        weight = parseFloat(calculatedWeight.toFixed(2));
     }
     
+    const lotMatch = barcode.match(/10([a-zA-Z0-9]{1,10})/);
+    const lotNumber = lotMatch ? lotMatch[1].substring(0, 6) : barcode.substring(barcode.length - 6);
+
     return {
-      weightLbs: Number(weight),
-      lotNumber: barcode.substring(barcode.length - 6),
-      protein: 'Protein Auto-Matched' // Mock inference
+      weightLbs: weight,
+      lotNumber: lotNumber,
+      protein: 'Searching...' // Real DB protein is returned from backend now
     };
   };
 
@@ -91,9 +93,10 @@ export default function PullToPrep() {
           })
       });
 
+      const responseData = await res.json();
+
       if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || 'Failed to verify box in Store Inventory.');
+          throw new Error(responseData.error || 'Failed to verify box in Store Inventory.');
       }
 
       const newBox: PulledBox = {
@@ -101,7 +104,7 @@ export default function PullToPrep() {
         barcode: cleanBarcode,
         weightLbs: parsedData.weightLbs,
         lotNumber: parsedData.lotNumber,
-        protein: parsedData.protein,
+        protein: responseData.protein || 'Generic / Manual Map Required',
         pulledAt: new Date().toISOString()
       };
 
