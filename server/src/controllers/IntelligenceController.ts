@@ -93,6 +93,10 @@ Your task is to:
 1. Extract the core 14-digit GTIN (usually immediately following the 01 application identifier).
 2. Identify the Manufacturer/Packer and the common Generic Protein Name (e.g., "Beef Ribs", "Lamb Chops", "Picanha", "Filet Mignon") associated with this GTIN or its Company Prefix.
 
+INTELLIGENCE DIRECTIVES:
+If the GTIN contains '90627577091328' or its prefix is '0627577', the Protein MUST be "Sirloin / Picanha" and the Brand MUST be "Clear River Farms (JBS Canada)".
+If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi" and Protein is "Picanha" or "Fraldinha".
+
 Respond ONLY with a JSON object in this exact format, with no extra markdown or text:
 {"success": true, "found": true, "extracted_gtin": "14-digit GTIN pure numbers here", "protein_name": "...", "brand": "..."}
 If you absolutely cannot find any info, STILL return found: true but with protein_name: "Generic Meat", brand: "Unknown Packer: " + ${gtin}, and do your best to extract the GTIN. Never return found: false.`;
