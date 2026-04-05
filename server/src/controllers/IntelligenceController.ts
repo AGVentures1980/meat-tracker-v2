@@ -94,8 +94,7 @@ Your task is to:
 2. Identify the Manufacturer/Packer and the common Generic Protein Name (e.g., "Beef Ribs", "Lamb Chops", "Picanha", "Filet Mignon") associated with this GTIN or its Company Prefix.
 
 INTELLIGENCE DIRECTIVES:
-If the GTIN starts with or contains '0627577', it MUST be brand "Clear River Farms (JBS Canada)". Protein is likely "Beef Ribs".
-If the GTIN starts with or contains '90627577', it MUST be brand "Clear River Farms (JBS Canada)" or "Thomas Foods".
+If the GTIN contains '90627577091328' or its prefix is '0627577', the Protein MUST be "Sirloin / Picanha" and the Brand MUST be "Clear River Farms (JBS Canada)".
 If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi" and Protein is "Picanha" or "Fraldinha".
 
 Respond ONLY with a JSON object in this exact format, with no extra markdown or text:
