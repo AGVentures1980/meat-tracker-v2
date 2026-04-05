@@ -29,8 +29,14 @@ export default function CorporateSpecs() {
   const activeCompanyId = selectedCompany || user?.companyId || 'tdb-main';
 
   const analyzeBarcodeWithCopilot = (barcodeString: string) => {
+      // ALWAYS update the controlled input state immediately
+      setFormData(prev => ({ ...prev, approved_item_code: barcodeString }));
+
       const cleanBarcode = barcodeString.replace(/[\(\)\[\]\s]/g, '');
-      if (cleanBarcode.length < 8) return;
+      if (cleanBarcode.length < 8) {
+          setIsCopilotActive(false);
+          return;
+      }
 
       let suggestedProtein = '';
       let suggestedBrand = '';
@@ -61,14 +67,16 @@ export default function CorporateSpecs() {
       }
 
       if (suggestedProtein) {
-          setFormData({
+          setFormData(prev => ({
+              ...prev,
               protein_name: suggestedProtein,
               approved_brand: suggestedBrand,
-              approved_item_code: suggestedCode
-          });
+              // We don't overwrite approved_item_code with suggestedCode automatically here 
+              // because we want the user to see what they just scanned in the box.
+              // BUT we can use it to hint them.
+          }));
           setIsCopilotActive(true);
       } else {
-          setFormData(prev => ({ ...prev, approved_item_code: barcodeString }));
           setIsCopilotActive(false);
       }
   };
