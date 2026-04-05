@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { MeatEngine } from '../engine/MeatEngine';
+import OpenAI from 'openai';
 
 const prisma = new PrismaClient();
 
@@ -75,31 +76,36 @@ export class IntelligenceController {
                 return res.status(400).json({ success: false, error: 'GTIN required' });
             }
 
-            // Simulate Agent Search Latency (1.5 seconds) for dramatic pitch effect
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Mock Global Database Response (In a real scenario, this queries a master table or GS1 API)
+            // Fallback for demo specific codes to guarantee speedy, exact responses:
             const globalMockDatabase: Record<string, { protein_name: string, brand: string }> = {
-                // If he happens to scan this specific fake barcode we resolve it:
                 '00012345678905': { protein_name: 'Test Filet Mignon', brand: 'Global Network Vendor' },
             };
-
-            const mappedSpec = globalMockDatabase[gtin];
-
-            if (mappedSpec) {
-                return res.json({
-                    success: true,
-                    found: true,
-                    protein_name: mappedSpec.protein_name,
-                    brand: mappedSpec.brand
-                });
+            if (globalMockDatabase[gtin]) {
+                return res.json({ success: true, found: true, ...globalMockDatabase[gtin] });
             }
 
-            // Not found in the global graph, degrade gracefully
-            return res.json({
-                success: true,
-                found: false
+            // Real AI Resolution via OpenAI
+            const openai = new OpenAI(); // Automatically uses process.env.OPENAI_API_KEY
+            const prompt = `You are an expert meat industry supply chain AI. 
+A user has scanned a GS1-128 barcode whose core GTIN-14 is: ${gtin}. 
+Your task is to identify the Manufacturer/Packer and the common Generic Protein Name (e.g., "Beef Ribs", "Lamb Chops", "Picanha", "Filet Mignon") associated with this GTIN or its Company Prefix.
+Respond ONLY with a JSON object in this exact format, with no extra markdown or text:
+{"success": true, "found": true, "protein_name": "...", "brand": "..."}
+If you absolutely cannot find or infer any reasonable manufacturer or meat product for this GTIN prefix, respond with:
+{"success": true, "found": false}`;
+
+            const completion = await openai.chat.completions.create({
+                messages: [{ role: 'user', content: prompt }],
+                model: 'gpt-4o', // Fastest model for this small text task
+                temperature: 0.1,
+                response_format: { type: "json_object" }
             });
+
+            const content = completion.choices[0].message.content;
+            if (!content) throw new Error("No response from AI");
+            
+            const result = JSON.parse(content);
+            return res.json(result);
 
         } catch (error) {
             console.error('Agent Resolution Error:', error);
