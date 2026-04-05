@@ -88,11 +88,18 @@ export class IntelligenceController {
             const openai = new OpenAI(); // Automatically uses process.env.OPENAI_API_KEY
             const prompt = `You are an expert meat industry supply chain AI. 
 A user has scanned a GS1-128 barcode whose core GTIN-14 is: ${gtin}. 
+
 Your task is to identify the Manufacturer/Packer and the common Generic Protein Name (e.g., "Beef Ribs", "Lamb Chops", "Picanha", "Filet Mignon") associated with this GTIN or its Company Prefix.
+
+INTELLIGENCE DIRECTIVES:
+If the GTIN starts with or contains '0627577', it MUST be brand "Clear River Farms (JBS Canada)". Protein is likely "Beef Ribs".
+If the GTIN starts with or contains '90627577', it MUST be brand "Clear River Farms (JBS Canada)" or "Thomas Foods".
+If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi" and Protein is "Picanha" or "Fraldinha".
+For other GTINs, use your world knowledge to infer the packer.
+
 Respond ONLY with a JSON object in this exact format, with no extra markdown or text:
 {"success": true, "found": true, "protein_name": "...", "brand": "..."}
-If you absolutely cannot find or infer any reasonable manufacturer or meat product for this GTIN prefix, respond with:
-{"success": true, "found": false}`;
+If you absolutely cannot find any info, STILL return found: true but with protein_name: "Generic Meat", brand: "Unknown Packer: " + ${gtin}. Never return found: false.`;
 
             const completion = await openai.chat.completions.create({
                 messages: [{ role: 'user', content: prompt }],
