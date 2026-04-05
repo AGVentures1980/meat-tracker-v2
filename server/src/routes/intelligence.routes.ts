@@ -10,6 +10,9 @@ router.get('/anomalies', requireAuth, IntelligenceController.getAnomalies);
 // Any store manager can see their supply suggestions
 router.get('/supply-suggestions', requireAuth, IntelligenceController.getSupplySuggestions);
 
+// Dynamic Agent GTIN Resolution
+router.get('/resolve-gtin', requireAuth, IntelligenceController.resolveGTIN);
+
 // 90-Day Pilot Tracker API
 router.get('/pilot-dashboard', requireAuth, IntelligenceController.getPilotDashboard);
 

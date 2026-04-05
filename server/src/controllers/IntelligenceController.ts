@@ -64,7 +64,52 @@ export class IntelligenceController {
     }
 
     /**
+     * GET /api/v1/intelligence/resolve-gtin?gtin=...
+     * Simulates the Brasa Executive Intelligence Agent querying the Global Network Graph
+     * to resolve an unknown GTIN into a standardized protein specification.
+     */
+    static async resolveGTIN(req: Request, res: Response) {
+        try {
+            const { gtin } = req.query;
+            if (!gtin || typeof gtin !== 'string') {
+                return res.status(400).json({ success: false, error: 'GTIN required' });
+            }
+
+            // Simulate Agent Search Latency (1.5 seconds) for dramatic pitch effect
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Mock Global Database Response (In a real scenario, this queries a master table or GS1 API)
+            const globalMockDatabase: Record<string, { protein_name: string, brand: string }> = {
+                // If he happens to scan this specific fake barcode we resolve it:
+                '00012345678905': { protein_name: 'Test Filet Mignon', brand: 'Global Network Vendor' },
+            };
+
+            const mappedSpec = globalMockDatabase[gtin];
+
+            if (mappedSpec) {
+                return res.json({
+                    success: true,
+                    found: true,
+                    protein_name: mappedSpec.protein_name,
+                    brand: mappedSpec.brand
+                });
+            }
+
+            // Not found in the global graph, degrade gracefully
+            return res.json({
+                success: true,
+                found: false
+            });
+
+        } catch (error) {
+            console.error('Agent Resolution Error:', error);
+            return res.status(500).json({ success: false, error: 'Agent search failed' });
+        }
+    }
+
+    /**
      * GET /api/v1/intelligence/supply-suggestions
+
      * Suggests order quantities based on Forecast, Targets, and Current Inventory.
      * Query: ?date=YYYY-MM-DD (Monday of the week to order for)
      */

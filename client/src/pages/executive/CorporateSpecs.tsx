@@ -36,6 +36,7 @@ export default function CorporateSpecs() {
     approved_item_code: ''
   });
   const [isCopilotActive, setIsCopilotActive] = useState(false);
+  const [isAgentSearching, setIsAgentSearching] = useState(false);
 
   const activeCompanyId = selectedCompany || user?.companyId || 'tdb-main';
 
@@ -43,10 +44,11 @@ export default function CorporateSpecs() {
       const barcodeString = formData.approved_item_code;
       if (!barcodeString) {
           setIsCopilotActive(false);
+          setIsAgentSearching(false);
           return;
       }
 
-      const timeoutId = setTimeout(() => {
+      const timeoutId = setTimeout(async () => {
           const cleanBarcode = barcodeString.replace(/[\(\)\[\]\s]/g, '');
           if (cleanBarcode.length < 8) {
               setIsCopilotActive(false);
@@ -56,6 +58,7 @@ export default function CorporateSpecs() {
           let suggestedProtein = '';
           let suggestedBrand = '';
           let suggestedCode = cleanBarcode;
+          let requiresAgent = false;
 
           const gtinMatch = cleanBarcode.match(/(01|02)(\d{14})/);
           if (gtinMatch) {
@@ -77,17 +80,52 @@ export default function CorporateSpecs() {
               suggestedBrand = 'Thomas Foods (Australia)';
               if (cleanBarcode.includes('90627577078145')) suggestedCode = '90627577078145';
           } else if (cleanBarcode.length >= 14 && gtinMatch) {
-              suggestedProtein = 'AI Pending: Manual Verification Required';
-              suggestedBrand = `Unknown Packer (Prefix: ${suggestedCode.substring(0, 5)})`;
+              requiresAgent = true;
           }
 
-          // Force the stripped GTIN to be saved regardless of whether the AI recognized the protein!
-          // This fixes the issue where an unrecognized GS1 string gets saved in its entirety.
           if (suggestedCode !== formData.approved_item_code) {
                setFormData(prev => ({
                    ...prev,
                    approved_item_code: suggestedCode
                }));
+          }
+
+          if (requiresAgent) {
+              setIsAgentSearching(true);
+              setIsCopilotActive(false);
+              
+              // Call the Global SaaS Agent Intelligence API
+              try {
+                  const res = await fetch(`/api/v1/intelligence/resolve-gtin?gtin=${suggestedCode}`, {
+                      headers: { 'Authorization': `Bearer ${user?.token}` }
+                  });
+                  const data = await res.json();
+                  
+                  if (data.success && data.found) {
+                      setFormData(prev => ({
+                          ...prev,
+                          protein_name: data.protein_name,
+                          approved_brand: data.brand
+                      }));
+                      setIsCopilotActive(true);
+                  } else {
+                      setFormData(prev => ({
+                          ...prev,
+                          protein_name: 'AI Pending: Manual Verification Required',
+                          approved_brand: `Unknown Packer (Prefix: ${suggestedCode.substring(0, 5)})`
+                      }));
+                      setIsCopilotActive(false);
+                  }
+              } catch (e) {
+                  setFormData(prev => ({
+                      ...prev,
+                      protein_name: 'AI Pending: Manual Verification Required',
+                      approved_brand: `API Timeout: Unknown Packer`
+                  }));
+              } finally {
+                  setIsAgentSearching(false);
+              }
+              return;
           }
 
           if (suggestedProtein) {
@@ -100,10 +138,10 @@ export default function CorporateSpecs() {
           } else {
               setIsCopilotActive(false);
           }
-      }, 300); // 300ms debounce
+      }, 500); // 500ms debounce to give the user time to finish scanning
 
       return () => clearTimeout(timeoutId);
-  }, [formData.approved_item_code, isCopilotActive]);
+  }, [formData.approved_item_code]); // removed isCopilotActive to prevent infinite loop
 
   const fetchSpecs = async () => {
     setIsLoading(true);
@@ -385,6 +423,18 @@ export default function CorporateSpecs() {
                   className="w-full bg-slate-900 border border-emerald-500/50 text-emerald-400 font-mono text-lg rounded-lg px-4 py-3 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                 />
               </div>
+
+              {isAgentSearching && (
+                <div className="bg-slate-800 border border-emerald-500/30 rounded-lg p-3 flex items-center gap-3 animate-pulse">
+                  <div className="bg-slate-700 p-2 rounded-full">
+                     <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
+                  </div>
+                  <div>
+                     <p className="text-emerald-400 text-sm font-bold m-0 leading-tight">Agent Searching Global Network...</p>
+                     <p className="text-slate-400 text-xs m-0 mt-0.5 leading-tight">Querying Brasa Meat Intelligence Graph</p>
+                  </div>
+                </div>
+              )}
 
               {isCopilotActive && (
                 <div className="bg-emerald-900/30 border border-emerald-500/30 rounded-lg p-3 flex items-center gap-3 animate-fade-in">
