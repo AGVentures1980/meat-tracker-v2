@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { EmailService } from '../services/EmailService';
+import OpenAI from 'openai';
 
 const prisma = new PrismaClient();
 
@@ -56,12 +57,10 @@ export const ReceivingController = {
                         data: {
                             store_id: parseInt(storeId, 10),
                             scanned_barcode: barcode,
+                            gtin: gtin,
                             is_approved: true
                         }
                     });
-
-                    // We no longer automatically Add to Inventory here!
-                    // It will go into the frontend Cart and be submitted via /submit-batch.
                 }
 
                 return res.json({ 
@@ -70,12 +69,83 @@ export const ReceivingController = {
                     weight 
                 });
             } else {
-                // Unmapped
+                // Unmapped -- Try AI Auto-Map!
+                const roster = await prisma.companyProduct.findMany({
+                    where: { company_id: companyId },
+                    select: { name: true },
+                    orderBy: { name: 'asc' }
+                });
+
+                try {
+                    const openai = new OpenAI();
+                    const prompt = `You are an expert meat industry supply chain AI. 
+A user has scanned a raw GS1-128 barcode string: ${barcode} (Parsed GTIN: ${gtin}). 
+
+Your task is to identify the Manufacturer/Packer and the common Generic Protein Name associated with this GTIN or its Company Prefix.
+
+INTELLIGENCE DIRECTIVES:
+If the GTIN contains '90627577091328' or its prefix is '0627577', the Protein MUST be "Sirloin / Picanha" and the Brand MUST be "Clear River Farms (JBS Canada)".
+If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi" and Protein is "Picanha" or "Fraldinha".
+
+Available exact roster of strictly permitted protein names: 
+${roster.map(r => r.name).join(', ')}
+
+You MUST select the closest exact string from the Available roster above. If you identify it is Picanha, match it to the roster element for Picanha. If it's ribs, match it to ribs.
+
+Respond ONLY with a JSON object:
+{"success": true, "protein_name_from_roster": "exact string from roster"}
+If absolutely unknown, set "protein_name_from_roster": null`;
+
+                    const completion = await openai.chat.completions.create({
+                        messages: [{ role: 'user', content: prompt }],
+                        model: 'gpt-4o',
+                        temperature: 0.1,
+                        response_format: { type: "json_object" }
+                    });
+
+                    const resultText = completion.choices[0].message.content;
+                    if (resultText) {
+                        const result = JSON.parse(resultText);
+                        if (result.success && result.protein_name_from_roster) {
+                            // AI Confident -> Auto-Map it!
+                            await prisma.corporateProteinSpec.create({
+                                data: {
+                                    company_id: companyId,
+                                    protein_name: result.protein_name_from_roster,
+                                    approved_item_code: gtin || barcode,
+                                    default_lbs: weight || null
+                                }
+                            });
+
+                            if (storeId) {
+                                await prisma.barcodeScanEvent.create({
+                                    data: {
+                                        store_id: parseInt(storeId, 10),
+                                        scanned_barcode: barcode,
+                                        gtin: gtin,
+                                        is_approved: true
+                                    }
+                                });
+                            }
+
+                            return res.json({ 
+                                status: 'APPROVED', 
+                                protein: result.protein_name_from_roster, 
+                                weight 
+                            });
+                        }
+                    }
+                } catch (aiError) {
+                    console.error("AI Auto-Map failed", aiError);
+                }
+
+                // AI Failed or Unrecognized - Proceed to Manual Fallback
                 if (storeId) {
                     await prisma.barcodeScanEvent.create({
                         data: {
                             store_id: parseInt(storeId, 10),
                             scanned_barcode: barcode,
+                            gtin: gtin,
                             is_approved: false
                         }
                     });
