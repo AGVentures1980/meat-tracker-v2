@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
 interface PulledBox {
   id: string;
   barcode: string;
@@ -44,18 +43,27 @@ export default function PullToPrep() {
   }, [isScanning]);
 
   const parseGS1128 = (barcode: string) => {
-    // Extremely simplified mock parser for UI demonstration
-    // In production, this would use a robust GS1-128 library
     if (barcode.length < 10) return null;
     
-    // Mock parsing based on length/format
-    const weightMatch = barcode.match(/3102(\d{6})/);
-    const weight = weightMatch ? parseInt(weightMatch[1]) / 100 : (Math.random() * 20 + 40).toFixed(2);
+    let weight = 0;
+    // Extract weight based on standard GS1 (3102 / 3202) for Meat boxes
+    const weightMatch = barcode.match(/(310|320)(\d)(\d{6})/);
+    if (weightMatch) {
+        const isLbs = weightMatch[1] === '320';
+        const decimals = parseInt(weightMatch[2], 10);
+        const rawWeight = parseInt(weightMatch[3], 10);
+        let calculatedWeight = rawWeight / Math.pow(10, decimals);
+        if (!isLbs) calculatedWeight = calculatedWeight * 2.20462;
+        weight = parseFloat(calculatedWeight.toFixed(2));
+    }
     
+    const lotMatch = barcode.match(/10([a-zA-Z0-9]{1,10})/);
+    const lotNumber = lotMatch ? lotMatch[1].substring(0, 6) : barcode.substring(barcode.length - 6);
+
     return {
-      weightLbs: Number(weight),
-      lotNumber: barcode.substring(barcode.length - 6),
-      protein: 'Sirloin / Picanha' // Mock inference
+      weightLbs: weight,
+      lotNumber: lotNumber,
+      protein: 'Searching...' // Real DB protein is returned from backend now
     };
   };
 
@@ -64,42 +72,53 @@ export default function PullToPrep() {
     
     setIsLoading(true);
     try {
-      // 1. Parse Barcode Locally for UI feedback
-      const parsedData = parseGS1128(barcode);
+      const cleanBarcode = barcode.replace(/[\(\)\[\]\s]/g, '');
+      const parsedData = parseGS1128(cleanBarcode);
       
       if (!parsedData) {
-        alert('Invalid GS1-128 Barcode');
-        setIsLoading(false);
-        setManualBarcode('');
+        alert('Invalid Barcode Format');
         return;
       }
 
-      // 2. Send to API (Mocked for now as backend controller is pending)
-      // await api.post(`/api/stores/${storeId}/prep/pull`, { barcode, ...parsedData });
-      
-      // Simulate API latency
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Important fix: Call the actual backend endpoint
+      const res = await fetch(`/api/v1/inventory/pull-to-prep`, {
+          method: 'POST',
+          headers: {
+              'Authorization': `Bearer ${user?.token}`,
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              store_id: user?.storeId,
+              barcode: cleanBarcode
+          })
+      });
+
+      const responseData = await res.json();
+
+      if (!res.ok) {
+          throw new Error(responseData.error || 'Failed to verify box in Store Inventory.');
+      }
 
       const newBox: PulledBox = {
         id: Math.random().toString(36).substr(2, 9),
-        barcode,
+        barcode: cleanBarcode,
         weightLbs: parsedData.weightLbs,
         lotNumber: parsedData.lotNumber,
-        protein: parsedData.protein,
+        protein: responseData.protein || 'Generic / Manual Map Required',
         pulledAt: new Date().toISOString()
       };
 
       setPulledBoxes(prev => [newBox, ...prev]);
-      // alert(`Pulled ${newBox.weightLbs} lbs of ${newBox.protein}`);
       
       // Vibrate if supported (mobile/tablet UX)
       if (navigator.vibrate) {
         navigator.vibrate(200);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error pulling box:', error);
-      alert('Failed to register pulled box');
+      const msg = error.response?.data?.error || 'Failed to verify box in Store Inventory. Are you sure you received this box at the Dock?';
+      alert(msg);
     } finally {
       setIsLoading(false);
       setManualBarcode('');

@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Network, Search, Plus, ShieldCheck, Box, Barcode, Trash2, ShieldAlert, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface CorporateSpec {
   id: string;
   protein_name: string;
   approved_brand: string;
+  supplier: string | null;
   approved_item_code: string;
   created_at: string;
 }
 
 export default function CorporateSpecs() {
   const { user, selectedCompany } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+      const isDavid = user?.email?.toLowerCase().includes('davidcastro');
+      const isMaster = user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') || user?.email?.toLowerCase().includes('admin');
+      if (user && !isDavid && !isMaster) {
+          navigate('/dashboard', { replace: true });
+      }
+  }, [user, navigate]);
+
   const [specs, setSpecs] = useState<CorporateSpec[]>([]);
   const [preventedCount, setPreventedCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,10 +34,86 @@ export default function CorporateSpecs() {
   const [formData, setFormData] = useState({
     protein_name: '',
     approved_brand: '',
+    supplier: '',
     approved_item_code: ''
   });
+  const [isCopilotActive, setIsCopilotActive] = useState(false);
+  const [isAgentSearching, setIsAgentSearching] = useState(false);
 
   const activeCompanyId = selectedCompany || user?.companyId || 'tdb-main';
+
+  useEffect(() => {
+      const barcodeString = formData.approved_item_code;
+      if (!barcodeString) {
+          setIsCopilotActive(false);
+          setIsAgentSearching(false);
+          return;
+      }
+
+      const timeoutId = setTimeout(async () => {
+          const cleanBarcode = barcodeString.replace(/[\(\)\[\]\s]/g, '');
+          if (cleanBarcode.length < 8) {
+              setIsCopilotActive(false);
+              return;
+          }
+
+          let requiresAgent = false;
+          const gtinMatch = cleanBarcode.match(/(01|02)(\d{14})/);
+          if (cleanBarcode.length >= 14 || gtinMatch) {
+              requiresAgent = true;
+          }
+
+          // If it doesn't meet criteria to go to the Agent, just update state directly
+          if (!requiresAgent && cleanBarcode !== formData.approved_item_code) {
+               setFormData(prev => ({
+                   ...prev,
+                   approved_item_code: cleanBarcode
+               }));
+          }
+
+          if (requiresAgent) {
+              setIsAgentSearching(true);
+              setIsCopilotActive(false);
+              
+              // Call the Global SaaS Agent Intelligence API
+              try {
+                  const res = await fetch(`/api/v1/intelligence/resolve-gtin?gtin=${encodeURIComponent(cleanBarcode)}`, {
+                      headers: { 'Authorization': `Bearer ${user?.token}` }
+                  });
+                  const data = await res.json();
+                  
+                  if (data.success && data.found) {
+                      setFormData(prev => ({
+                          ...prev,
+                          approved_item_code: data.extracted_gtin || cleanBarcode,
+                          protein_name: data.protein_name,
+                          approved_brand: data.brand
+                      }));
+                      setIsCopilotActive(true);
+                  } else {
+                      setFormData(prev => ({
+                          ...prev,
+                          protein_name: 'AI Pending: Manual Verification Required',
+                          approved_brand: `Unknown Packer`,
+                          approved_item_code: cleanBarcode // Fallback to raw if logic fails
+                      }));
+                      setIsCopilotActive(false);
+                  }
+              } catch (e) {
+                  setFormData(prev => ({
+                      ...prev,
+                      protein_name: 'AI Pending: Manual Verification Required',
+                      approved_brand: `API Timeout: Unknown Packer`,
+                      approved_item_code: cleanBarcode
+                  }));
+              } finally {
+                  setIsAgentSearching(false);
+              }
+          }
+      }, 500); // 500ms debounce to give the user time to finish scanning
+
+      return () => clearTimeout(timeoutId);
+  }, [formData.approved_item_code]); // removed isCopilotActive to prevent infinite loop
 
   const fetchSpecs = async () => {
     setIsLoading(true);
@@ -70,6 +158,7 @@ export default function CorporateSpecs() {
                 company_id: activeCompanyId,
                 protein_name: formData.protein_name,
                 approved_brand: formData.approved_brand,
+                supplier: formData.supplier || null,
                 approved_item_code: formData.approved_item_code,
                 created_by: `${user?.first_name} ${user?.last_name}`
             })
@@ -79,7 +168,7 @@ export default function CorporateSpecs() {
         if (res.ok && data.success) {
             setSpecs([data.spec, ...specs]);
             setIsModalOpen(false);
-            setFormData({ protein_name: '', approved_brand: '', approved_item_code: '' });
+            setFormData({ protein_name: '', approved_brand: '', supplier: '', approved_item_code: '' });
         } else {
             alert('Failed to save compliance spec.');
         }
@@ -93,7 +182,8 @@ export default function CorporateSpecs() {
   const filteredSpecs = specs.filter(spec => 
     spec.protein_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     spec.approved_item_code.includes(searchTerm) ||
-    spec.approved_brand.toLowerCase().includes(searchTerm.toLowerCase())
+    spec.approved_brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (spec.supplier && spec.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleDelete = async (id: string) => {
@@ -203,6 +293,7 @@ export default function CorporateSpecs() {
               <tr>
                 <th className="px-6 py-4 rounded-tl-lg">Protein Category</th>
                 <th className="px-6 py-4">Approved Brand / Packer</th>
+                <th className="px-6 py-4">Authorized Supplier</th>
                 <th className="px-6 py-4">Locked Item Barcode</th>
                 <th className="px-6 py-4">Status & Sync</th>
                 <th className="px-6 py-4 text-right rounded-tr-lg">Actions</th>
@@ -211,7 +302,7 @@ export default function CorporateSpecs() {
             <tbody className="divide-y divide-slate-700/50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
                     <Loader2 className="w-8 h-8 mx-auto animate-spin mb-4 text-emerald-500" />
                     Loading Corporate Specs...
                   </td>
@@ -223,6 +314,13 @@ export default function CorporateSpecs() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="bg-slate-900/50 px-3 py-1 rounded-md border border-slate-700">{spec.approved_brand}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    {spec.supplier ? (
+                      <span className="bg-slate-800 px-3 py-1 rounded-md border border-slate-600 text-slate-300">{spec.supplier}</span>
+                    ) : (
+                      <span className="text-slate-500 italic text-xs">Direct / Any</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 font-mono text-emerald-400 bg-emerald-900/20 px-3 py-1 rounded-md w-fit border border-emerald-900/50">
@@ -297,31 +395,71 @@ export default function CorporateSpecs() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Authorized Supplier <span className="text-slate-500 font-normal">(Optional)</span></label>
+                <input
+                  type="text"
+                  placeholder="e.g., Sysco, US Foods..."
+                  value={formData.supplier}
+                  onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Master Item Barcode (GS1-128 / UPC)</label>
                 <input
                   type="text"
                   required
+                  autoFocus
                   placeholder="Scan or type code (e.g., 4964367)"
                   value={formData.approved_item_code}
-                  onChange={(e) => setFormData({ ...formData, approved_item_code: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, approved_item_code: e.target.value }))}
                   className="w-full bg-slate-900 border border-emerald-500/50 text-emerald-400 font-mono text-lg rounded-lg px-4 py-3 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                 />
               </div>
 
+              {isAgentSearching && (
+                <div className="bg-slate-800 border border-emerald-500/30 rounded-lg p-3 flex items-center gap-3 animate-pulse">
+                  <div className="bg-slate-700 p-2 rounded-full">
+                     <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
+                  </div>
+                  <div>
+                     <p className="text-emerald-400 text-sm font-bold m-0 leading-tight">Agent Searching Global Network...</p>
+                     <p className="text-slate-400 text-xs m-0 mt-0.5 leading-tight">Querying Brasa Meat Intelligence Graph</p>
+                  </div>
+                </div>
+              )}
+
+              {isCopilotActive && (
+                <div className="bg-emerald-900/30 border border-emerald-500/30 rounded-lg p-3 flex items-center gap-3 animate-fade-in">
+                  <div className="bg-emerald-500/20 p-2 rounded-full">
+                     <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                     <p className="text-emerald-400 text-sm font-bold m-0 leading-tight">Copilot Auto-Detected!</p>
+                     <p className="text-slate-300 text-xs m-0 mt-0.5 leading-tight">GS1-128 successfully decoded. Please verify the protein details before saving.</p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-3 pt-4 border-t border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                      setIsModalOpen(false);
+                      setIsCopilotActive(false);
+                      setFormData({ protein_name: '', approved_brand: '', supplier: '', approved_item_code: '' });
+                  }}
                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2"
+                  className={`flex-1 text-white px-4 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center gap-2 ${isCopilotActive ? 'bg-emerald-500 hover:bg-emerald-400' : 'bg-emerald-600 hover:bg-emerald-500'}`}
                 >
                   <ShieldCheck className="w-5 h-5" />
-                  Lock Spec to 57 Stores
+                  {isCopilotActive ? 'Confirm Copilot Analysis' : 'Lock Spec to 57 Stores'}
                 </button>
               </div>
             </form>

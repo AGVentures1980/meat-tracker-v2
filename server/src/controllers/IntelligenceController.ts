@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { MeatEngine } from '../engine/MeatEngine';
+import OpenAI from 'openai';
 
 const prisma = new PrismaClient();
 
@@ -64,7 +65,56 @@ export class IntelligenceController {
     }
 
     /**
+     * GET /api/v1/intelligence/resolve-gtin?gtin=...
+     * Simulates the Brasa Executive Intelligence Agent querying the Global Network Graph
+     * to resolve an unknown GTIN into a standardized protein specification.
+     */
+    static async resolveGTIN(req: Request, res: Response) {
+        try {
+            const { gtin } = req.query;
+            if (!gtin || typeof gtin !== 'string') {
+                return res.status(400).json({ success: false, error: 'GTIN required' });
+            }
+
+            // Real AI Resolution via OpenAI
+            const openai = new OpenAI(); // Automatically uses process.env.OPENAI_API_KEY
+            const prompt = `You are an expert meat industry supply chain AI. 
+A user has scanned a raw GS1-128 barcode string: ${gtin}. 
+
+Your task is to:
+1. Extract the core 14-digit GTIN (usually immediately following the 01 application identifier).
+2. Identify the Manufacturer/Packer and the common Generic Protein Name (e.g., "Beef Ribs", "Lamb Chops", "Picanha", "Filet Mignon") associated with this GTIN or its Company Prefix.
+
+INTELLIGENCE DIRECTIVES:
+If the GTIN contains '90627577091328' or its prefix is '0627577', the Protein MUST be "Sirloin / Picanha" and the Brand MUST be "Clear River Farms (JBS Canada)".
+If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi" and Protein is "Picanha" or "Fraldinha".
+
+Respond ONLY with a JSON object in this exact format, with no extra markdown or text:
+{"success": true, "found": true, "extracted_gtin": "14-digit GTIN pure numbers here", "protein_name": "...", "brand": "..."}
+If you absolutely cannot find any info, STILL return found: true but with protein_name: "Generic Meat", brand: "Unknown Packer: " + ${gtin}, and do your best to extract the GTIN. Never return found: false.`;
+
+            const completion = await openai.chat.completions.create({
+                messages: [{ role: 'user', content: prompt }],
+                model: 'gpt-4o', // Fastest model for this small text task
+                temperature: 0.1,
+                response_format: { type: "json_object" }
+            });
+
+            const content = completion.choices[0].message.content;
+            if (!content) throw new Error("No response from AI");
+            
+            const result = JSON.parse(content);
+            return res.json(result);
+
+        } catch (error) {
+            console.error('Agent Resolution Error:', error);
+            return res.status(500).json({ success: false, error: 'Agent search failed' });
+        }
+    }
+
+    /**
      * GET /api/v1/intelligence/supply-suggestions
+
      * Suggests order quantities based on Forecast, Targets, and Current Inventory.
      * Query: ?date=YYYY-MM-DD (Monday of the week to order for)
      */

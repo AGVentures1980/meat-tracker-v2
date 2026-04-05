@@ -116,19 +116,20 @@ async function main() {
     // We link Addison to Carlos (assuming we have an elegant way, but let's just use raw role for now)
 
     // The Store GM (sees only Addison)
+    const addisonPassword = await bcrypt.hash('TDB-Addison-20', 10);
     await prisma.user.upsert({
-        where: { email: 'gm.addison@texasdebrazil.com' },
-        update: { store_id: addison.id, role: 'manager', is_primary: true },
+        where: { email: 'addison@texasdebrazil.com' },
+        update: { store_id: addison.id, role: 'manager', is_primary: true, password_hash: addisonPassword },
         create: {
-            email: 'gm.addison@texasdebrazil.com',
+            email: 'addison@texasdebrazil.com',
             first_name: 'Addison', last_name: 'Manager',
-            password_hash: password,
+            password_hash: addisonPassword,
             role: 'manager',
             store_id: addison.id,
             is_primary: true
         }
     });
-    console.log(`[+] Seeded Accounts (Passwords: SenhaDemo2026!)`);
+    console.log(`[+] Seeded Accounts (Passwords: SenhaDemo2026! | Addison: TDB-Addison-20)`);
 
     // 5. Ghost Math Injection (The Sentinel Bait for Rodrigo to see)
     // We clear current open tickets for Addison so the new one pops up cleanly

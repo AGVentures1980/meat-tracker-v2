@@ -148,13 +148,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 );
             }
 
-            if (manageItems.length > 0 || isSystemAdmin || isRodrigo || isDavid) {
+            if (isDavid || isMaster) {
+                manageItems.push(
+                    { icon: ShieldCheck, label: 'Master Recipe & Specs', path: '/executive/specs' }
+                );
+            }
+
+            if (manageItems.length > 0) {
                 navItems.push({
                     section: t('nav.section_manage') || 'MANAGE (Corporate Admin)',
-                    items: [
-                        ...manageItems,
-                        { icon: ShieldCheck, label: 'Master Recipe & Specs', path: '/executive/specs' }
-                    ]
+                    items: manageItems
                 });
             }
         }
@@ -370,20 +373,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     </div>
                                 </Link>
                             )}
-                            {!isCompanyOrGlobal && (
-                                <Link
-                                    to="/executive/specs"
-                                    className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/executive/specs'
-                                        ? 'bg-[#00FF94]/10 text-[#00FF94] border-l-2 border-[#00FF94]'
-                                        : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
-                                        } `}
-                                >
-                                    <ShieldCheck className="w-5 h-5 min-w-[20px]" />
-                                    <div className="flex flex-1 items-center justify-between">
-                                        <span className="text-sm font-medium tracking-wide">Master Recipe & Specs</span>
-                                    </div>
-                                </Link>
-                            )}
+
                             {!isDavid && (
                                 <Link
                                     to="/data-analyst"

@@ -116,12 +116,10 @@ export class AuthController {
             // Route user depending on Role
             if (user.role === 'admin') {
                 redirectPath = '/select-company'; // Admin always picks
-            } else if (user.role === 'director') {
-                redirectPath = defaultCompanyId ? '/executive' : '/select-company';
             } else if (user.role === 'partner') {
                 redirectPath = '/partner';
             } else {
-                redirectPath = '/dashboard';
+                redirectPath = '/dashboard'; // Make Dashboard the standard Global Anchor Page!
             }
 
             // 4. Issue Token

@@ -184,4 +184,62 @@ export class InventoryController {
             return res.status(500).json({ error: 'Failed to submit weekly close' });
         }
     }
+
+    static async pullToPrep(req: Request, res: Response) {
+        try {
+            const { store_id, barcode } = req.body;
+
+            if (!store_id || !barcode) {
+                return res.status(400).json({ error: 'Missing store_id or barcode' });
+            }
+
+            // Verify the barcode was actually received in the Cooler (Receiving Dock)
+            const scanEvent = await prisma.barcodeScanEvent.findFirst({
+                where: {
+                    store_id: Number(store_id),
+                    scanned_barcode: barcode,
+                    is_approved: true
+                },
+                include: { store: true }
+            });
+
+            if (!scanEvent) {
+                return res.status(404).json({ error: 'Security Warning: This barcode was NEVER received into the store inventory! It must pass the Receiving Dock QC first.' });
+            }
+
+            // Find the Protein Name from Corporate Specs
+            let proteinName = 'Protein Auto-Matched'; // Fallback
+            if (scanEvent.store?.company_id) {
+                const specs = await prisma.corporateProteinSpec.findMany({
+                    where: { company_id: scanEvent.store.company_id }
+                });
+
+                const gtin = scanEvent.gtin || '';
+                const cleanGtin = gtin.replace(/\D/g, '');
+
+                const spec = specs.find(s => {
+                    const cleanAppCode = s.approved_item_code.replace(/\D/g, '');
+                    if (cleanGtin && cleanAppCode && (cleanAppCode.includes(cleanGtin) || cleanGtin.includes(cleanAppCode))) return true;
+                    return (
+                        barcode.includes(s.approved_item_code) ||
+                        (gtin && s.approved_item_code.includes(gtin)) ||
+                        cleanAppCode === barcode.replace(/\D/g, '')
+                    );
+                });
+
+                if (spec) {
+                    proteinName = spec.protein_name;
+                }
+            }
+
+            return res.json({ 
+                success: true, 
+                message: 'Box validated and pulled to Prep successfully.',
+                protein: proteinName
+            });
+        } catch (error) {
+            console.error('Pull to Prep Error:', error);
+            return res.status(500).json({ error: 'Failed to process Prep Pull' });
+        }
+    }
 }
