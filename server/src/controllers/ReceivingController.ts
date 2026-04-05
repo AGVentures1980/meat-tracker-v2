@@ -42,14 +42,25 @@ export const ReceivingController = {
                 }
 
                 // STRICT MATCH ONLY!
-                // Do not use `.includes()` because different cuts share the same manufacturer prefix!
-                // Pad with zeros to account for 13 vs 14 digit variations
+                // Do not use `.includes()` randomly because different cuts share the same manufacturer prefix!
                 if (cleanGtin && cleanAppCode) {
                     if (cleanGtin === cleanAppCode) return true;
                     if (cleanGtin.padStart(14, '0') === cleanAppCode.padStart(14, '0')) return true;
+                    
                     // Provide a slight leeway if the actual exact GTIN is embedded safely at the end
                     if (cleanAppCode.length >= 13 && cleanGtin.endsWith(cleanAppCode)) return true;
                     if (cleanGtin.length >= 13 && cleanAppCode.endsWith(cleanGtin)) return true;
+
+                    // THE SKU RESOLVER: 
+                    // Supply Chain often registers the 5-digit vendor SKU (e.g., '88851') instead of the 14-digit GTIN.
+                    // In a standard 14-digit GS1 GTIN, the short SKU appears exactly before the final Check Digit!
+                    // If we slice off the final check digit, does the string end with David's registered code?
+                    if (cleanGtin.length >= 13 && cleanAppCode.length >= 4) {
+                        const gtinWithoutCheckDigit = cleanGtin.slice(0, -1);
+                        if (gtinWithoutCheckDigit.endsWith(cleanAppCode)) {
+                            return true;
+                        }
+                    }
                 }
 
                 return barcode === s.approved_item_code;
