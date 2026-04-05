@@ -57,6 +57,7 @@ export default function CorporateSpecs() {
               return;
           }
 
+          let requiresAgent = false;
           const gtinMatch = cleanBarcode.match(/(01|02)(\d{14})/);
           if (cleanBarcode.length >= 14 || gtinMatch) {
               requiresAgent = true;
