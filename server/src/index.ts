@@ -160,6 +160,60 @@ app.get('/api/v1/debug/raw-specs', async (req, res) => {
     }
 });
 
+app.post('/api/v1/debug/test-scan', async (req, res) => {
+    try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        let { companyId, gtin, barcode } = req.body;
+        
+        companyId = companyId || 'tdb-main';
+        gtin = gtin || '90076338879475';
+        barcode = barcode || '0190076338879475320100083511260312210201000787';
+
+        const specs = await prisma.corporateProteinSpec.findMany({
+            where: { company_id: companyId }
+        });
+
+        const debugLog: any[] = [];
+        
+        const spec = specs.find((s: any) => {
+            let cleanAppCode = s.approved_item_code.replace(/\D/g, '');
+            const cleanGtin = gtin ? gtin.replace(/\D/g, '') : '';
+            
+            debugLog.push({ act: 'start', cleanAppCode, cleanGtin });
+
+            if (cleanAppCode.length === 16 && (cleanAppCode.startsWith('01') || cleanAppCode.startsWith('02'))) {
+                cleanAppCode = cleanAppCode.substring(2);
+                debugLog.push({ act: 'stripped_16', cleanAppCode });
+            }
+
+            if (cleanGtin && cleanAppCode) {
+                if (cleanGtin === cleanAppCode) { debugLog.push('matched_exact'); return true; }
+                if (cleanGtin.padStart(14, '0') === cleanAppCode.padStart(14, '0')) { debugLog.push('matched_pad'); return true; }
+                if (cleanAppCode.length >= 13 && cleanGtin.endsWith(cleanAppCode)) { debugLog.push('matched_ends_1'); return true; }
+                if (cleanGtin.length >= 13 && cleanAppCode.endsWith(cleanGtin)) { debugLog.push('matched_ends_2'); return true; }
+
+                if (cleanGtin.length >= 13 && cleanAppCode.length >= 4) {
+                    const gtinWithoutCheckDigit = cleanGtin.slice(0, -1);
+                    if (gtinWithoutCheckDigit.endsWith(cleanAppCode)) {
+                        debugLog.push('matched_no_check'); return true;
+                    }
+                }
+            }
+
+            const fallback = barcode === s.approved_item_code;
+            debugLog.push({ act: 'fallback', fallback });
+            return fallback;
+        });
+
+        res.json({ success: true, companyId, gtin, barcode, matchFound: !!spec, debugLog, specs });
+    } catch(err: any) {
+        res.json({ success: false, err: err.message });
+    }
+});
+
+
 app.get('/api/v1/debug/wipe-picanha', async (req, res) => {
     try {
         const { PrismaClient } = require('@prisma/client');
