@@ -57,8 +57,6 @@ export default function CorporateSpecs() {
               return;
           }
 
-          let suggestedProtein = '';
-          let suggestedBrand = '';
           let suggestedCode = cleanBarcode;
           let requiresAgent = false;
 
@@ -67,22 +65,7 @@ export default function CorporateSpecs() {
               suggestedCode = gtinMatch[2];
           }
 
-          if (cleanBarcode.includes('90076338888514') || cleanBarcode.includes('90076338712321') || cleanBarcode.toUpperCase().includes('FRALDINHA')) {
-              suggestedProtein = 'Bottom Sirloin / Fraldinha';
-              suggestedBrand = 'JBS USA (EST. 562M)';
-              if (cleanBarcode.includes('90076338888514')) suggestedCode = '90076338888514';
-              if (cleanBarcode.includes('90076338712321')) suggestedCode = '90076338712321';
-          } else if (cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477') || cleanBarcode.toUpperCase().includes('PICANHA')) {
-              suggestedProtein = 'Sirloin / Picanha';
-              suggestedBrand = 'Friboi / JBS';
-              if (cleanBarcode.includes('90079338217464')) suggestedCode = '90079338217464';
-              if (cleanBarcode.includes('90076338888477')) suggestedCode = '90076338888477';
-          } else if (cleanBarcode.includes('90627577078145') || cleanBarcode.includes('90627577091328') || cleanBarcode.toUpperCase().includes('LAMB')) {
-              suggestedProtein = 'Lamb Chops';
-              suggestedBrand = 'Thomas Foods (Australia)';
-              if (cleanBarcode.includes('90627577078145')) suggestedCode = '90627577078145';
-              if (cleanBarcode.includes('90627577091328')) suggestedCode = '90627577091328';
-          } else if (cleanBarcode.length >= 14 && gtinMatch) {
+          if (cleanBarcode.length >= 14 || gtinMatch) {
               requiresAgent = true;
           }
 
@@ -128,18 +111,6 @@ export default function CorporateSpecs() {
               } finally {
                   setIsAgentSearching(false);
               }
-              return;
-          }
-
-          if (suggestedProtein) {
-              setFormData(prev => ({
-                  ...prev,
-                  protein_name: suggestedProtein,
-                  approved_brand: suggestedBrand
-              }));
-              setIsCopilotActive(true);
-          } else {
-              setIsCopilotActive(false);
           }
       }, 500); // 500ms debounce to give the user time to finish scanning
 
