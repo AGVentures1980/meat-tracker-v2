@@ -410,6 +410,7 @@ export default function CorporateSpecs() {
                 <input
                   type="text"
                   required
+                  autoFocus
                   placeholder="Scan or type code (e.g., 4964367)"
                   value={formData.approved_item_code}
                   onChange={(e) => setFormData(prev => ({ ...prev, approved_item_code: e.target.value }))}
