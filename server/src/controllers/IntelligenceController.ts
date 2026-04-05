@@ -106,6 +106,18 @@ export class IntelligenceController {
                             brand: "JBS USA / Friboi"
                         });
                     }
+
+                    // If item code is unknown, try to resolve the manufacturer prefix at least
+                    const prefix = extractedGt.substring(0, 7);
+                    if (prefix === '0076338' || prefix === '0079338') {
+                        return res.json({
+                            success: true,
+                            found: true,
+                            extracted_gtin: extractedGt,
+                            protein_name: "Generic Meat",
+                            brand: "JBS USA / Friboi"
+                        });
+                    }
                 }
             }
 
