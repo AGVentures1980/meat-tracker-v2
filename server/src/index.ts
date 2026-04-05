@@ -133,7 +133,7 @@ app.use('/api/v1/vault', vaultRoutes);
 app.use('/api/v1/partner', partnerRoutes);
 app.use('/api/v1/admin-partner', agvAdminRoutes);
 app.use('/api/v1/contracts', requireAuth, contractsRoutes);
-app.use('/api/v1/compliance', requireAuth, complianceRoutes);
+app.use('/api/v1/compliance', complianceRoutes);
 app.use('/api/v1/yield', requireAuth, yieldRoutes);
 app.use('/api/v1/billing', requireAuth, billingRoutes);
 app.use('/api/v1', leadRoutes);
