@@ -447,6 +447,7 @@ export default function CorporateSpecs() {
                   onClick={() => {
                       setIsModalOpen(false);
                       setIsCopilotActive(false);
+                      setFormData({ protein_name: '', approved_brand: '', supplier: '', approved_item_code: '' });
                   }}
                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
                 >
