@@ -299,5 +299,14 @@ If absolutely unknown, set "protein_name_from_roster": null`;
         } catch (err) {
             return res.status(500).json({ error: "Failed to purge AI data" });
         }
+    },
+
+    rawSpecs: async (req: any, res: any) => {
+        try {
+            const specs = await prisma.corporateProteinSpec.findMany();
+            return res.json(specs);
+        } catch (err) {
+            return res.status(500).json({ error: "Failed to fetch raw specs" });
+        }
     }
 };
