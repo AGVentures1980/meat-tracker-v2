@@ -31,40 +31,6 @@ export const ReceivingController = {
                 where: { company_id: companyId }
             });
 
-            // DEMO FALLBACK FIX
-            const DEMO_PATTERNS = [
-                { pattern: 'PICANHA', protein: 'Sirloin / Picanha' },
-                { pattern: '90079338217464', protein: 'Sirloin / Picanha' },
-                { pattern: '90076338888477', protein: 'Sirloin / Picanha' },
-                { pattern: '01900001', protein: 'Sirloin / Picanha' },
-                { pattern: 'FRALDINHA', protein: 'Bottom Sirloin / Fraldinha' },
-                { pattern: '01900003', protein: 'Bottom Sirloin / Fraldinha' },
-                { pattern: 'TRITIP', protein: 'Tri-Tip' },
-                { pattern: '01900004', protein: 'Tri-Tip' },
-                { pattern: '90627577078145', protein: 'Lamb Chops' },
-                { pattern: 'LAMB', protein: 'Lamb Chops' }
-            ];
-
-            const demoMatch = DEMO_PATTERNS.find(d => barcode.toUpperCase().includes(d.pattern));
-
-            if (demoMatch) {
-                if (storeId) {
-                    await prisma.barcodeScanEvent.create({
-                        data: {
-                            store_id: parseInt(storeId, 10),
-                            scanned_barcode: barcode,
-                            is_approved: true
-                        }
-                    });
-                }
-                return res.json({ 
-                    status: 'APPROVED', 
-                    protein: demoMatch.protein, 
-                    weight 
-                });
-            }
-            // END DEMO FALLBACK
-
             const spec = specs.find(s => 
                 barcode.includes(s.approved_item_code) ||
                 s.approved_item_code.includes(gtin) ||
