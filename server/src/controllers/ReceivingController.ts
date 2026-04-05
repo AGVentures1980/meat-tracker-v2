@@ -11,20 +11,31 @@ export const ReceivingController = {
             const user = (req as any).user;
             const { barcode, weight, gtin, store_id } = req.body;
             
-            let companyId = "tdb-main"; 
+            // Identify multi-tenant company context
+            let companyId = "tdb-main";
             let storeId = store_id || user.storeId;
 
-            // Try to find the company scope from user
+            // 1. Check strict JWT scope
             if (user.scope && user.scope.type === 'COMPANY') {
                 companyId = user.scope.companyId;
-            } else {
-                 if (storeId) {
-                     const parsedId = parseInt(storeId, 10);
-                     if (!isNaN(parsedId)) {
-                         const store = await prisma.store.findUnique({ where: { id: parsedId }});
-                         if (store) companyId = store.company_id;
-                     }
-                 }
+            } else if (storeId) {
+                // 2. Derive company from the physical store (Addison)
+                const parsedId = parseInt(storeId as string, 10);
+                if (!isNaN(parsedId)) {
+                    const store = await prisma.store.findUnique({ where: { id: parsedId }});
+                    if (store) companyId = store.company_id;
+                }
+            }
+            
+            // 3. Admin Fallback Shield: If we are STILL 'tdb-main', it means an Admin is testing without a store.
+            // We MUST bind them to the actual Texas de Brazil UUID, otherwise Addison won't see their specs!
+            if (companyId === "tdb-main") {
+                const tdb = await prisma.company.findFirst({
+                    where: { name: { contains: 'Texas de Brazil', mode: 'insensitive' } }
+                });
+                if (tdb) {
+                    companyId = tdb.id;
+                }
             }
 
             if (!gtin) {
