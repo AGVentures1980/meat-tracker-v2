@@ -13,5 +13,6 @@ router.delete('/specs/:id', controller.deleteCorporateSpec);
 router.post('/scan', ReceivingController.scanBarcode);
 router.post('/map-barcode', ReceivingController.mapBarcode);
 router.post('/submit-batch', ReceivingController.submitBatch);
+router.get('/purge-ai', ReceivingController.purgeAI);
 
 export default router;

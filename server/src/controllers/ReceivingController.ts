@@ -275,5 +275,18 @@ If absolutely unknown, set "protein_name_from_roster": null`;
             console.error('Submit Batch Error:', error);
             res.status(500).json({ error: 'Internal Server Error submitting batch' });
         }
+    },
+
+    purgeAI: async (req: any, res: any) => {
+        try {
+            await prisma.corporateProteinSpec.deleteMany({
+                where: {
+                    approved_brand: "AI Auto-Mapped Manufacturer"
+                }
+            });
+            return res.json({ success: true, message: "Todas as sujeiras da IA foram limpas do Banco Oficial!" });
+        } catch (err) {
+            return res.status(500).json({ error: "Failed to purge AI data" });
+        }
     }
 };
