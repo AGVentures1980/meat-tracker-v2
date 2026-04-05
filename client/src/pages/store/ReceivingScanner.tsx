@@ -114,11 +114,13 @@ export default function ReceivingScanner() {
           parsedGtin = parsedGtinMatch[2];
       }
 
-      // Check for Custom Sysco / Taylor Preston Format
-      // Pattern: 8 digits (Lot), 4 digits (Weight x 100), 10 digits (Serial), remaining chars (SKU like 42-683)
-      const customSyscoMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
-      if (customSyscoMatch) {
-          parsedGtin = customSyscoMatch[4];
+      // Check for Custom Sysco / Taylor Preston Format ONLY if not already parsed as a valid GS1
+      if (!parsedGtin) {
+          // Pattern: 8 digits (Lot), 4 digits (Weight x 100), 10 digits (Serial), remaining chars (SKU like 42-683)
+          const customSyscoMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
+          if (customSyscoMatch) {
+              parsedGtin = customSyscoMatch[4];
+          }
       }
 
       // 3. Extract Weight
