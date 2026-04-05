@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Network, Search, Plus, ShieldCheck, Box, Barcode, Trash2, ShieldAlert, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface CorporateSpec {
   id: string;
@@ -12,6 +13,16 @@ interface CorporateSpec {
 
 export default function CorporateSpecs() {
   const { user, selectedCompany } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+      const isDavid = user?.email?.toLowerCase().includes('davidcastro');
+      const isMaster = user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') || user?.email?.toLowerCase().includes('admin');
+      if (user && !isDavid && !isMaster) {
+          navigate('/dashboard', { replace: true });
+      }
+  }, [user, navigate]);
+
   const [specs, setSpecs] = useState<CorporateSpec[]>([]);
   const [preventedCount, setPreventedCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
