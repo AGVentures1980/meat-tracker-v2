@@ -149,6 +149,17 @@ app.get('/api/v1/debug/migrate', DebugController.runMigration);
 app.get('/api/v1/debug/env', DebugController.checkEnv);
 app.get('/api/v1/debug/cleanup', DebugController.cleanupTdbMeats);
 
+app.get('/api/v1/debug/raw-specs', async (req, res) => {
+    try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        const specs = await prisma.corporateProteinSpec.findMany();
+        res.json({ success: true, specs });
+    } catch(err: any) {
+        res.json({ success: false, err: err.message });
+    }
+});
+
 import { exec } from 'child_process';
 app.get('/api/v1/debug/run-fix', async (req, res) => {
     if (req.query.key === 'fatality') {
