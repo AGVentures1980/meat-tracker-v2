@@ -34,10 +34,24 @@ export const ReceivingController = {
             const spec = specs.find(s => {
                 const cleanAppCode = s.approved_item_code.replace(/\D/g, '');
                 const cleanGtin = gtin ? gtin.replace(/\D/g, '') : '';
+                
+                if (cleanGtin && cleanAppCode) {
+                    // 1. Exact Intersection Match
+                    if (cleanAppCode.includes(cleanGtin) || cleanGtin.includes(cleanAppCode)) return true;
+                    
+                    // 2. Company Prefix Smart Match (First 8 digits GS1 Prefix override)
+                    // If the master spec and the scanned GTIN share the exact same 8-digit manufacturing prefix, we authorize it.
+                    if (cleanAppCode.length >= 14 && cleanGtin.length >= 14) {
+                        const appPrefix = cleanAppCode.substring(0, 8);
+                        const scanPrefix = cleanGtin.substring(0, 8);
+                        if (appPrefix === scanPrefix) return true;
+                    }
+                }
+
+                // 3. Fallback to basic string inclusion
                 return (
                     barcode.includes(s.approved_item_code) ||
-                    s.approved_item_code.includes(gtin) ||
-                    (cleanGtin && cleanAppCode.includes(cleanGtin)) ||
+                    (gtin && s.approved_item_code.includes(gtin)) ||
                     barcode === s.approved_item_code ||
                     cleanAppCode === barcode.replace(/\D/g, '')
                 );
