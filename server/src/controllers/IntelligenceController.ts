@@ -87,7 +87,7 @@ export class IntelligenceController {
                 // Check for specific SKUs inside the payload (extracting item ref without check digit)
                 if (extractedGt.length === 14) {
                     const sku = extractedGt.substring(8, 13);
-                    if (sku === '88851') {
+                    if (sku === '88851' || sku === '88847') {
                         return res.json({
                             success: true,
                             found: true,
