@@ -69,19 +69,31 @@ export const ReceivingController = {
                 return barcode === s.approved_item_code;
             });
 
+            let verifiedStoreId: number | null = null;
+            if (storeId) {
+                const parsedId = parseInt(storeId as string, 10);
+                if (!isNaN(parsedId)) {
+                    const storeExists = await prisma.store.findUnique({ where: { id: parsedId }});
+                    if (storeExists) {
+                        verifiedStoreId = parsedId;
+                    }
+                }
+            }
+
             if (spec) {
                 // GTIN Mapped!
-                if (storeId) {
-                    const parsedId = parseInt(storeId as string, 10);
-                    if (!isNaN(parsedId)) {
+                if (verifiedStoreId) {
+                    try {
                         await prisma.barcodeScanEvent.create({
                             data: {
-                                store_id: parsedId,
+                                store_id: verifiedStoreId,
                                 scanned_barcode: barcode,
                                 gtin: gtin,
                                 is_approved: true
                             }
                         });
+                    } catch (e) {
+                        console.error('Failed to log approved scan:', e);
                     }
                 }
 
@@ -95,17 +107,18 @@ export const ReceivingController = {
                 // We proceed directly to Manual Fallback / Rejection.
 
                 // AI Failed or Unrecognized - Proceed to Manual Fallback
-                if (storeId) {
-                    const parsedId = parseInt(storeId as string, 10);
-                    if (!isNaN(parsedId)) {
+                if (verifiedStoreId) {
+                    try {
                         await prisma.barcodeScanEvent.create({
                             data: {
-                                store_id: parsedId,
+                                store_id: verifiedStoreId,
                                 scanned_barcode: barcode,
                                 gtin: gtin,
                                 is_approved: false
                             }
                         });
+                    } catch (e) {
+                        console.error('Failed to log rejected scan:', e);
                     }
                 }
 
