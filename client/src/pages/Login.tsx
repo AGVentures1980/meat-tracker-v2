@@ -35,8 +35,8 @@ export const Login = () => {
         try {
             const loginRes = await login(email, password, theme?.companyName);
             if (loginRes?.success) {
-                // Respect original destination if they were intercepted by ProtectedRoute
-                const destination = fromPath || loginRes.redirectPath || '/dashboard';
+                // Pitch Hardening: Always redirect to the standardized Anchor Page instead of previous states
+                const destination = loginRes.redirectPath || '/dashboard';
                 navigate(destination, { replace: true });
             } else {
                 setError("Invalid email or password");

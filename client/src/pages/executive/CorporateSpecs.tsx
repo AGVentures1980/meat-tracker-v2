@@ -80,20 +80,29 @@ export default function CorporateSpecs() {
               suggestedBrand = `Unknown Packer (Prefix: ${suggestedCode.substring(0, 5)})`;
           }
 
+          // Force the stripped GTIN to be saved regardless of whether the AI recognized the protein!
+          // This fixes the issue where an unrecognized GS1 string gets saved in its entirety.
+          if (suggestedCode !== formData.approved_item_code) {
+               setFormData(prev => ({
+                   ...prev,
+                   approved_item_code: suggestedCode
+               }));
+          }
+
           if (suggestedProtein) {
               setFormData(prev => ({
                   ...prev,
                   protein_name: suggestedProtein,
-                  approved_brand: suggestedBrand,
+                  approved_brand: suggestedBrand
               }));
               setIsCopilotActive(true);
           } else {
               setIsCopilotActive(false);
           }
-      }, 300); // 300ms debounce ensures the hardware scanner finishes typing the 40+ chars
+      }, 300); // 300ms debounce
 
       return () => clearTimeout(timeoutId);
-  }, [formData.approved_item_code]);
+  }, [formData.approved_item_code, isCopilotActive]);
 
   const fetchSpecs = async () => {
     setIsLoading(true);
