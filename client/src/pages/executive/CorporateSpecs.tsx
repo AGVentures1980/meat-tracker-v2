@@ -57,22 +57,16 @@ export default function CorporateSpecs() {
               return;
           }
 
-          let suggestedCode = cleanBarcode;
-          let requiresAgent = false;
-
           const gtinMatch = cleanBarcode.match(/(01|02)(\d{14})/);
-          if (gtinMatch) {
-              suggestedCode = gtinMatch[2];
-          }
-
           if (cleanBarcode.length >= 14 || gtinMatch) {
               requiresAgent = true;
           }
 
-          if (suggestedCode !== formData.approved_item_code) {
+          // If it doesn't meet criteria to go to the Agent, just update state directly
+          if (!requiresAgent && cleanBarcode !== formData.approved_item_code) {
                setFormData(prev => ({
                    ...prev,
-                   approved_item_code: suggestedCode
+                   approved_item_code: cleanBarcode
                }));
           }
 
@@ -82,7 +76,7 @@ export default function CorporateSpecs() {
               
               // Call the Global SaaS Agent Intelligence API
               try {
-                  const res = await fetch(`/api/v1/intelligence/resolve-gtin?gtin=${suggestedCode}`, {
+                  const res = await fetch(`/api/v1/intelligence/resolve-gtin?gtin=${encodeURIComponent(cleanBarcode)}`, {
                       headers: { 'Authorization': `Bearer ${user?.token}` }
                   });
                   const data = await res.json();
@@ -90,6 +84,7 @@ export default function CorporateSpecs() {
                   if (data.success && data.found) {
                       setFormData(prev => ({
                           ...prev,
+                          approved_item_code: data.extracted_gtin || cleanBarcode,
                           protein_name: data.protein_name,
                           approved_brand: data.brand
                       }));
@@ -98,7 +93,8 @@ export default function CorporateSpecs() {
                       setFormData(prev => ({
                           ...prev,
                           protein_name: 'AI Pending: Manual Verification Required',
-                          approved_brand: `Unknown Packer (Prefix: ${suggestedCode.substring(0, 5)})`
+                          approved_brand: `Unknown Packer`,
+                          approved_item_code: cleanBarcode // Fallback to raw if logic fails
                       }));
                       setIsCopilotActive(false);
                   }
@@ -106,7 +102,8 @@ export default function CorporateSpecs() {
                   setFormData(prev => ({
                       ...prev,
                       protein_name: 'AI Pending: Manual Verification Required',
-                      approved_brand: `API Timeout: Unknown Packer`
+                      approved_brand: `API Timeout: Unknown Packer`,
+                      approved_item_code: cleanBarcode
                   }));
               } finally {
                   setIsAgentSearching(false);
