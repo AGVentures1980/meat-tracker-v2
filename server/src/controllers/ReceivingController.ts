@@ -33,15 +33,23 @@ export const ReceivingController = {
             });
 
             const spec = specs.find(s => {
-                const cleanAppCode = s.approved_item_code.replace(/\D/g, '');
+                let cleanAppCode = s.approved_item_code.replace(/\D/g, '');
                 const cleanGtin = gtin ? gtin.replace(/\D/g, '') : '';
                 
+                // If David accidentally registered the GTIN including the Application Identifier like "0190627577091328"
+                if (cleanAppCode.length === 16 && (cleanAppCode.startsWith('01') || cleanAppCode.startsWith('02'))) {
+                    cleanAppCode = cleanAppCode.substring(2);
+                }
+
                 // STRICT MATCH ONLY!
                 // Do not use `.includes()` because different cuts share the same manufacturer prefix!
                 // Pad with zeros to account for 13 vs 14 digit variations
                 if (cleanGtin && cleanAppCode) {
                     if (cleanGtin === cleanAppCode) return true;
                     if (cleanGtin.padStart(14, '0') === cleanAppCode.padStart(14, '0')) return true;
+                    // Provide a slight leeway if the actual exact GTIN is embedded safely at the end
+                    if (cleanAppCode.length >= 13 && cleanGtin.endsWith(cleanAppCode)) return true;
+                    if (cleanGtin.length >= 13 && cleanAppCode.endsWith(cleanGtin)) return true;
                 }
 
                 return barcode === s.approved_item_code;
