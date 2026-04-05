@@ -36,18 +36,15 @@ export const ReceivingController = {
                 const cleanAppCode = s.approved_item_code.replace(/\D/g, '');
                 const cleanGtin = gtin ? gtin.replace(/\D/g, '') : '';
                 
+                // STRICT MATCH ONLY!
+                // Do not use `.includes()` because different cuts share the same manufacturer prefix!
+                // Pad with zeros to account for 13 vs 14 digit variations
                 if (cleanGtin && cleanAppCode) {
-                    // 1. Exact Intersection Match
-                    if (cleanAppCode.includes(cleanGtin) || cleanGtin.includes(cleanAppCode)) return true;
+                    if (cleanGtin === cleanAppCode) return true;
+                    if (cleanGtin.padStart(14, '0') === cleanAppCode.padStart(14, '0')) return true;
                 }
 
-                // 2. Fallback to basic string inclusion
-                return (
-                    barcode.includes(s.approved_item_code) ||
-                    (gtin && s.approved_item_code.includes(gtin)) ||
-                    barcode === s.approved_item_code ||
-                    cleanAppCode === barcode.replace(/\D/g, '')
-                );
+                return barcode === s.approved_item_code;
             });
 
             if (spec) {
@@ -81,16 +78,13 @@ export const ReceivingController = {
                     const prompt = `You are an expert meat industry supply chain AI. 
 A user has scanned a raw GS1-128 barcode string: ${barcode} (Parsed GTIN: ${gtin}). 
 
-Your task is to identify the Manufacturer/Packer and the common Generic Protein Name associated with this GTIN or its Company Prefix.
-
-INTELLIGENCE DIRECTIVES:
-If the GTIN contains '90627577091328' or its prefix is '0627577', the Protein MUST be "Sirloin / Picanha" and the Brand MUST be "Clear River Farms (JBS Canada)".
-If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi" and Protein is "Picanha" or "Fraldinha".
+Your task is to identify the Manufacturer/Packer and the EXACT Generic Protein Name associated with this GTIN.
+DO NOT assume the protein just based on the prefix, because companies like JBS use the same prefix for Picanha, Fraldinha, and Ribs. Analyze the specific item reference.
 
 Available exact roster of strictly permitted protein names: 
 ${roster.map(r => r.name).join(', ')}
 
-You MUST select the closest exact string from the Available roster above. If you identify it is Picanha, match it to the roster element for Picanha. If it's ribs, match it to ribs.
+You MUST select the closest exact string from the Available roster above. If you identify it is Fraldinha or Flank Steak, match it to the roster element for Fraldinha. If it's Ribs, match it to ribs.
 
 Respond ONLY with a JSON object:
 {"success": true, "protein_name_from_roster": "exact string from roster"}
