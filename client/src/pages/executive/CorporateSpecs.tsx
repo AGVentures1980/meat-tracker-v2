@@ -62,10 +62,11 @@ export default function CorporateSpecs() {
               suggestedCode = gtinMatch[2];
           }
 
-          if (cleanBarcode.includes('90076338888514') || cleanBarcode.toUpperCase().includes('FRALDINHA')) {
+          if (cleanBarcode.includes('90076338888514') || cleanBarcode.includes('90076338712321') || cleanBarcode.toUpperCase().includes('FRALDINHA')) {
               suggestedProtein = 'Bottom Sirloin / Fraldinha';
               suggestedBrand = 'JBS USA (EST. 562M)';
               if (cleanBarcode.includes('90076338888514')) suggestedCode = '90076338888514';
+              if (cleanBarcode.includes('90076338712321')) suggestedCode = '90076338712321';
           } else if (cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477') || cleanBarcode.toUpperCase().includes('PICANHA')) {
               suggestedProtein = 'Sirloin / Picanha';
               suggestedBrand = 'Friboi / JBS';
