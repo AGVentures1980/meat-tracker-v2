@@ -75,10 +75,11 @@ export default function CorporateSpecs() {
               suggestedBrand = 'Friboi / JBS';
               if (cleanBarcode.includes('90079338217464')) suggestedCode = '90079338217464';
               if (cleanBarcode.includes('90076338888477')) suggestedCode = '90076338888477';
-          } else if (cleanBarcode.includes('90627577078145') || cleanBarcode.toUpperCase().includes('LAMB')) {
+          } else if (cleanBarcode.includes('90627577078145') || cleanBarcode.includes('90627577091328') || cleanBarcode.toUpperCase().includes('LAMB')) {
               suggestedProtein = 'Lamb Chops';
               suggestedBrand = 'Thomas Foods (Australia)';
               if (cleanBarcode.includes('90627577078145')) suggestedCode = '90627577078145';
+              if (cleanBarcode.includes('90627577091328')) suggestedCode = '90627577091328';
           } else if (cleanBarcode.length >= 14 && gtinMatch) {
               requiresAgent = true;
           }
