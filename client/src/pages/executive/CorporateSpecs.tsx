@@ -28,58 +28,61 @@ export default function CorporateSpecs() {
 
   const activeCompanyId = selectedCompany || user?.companyId || 'tdb-main';
 
-  const analyzeBarcodeWithCopilot = (barcodeString: string) => {
-      // ALWAYS update the controlled input state immediately
-      setFormData(prev => ({ ...prev, approved_item_code: barcodeString }));
-
-      const cleanBarcode = barcodeString.replace(/[\(\)\[\]\s]/g, '');
-      if (cleanBarcode.length < 8) {
+  useEffect(() => {
+      const barcodeString = formData.approved_item_code;
+      if (!barcodeString) {
           setIsCopilotActive(false);
           return;
       }
 
-      let suggestedProtein = '';
-      let suggestedBrand = '';
-      let suggestedCode = cleanBarcode;
+      const timeoutId = setTimeout(() => {
+          const cleanBarcode = barcodeString.replace(/[\(\)\[\]\s]/g, '');
+          if (cleanBarcode.length < 8) {
+              setIsCopilotActive(false);
+              return;
+          }
 
-      // Extract raw GTIN if possible
-      const gtinMatch = cleanBarcode.match(/(01|02)(\d{14})/);
-      if (gtinMatch) {
-          suggestedCode = gtinMatch[2];
-      }
+          let suggestedProtein = '';
+          let suggestedBrand = '';
+          let suggestedCode = cleanBarcode;
 
-      if (cleanBarcode.includes('90076338888514') || cleanBarcode.toUpperCase().includes('FRALDINHA')) {
-          suggestedProtein = 'Bottom Sirloin / Fraldinha';
-          suggestedBrand = 'JBS USA (EST. 562M)';
-          if (cleanBarcode.includes('90076338888514')) suggestedCode = '90076338888514';
-      } else if (cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477') || cleanBarcode.toUpperCase().includes('PICANHA')) {
-          suggestedProtein = 'Sirloin / Picanha';
-          suggestedBrand = 'Friboi / JBS';
-          if (cleanBarcode.includes('90079338217464')) suggestedCode = '90079338217464';
-          if (cleanBarcode.includes('90076338888477')) suggestedCode = '90076338888477';
-      } else if (cleanBarcode.includes('90627577078145') || cleanBarcode.toUpperCase().includes('LAMB')) {
-          suggestedProtein = 'Lamb Chops';
-          suggestedBrand = 'Thomas Foods (Australia)';
-          if (cleanBarcode.includes('90627577078145')) suggestedCode = '90627577078145';
-      } else if (cleanBarcode.length >= 14 && gtinMatch) {
-          suggestedProtein = 'AI Pending: Manual Verification Required';
-          suggestedBrand = `Unknown Packer (Prefix: ${suggestedCode.substring(0, 5)})`;
-      }
+          const gtinMatch = cleanBarcode.match(/(01|02)(\d{14})/);
+          if (gtinMatch) {
+              suggestedCode = gtinMatch[2];
+          }
 
-      if (suggestedProtein) {
-          setFormData(prev => ({
-              ...prev,
-              protein_name: suggestedProtein,
-              approved_brand: suggestedBrand,
-              // We don't overwrite approved_item_code with suggestedCode automatically here 
-              // because we want the user to see what they just scanned in the box.
-              // BUT we can use it to hint them.
-          }));
-          setIsCopilotActive(true);
-      } else {
-          setIsCopilotActive(false);
-      }
-  };
+          if (cleanBarcode.includes('90076338888514') || cleanBarcode.toUpperCase().includes('FRALDINHA')) {
+              suggestedProtein = 'Bottom Sirloin / Fraldinha';
+              suggestedBrand = 'JBS USA (EST. 562M)';
+              if (cleanBarcode.includes('90076338888514')) suggestedCode = '90076338888514';
+          } else if (cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477') || cleanBarcode.toUpperCase().includes('PICANHA')) {
+              suggestedProtein = 'Sirloin / Picanha';
+              suggestedBrand = 'Friboi / JBS';
+              if (cleanBarcode.includes('90079338217464')) suggestedCode = '90079338217464';
+              if (cleanBarcode.includes('90076338888477')) suggestedCode = '90076338888477';
+          } else if (cleanBarcode.includes('90627577078145') || cleanBarcode.toUpperCase().includes('LAMB')) {
+              suggestedProtein = 'Lamb Chops';
+              suggestedBrand = 'Thomas Foods (Australia)';
+              if (cleanBarcode.includes('90627577078145')) suggestedCode = '90627577078145';
+          } else if (cleanBarcode.length >= 14 && gtinMatch) {
+              suggestedProtein = 'AI Pending: Manual Verification Required';
+              suggestedBrand = `Unknown Packer (Prefix: ${suggestedCode.substring(0, 5)})`;
+          }
+
+          if (suggestedProtein) {
+              setFormData(prev => ({
+                  ...prev,
+                  protein_name: suggestedProtein,
+                  approved_brand: suggestedBrand,
+              }));
+              setIsCopilotActive(true);
+          } else {
+              setIsCopilotActive(false);
+          }
+      }, 300); // 300ms debounce ensures the hardware scanner finishes typing the 40+ chars
+
+      return () => clearTimeout(timeoutId);
+  }, [formData.approved_item_code]);
 
   const fetchSpecs = async () => {
     setIsLoading(true);
@@ -357,7 +360,7 @@ export default function CorporateSpecs() {
                   required
                   placeholder="Scan or type code (e.g., 4964367)"
                   value={formData.approved_item_code}
-                  onChange={(e) => analyzeBarcodeWithCopilot(e.target.value)}
+                  onChange={(e) => setFormData(prev => ({ ...prev, approved_item_code: e.target.value }))}
                   className="w-full bg-slate-900 border border-emerald-500/50 text-emerald-400 font-mono text-lg rounded-lg px-4 py-3 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                 />
               </div>
