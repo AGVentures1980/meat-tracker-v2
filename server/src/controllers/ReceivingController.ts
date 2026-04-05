@@ -31,13 +31,17 @@ export const ReceivingController = {
                 where: { company_id: companyId }
             });
 
-            const spec = specs.find(s => 
-                barcode.includes(s.approved_item_code) ||
-                s.approved_item_code.includes(gtin) ||
-                gtin && gtin.length > 5 && s.approved_item_code.includes(gtin.substring(1)) ||
-                barcode === s.approved_item_code ||
-                s.approved_item_code.replace(/\D/g, '') === barcode.replace(/\D/g, '')
-            );
+            const spec = specs.find(s => {
+                const cleanAppCode = s.approved_item_code.replace(/\D/g, '');
+                const cleanGtin = gtin ? gtin.replace(/\D/g, '') : '';
+                return (
+                    barcode.includes(s.approved_item_code) ||
+                    s.approved_item_code.includes(gtin) ||
+                    (cleanGtin && cleanAppCode.includes(cleanGtin)) ||
+                    barcode === s.approved_item_code ||
+                    cleanAppCode === barcode.replace(/\D/g, '')
+                );
+            });
 
             if (spec) {
                 // GTIN Mapped!
