@@ -266,6 +266,7 @@ export default function ReceivingScanner() {
             <form onSubmit={handleSubmit} className="w-full max-w-sm relative">
               <input 
                 ref={inputRef}
+                title="Barcode Scanner Input"
                 type="text" 
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
@@ -364,6 +365,7 @@ export default function ReceivingScanner() {
           <h2 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">WEIGHT REQUIRED</h2>
           <p className="text-blue-100 mb-8 max-w-md">The scanner could not extract the weight from this barcode. Please enter the case weight manually in LBS.</p>
           <input 
+             title="Manual Case Weight Entry"
              type="number" 
              step="0.01"
              autoFocus
