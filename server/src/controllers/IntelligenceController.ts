@@ -73,21 +73,22 @@ export class IntelligenceController {
 
             const cleanBarcode = gtin.replace(/\\D/g, '');
 
+            // Deterministic Global GTIN Extraction (Protects from AI Hallucinations)
+            let extractedGt = cleanBarcode;
+            const gtinMatch = cleanBarcode.match(/(?:01|02)(\d{14})/);
+            if (gtinMatch) {
+                extractedGt = gtinMatch[1];
+            } else if (cleanBarcode.length === 14) {
+                extractedGt = cleanBarcode;
+            }
+
             // 1. DETERMINISTIC GOVERNANCE (Override AI for known culprits)
             // JBS USA / Friboi
             if (cleanBarcode.includes('0076338') || cleanBarcode.includes('0079338')) {
-                let extractedGt = cleanBarcode;
-                const gtinMatch = cleanBarcode.match(/(01|02)(\\d{14})/);
-                if (gtinMatch) {
-                    extractedGt = gtinMatch[2];
-                } else if (cleanBarcode.length === 14) {
-                    extractedGt = cleanBarcode;
-                }
-
                 // Check for specific SKUs inside the payload (extracting item ref without check digit)
                 if (extractedGt.length === 14) {
                     const sku = extractedGt.substring(8, 13);
-                    if (sku === '88851' || sku === '88847') {
+                    if (['88851', '88847', '87947'].includes(sku)) {
                         return res.json({
                             success: true,
                             found: true,
@@ -96,8 +97,7 @@ export class IntelligenceController {
                             brand: "JBS USA / Friboi"
                         });
                     }
-                    if (sku === '16041' || sku === '16045' || sku === '01604') {
-                        // Assuming standard Picanha codes for JBS (placeholder, but user confirmed 88851 is flapping)
+                    if (['16041', '16045', '01604'].includes(sku)) {
                         return res.json({
                             success: true,
                             found: true,
@@ -107,36 +107,31 @@ export class IntelligenceController {
                         });
                     }
 
-                    // If item code is unknown, try to resolve the manufacturer prefix at least
-                    const prefix = extractedGt.substring(0, 7);
-                    if (prefix === '0076338' || prefix === '0079338') {
-                        return res.json({
-                            success: true,
-                            found: true,
-                            extracted_gtin: extractedGt,
-                            protein_name: "Generic Meat",
-                            brand: "JBS USA / Friboi"
-                        });
-                    }
+                    return res.json({
+                        success: true,
+                        found: true,
+                        extracted_gtin: extractedGt,
+                        protein_name: "Generic Meat",
+                        brand: "JBS USA / Friboi"
+                    });
                 }
             }
 
             // Real AI Resolution via OpenAI
             const openai = new OpenAI(); // Automatically uses process.env.OPENAI_API_KEY
             const prompt = `You are an expert meat industry supply chain AI. 
-A user has scanned a raw GS1-128 barcode string: ${gtin}. 
+A user has scanned a raw GS1-128 barcode string: ${cleanBarcode}. 
 
-Your task is to:
-1. Extract the core 14-digit GTIN (usually immediately following the 01 application identifier).
-2. Identify the Manufacturer/Packer and the common Generic Protein Name (e.g., "Beef Ribs", "Lamb Chops", "Picanha", "Filet Mignon") associated with this GTIN or its Company Prefix.
+Your task is to identify the Manufacturer/Packer and the common Generic Protein Name (e.g., "Beef Ribs", "Lamb Chops", "Picanha", "Filet Mignon") associated with this barcode.
 
 INTELLIGENCE DIRECTIVES:
 If the GTIN contains '90627577091328' or its prefix is '0627577', the Protein MUST be "Sirloin / Picanha" and the Brand MUST be "Clear River Farms (JBS Canada)".
-If the GTIN contains '0076338' or '0079338', brand is "JBS USA / Friboi". 
+
+We have already deterministically extracted the GTIN as: ${extractedGt}. You must return this exact string in the 'extracted_gtin' field.
 
 Respond ONLY with a JSON object in this exact format, with no extra markdown or text:
-{"success": true, "found": true, "extracted_gtin": "14-digit GTIN pure numbers here", "protein_name": "...", "brand": "..."}
-If you absolutely cannot find any info, STILL return found: true but with protein_name: "Generic Meat", brand: "Unknown Packer: " + ${gtin}, and do your best to extract the GTIN. Never return found: false.`;
+{"success": true, "found": true, "extracted_gtin": "${extractedGt}", "protein_name": "...", "brand": "..."}
+If you absolutely cannot find any info, STILL return found: true but with protein_name: "Generic Meat", brand: "Unknown Packer", and always return extracted_gtin: "${extractedGt}". Never return found: false.`;
 
             const completion = await openai.chat.completions.create({
                 messages: [{ role: 'user', content: prompt }],

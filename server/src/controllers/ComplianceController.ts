@@ -11,12 +11,48 @@ export class ComplianceController {
     try {
       const { company_id, protein_name, approved_brand, supplier, approved_item_code, created_by } = req.body;
       
+      const user = (req as any).user;
+      
+      // Multi-Tenant Shield: If an admin hits this endpoint trying to lock a spec for 'tdb-main',
+      // we must split-brain it across ALL Texas companies because physical scanners exist in discrete silos.
+      let finalCompanyId = company_id;
+      if (company_id === "tdb-main" && (!user || ['admin', 'director', 'owner', 'partner'].includes(user.role))) {
+          const tdbCompanies = await prisma.company.findMany({
+              where: { name: { contains: 'Texas', mode: 'insensitive' } }
+          });
+          
+          if (tdbCompanies.length > 0) {
+              const specPromises = tdbCompanies.map(comp => 
+                  prisma.corporateProteinSpec.create({
+                      data: {
+                          company_id: comp.id,
+                          protein_name,
+                          approved_brand,
+                          supplier: supplier || null,
+                          approved_item_code,
+                          created_by
+                      }
+                  })
+              );
+              await Promise.all(specPromises);
+              
+              // Return the first one just to satisfy the frontend UI
+              const dummySpec = await prisma.corporateProteinSpec.findFirst({
+                  where: { company_id: tdbCompanies[0].id, approved_item_code },
+                  orderBy: { created_at: 'desc' }
+              });
+              
+              return res.status(201).json({ success: true, spec: dummySpec });
+          }
+      }
+
+      // Default Logic (No Split Brain or Not TDB)
       const newSpec = await prisma.corporateProteinSpec.create({
         data: {
-          company_id,
+          company_id: finalCompanyId,
           protein_name,
           approved_brand,
-          supplier: supplier || null, // Allow it to be optional or null
+          supplier: supplier || null,
           approved_item_code,
           created_by
         }

@@ -166,12 +166,10 @@ app.get('/api/v1/debug/wipe-picanha', async (req, res) => {
         const prisma = new PrismaClient();
         const deleted = await prisma.corporateProteinSpec.deleteMany({
             where: {
-                approved_item_code: {
-                    contains: '88851'
-                }
+                approved_item_code: '08351126031212'
             }
         });
-        res.json({ success: true, message: `Wiped ${deleted.count} corrupted Fraldinha records.` });
+        res.json({ success: true, message: `Wiped ${deleted.count} corrupted GTIN records.` });
     } catch(err: any) {
         res.json({ success: false, err: err.message });
     }

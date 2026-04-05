@@ -180,20 +180,45 @@ export const ReceivingController = {
             if (user.scope && user.scope.type === 'COMPANY') {
                 companyId = user.scope.companyId;
             } else if (storeId) {
-                const store = await prisma.store.findUnique({ where: { id: parseInt(storeId, 10) }});
+                const store = await prisma.store.findUnique({ where: { id: parseInt(storeId as string, 10) }});
                 if (store) companyId = store.company_id;
             }
 
-            // Create spec
-            await prisma.corporateProteinSpec.create({
-                data: {
-                    company_id: companyId,
-                    protein_name,
-                    approved_item_code: gtin,
-                    approved_brand: "Scanned Manufacturer", 
-                    created_by: user.first_name + " " + user.last_name
+            if (companyId === "tdb-main") {
+                const tdbCompanies = await prisma.company.findMany({
+                    where: { name: { contains: 'Texas', mode: 'insensitive' } }
+                });
+                
+                if (tdbCompanies.length > 0) {
+                    // Split-brain defense: Create a spec in ALL matching Texas companies just to be absolutely sure.
+                    for (const comp of tdbCompanies) {
+                        try {
+                            await prisma.corporateProteinSpec.create({
+                                data: {
+                                    company_id: comp.id,
+                                    protein_name,
+                                    approved_item_code: barcode || gtin,
+                                    approved_brand: "Scanned Manufacturer",
+                                    created_by: user.first_name + " " + user.last_name
+                                }
+                            });
+                        } catch (e) {
+                            // ignore duplicates if they exist
+                        }
+                    }
                 }
-            });
+            } else {
+                // Not split-brain admin, normal flow
+                await prisma.corporateProteinSpec.create({
+                    data: {
+                        company_id: companyId,
+                        protein_name,
+                        approved_item_code: barcode || gtin,
+                        approved_brand: "Scanned Manufacturer", 
+                        created_by: user.first_name + " " + user.last_name
+                    }
+                });
+            }
 
             // Process the scan now that it's mapped
             if (storeId) {
