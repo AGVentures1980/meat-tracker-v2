@@ -19,8 +19,11 @@ export const ReceivingController = {
                 companyId = user.scope.companyId;
             } else {
                  if (storeId) {
-                     const store = await prisma.store.findUnique({ where: { id: parseInt(storeId, 10) }});
-                     if (store) companyId = store.company_id;
+                     const parsedId = parseInt(storeId, 10);
+                     if (!isNaN(parsedId)) {
+                         const store = await prisma.store.findUnique({ where: { id: parsedId }});
+                         if (store) companyId = store.company_id;
+                     }
                  }
             }
 
@@ -69,14 +72,17 @@ export const ReceivingController = {
             if (spec) {
                 // GTIN Mapped!
                 if (storeId) {
-                    await prisma.barcodeScanEvent.create({
-                        data: {
-                            store_id: parseInt(storeId, 10),
-                            scanned_barcode: barcode,
-                            gtin: gtin,
-                            is_approved: true
-                        }
-                    });
+                    const parsedId = parseInt(storeId as string, 10);
+                    if (!isNaN(parsedId)) {
+                        await prisma.barcodeScanEvent.create({
+                            data: {
+                                store_id: parsedId,
+                                scanned_barcode: barcode,
+                                gtin: gtin,
+                                is_approved: true
+                            }
+                        });
+                    }
                 }
 
                 return res.json({ 
@@ -90,14 +96,17 @@ export const ReceivingController = {
 
                 // AI Failed or Unrecognized - Proceed to Manual Fallback
                 if (storeId) {
-                    await prisma.barcodeScanEvent.create({
-                        data: {
-                            store_id: parseInt(storeId, 10),
-                            scanned_barcode: barcode,
-                            gtin: gtin,
-                            is_approved: false
-                        }
-                    });
+                    const parsedId = parseInt(storeId as string, 10);
+                    if (!isNaN(parsedId)) {
+                        await prisma.barcodeScanEvent.create({
+                            data: {
+                                store_id: parsedId,
+                                scanned_barcode: barcode,
+                                gtin: gtin,
+                                is_approved: false
+                            }
+                        });
+                    }
                 }
 
                 // Check Role:

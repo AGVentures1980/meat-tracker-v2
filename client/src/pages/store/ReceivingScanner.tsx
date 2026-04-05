@@ -284,7 +284,6 @@ export default function ReceivingScanner() {
                 <ScanLine className="w-6 h-6" />
               </button>
             </form>
-            <span className="text-xs text-slate-500 uppercase tracking-widest font-bold">OR</span>
           </div>
 
           {/* Cart UI */}
