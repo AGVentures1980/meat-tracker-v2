@@ -133,21 +133,30 @@ export const ReceivingController = {
                     }
                 }
 
-                // Check Role:
+                // If NOT FOUND, this is an UNAUTHORIZED SUBSTITUTION
+                // UNLESS it's David (Admin/Director), then allow him to map it on the fly.
                 if (user.role === 'admin' || user.role === 'director' || user.role === 'owner' || user.role === 'partner') {
-                    // Send roster so they can map
+                    
                     const roster = await prisma.companyProduct.findMany({
                         where: { company_id: companyId },
-                        select: { name: true },
-                        orderBy: { name: 'asc' }
+                        select: { name: true }
                     });
-                    
+
                     return res.json({
                         status: 'UNMAPPED_ALLOW_MAPPING',
                         gtin,
                         roster: roster.map(r => r.name)
                     });
                 }
+
+                // Extreme Production Diagnostic Trace: Capture EXACTLY why Addison is failing
+                await prisma.barcodeScanEvent.create({
+                    data: {
+                        store_id: storeId ? parseInt(storeId, 10) : 1,
+                        scanned_barcode: barcode + ` || COMP:${companyId} || GTIN:${gtin} || USER_SID:${user.storeId} || ROLE:${user.role}`,
+                        is_approved: false
+                    }
+                });
 
                 // If not an admin, it's a hard rejection. Send Alert.
                 await EmailService.sendQCAlert({
