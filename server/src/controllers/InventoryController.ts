@@ -184,4 +184,32 @@ export class InventoryController {
             return res.status(500).json({ error: 'Failed to submit weekly close' });
         }
     }
+
+    static async pullToPrep(req: Request, res: Response) {
+        try {
+            const { store_id, barcode } = req.body;
+
+            if (!store_id || !barcode) {
+                return res.status(400).json({ error: 'Missing store_id or barcode' });
+            }
+
+            // Verify the barcode was actually received in the Cooler (Receiving Dock)
+            const scanEvent = await prisma.barcodeScanEvent.findFirst({
+                where: {
+                    store_id: Number(store_id),
+                    scanned_barcode: barcode,
+                    is_approved: true
+                }
+            });
+
+            if (!scanEvent) {
+                return res.status(404).json({ error: 'Security Warning: This barcode was NEVER received into the store inventory! It must pass the Receiving Dock QC first.' });
+            }
+
+            return res.json({ success: true, message: 'Box validated and pulled to Prep successfully.' });
+        } catch (error) {
+            console.error('Pull to Prep Error:', error);
+            return res.status(500).json({ error: 'Failed to process Prep Pull' });
+        }
+    }
 }

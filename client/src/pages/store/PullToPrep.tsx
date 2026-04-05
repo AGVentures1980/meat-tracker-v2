@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
 interface PulledBox {
   id: string;
   barcode: string;
@@ -49,13 +48,20 @@ export default function PullToPrep() {
     if (barcode.length < 10) return null;
     
     // Mock parsing based on length/format
-    const weightMatch = barcode.match(/3102(\d{6})/);
-    const weight = weightMatch ? parseInt(weightMatch[1]) / 100 : (Math.random() * 20 + 40).toFixed(2);
+    const weightMatch = barcode.match(/(3102|3202|W)(\d{4,6})/);
+    let weight = (Math.random() * 20 + 40).toFixed(2);
+    if (weightMatch) {
+        if (weightMatch[1] === 'W') {
+            weight = (parseInt(weightMatch[2]) / 100).toFixed(2);
+        } else {
+            weight = (parseInt(weightMatch[2]) / 100).toFixed(2);
+        }
+    }
     
     return {
       weightLbs: Number(weight),
       lotNumber: barcode.substring(barcode.length - 6),
-      protein: 'Sirloin / Picanha' // Mock inference
+      protein: 'Protein Auto-Matched' // Mock inference
     };
   };
 
@@ -64,25 +70,35 @@ export default function PullToPrep() {
     
     setIsLoading(true);
     try {
-      // 1. Parse Barcode Locally for UI feedback
-      const parsedData = parseGS1128(barcode);
+      const cleanBarcode = barcode.replace(/[\(\)\[\]\s]/g, '');
+      const parsedData = parseGS1128(cleanBarcode);
       
       if (!parsedData) {
-        alert('Invalid GS1-128 Barcode');
-        setIsLoading(false);
-        setManualBarcode('');
+        alert('Invalid Barcode Format');
         return;
       }
 
-      // 2. Send to API (Mocked for now as backend controller is pending)
-      // await api.post(`/api/stores/${storeId}/prep/pull`, { barcode, ...parsedData });
-      
-      // Simulate API latency
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Important fix: Call the actual backend endpoint
+      const res = await fetch(`/api/v1/inventory/pull-to-prep`, {
+          method: 'POST',
+          headers: {
+              'Authorization': `Bearer ${user?.token}`,
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              store_id: user?.storeId,
+              barcode: cleanBarcode
+          })
+      });
+
+      if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || 'Failed to verify box in Store Inventory.');
+      }
 
       const newBox: PulledBox = {
         id: Math.random().toString(36).substr(2, 9),
-        barcode,
+        barcode: cleanBarcode,
         weightLbs: parsedData.weightLbs,
         lotNumber: parsedData.lotNumber,
         protein: parsedData.protein,
@@ -90,16 +106,16 @@ export default function PullToPrep() {
       };
 
       setPulledBoxes(prev => [newBox, ...prev]);
-      // alert(`Pulled ${newBox.weightLbs} lbs of ${newBox.protein}`);
       
       // Vibrate if supported (mobile/tablet UX)
       if (navigator.vibrate) {
         navigator.vibrate(200);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error pulling box:', error);
-      alert('Failed to register pulled box');
+      const msg = error.response?.data?.error || 'Failed to verify box in Store Inventory. Are you sure you received this box at the Dock?';
+      alert(msg);
     } finally {
       setIsLoading(false);
       setManualBarcode('');
