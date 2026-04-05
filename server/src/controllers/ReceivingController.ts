@@ -148,9 +148,9 @@ export const ReceivingController = {
 
                 return res.json({ status: 'REJECTED' });
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Scan Barcode Error:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
+            res.status(500).json({ error: error.message ? `CRASH TRACE: ${error.message.substring(0, 150)}` : 'Internal Server Error' });
         }
     },
 
