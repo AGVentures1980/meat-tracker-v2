@@ -360,6 +360,7 @@ export const WeeklyPriceInput = () => {
                                     </div>
                                     <div className="col-span-3">
                                         <select
+                                            title="System Mapping Selection"
                                             value={mapping[inv.id] || ''}
                                             onChange={(e) => setMapping({ ...mapping, [inv.id]: e.target.value })}
                                             className="w-full bg-[#111] border border-[#444] text-white text-xs p-2 rounded-sm outline-none focus:border-brand-gold"
@@ -372,6 +373,7 @@ export const WeeklyPriceInput = () => {
                                     </div>
                                     <div className="col-span-2">
                                         <input
+                                            title="Quantity in LBS"
                                             type="number"
                                             defaultValue={inv.quantity}
                                             onChange={(e) => {
@@ -383,6 +385,7 @@ export const WeeklyPriceInput = () => {
                                     </div>
                                     <div className="col-span-2">
                                         <input
+                                            title="Price Per LB"
                                             type="number"
                                             defaultValue={inv.price_per_lb}
                                             onChange={(e) => {
@@ -439,7 +442,7 @@ export const WeeklyPriceInput = () => {
                 </div>
                 <div className="flex flex-col items-end gap-3">
                     <div className="bg-[#1a1a1a] px-5 py-3 rounded-sm border border-white/10 text-right flex items-center gap-6 shadow-2xl">
-                        <button onClick={() => navigateWeek('prev')} className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-all">
+                        <button title="Previous Week" onClick={() => navigateWeek('prev')} className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-all">
                             <ChevronLeft className="w-6 h-6" />
                         </button>
                         <div>
@@ -449,7 +452,7 @@ export const WeeklyPriceInput = () => {
                                 {isLocked && <Lock className="w-4 h-4 text-red-500" />}
                             </div>
                         </div>
-                        <button onClick={() => navigateWeek('next')} className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-all">
+                        <button title="Next Week" onClick={() => navigateWeek('next')} className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-all">
                             <ChevronRight className="w-6 h-6" />
                         </button>
                     </div>
@@ -595,6 +598,7 @@ export const WeeklyPriceInput = () => {
                                                 <>
                                                     <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-600 text-[10px]">$</span>
                                                     <input
+                                                        title="Current Price"
                                                         type="number"
                                                         step="0.01"
                                                         value={item.current}
