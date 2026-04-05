@@ -113,7 +113,8 @@ If absolutely unknown, set "protein_name_from_roster": null`;
                                     company_id: companyId,
                                     protein_name: result.protein_name_from_roster,
                                     approved_item_code: gtin || barcode,
-                                    default_lbs: weight || null
+                                    approved_brand: "AI Auto-Mapped Manufacturer",
+                                    created_by: user.first_name + " " + user.last_name
                                 }
                             });
 
