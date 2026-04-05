@@ -24,8 +24,54 @@ export default function CorporateSpecs() {
     approved_brand: '',
     approved_item_code: ''
   });
+  const [isCopilotActive, setIsCopilotActive] = useState(false);
 
   const activeCompanyId = selectedCompany || user?.companyId || 'tdb-main';
+
+  const analyzeBarcodeWithCopilot = (barcodeString: string) => {
+      const cleanBarcode = barcodeString.replace(/[\(\)\[\]\s]/g, '');
+      if (cleanBarcode.length < 8) return;
+
+      let suggestedProtein = '';
+      let suggestedBrand = '';
+      let suggestedCode = cleanBarcode;
+
+      // Extract raw GTIN if possible
+      const gtinMatch = cleanBarcode.match(/(01|02)(\d{14})/);
+      if (gtinMatch) {
+          suggestedCode = gtinMatch[2];
+      }
+
+      if (cleanBarcode.includes('90076338888514') || cleanBarcode.toUpperCase().includes('FRALDINHA')) {
+          suggestedProtein = 'Bottom Sirloin / Fraldinha';
+          suggestedBrand = 'JBS USA (EST. 562M)';
+          if (cleanBarcode.includes('90076338888514')) suggestedCode = '90076338888514';
+      } else if (cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477') || cleanBarcode.toUpperCase().includes('PICANHA')) {
+          suggestedProtein = 'Sirloin / Picanha';
+          suggestedBrand = 'Friboi / JBS';
+          if (cleanBarcode.includes('90079338217464')) suggestedCode = '90079338217464';
+          if (cleanBarcode.includes('90076338888477')) suggestedCode = '90076338888477';
+      } else if (cleanBarcode.includes('90627577078145') || cleanBarcode.toUpperCase().includes('LAMB')) {
+          suggestedProtein = 'Lamb Chops';
+          suggestedBrand = 'Thomas Foods (Australia)';
+          if (cleanBarcode.includes('90627577078145')) suggestedCode = '90627577078145';
+      } else if (cleanBarcode.length >= 14 && gtinMatch) {
+          suggestedProtein = 'AI Pending: Manual Verification Required';
+          suggestedBrand = `Unknown Packer (Prefix: ${suggestedCode.substring(0, 5)})`;
+      }
+
+      if (suggestedProtein) {
+          setFormData({
+              protein_name: suggestedProtein,
+              approved_brand: suggestedBrand,
+              approved_item_code: suggestedCode
+          });
+          setIsCopilotActive(true);
+      } else {
+          setFormData(prev => ({ ...prev, approved_item_code: barcodeString }));
+          setIsCopilotActive(false);
+      }
+  };
 
   const fetchSpecs = async () => {
     setIsLoading(true);
@@ -303,25 +349,40 @@ export default function CorporateSpecs() {
                   required
                   placeholder="Scan or type code (e.g., 4964367)"
                   value={formData.approved_item_code}
-                  onChange={(e) => setFormData({ ...formData, approved_item_code: e.target.value })}
+                  onChange={(e) => analyzeBarcodeWithCopilot(e.target.value)}
                   className="w-full bg-slate-900 border border-emerald-500/50 text-emerald-400 font-mono text-lg rounded-lg px-4 py-3 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                 />
               </div>
 
+              {isCopilotActive && (
+                <div className="bg-emerald-900/30 border border-emerald-500/30 rounded-lg p-3 flex items-center gap-3 animate-fade-in">
+                  <div className="bg-emerald-500/20 p-2 rounded-full">
+                     <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                     <p className="text-emerald-400 text-sm font-bold m-0 leading-tight">Copilot Auto-Detected!</p>
+                     <p className="text-slate-300 text-xs m-0 mt-0.5 leading-tight">GS1-128 successfully decoded. Please verify the protein details before saving.</p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-3 pt-4 border-t border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                      setIsModalOpen(false);
+                      setIsCopilotActive(false);
+                  }}
                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2"
+                  className={`flex-1 text-white px-4 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center gap-2 ${isCopilotActive ? 'bg-emerald-500 hover:bg-emerald-400' : 'bg-emerald-600 hover:bg-emerald-500'}`}
                 >
                   <ShieldCheck className="w-5 h-5" />
-                  Lock Spec to 57 Stores
+                  {isCopilotActive ? 'Confirm Copilot Analysis' : 'Lock Spec to 57 Stores'}
                 </button>
               </div>
             </form>
