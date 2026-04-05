@@ -7,6 +7,7 @@ interface CorporateSpec {
   id: string;
   protein_name: string;
   approved_brand: string;
+  supplier: string | null;
   approved_item_code: string;
   created_at: string;
 }
@@ -33,6 +34,7 @@ export default function CorporateSpecs() {
   const [formData, setFormData] = useState({
     protein_name: '',
     approved_brand: '',
+    supplier: '',
     approved_item_code: ''
   });
   const [isCopilotActive, setIsCopilotActive] = useState(false);
@@ -187,6 +189,7 @@ export default function CorporateSpecs() {
                 company_id: activeCompanyId,
                 protein_name: formData.protein_name,
                 approved_brand: formData.approved_brand,
+                supplier: formData.supplier || null,
                 approved_item_code: formData.approved_item_code,
                 created_by: `${user?.first_name} ${user?.last_name}`
             })
@@ -196,7 +199,7 @@ export default function CorporateSpecs() {
         if (res.ok && data.success) {
             setSpecs([data.spec, ...specs]);
             setIsModalOpen(false);
-            setFormData({ protein_name: '', approved_brand: '', approved_item_code: '' });
+            setFormData({ protein_name: '', approved_brand: '', supplier: '', approved_item_code: '' });
         } else {
             alert('Failed to save compliance spec.');
         }
@@ -210,7 +213,8 @@ export default function CorporateSpecs() {
   const filteredSpecs = specs.filter(spec => 
     spec.protein_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     spec.approved_item_code.includes(searchTerm) ||
-    spec.approved_brand.toLowerCase().includes(searchTerm.toLowerCase())
+    spec.approved_brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (spec.supplier && spec.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleDelete = async (id: string) => {
@@ -320,6 +324,7 @@ export default function CorporateSpecs() {
               <tr>
                 <th className="px-6 py-4 rounded-tl-lg">Protein Category</th>
                 <th className="px-6 py-4">Approved Brand / Packer</th>
+                <th className="px-6 py-4">Authorized Supplier</th>
                 <th className="px-6 py-4">Locked Item Barcode</th>
                 <th className="px-6 py-4">Status & Sync</th>
                 <th className="px-6 py-4 text-right rounded-tr-lg">Actions</th>
@@ -328,7 +333,7 @@ export default function CorporateSpecs() {
             <tbody className="divide-y divide-slate-700/50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
                     <Loader2 className="w-8 h-8 mx-auto animate-spin mb-4 text-emerald-500" />
                     Loading Corporate Specs...
                   </td>
@@ -340,6 +345,13 @@ export default function CorporateSpecs() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="bg-slate-900/50 px-3 py-1 rounded-md border border-slate-700">{spec.approved_brand}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    {spec.supplier ? (
+                      <span className="bg-slate-800 px-3 py-1 rounded-md border border-slate-600 text-slate-300">{spec.supplier}</span>
+                    ) : (
+                      <span className="text-slate-500 italic text-xs">Direct / Any</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 font-mono text-emerald-400 bg-emerald-900/20 px-3 py-1 rounded-md w-fit border border-emerald-900/50">
@@ -409,6 +421,17 @@ export default function CorporateSpecs() {
                   placeholder="e.g., Farmland Foods"
                   value={formData.approved_brand}
                   onChange={(e) => setFormData({ ...formData, approved_brand: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Authorized Supplier <span className="text-slate-500 font-normal">(Optional)</span></label>
+                <input
+                  type="text"
+                  placeholder="e.g., Sysco, US Foods..."
+                  value={formData.supplier}
+                  onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
                   className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
                 />
               </div>
