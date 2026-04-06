@@ -22,7 +22,7 @@ export class AlertEngine {
                 severity: severity,
                 source: source,
                 description: description,
-                raw_data: rawData ? JSON.stringify(rawData) : null
+                raw_data: rawData || undefined
             }
         });
 

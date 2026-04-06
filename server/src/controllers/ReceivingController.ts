@@ -46,23 +46,32 @@ export const ReceivingController = {
                 }
             }
 
-            // 2. Barcode Decision Engine
-            const normalized = await BarcodeDecisionEngine.parse(barcode, verifiedStoreId || 1);
+            const { barcodeResult } = req.body;
+            let normalized: any = null;
 
-            if (normalized.status === 'unknown') {
-                if (verifiedStoreId) {
-                    await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'BARCODE_ENGINE', 'Unknown Barcode Format Detected', { barcode });
+            if (process.env.BARCODE_ENGINE_V2_ENABLED === 'true') {
+                if (!barcodeResult || barcodeResult.status !== 'VALID') {
+                    return res.status(400).json({ 
+                        error: 'Safe Operating Bounds Violated. Cannot accept un-normalized or un-safe generic barcodes.',
+                        status: barcodeResult?.status || 'INVALID',
+                        reason_code: barcodeResult?.reason_code || 'NO_PRE_FLIGHT_PARSE_FOUND'
+                    });
                 }
-                return res.status(400).json({ error: 'Unknown barcode format.' });
+                normalized = barcodeResult.normalized_object;
+            } else {
+                // V1 Fallback - Legacy Mode
+                normalized = await BarcodeDecisionEngine.parse(barcode, verifiedStoreId || 1);
+                if (normalized.status === 'unknown') {
+                    if (verifiedStoreId) await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'BARCODE_ENGINE', 'Unknown Barcode Format Detected', { barcode });
+                    return res.status(400).json({ error: 'Unknown barcode format.' });
+                }
             }
 
-            const finalGtin = gtin || normalized.gtin;
-            const finalWeight = weight || normalized.net_weight_lb;
-            normalized.gtin = finalGtin;
-            normalized.net_weight_lb = finalWeight;
+            const finalGtin = normalized.gtin || gtin;
+            const finalWeight = normalized.net_weight_lb || weight; // Fallback to body weight if explicitly serial/mapped
 
-            if (!finalGtin && normalized.barcode_type !== 'PROPRIETARY' && normalized.barcode_type !== 'INTERNAL') {
-                return res.status(400).json({ error: 'No GTIN detected in barcode' });
+            if (!finalGtin && normalized.barcode_type !== 'PROPRIETARY' && normalized.barcode_type !== 'INTERNAL' && normalized.barcode_type !== 'SERIAL') {
+                return res.status(400).json({ error: 'No GTIN detected in strictly mapped normalizer.' });
             }
             
             // 3. Compliance Engine
