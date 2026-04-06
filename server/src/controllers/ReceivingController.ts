@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { EmailService } from '../services/EmailService';
 import OpenAI from 'openai';
+import { BarcodeDecisionEngine } from '../services/BarcodeDecisionEngine';
+import { ComplianceEngine } from '../services/ComplianceEngine';
+import { AlertEngine } from '../services/AlertEngine';
 
 const prisma = new PrismaClient();
 
@@ -11,166 +14,96 @@ export const ReceivingController = {
             const user = (req as any).user;
             const { barcode, weight, gtin, store_id } = req.body;
             
-            // Identify multi-tenant company context
             let companyId = "tdb-main";
             let storeId = store_id || user.storeId;
-
-            // 1. Check strict JWT scope
+            let verifiedStoreId: number | null = null;
+            
             if (user.scope && user.scope.type === 'COMPANY') {
                 companyId = user.scope.companyId;
             } else if (storeId) {
-                // 2. Derive company from the physical store (Addison)
                 const parsedId = parseInt(storeId as string, 10);
                 if (!isNaN(parsedId)) {
                     const store = await prisma.store.findUnique({ where: { id: parsedId }});
                     if (store) companyId = store.company_id;
+                    verifiedStoreId = parsedId;
                 }
             }
             
-            // 3. Admin Fallback Shield: If we are STILL 'tdb-main', it means an Admin is testing without a store.
-            // We MUST bind them to the actual Texas de Brazil UUID, otherwise Addison won't see their specs!
             if (companyId === "tdb-main") {
                 const tdb = await prisma.company.findFirst({
                     where: { name: { contains: 'Texas de Brazil', mode: 'insensitive' } }
                 });
-                if (tdb) {
-                    companyId = tdb.id;
+                if (tdb) companyId = tdb.id;
+            }
+
+            // 1. Fallback DEMO Patterns logic natively injected back into integration
+            const DEMO_PATTERNS: Record<string, string> = { "PICANHA": "Picanha", "FRALDINHA": "Fraldinha", "LOMBO": "Pork Loin / Lombo", "CHORIZO": "Chorizo", "MIGNON": "Filet Mignon" };
+            const upperBarcode = barcode ? barcode.toUpperCase() : "";
+            for (const [key, protein] of Object.entries(DEMO_PATTERNS)) {
+                if (upperBarcode.includes(key)) {
+                    if (verifiedStoreId) await prisma.receivingEvent.create({ data: { store_id: verifiedStoreId, scanned_barcode: barcode, status: 'ACCEPTED', gtin: "DEMO" } });
+                    return res.json({ status: 'APPROVED', protein, weight });
                 }
             }
 
-            if (!gtin) {
-                 return res.status(400).json({ error: 'No GTIN detected in barcode' });
-            }
+            // 2. Barcode Decision Engine
+            const normalized = await BarcodeDecisionEngine.parse(barcode, verifiedStoreId || 1);
 
-            const specs = await prisma.corporateProteinSpec.findMany({
-                where: { company_id: companyId }
-            });
-
-            const spec = specs.find(s => {
-                const isPseudoApp = s.approved_item_code.startsWith('NZ-ME');
-                const isPseudoGtin = gtin && gtin.startsWith('NZ-ME');
-
-                let cleanAppCode = isPseudoApp ? s.approved_item_code : s.approved_item_code.replace(/\D/g, '');
-                const cleanGtin = gtin ? (isPseudoGtin ? gtin : gtin.replace(/\D/g, '')) : '';
-                
-                // If David accidentally registered the GTIN including the Application Identifier like "0190627577091328"
-                if (!isPseudoApp && cleanAppCode.length === 16 && (cleanAppCode.startsWith('01') || cleanAppCode.startsWith('02'))) {
-                    cleanAppCode = cleanAppCode.substring(2);
-                }
-
-                // STRICT MATCH ONLY!
-                // Do not use `.includes()` randomly because different cuts share the same manufacturer prefix!
-                if (cleanGtin && cleanAppCode) {
-                    if (cleanGtin === cleanAppCode) return true;
-                    if (!isPseudoGtin && !isPseudoApp && cleanGtin.padStart(14, '0') === cleanAppCode.padStart(14, '0')) return true;
-                    
-                    // Provide a slight leeway if the actual exact GTIN is embedded safely at the end
-                    if (cleanAppCode.length >= 13 && cleanGtin.endsWith(cleanAppCode)) return true;
-                    if (cleanGtin.length >= 13 && cleanAppCode.endsWith(cleanGtin)) return true;
-
-                    // THE SKU RESOLVER: 
-                    // Supply Chain often registers the 5-digit vendor SKU (e.g., '88851') instead of the 14-digit GTIN.
-                    // In a standard 14-digit GS1 GTIN, the short SKU appears exactly before the final Check Digit!
-                    // If we slice off the final check digit, does the string end with David's registered code?
-                    if (cleanGtin.length >= 13 && cleanAppCode.length >= 4) {
-                        const gtinWithoutCheckDigit = cleanGtin.slice(0, -1);
-                        if (gtinWithoutCheckDigit.endsWith(cleanAppCode)) {
-                            return true;
-                        }
-                    }
-                }
-
-                return barcode === s.approved_item_code;
-            });
-
-            let verifiedStoreId: number | null = null;
-            if (storeId) {
-                const parsedId = parseInt(storeId as string, 10);
-                if (!isNaN(parsedId)) {
-                    const storeExists = await prisma.store.findUnique({ where: { id: parsedId }});
-                    if (storeExists) {
-                        verifiedStoreId = parsedId;
-                    }
-                }
-            }
-
-            if (spec) {
-                // GTIN Mapped!
+            if (normalized.status === 'unknown') {
                 if (verifiedStoreId) {
-                    try {
-                        await prisma.barcodeScanEvent.create({
-                            data: {
-                                store_id: verifiedStoreId,
-                                scanned_barcode: barcode,
-                                gtin: gtin,
-                                is_approved: true
-                            }
-                        });
-                    } catch (e) {
-                        console.error('Failed to log approved scan:', e);
-                    }
+                    await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'BARCODE_ENGINE', 'Unknown Barcode Format Detected', { barcode });
                 }
+                return res.status(400).json({ error: 'Unknown barcode format.' });
+            }
 
-                return res.json({ 
-                    status: 'APPROVED', 
-                    protein: spec.protein_name, 
-                    weight 
-                });
-            } else {
-                // GTIN is Unmapped! The Garcia Rule forbids auto-approval via AI.
-                // We proceed directly to Manual Fallback / Rejection.
+            const finalGtin = gtin || normalized.gtin;
+            const finalWeight = weight || normalized.net_weight_lb;
+            normalized.gtin = finalGtin;
+            normalized.net_weight_lb = finalWeight;
 
-                // AI Failed or Unrecognized - Proceed to Manual Fallback
-                if (verifiedStoreId) {
-                    try {
-                        await prisma.barcodeScanEvent.create({
-                            data: {
-                                store_id: verifiedStoreId,
-                                scanned_barcode: barcode,
-                                gtin: gtin,
-                                is_approved: false
-                            }
-                        });
-                    } catch (e) {
-                        console.error('Failed to log rejected scan:', e);
-                    }
-                }
+            if (!finalGtin && normalized.barcode_type !== 'PROPRIETARY' && normalized.barcode_type !== 'INTERNAL') {
+                return res.status(400).json({ error: 'No GTIN detected in barcode' });
+            }
+            
+            // 3. Compliance Engine
+            const compliance = await ComplianceEngine.evaluate(normalized, companyId);
 
-                // If NOT FOUND, this is an UNAUTHORIZED SUBSTITUTION
-                // UNLESS it's David (Admin/Director), then allow him to map it on the fly.
-                if (user.role === 'admin' || user.role === 'director' || user.role === 'owner' || user.role === 'partner') {
-                    
-                    const roster = await prisma.companyProduct.findMany({
-                        where: { company_id: companyId },
-                        select: { name: true }
-                    });
-
-                    return res.json({
-                        status: 'UNMAPPED_ALLOW_MAPPING',
-                        gtin,
-                        roster: roster.map(r => r.name)
-                    });
-                }
-
-                // Extreme Production Diagnostic Trace: Capture EXACTLY why Addison is failing
-                await prisma.barcodeScanEvent.create({
+            if (verifiedStoreId) {
+                await prisma.receivingEvent.create({
                     data: {
-                        store_id: storeId ? parseInt(storeId, 10) : 1,
-                        scanned_barcode: barcode + ` || COMP:${companyId} || GTIN:${gtin} || USER_SID:${user.storeId} || ROLE:${user.role}`,
-                        is_approved: false
+                        store_id: verifiedStoreId,
+                        scanned_barcode: barcode,
+                        gtin: finalGtin,
+                        product_code: normalized.product_code,
+                        weight: finalWeight,
+                        supplier: compliance.specMatched?.supplier || "Unknown",
+                        status: compliance.status,
+                        alert_severity: compliance.status === 'REJECTED' ? 'CRITICAL' : (compliance.status === 'ACCEPTED_WITH_WARNING' ? 'WARNING' : 'INFO')
                     }
                 });
 
-                // If not an admin, it's a hard rejection. Send Alert.
-                await EmailService.sendQCAlert({
-                    storeId,
-                    barcode,
-                    user: user.first_name + " " + user.last_name,
-                    reason: "Unauthorized GTIN scanned during Receiving"
-                });
-
-                return res.json({ status: 'REJECTED' });
+                if (compliance.status === 'REJECTED') {
+                    await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'COMPLIANCE', 'Receiving Scanner Rejection', { barcode, details: compliance.details });
+                } else if (compliance.status === 'ACCEPTED_WITH_WARNING') {
+                    await AlertEngine.trigger(verifiedStoreId, 'WARNING', 'COMPLIANCE', 'Receiving Tracker Exception', { barcode, details: compliance.details });
+                }
             }
+
+            if (compliance.status === 'REJECTED') {
+                 if (user.role === 'admin' || user.role === 'director' || user.role === 'owner' || user.role === 'partner') {
+                    const roster = await prisma.companyProduct.findMany({ where: { company_id: companyId }, select: { name: true }});
+                    return res.json({ status: 'UNMAPPED_ALLOW_MAPPING', gtin: finalGtin, roster: roster.map(r => r.name) });
+                }
+                return res.json({ status: 'REJECTED', details: compliance.details });
+            }
+            
+            return res.json({ 
+                status: compliance.status === 'ACCEPTED' ? 'APPROVED' : compliance.status, 
+                protein: compliance.specMatched?.protein_name || normalized.product_name, 
+                weight: finalWeight,
+                details: compliance.details 
+            });
+
         } catch (error: any) {
             console.error('Scan Barcode Error:', error);
             res.status(500).json({ error: error.message ? `CRASH TRACE: ${error.message.substring(0, 150)}` : 'Internal Server Error' });
