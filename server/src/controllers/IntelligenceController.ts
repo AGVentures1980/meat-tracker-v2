@@ -439,4 +439,162 @@ If you absolutely cannot find any info, STILL return found: true but with protei
             return res.status(500).json({ success: false, error: 'Failed to fetch pilot data' });
         }
     }
+    
+    /**
+     * POST /api/v1/intelligence/ocr/invoice
+     * Processes OCR text from an uploaded invoice, matches against Corporate Specs,
+     * and flags PRICE_DRIFT_ALERT if the invoiced price exceeds the contracted price.
+     */
+    static async processInvoiceOCR(req: Request, res: Response) {
+        try {
+            const { ocrText, invoiceId, storeId } = req.body;
+            const targetStoreId = storeId || (req as any).user?.storeId;
+
+            if (!ocrText || !targetStoreId) {
+                return res.status(400).json({ error: 'ocrText and storeId are required' });
+            }
+
+            // 1. Fetch Corporate Specs to get Baseline Prices
+            const store = await prisma.store.findUnique({ 
+                where: { id: targetStoreId },
+                include: { company: true }
+            });
+
+            if (!store) {
+                return res.status(404).json({ error: 'Store not found' });
+            }
+
+            const specs = await prisma.corporateProteinSpec.findMany({
+                where: { company_id: store.company_id }
+            });
+
+            // Map specs for prompt
+            const specList = specs.map(s => `${s.protein_name} (Max Price: $${s.cost_per_lb || 'Unknown'}/lb)`).join(', ');
+
+            // 2. OpenAI Extraction
+            const openai = new OpenAI();
+            const prompt = `You are a Supply Chain Auditing AI. Extract line items from this raw invoice OCR text.
+Here are the corporate approved proteins: ${specList}.
+Match the items on the invoice to these approved proteins.
+
+RAW OCR TEXT:
+---
+${ocrText}
+---
+
+Extract an array of "items" with these fields:
+- "protein_name" (mapped to one of our approved proteins, or exact name if not found)
+- "invoiced_price_per_lb" (float)
+- "weight" (total lbs, float)
+- "supplier" (string)
+
+Return EXACTLY a JSON object with {"items": [...]}. No markup, no markdown.`;
+
+            const completion = await openai.chat.completions.create({
+                messages: [{ role: 'user', content: prompt }],
+                model: 'gpt-4o',
+                temperature: 0.1,
+                response_format: { type: "json_object" }
+            });
+
+            const content = completion.choices[0].message.content;
+            if (!content) throw new Error("No response from OCR AI");
+            
+            const result = JSON.parse(content);
+            const processedItems = [];
+
+            // 3. Process each item and apply Price Governance
+            for (const item of result.items) {
+                const spec = specs.find(s => s.protein_name.toLowerCase() === item.protein_name.toLowerCase());
+                
+                let status = "APPROVED_PRICE";
+                let alertSeverity = null;
+                let variance = 0;
+
+                // Drift detection logic
+                if (spec && spec.cost_per_lb && item.invoiced_price_per_lb) {
+                    if (item.invoiced_price_per_lb > spec.cost_per_lb) {
+                        status = "PRICE_DRIFT_ALERT";
+                        alertSeverity = "HIGH";
+                        variance = item.invoiced_price_per_lb - spec.cost_per_lb;
+                    }
+                } else if (!spec) {
+                    status = "UNMAPPED_ITEM_ALERT";
+                    alertSeverity = "MEDIUM";
+                }
+
+                // Create the Receiving Event for the invoice line
+                const event = await prisma.receivingEvent.create({
+                    data: {
+                        store_id: targetStoreId,
+                        scanned_barcode: `INV_OCR_${invoiceId || Date.now()}`,
+                        product_code: item.protein_name,
+                        weight: item.weight,
+                        supplier: item.supplier,
+                        status: status,
+                        alert_severity: alertSeverity,
+                        invoice_id: invoiceId || "UNKNOWN",
+                        invoiced_price_per_lb: item.invoiced_price_per_lb
+                    }
+                });
+
+                processedItems.push({
+                    id: event.id,
+                    protein: item.protein_name,
+                    invoiced_price: item.invoiced_price_per_lb,
+                    contract_price: spec?.cost_per_lb || null,
+                    variance: variance,
+                    status: status
+                });
+            }
+
+            return res.json({
+                success: true,
+                invoice_id: invoiceId,
+                total_items_processed: processedItems.length,
+                results: processedItems
+            });
+
+        } catch (error) {
+            console.error('OCR Invoice Processing Error:', error);
+            return res.status(500).json({ success: false, error: 'Failed to process invoice OCR' });
+        }
+    }
+
+    /**
+     * GET /api/v1/intelligence/ocr/drifts
+     * Fetches all PRICE_DRIFT_ALERT items for the executives to audit and block supplier payments.
+     */
+    static async getPriceDrifts(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            // Get drifting issues within the user's domain
+            const drifts = await prisma.receivingEvent.findMany({
+                where: {
+                    status: 'PRICE_DRIFT_ALERT'
+                },
+                include: { store: true },
+                orderBy: { created_at: 'desc' },
+                take: 50
+            });
+
+            return res.json({
+                success: true,
+                drifts: drifts.map(d => ({
+                    id: d.id,
+                    store: d.store.store_name,
+                    item: d.product_code,
+                    supplier: d.supplier,
+                    invoiced_price: d.invoiced_price_per_lb,
+                    variance_estimated: 'Unknown %', // Would need exact spec price here, assuming >0
+                    date: d.created_at,
+                    invoice_id: d.invoice_id
+                }))
+            });
+
+        } catch (error) {
+            console.error('OCR Drifts Error:', error);
+            return res.status(500).json({ success: false, error: 'Failed to fetch price drifts' });
+        }
+    }
 }

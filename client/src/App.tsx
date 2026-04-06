@@ -59,6 +59,7 @@ import MeatYieldStation from './pages/store/MeatYieldStation';
 import EndOfShiftAudit from './pages/store/EndOfShiftAudit';
 import JVPDashboard from './pages/executive/JVPDashboard';
 import { FraudAuditReport } from './pages/executive/FraudAuditReport';
+import QuarantineInbox from './pages/executive/QuarantineInbox';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -204,6 +205,7 @@ function AppContent() {
                     <Route path="/yield-station" element={<GovernanceGuard><MeatYieldStation /></GovernanceGuard>} />
                     <Route path="/end-of-shift-audit" element={<GovernanceGuard><EndOfShiftAudit /></GovernanceGuard>} />
                     <Route path="/forecast" element={<GovernanceGuard><ForecastPage /></GovernanceGuard>} />
+                    <Route path="/quarantine-inbox" element={<QuarantineInbox />} />
                     <Route path="/command-center" element={<CommandCenter />} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/jvp-dashboard" element={<GovernanceGuard><JVPDashboard /></GovernanceGuard>} />
@@ -240,12 +242,14 @@ function AppContent() {
 
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { NetworkSyncManager } from './components/NetworkSyncManager';
 
 function App() {
     return (
         <ThemeProvider>
             <AuthProvider>
                 <LanguageProvider>
+                    <NetworkSyncManager />
                     <AppContent />
                 </LanguageProvider>
             </AuthProvider>

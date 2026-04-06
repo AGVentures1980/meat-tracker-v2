@@ -22,14 +22,15 @@ export default function MeatYieldStation() {
   // Yield State
   const [boxWeight, setBoxWeight] = useState<string>('');
   const [scrapWeight, setScrapWeight] = useState<string>('');
-  const [yieldResult, setYieldResult] = useState<{ pct: number, status: 'GOOD' | 'WARN' | 'BAD' } | null>(null);
+  const [yieldResult, setYieldResult] = useState<{ pct: number, status: 'GOOD' | 'WARN' | 'BAD' | 'QUARANTINED', quarantineReason?: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Portion State
   const [targetOz, setTargetOz] = useState<string>('6.0');
   const [actualOz, setActualOz] = useState<string>('');
   const [portionResult, setPortionResult] = useState<{ variance: number, status: 'GOOD' | 'WARN' | 'BAD' } | null>(null);
 
-  const calculateYield = () => {
+  const calculateYield = async () => {
     const box = parseFloat(boxWeight);
     const scrap = parseFloat(scrapWeight);
     
@@ -43,15 +44,65 @@ export default function MeatYieldStation() {
       return;
     }
 
-    const netYield = box - scrap;
-    const pct = (netYield / box) * 100;
-    
-    let status: 'GOOD' | 'WARN' | 'BAD' = 'GOOD';
-    if (pct < 80) status = 'BAD';
-    else if (pct < 85) status = 'WARN';
+    try {
+      setIsSubmitting(true);
+      
+      // Call the API instead of hardcoded math
+      const token = localStorage.getItem('token');
+      // Replace with dynamic store selection if needed, hardcode to TDB for MVP demo if context unmounted
+      const storeIdToUse = 'current-store-id'; 
+      
+      if (!navigator.onLine) {
+          import('../../services/OfflineQueue').then(({ OfflineQueue }) => {
+              OfflineQueue.push(`/api/v1/yield/${storeIdToUse}/log`, 'POST', {
+                  boxWeightLbs: box,
+                  scrapWeightLbs: scrap,
+                  protein: 'Default Meat'
+              });
+          });
+          const offlinePct = (scrap / box) * 100;
+          setYieldResult({ 
+              pct: offlinePct, 
+              status: 'APPROVED', 
+              quarantineReason: 'OFFLINE_MODE_SAVED' 
+          });
+          setIsSubmitting(false);
+          return;
+      }
+      
+      const response = await fetch(`/api/v1/yield/${storeIdToUse}/log`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          boxWeightLbs: box,
+          scrapWeightLbs: scrap,
+          protein: 'Default Meat' // We can expand to protein select later
+        })
+      });
 
-    setYieldResult({ pct, status });
-    // alert('Yield Calculated');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        alert('Error: ' + (data.error || 'Failed to submit yield'));
+        return;
+      }
+
+      setYieldResult({ 
+        pct: data.data.yieldPct, 
+        status: data.data.status,
+        quarantineReason: data.data.quarantineReason 
+      });
+
+    } catch (error) {
+      console.error('Yield Error:', error);
+      alert('Network error submitting yield');
+    } finally {
+      setIsSubmitting(true);
+      setIsSubmitting(false); // Reset
+    }
   };
 
   const calculatePortion = () => {
@@ -73,11 +124,12 @@ export default function MeatYieldStation() {
     setPortionResult({ variance, status });
   };
 
-  const getStatusColor = (status?: 'GOOD' | 'WARN' | 'BAD') => {
+  const getStatusColor = (status?: 'GOOD' | 'WARN' | 'BAD' | 'QUARANTINED') => {
     switch (status) {
       case 'GOOD': return 'text-green-500 bg-green-500/10 border-green-500/30';
       case 'WARN': return 'text-amber-500 bg-amber-500/10 border-amber-500/30';
       case 'BAD': return 'text-red-500 bg-red-500/10 border-red-500/30';
+      case 'QUARANTINED': return 'text-red-500 bg-red-500/10 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)]';
       default: return 'text-neutral-400 bg-neutral-800 border-neutral-700';
     }
   };
@@ -167,9 +219,12 @@ export default function MeatYieldStation() {
 
                 <button 
                   onClick={calculateYield}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-2xl py-6 rounded-2xl transition-colors shadow-lg active:scale-[0.98]"
+                  disabled={isSubmitting}
+                  className={`w-full font-bold text-2xl py-6 rounded-2xl transition-colors shadow-lg active:scale-[0.98] ${
+                    isSubmitting ? 'bg-indigo-800 text-white/50 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                  }`}
                 >
-                  Calculate Net Yield
+                  {isSubmitting ? 'Submitting & Auditing...' : 'Calculate Net Yield'}
                 </button>
               </div>
 
@@ -183,14 +238,26 @@ export default function MeatYieldStation() {
                     </div>
                     
                     {yieldResult.status === 'BAD' && (
-                      <div className="bg-red-500/20 text-red-400 p-4 rounded-xl flex items-center justify-center space-x-3 border border-red-500/30">
-                        <AlertTriangle className="w-8 h-8" />
+                      <div className="bg-red-500/20 text-red-500 p-4 rounded-xl flex items-center justify-center space-x-3 border border-red-500/30">
+                        <AlertTriangle className="w-8 h-8 flex-shrink-0" />
                         <span className="text-xl font-bold">Unacceptable Yield. Manager Alerted.</span>
+                      </div>
+                    )}
+                    {yieldResult.status === 'QUARANTINED' && (
+                      <div className="bg-red-900/60 text-white p-6 rounded-2xl flex items-center shadow-2xl border border-red-500 animate-pulse">
+                        <AlertTriangle className="w-12 h-12 text-red-400 mr-6 flex-shrink-0" />
+                        <div className="text-left space-y-1">
+                          <h4 className="text-2xl font-black">YIELD QUARANTINED</h4>
+                          <p className="text-sm font-medium text-red-200">
+                             {yieldResult.quarantineReason || "Fat/Trim threshold exceeded global tolerance."}
+                             <br/>The Supply Chain officer must approve this anomaly.
+                          </p>
+                        </div>
                       </div>
                     )}
                     {yieldResult.status === 'GOOD' && (
                       <div className="bg-green-500/20 text-green-400 p-4 rounded-xl flex items-center justify-center space-x-3 border border-green-500/30">
-                        <CheckCircle2 className="w-8 h-8" />
+                        <CheckCircle2 className="w-8 h-8 flex-shrink-0" />
                         <span className="text-xl font-bold">Excellent Yield!</span>
                       </div>
                     )}

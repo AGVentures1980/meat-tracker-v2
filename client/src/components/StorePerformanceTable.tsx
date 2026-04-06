@@ -26,6 +26,7 @@ export interface StorePerformance {
     portionVariancePct?: number;
     priceDriftPerLb?: number;
     executionImpact?: number;
+    hasQCAlert?: boolean;
 }
 
 interface StorePerformanceTableProps {
@@ -60,7 +61,7 @@ export const StorePerformanceTable = ({ data, loading, summary }: StorePerforman
             // Slight boost for saving
             score += 2;
         }
-        // if (store.hasQCAlert) score -= 15;
+        if (store.hasQCAlert) score -= 15;
         return Math.max(0, Math.min(100, score));
     };
 
@@ -76,7 +77,7 @@ export const StorePerformanceTable = ({ data, loading, summary }: StorePerforman
                 <div className="flex space-x-2">
                     <div className={`px-4 py-2 rounded border uppercase tracking-wider font-bold text-sm shadow-inner flex items-center gap-2 ${totalNetworkSavings < 0 ? 'bg-red-900/40 text-red-400 border-red-900/50' : 'bg-green-900/20 text-green-400 border-green-900/40'}`}>
                         {totalNetworkSavings < 0 ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />}
-                        Net Network {totalNetworkSavings < 0 ? 'Shrinkage' : 'Yield Savings'}: 
+                        Net Network {totalNetworkSavings < 0 ? 'WTD Shrinkage' : 'WTD Yield Savings'}: 
                         {totalNetworkSavings < 0 ? '-$' : '+$'}{Math.abs(totalNetworkSavings).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </div>
                 </div>
@@ -101,7 +102,7 @@ export const StorePerformanceTable = ({ data, loading, summary }: StorePerforman
                             <th className="px-4 py-4 text-right">Cost / Guest</th>
                             <th className="px-4 py-4 text-right border-r border-white/10">Variance (Lbs)</th>
 
-                            <th className="px-4 py-4 text-right text-brand-gold bg-black/20 text-sm">Yield Savings / (Shrinkage)</th>
+                            <th className="px-4 py-4 text-right text-brand-gold bg-black/20 text-sm">WTD Yield Savings / (Shrinkage)</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5 font-mono text-sm shadow-inner">

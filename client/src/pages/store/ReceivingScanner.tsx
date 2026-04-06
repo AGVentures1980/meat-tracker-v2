@@ -103,6 +103,20 @@ export default function ReceivingScanner() {
     setRoster([]);
     setSelectedProtein('');
     
+    if (!navigator.onLine) {
+        import('../../services/OfflineQueue').then(({ OfflineQueue }) => {
+            OfflineQueue.push('/api/v1/compliance/offline-sync', 'POST', {
+                raw_barcode: inputBarcode,
+                weight: manualWeightOverride || 0,
+                store_id: user?.storeId
+            });
+        });
+        setScanResult('APPROVED');
+        setResultMessage('WIFI DOWN. Saved to local device memory. Will sync later.');
+        setTimeout(() => resetScanner(), 3000);
+        return;
+    }
+    
     try {
       // Sprint 5 Barcode Engine V2 Integration
       // We delegate ALL extraction (GTIN, Weight, Logic) to the unified /parse layer.

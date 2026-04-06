@@ -17,22 +17,22 @@
             margin: 0;
         }
     </style>
-  <script type="module" crossorigin src="/assets/index-CaFnt6Tz.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-C9rQRLWw.css">
+  <script type="module" crossorigin src="/assets/index-CV8BcLDl.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-rqTf13S1.css">
 <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
 
 <body>
     <div id="root"></div>
-    <script>
-        // Force unregister service workers to break aggressive PWA caching loop
+        // Register Brasa Offline Resilience Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function (registrations) {
-                for (let registration of registrations) {
-                    registration.unregister();
-                }
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
             });
         }
-    </script>
 </body>
 
 </html>

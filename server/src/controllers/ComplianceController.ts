@@ -9,7 +9,7 @@ export class ComplianceController {
   // Corporate Chef (David) calls this to save an approved barcode spec for the network.
   async createCorporateSpec(req: Request, res: Response) {
     try {
-      const { company_id, protein_name, approved_brand, supplier, approved_item_code, created_by } = req.body;
+      const { company_id, protein_name, approved_brand, supplier, approved_item_code, created_by, cost_per_lb } = req.body;
       
       const user = (req as any).user;
       
@@ -30,6 +30,7 @@ export class ComplianceController {
                           approved_brand,
                           supplier: supplier || null,
                           approved_item_code,
+                          cost_per_lb: cost_per_lb ? parseFloat(cost_per_lb) : null,
                           created_by
                       }
                   })
@@ -54,6 +55,7 @@ export class ComplianceController {
           approved_brand,
           supplier: supplier || null,
           approved_item_code,
+          cost_per_lb: cost_per_lb ? parseFloat(cost_per_lb) : null,
           created_by
         }
       });

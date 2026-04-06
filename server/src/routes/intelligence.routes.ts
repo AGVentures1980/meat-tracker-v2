@@ -13,6 +13,10 @@ router.get('/supply-suggestions', requireAuth, IntelligenceController.getSupplyS
 // Dynamic Agent GTIN Resolution
 router.get('/resolve-gtin', requireAuth, IntelligenceController.resolveGTIN);
 
+// Invoice Intelligence (OCR)
+router.post('/ocr/invoice', requireAuth, IntelligenceController.processInvoiceOCR);
+router.get('/ocr/drifts', requireAuth, IntelligenceController.getPriceDrifts);
+
 // 90-Day Pilot Tracker API
 router.get('/pilot-dashboard', requireAuth, IntelligenceController.getPilotDashboard);
 

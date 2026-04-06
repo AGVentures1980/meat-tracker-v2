@@ -23,12 +23,27 @@ export const CorpProcurement = () => {
         }, 1500);
     };
 
-    // Mock Data for the Stealth Flow Demonstration
-    const topOpportunities = [
-        { item: 'Picanha - CAB', store: 'Dallas', pricePaid: 6.89, hiveMind: 6.35, marketIndex: 6.10, variancePct: 8.5, impact: 1250 },
-        { item: 'Lamb Chops', store: 'Addison', pricePaid: 18.50, hiveMind: 16.90, marketIndex: 16.50, variancePct: 9.4, impact: 840 },
-        { item: 'Chicken Breast', store: 'Fort Worth', pricePaid: 1.95, hiveMind: 1.75, marketIndex: 1.70, variancePct: 11.4, impact: 320 },
-    ];
+    const [topOpportunities, setTopOpportunities] = useState<any[]>([]);
+    const [loadingDrifts, setLoadingDrifts] = useState(true);
+
+    React.useEffect(() => {
+        const fetchDrifts = async () => {
+            try {
+                const res = await fetch('/api/v1/intelligence/ocr/drifts', {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setTopOpportunities(data.drifts || []);
+                }
+            } catch (e) {
+                console.error("Failed to fetch OCR drifts", e);
+            } finally {
+                setLoadingDrifts(false);
+            }
+        };
+        fetchDrifts();
+    }, [user]);
 
     const recentInvoices = [
         { id: 'INV-0992', date: 'Today', store: 'Dallas', status: 'Ingested (Stealth)', items: 45, value: 5400 },
@@ -133,22 +148,30 @@ export const CorpProcurement = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {topOpportunities.map((opp, i) => (
+                                {loadingDrifts ? (
+                                    <tr>
+                                        <td colSpan={4} className="p-4 text-center text-gray-500 text-sm">Auditing Invoices...</td>
+                                    </tr>
+                                ) : topOpportunities.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="p-4 text-center text-[#00FF94] text-sm">No Price Drifts Detected</td>
+                                    </tr>
+                                ) : topOpportunities.map((opp, i) => (
                                     <tr key={i} className="border-b border-[#333] hover:bg-white/5 transition-colors">
                                         <td className="p-3">
                                             <div className="font-medium text-sm text-white">{opp.item}</div>
                                             <div className="text-xs text-gray-500">{opp.store}</div>
                                         </td>
                                         <td className="p-3">
-                                            <div className="text-red-400 font-mono text-sm">${opp.pricePaid.toFixed(2)}</div>
-                                            <div className="text-[10px] text-red-500">+{opp.variancePct}% Over</div>
+                                            <div className="text-red-400 font-mono text-sm">${opp.invoiced_price?.toFixed(2)}</div>
+                                            <div className="text-[10px] text-red-500">PRICE DRIFT DETECTED</div>
                                         </td>
                                         <td className="p-3">
-                                            <div className="text-gray-300 font-mono text-sm">H: ${opp.hiveMind.toFixed(2)}</div>
-                                            <div className="text-gray-500 font-mono text-xs">U: ${opp.marketIndex.toFixed(2)}</div>
+                                            <div className="text-gray-300 font-mono text-sm">Source: OCR</div>
+                                            <div className="text-gray-500 font-mono text-xs">Inv: {opp.invoice_id}</div>
                                         </td>
                                         <td className="p-3 text-right">
-                                            <div className="text-white font-medium text-sm">${opp.impact}/wk</div>
+                                            <button className="px-3 py-1 bg-[#222] border border-red-500/30 text-red-400 text-xs rounded hover:bg-red-500/10">Block Payment</button>
                                         </td>
                                     </tr>
                                 ))}

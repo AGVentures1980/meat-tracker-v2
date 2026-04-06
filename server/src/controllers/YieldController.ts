@@ -29,9 +29,36 @@ export class YieldController {
 
       const netYield = boxWeight - scrapWeight;
       const yieldPct = (netYield / boxWeight) * 100;
+      const lossPct = (scrapWeight / boxWeight) * 100;
 
-      // In a real scenario, this would save to a new Prisma model like 'YieldLog'
-      // For the A La Carte expansion MVP, we mock the success response to feed the UI.
+      // 1. Fetch Corporate Specs limits (Default to 20% if not found)
+      let maxAllowedLoss = 20.0;
+      const spec = await prisma.corporateProteinSpec.findFirst({
+         where: { company_id: companyId, protein_name: protein }
+      });
+      if (spec && spec.max_yield_loss_percent) {
+         maxAllowedLoss = spec.max_yield_loss_percent;
+      }
+
+      const isQuarantined = lossPct > maxAllowedLoss;
+      const status = isQuarantined ? 'QUARANTINED' : (yieldPct >= 85 ? 'GOOD' : yieldPct >= 80 ? 'WARN' : 'BAD');
+      
+      const quarantineReason = isQuarantined 
+          ? `CRITICAL EXCEPTION: Fat/Trim loss was ${lossPct.toFixed(1)}%, exceeding the corporate maximum threshold of ${maxAllowedLoss}%. Awaiting Supply Chain Review.` 
+          : null;
+
+      // 2. Persist the TrimRecordEvent for auditing and AI forecasting baseline
+      const trimRecord = await prisma.trimRecordEvent.create({
+          data: {
+              store_id: parseInt(storeId, 10),
+              protein_name: protein || 'Unknown',
+              input_weight: boxWeight,
+              trim_weight: scrapWeight,
+              yield_pct: yieldPct,
+              status: isQuarantined ? 'QUARANTINED' : 'APPROVED',
+              quarantine_reason: quarantineReason
+          }
+      });
 
       const result = {
         storeId,
@@ -40,17 +67,20 @@ export class YieldController {
         scrapWeight,
         netYield,
         yieldPct,
-        status: yieldPct >= 85 ? 'GOOD' : yieldPct >= 80 ? 'WARN' : 'BAD',
+        lossPct,
+        status,
+        quarantineReason,
+        trimRecordId: trimRecord.id,
         loggedAt: new Date().toISOString()
       };
 
       // Mock Audit Log entry
       await prisma.auditLog.create({
         data: {
-          action: 'LOG_YIELD',
+          action: isQuarantined ? 'QUARANTINED_YIELD_EVENT' : 'LOG_YIELD',
           resource: `Store ${storeId} - ${protein}`,
           details: result,
-          location: `YieldController - ALACARTE`,
+          location: `YieldController - ALACARTE / RODIZIO`,
           user_id: userId || 'system'
         }
       });
@@ -177,6 +207,80 @@ export class YieldController {
     } catch (error) {
       console.error('YieldController.saveGhostMathAudit Error:', error);
       return res.status(500).json({ error: 'Failed to save EOD ghost math.' });
+    }
+  }
+
+  /**
+   * Fetches the Quarantine Queue for the current Executive / Supply Chain user
+   */
+  async getQuarantineQueue(req: Request, res: Response) {
+    try {
+      const companyId = (req as any).user?.company_id || (req as any).user?.companyId;
+      const isMaster = (req as any).user?.email === 'alexandre@alexgarciaventures.co';
+
+      const whereClause: any = {
+        status: 'QUARANTINED'
+      };
+
+      if (!isMaster && companyId) {
+        whereClause.store = { company_id: companyId };
+      }
+
+      const queue = await prisma.trimRecordEvent.findMany({
+        where: whereClause,
+        include: {
+          store: {
+            select: { store_name: true }
+          }
+        },
+        orderBy: { created_at: 'desc' }
+      });
+
+      return res.status(200).json(queue);
+    } catch (error) {
+      console.error('YieldController.getQuarantineQueue Error:', error);
+      return res.status(500).json({ error: 'Failed to fetch quarantine queue' });
+    }
+  }
+
+  /**
+   * Resolves a Quarantined item (APPROVE or REJECT)
+   */
+  async resolveQuarantine(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { action } = req.body; // 'APPROVE' or 'REJECT'
+      const userId = (req as any).user?.userId || 'system';
+
+      if (action !== 'APPROVE' && action !== 'REJECT') {
+        return res.status(400).json({ error: 'Invalid action. Must be APPROVE or REJECT.' });
+      }
+
+      const updatedRecord = await prisma.trimRecordEvent.update({
+        where: { id },
+        data: {
+          status: action === 'REJECT' ? 'REJECTED' : 'APPROVED',
+          reviewed_by: userId
+        }
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          action: `QUARANTINE_RESOLVED_${action}`,
+          resource: `TrimRecordEvent ${id}`,
+          details: { record_id: id, original_yield_pct: updatedRecord.yield_pct },
+          location: 'YieldController - Supply Chain',
+          user_id: userId
+        }
+      });
+
+      return res.status(200).json({
+        message: `Quarantine record successfully ${action.toLowerCase()}ed.`,
+        data: updatedRecord
+      });
+    } catch (error) {
+      console.error('YieldController.resolveQuarantine Error:', error);
+      return res.status(500).json({ error: 'Failed to resolve quarantine record' });
     }
   }
 }

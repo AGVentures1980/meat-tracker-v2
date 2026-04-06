@@ -10,6 +10,7 @@ interface CorporateSpec {
   supplier: string | null;
   approved_item_code: string;
   created_at: string;
+  cost_per_lb?: number;
 }
 
 export default function CorporateSpecs() {
@@ -38,7 +39,8 @@ export default function CorporateSpecs() {
     protein_name: '',
     approved_brand: '',
     supplier: '',
-    approved_item_code: ''
+    approved_item_code: '',
+    cost_per_lb: ''
   });
   const [isCopilotActive, setIsCopilotActive] = useState(false);
   const [isAgentSearching, setIsAgentSearching] = useState(false);
@@ -199,7 +201,7 @@ export default function CorporateSpecs() {
         if (res.ok && data.success) {
             setSpecs([data.spec, ...specs]);
             setIsModalOpen(false);
-            setFormData({ protein_name: '', approved_brand: '', supplier: '', approved_item_code: '' });
+            setFormData({ protein_name: '', approved_brand: '', supplier: '', approved_item_code: '', cost_per_lb: '' });
         } else {
             alert('Failed to save compliance spec.');
         }
@@ -328,6 +330,7 @@ export default function CorporateSpecs() {
                 <th className="px-6 py-4 rounded-tl-lg">Protein Category</th>
                 <th className="px-6 py-4">Approved Brand / Packer</th>
                 <th className="px-6 py-4">Authorized Supplier</th>
+                <th className="px-6 py-4">Max Price / Lb</th>
                 <th className="px-6 py-4">Locked Item Barcode</th>
                 <th className="px-6 py-4">Status & Sync</th>
                 <th className="px-6 py-4 text-right rounded-tr-lg">Actions</th>
@@ -355,6 +358,9 @@ export default function CorporateSpecs() {
                     ) : (
                       <span className="text-slate-500 italic text-xs">Direct / Any</span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 font-mono font-bold text-emerald-400">
+                    {spec.cost_per_lb ? `$${spec.cost_per_lb.toFixed(2)}` : '--'}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 font-mono text-emerald-400 bg-emerald-900/20 px-3 py-1 rounded-md w-fit border border-emerald-900/50">
@@ -440,6 +446,19 @@ export default function CorporateSpecs() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Max Contract Price ($/lb)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  placeholder="e.g., 3.45"
+                  value={formData.cost_per_lb}
+                  onChange={(e) => setFormData({ ...formData, cost_per_lb: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Master Item Barcode (GS1-128 / UPC)</label>
                 <input
                   type="text"
@@ -482,7 +501,7 @@ export default function CorporateSpecs() {
                   onClick={() => {
                       setIsModalOpen(false);
                       setIsCopilotActive(false);
-                      setFormData({ protein_name: '', approved_brand: '', supplier: '', approved_item_code: '' });
+                      setFormData({ protein_name: '', approved_brand: '', supplier: '', approved_item_code: '', cost_per_lb: '' });
                   }}
                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
                 >

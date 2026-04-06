@@ -536,6 +536,9 @@ model ProcurementAIFeedback {
   ai_predicted_skewers   Float?
   custom_correct_skewers Float?
   manager_prep_skewers   Float?
+  target_trim_yield_percent Float?
+  target_cooking_yield_percent Float?
+  max_yield_loss_percent Float? @default(20.0)
   store                  Store    @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, date, protein])
@@ -714,6 +717,7 @@ model CorporateProteinSpec {
   expected_trim_loss_pct    Float?
   cost_per_lb               Float?
   allow_exception_receiving Boolean  @default(false)
+  max_yield_loss_percent    Float?
 
   company Company @relation(fields: [company_id], references: [id])
 }
@@ -805,6 +809,8 @@ model ReceivingEvent {
   supplier        String?
   status          String
   alert_severity  String?
+  invoice_id      String?
+  invoiced_price_per_lb Float?
   created_at      DateTime @default(now())
 
   store Store @relation(fields: [store_id], references: [id])
@@ -829,6 +835,9 @@ model TrimRecordEvent {
   trim_weight  Float
   yield_pct    Float
   created_at   DateTime @default(now())
+  status       String   @default("APPROVED")
+  quarantine_reason String?
+  reviewed_by  String?
 
   store Store @relation(fields: [store_id], references: [id])
 }
