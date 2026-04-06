@@ -47,11 +47,14 @@ export const ReceivingController = {
             });
 
             const spec = specs.find(s => {
-                let cleanAppCode = s.approved_item_code.replace(/\D/g, '');
-                const cleanGtin = gtin ? gtin.replace(/\D/g, '') : '';
+                const isPseudoApp = s.approved_item_code.startsWith('NZ-ME');
+                const isPseudoGtin = gtin && gtin.startsWith('NZ-ME');
+
+                let cleanAppCode = isPseudoApp ? s.approved_item_code : s.approved_item_code.replace(/\D/g, '');
+                const cleanGtin = gtin ? (isPseudoGtin ? gtin : gtin.replace(/\D/g, '')) : '';
                 
                 // If David accidentally registered the GTIN including the Application Identifier like "0190627577091328"
-                if (cleanAppCode.length === 16 && (cleanAppCode.startsWith('01') || cleanAppCode.startsWith('02'))) {
+                if (!isPseudoApp && cleanAppCode.length === 16 && (cleanAppCode.startsWith('01') || cleanAppCode.startsWith('02'))) {
                     cleanAppCode = cleanAppCode.substring(2);
                 }
 
@@ -59,7 +62,7 @@ export const ReceivingController = {
                 // Do not use `.includes()` randomly because different cuts share the same manufacturer prefix!
                 if (cleanGtin && cleanAppCode) {
                     if (cleanGtin === cleanAppCode) return true;
-                    if (cleanGtin.padStart(14, '0') === cleanAppCode.padStart(14, '0')) return true;
+                    if (!isPseudoGtin && !isPseudoApp && cleanGtin.padStart(14, '0') === cleanAppCode.padStart(14, '0')) return true;
                     
                     // Provide a slight leeway if the actual exact GTIN is embedded safely at the end
                     if (cleanAppCode.length >= 13 && cleanGtin.endsWith(cleanAppCode)) return true;

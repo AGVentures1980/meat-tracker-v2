@@ -51,10 +51,20 @@ export default function CorporateSpecs() {
       }
 
       const timeoutId = setTimeout(async () => {
-          const cleanBarcode = barcodeString.replace(/[\(\)\[\]\s]/g, '');
+          let cleanBarcode = barcodeString.replace(/[\(\)\[\]\s]/g, '');
           if (cleanBarcode.length < 8) {
               setIsCopilotActive(false);
               return;
+          }
+
+          // NZ Proprietary Decoupling (Match ReceivingScanner.tsx)
+          const customSyscoMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
+          const nzProprietaryMatch = cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})(\d{6})$/);
+          const targetProprietary = customSyscoMatch ? customSyscoMatch[3] : (nzProprietaryMatch ? nzProprietaryMatch[3] : null);
+          
+          if (targetProprietary && targetProprietary.startsWith('00')) {
+               const plantId = parseInt(targetProprietary.substring(0, 4), 10);
+               cleanBarcode = `NZ-ME${plantId}`;
           }
 
           let requiresAgent = false;

@@ -116,10 +116,18 @@ export default function ReceivingScanner() {
 
       // Check for Custom Sysco / Taylor Preston Format ONLY if not already parsed as a valid GS1
       if (!parsedGtin) {
-          // Pattern: 8 digits (Lot), 4 digits (Weight x 100), 10 digits (Serial), remaining chars (SKU like 42-683)
+          // Pattern: 8 digits (Lot/Time), 4 digits (Weight x 100), 10 digits (Serial), remaining chars (SKU like 42-683)
           const customSyscoMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
           if (customSyscoMatch) {
               parsedGtin = customSyscoMatch[4];
+          } else {
+              // 22-digit New Zealand Proprietary Interception
+              // Breakdown: 8 digits (Time/Lot), 4 digits (Weight Kg x 100), 4 digits (Plant e.g. 0086), 6 digits (Sequence)
+              const nzProprietaryMatch = cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})(\d{6})$/);
+              if (nzProprietaryMatch && cleanBarcode.length === 22) {
+                  const plantId = parseInt(nzProprietaryMatch[3], 10); // Extract '86' from '0086'
+                  parsedGtin = `NZ-ME${plantId}`; // Stable Pseudo-GTIN for Corporate Mapping
+              }
           }
       }
 
@@ -138,14 +146,15 @@ export default function ReceivingScanner() {
               let weight = rawWeight / Math.pow(10, decimals);
               if (!isLbs) weight = weight * 2.20462;
               parsedWeight = parseFloat(weight.toFixed(2));
-          } else if (customSyscoMatch) {
-              const rawKg = parseInt(customSyscoMatch[2], 10) / 100;
-              parsedWeight = parseFloat((rawKg * 2.20462).toFixed(2));
           } else {
-              // Fallback patterns
-              const lambMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})$/);
-              if (lambMatch && cleanBarcode.length === 22) {
-                  const rawKg = parseInt(lambMatch[2], 10) / 100;
+              // Fallback for Proprietary Formats where weight is hardcoded in specific digits
+              const customSyscoMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
+              const nzProprietaryMatch = cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})(\d{6})$/);
+              
+              const weightMatchGroup = customSyscoMatch || nzProprietaryMatch;
+              
+              if (weightMatchGroup) {
+                  const rawKg = parseInt(weightMatchGroup[2], 10) / 100;
                   parsedWeight = parseFloat((rawKg * 2.20462).toFixed(2));
               }
           }
