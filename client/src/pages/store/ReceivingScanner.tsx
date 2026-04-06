@@ -292,6 +292,11 @@ export default function ReceivingScanner() {
                 className="w-full bg-slate-900 border-2 border-emerald-500/50 text-emerald-400 font-mono text-center text-xl rounded-xl px-4 py-4 pr-14 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] placeholder:text-slate-600"
                 autoFocus
                 autoComplete="off"
+                onBlur={() => {
+                  if (scanResult === 'IDLE') {
+                    setTimeout(() => inputRef.current?.focus(), 10);
+                  }
+                }}
               />
               <button 
                 type="submit"

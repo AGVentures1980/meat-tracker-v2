@@ -236,6 +236,11 @@ export default function PullToPrep() {
                   className="block w-full pl-10 pr-3 py-4 bg-neutral-900 border border-neutral-700 rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm"
                   disabled={isLoading || isScanning}
                   autoFocus
+                  onBlur={() => {
+                    if (!isScanning) {
+                      setTimeout(() => inputRef.current?.focus(), 10);
+                    }
+                  }}
                 />
               </form>
 
