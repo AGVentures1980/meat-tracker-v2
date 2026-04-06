@@ -115,6 +115,49 @@ export class ComplianceController {
     }
   }
 
+  // GET /api/v1/compliance/master/fraud-audit
+  // Fetches ALL unauthorized scans across the entire network, grouped/sortable, for Master Admin
+  async getMasterFraudAudit(req: Request, res: Response) {
+      try {
+          const user = (req as any).user;
+          // Protect this heavily
+          if (!user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co')) {
+             return res.status(403).json({ success: false, error: 'Unauthorized. Master access only.' });
+          }
+
+          const { startDate, endDate } = req.query;
+          
+          let dateFilter: any = {};
+          if (startDate && endDate) {
+              dateFilter = {
+                  gte: new Date(startDate as string),
+                  lte: new Date(endDate as string)
+              };
+          }
+
+          const attempts = await prisma.barcodeScanEvent.findMany({
+              where: {
+                  is_approved: false,
+                  ...(startDate && endDate ? { scanned_at: dateFilter } : {})
+              },
+              include: {
+                  store: { 
+                      select: { 
+                          store_name: true,
+                          company: { select: { name: true } }
+                      } 
+                  }
+              },
+              orderBy: { scanned_at: 'desc' }
+          });
+          
+          res.json({ success: true, attempts });
+      } catch (error: any) {
+          console.error("Error fetching master fraud audit:", error);
+          res.status(500).json({ success: false, error: 'Database error fetching master fraud audit.' });
+      }
+  }
+
   // DELETE /api/v1/compliance/specs/:id
   async deleteCorporateSpec(req: Request, res: Response) {
     try {

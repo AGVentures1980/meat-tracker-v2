@@ -62,7 +62,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             items: [
                 { icon: DollarSign, label: 'Global Procurement', path: '/procurement' },
                 { icon: BrainCircuit, label: 'A.I. Strategic Sourcing', path: '/intelligence/procurement-shadow' },
-                { icon: ShieldCheck, label: 'Legal & Contracts Vault', path: '/agv-vault' }
+                { icon: ShieldCheck, label: 'Legal & Contracts Vault', path: '/agv-vault' },
+                { icon: ShieldAlert, label: 'Global Fraud Audit', path: '/agv-fraud-audit' }
             ]
         });
     }
@@ -417,6 +418,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             >
                                 <ShieldCheck className="w-5 h-5 min-w-[20px]" />
                                 <span className="text-sm font-bold tracking-tight">Legal & Contracts Vault</span>
+                            </Link>
+
+                            <Link
+                                to="/agv-fraud-audit"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-rose-400 hover:bg-rose-900/20 mt-2 border border-rose-500/20 border-solid shadow-sm shadow-rose-900/10"
+                            >
+                                <ShieldAlert className="w-5 h-5 min-w-[20px]" />
+                                <span className="text-sm font-bold tracking-tight">Global Fraud & Intercepts</span>
                             </Link>
 
                             <Link

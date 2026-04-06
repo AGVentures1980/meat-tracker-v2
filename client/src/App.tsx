@@ -58,6 +58,7 @@ import PullToPrep from './pages/store/PullToPrep';
 import MeatYieldStation from './pages/store/MeatYieldStation';
 import EndOfShiftAudit from './pages/store/EndOfShiftAudit';
 import JVPDashboard from './pages/executive/JVPDashboard';
+import { FraudAuditReport } from './pages/executive/FraudAuditReport';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -169,6 +170,15 @@ function AppContent() {
                     <Route index element={
                         <div className="flex bg-[#121212] min-h-screen w-full text-white">
                             <SaaSBillingHub />
+                        </div>
+                    } />
+                </Route>
+                <Route path="/agv-fraud-audit" element={<MasterGuard />}>
+                    <Route index element={
+                        <div className="flex bg-[#121212] min-h-screen w-full text-white">
+                            <DashboardLayout>
+                                <FraudAuditReport />
+                            </DashboardLayout>
                         </div>
                     } />
                 </Route>
