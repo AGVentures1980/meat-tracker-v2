@@ -183,11 +183,12 @@ export const WeeklyInventory = () => {
                 parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
             } else {
                 // New Zealand Lamb Rack (Taylor Preston) specific fixed-length pattern
-                // Example: 19065337 0864 0086353360 (22 digits, weight in kg at indices 8-11)
-                const lambMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})$/);
-                // Also safety check some known patterns or lengths
-                if (lambMatch && cleanBarcode.length === 22) {
-                    const rawKg = parseInt(lambMatch[2], 10) / 100;
+                const customSyscoMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
+                const nzProprietaryMatch = cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})(\d{6})$/);
+                const weightMatchGroup = customSyscoMatch || nzProprietaryMatch;
+                
+                if (weightMatchGroup) {
+                    const rawKg = parseInt(weightMatchGroup[2], 10) / 100;
                     const lbs = rawKg * 2.20462;
                     parsedWeight = parseFloat(lbs.toFixed(2));
                 }
@@ -209,7 +210,7 @@ export const WeeklyInventory = () => {
         } else if (cleanBarcode.includes('90627577078145')) {
             // Clear River Farms Beef Rib Bone In => Beef Ribs
             matchedProtein = dynamicProteinList.find(p => p.name.includes('Beef Ribs'));
-        } else if (cleanBarcode.length === 22 && parsedWeight > 0) {
+        } else if ((cleanBarcode.length === 22 || cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})/)) && parsedWeight > 0) {
             // The Taylor Preston Lamb Racks (based on length and generic Lamb Chops grouping)
             matchedProtein = dynamicProteinList.find(p => p.name.includes('Lamb')); // Lamb Chops
         } else if (parsedWeight > 0) {

@@ -55,6 +55,15 @@ export default function PullToPrep() {
         let calculatedWeight = rawWeight / Math.pow(10, decimals);
         if (!isLbs) calculatedWeight = calculatedWeight * 2.20462;
         weight = parseFloat(calculatedWeight.toFixed(2));
+    } else {
+        const customSyscoMatch = barcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
+        const nzProprietaryMatch = barcode.match(/^(\d{8})(\d{4})(00\d{2})(\d{6})$/);
+        const weightMatchGroup = customSyscoMatch || nzProprietaryMatch;
+        
+        if (weightMatchGroup) {
+            const rawKg = parseInt(weightMatchGroup[2], 10) / 100;
+            weight = parseFloat((rawKg * 2.20462).toFixed(2));
+        }
     }
     
     const lotMatch = barcode.match(/10([a-zA-Z0-9]{1,10})/);
