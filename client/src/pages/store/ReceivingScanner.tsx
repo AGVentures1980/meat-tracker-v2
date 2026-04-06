@@ -128,11 +128,14 @@ export default function ReceivingScanner() {
           return;
       }
       
-      if (parseData.status === 'AMBIGUOUS' || parseData.status === 'UNKNOWN' || parseData.status === 'INVALID') {
+      if (parseData.status === 'AMBIGUOUS' || parseData.status === 'INVALID') {
           setScanResult('REJECTED');
           setResultMessage(`ENGINE BLOCKED: [${parseData.status}] — Needs verification.`);
           return;
       }
+      
+      // Let UNKNOWN status pass down to the server. The ReceivingController guardrail will block it from operations,
+      // but if the user has Admin rights, the server will correctly trigger UNMAPPED_ALLOW_MAPPING flow!
 
       let barcodeResult = parseData;
       let parsedWeight = barcodeResult.normalized_object?.net_weight_lb || 0;
@@ -164,6 +167,9 @@ export default function ReceivingScanner() {
           },
           body: JSON.stringify({
               barcodeResult: barcodeResult,
+              barcode: barcodeResult.normalized_object?.raw_barcode || inputBarcode,
+              gtin: barcodeResult.normalized_object?.gtin,
+              weight: parsedWeight,
               store_id: user?.storeId
           })
       });

@@ -51,6 +51,13 @@ export const ReceivingController = {
 
             if (process.env.BARCODE_ENGINE_V2_ENABLED === 'true') {
                 if (!barcodeResult || barcodeResult.status !== 'VALID') {
+                    
+                    // Sprint 5 Enhancement - Allowed Custom Mapping Flow 
+                    if (barcodeResult?.status === 'UNKNOWN' && ['admin', 'director', 'owner', 'partner'].includes(user.role)) {
+                        const roster = await prisma.companyProduct.findMany({ where: { company_id: companyId }, select: { name: true }});
+                        return res.json({ status: 'UNMAPPED_ALLOW_MAPPING', gtin: barcodeResult.normalized_object?.raw_barcode, roster: roster.map((r: any) => r.name) });
+                    }
+
                     return res.status(400).json({ 
                         error: 'Safe Operating Bounds Violated. Cannot accept un-normalized or un-safe generic barcodes.',
                         status: barcodeResult?.status || 'INVALID',
