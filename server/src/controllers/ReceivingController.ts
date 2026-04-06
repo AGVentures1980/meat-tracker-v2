@@ -85,6 +85,21 @@ export const ReceivingController = {
             const compliance = await ComplianceEngine.evaluate(normalized, companyId);
 
             if (verifiedStoreId) {
+                await prisma.barcodeScanEvent.create({
+                    data: {
+                        store_id: verifiedStoreId,
+                        scanned_barcode: barcode,
+                        gtin: finalGtin,
+                        usda_grade: normalized.usda_grade,
+                        is_approved: compliance.status === 'ACCEPTED',
+                        is_override: false,
+                        protein_name: compliance.specMatched?.protein_name || normalized.product_name || "Unknown Reject",
+                        supplier: compliance.specMatched?.supplier || normalized.packer || "Unknown",
+                        weight: finalWeight,
+                        metadata: normalized
+                    }
+                });
+
                 await prisma.receivingEvent.create({
                     data: {
                         store_id: verifiedStoreId,

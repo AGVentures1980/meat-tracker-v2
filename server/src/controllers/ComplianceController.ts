@@ -91,6 +91,30 @@ export class ComplianceController {
       res.status(500).json({ success: false, error: 'Database error fetching specs.' });
     }
   }
+
+  // GET /api/v1/compliance/prevented-attempts/:companyId
+  // Fetches detailed logs of unauthorized scans blocked at the dock.
+  async getPreventedAttempts(req: Request, res: Response) {
+    try {
+      const { companyId } = req.params;
+      const attempts = await prisma.barcodeScanEvent.findMany({
+          where: {
+              is_approved: false,
+              store: { company_id: companyId }
+          },
+          include: {
+              store: { select: { store_name: true } }
+          },
+          orderBy: { scanned_at: 'desc' },
+          take: 100
+      });
+      res.json({ success: true, attempts });
+    } catch (error: any) {
+      console.error('Error fetching prevented attempts:', error);
+      res.status(500).json({ success: false, error: 'Database error fetching prevented attempts.' });
+    }
+  }
+
   // DELETE /api/v1/compliance/specs/:id
   async deleteCorporateSpec(req: Request, res: Response) {
     try {

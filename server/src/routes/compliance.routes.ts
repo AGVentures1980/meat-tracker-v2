@@ -8,6 +8,7 @@ const controller = new ComplianceController();
 
 router.post('/specs', requireAuth, controller.createCorporateSpec);
 router.get('/specs/:companyId', requireAuth, controller.getCorporateSpecs);
+router.get('/prevented-attempts/:companyId', requireAuth, controller.getPreventedAttempts);
 router.delete('/specs/:id', requireAuth, controller.deleteCorporateSpec);
 
 // Receiving Scanner Routes

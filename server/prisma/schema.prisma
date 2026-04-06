@@ -728,6 +728,12 @@ model BarcodeScanEvent {
   is_override     Boolean    @default(false)
   scanned_at      DateTime   @default(now())
 
+  // Sprint 5 Enhancement - Bait & Switch Payload Analytics
+  protein_name    String?
+  supplier        String?
+  weight          Float?
+  metadata        Json?
+
   store Store @relation(fields: [store_id], references: [id])
 }
 

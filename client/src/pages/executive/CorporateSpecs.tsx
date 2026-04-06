@@ -29,6 +29,9 @@ export default function CorporateSpecs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBaitModalOpen, setIsBaitModalOpen] = useState(false);
+  const [preventedAttempts, setPreventedAttempts] = useState<any[]>([]);
+  const [isFetchingAttempts, setIsFetchingAttempts] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -144,6 +147,24 @@ export default function CorporateSpecs() {
       console.error('Error fetching specs:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchPreventedAttempts = async () => {
+    setIsFetchingAttempts(true);
+    setIsBaitModalOpen(true);
+    try {
+      const res = await fetch(`/api/v1/compliance/prevented-attempts/${activeCompanyId}`, {
+        headers: { 'Authorization': `Bearer ${user?.token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPreventedAttempts(data.attempts || []);
+      }
+    } catch (error) {
+      console.error('Error fetching attempts:', error);
+    } finally {
+      setIsFetchingAttempts(false);
     }
   };
 
@@ -266,14 +287,17 @@ export default function CorporateSpecs() {
           <p className="text-sm text-slate-400 mt-1">Enforced across 57 locations</p>
         </div>
 
-        <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 glass-effect">
+        <div 
+          onClick={fetchPreventedAttempts}
+          className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 glass-effect cursor-pointer hover:border-rose-500/50 transition-all group"
+        >
           <div className="flex items-center gap-4 text-rose-400 mb-4">
-            <div className="bg-rose-400/10 p-3 rounded-lg">
+            <div className="bg-rose-400/10 p-3 rounded-lg group-hover:bg-rose-500/20 transition-colors">
               <ShieldAlert className="w-6 h-6" />
             </div>
             <h3 className="font-semibold text-slate-200">Bait & Switch Prevented</h3>
           </div>
-          <p className="text-3xl font-bold text-white">{preventedCount}</p>
+          <p className="text-3xl font-bold text-white group-hover:text-rose-100 transition-colors">{preventedCount}</p>
           <p className="text-sm text-slate-400 mt-1">Unauthorized attempts</p>
         </div>
       </div>
@@ -473,6 +497,86 @@ export default function CorporateSpecs() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Bait and Switch Prevented Details Modal */}
+      {isBaitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-5xl w-full shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <ShieldAlert className="w-6 h-6 text-rose-500" />
+                      Unauthorized Receiving Attempts (Bait & Switch)
+                    </h3>
+                    <p className="text-slate-400 text-sm mt-1">
+                      Detailed log of all deliveries rejected by the scanner engine across the fleet.
+                    </p>
+                </div>
+                <button
+                    onClick={() => setIsBaitModalOpen(false)}
+                    className="text-slate-400 hover:text-white transition-colors"
+                >
+                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">X</div>
+                </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                {isFetchingAttempts ? (
+                    <div className="py-12 text-center text-slate-400">
+                        <Loader2 className="w-8 h-8 mx-auto animate-spin mb-4 text-emerald-500" />
+                        Pulling Security Logs...
+                    </div>
+                ) : preventedAttempts.length === 0 ? (
+                    <div className="py-12 text-center text-slate-400">
+                        No unauthorized attempts logged in this company.
+                    </div>
+                ) : (
+                    <table className="w-full text-sm text-left text-slate-300">
+                      <thead className="text-xs text-slate-400 uppercase bg-slate-900/30 sticky top-0 backdrop-blur-md">
+                        <tr>
+                          <th className="px-4 py-4 rounded-tl-lg">Date & Time</th>
+                          <th className="px-4 py-4">Store Location</th>
+                          <th className="px-4 py-4">Analyzed Meat Identity</th>
+                          <th className="px-4 py-4">Extracted Supplier</th>
+                          <th className="px-4 py-4">Weight / Lot</th>
+                          <th className="px-4 py-4 rounded-tr-lg">Intercepted Raw Barcode</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-700/50">
+                        {preventedAttempts.map((attempt) => (
+                           <tr key={attempt.id} className="hover:bg-slate-800/30 transition-colors">
+                              <td className="px-4 py-4 font-mono text-xs">
+                                  {new Date(attempt.scanned_at).toLocaleString()}
+                              </td>
+                              <td className="px-4 py-4 font-medium text-slate-200">
+                                  {attempt.store?.store_name}
+                              </td>
+                              <td className="px-4 py-4">
+                                  <span className="text-rose-400 font-semibold">{attempt.protein_name || "Unidentified Protein"}</span>
+                              </td>
+                              <td className="px-4 py-4">
+                                  <span className="bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">{attempt.supplier || "Supplier Unknown"}</span>
+                              </td>
+                              <td className="px-4 py-4">
+                                  <div className="flex flex-col gap-1">
+                                      {attempt.weight && <span className="text-slate-300">{attempt.weight.toFixed(2)} LBS</span>}
+                                      {attempt.metadata?.serial && <span className="text-xs text-slate-500 font-mono">L/N: {attempt.metadata.serial}</span>}
+                                  </div>
+                              </td>
+                              <td className="px-4 py-4 max-w-[200px] truncate">
+                                  <div className="font-mono text-rose-500/80 bg-rose-500/10 px-2 py-1 rounded w-fit border border-rose-500/20 text-xs">
+                                      {attempt.scanned_barcode}
+                                  </div>
+                              </td>
+                           </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                )}
+            </div>
           </div>
         </div>
       )}
