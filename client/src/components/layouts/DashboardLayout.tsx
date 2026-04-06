@@ -120,7 +120,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     ...(isMaster ? [{ icon: Globe, label: t('nav.saasAdmin') || 'Brand Overview Center', path: '/saas-admin' }] : []),
                     ...((isSystemAdmin || isMaster) ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/sourcing-ai' }] : []),
                     { icon: Users, label: t('nav.corporateSpecs') || 'Network Standard Specs', path: '/corporate-specs' },
-                    { icon: ShieldAlert, label: 'Supply Chain Inbox', path: '/quarantine-inbox' },
+                    ...( (isDavid || isMaster) ? [{ icon: ShieldAlert, label: 'Supply Chain Inbox', path: '/quarantine-inbox' }] : []),
                     ...(isMaster ? [{ icon: DatabaseZap, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
                 ]
             });
