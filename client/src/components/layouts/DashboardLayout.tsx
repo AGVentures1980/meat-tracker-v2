@@ -114,15 +114,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             });
         }
 
-        navItems.push({
-            section: t('nav.section_executive') || 'EXECUTIVE CONTROL', items: [
-                { icon: Globe, label: t('nav.saasAdmin') || 'Brand Overview Center', path: '/saas-admin' },
-                { icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/sourcing-ai' },
-                { icon: Users, label: t('nav.corporateSpecs') || 'Network Standard Specs', path: '/corporate-specs' },
-                { icon: ShieldAlert, label: 'Supply Chain Inbox', path: '/quarantine-inbox' },
-                ...(isMaster ? [{ icon: DatabaseZap, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
-            ]
-        });
+        if (isCompanyOrGlobal || isMaster) {
+            navItems.push({
+                section: t('nav.section_executive') || 'EXECUTIVE CONTROL', items: [
+                    ...(isMaster ? [{ icon: Globe, label: t('nav.saasAdmin') || 'Brand Overview Center', path: '/saas-admin' }] : []),
+                    ...((isSystemAdmin || isMaster) ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/sourcing-ai' }] : []),
+                    { icon: Users, label: t('nav.corporateSpecs') || 'Network Standard Specs', path: '/corporate-specs' },
+                    { icon: ShieldAlert, label: 'Supply Chain Inbox', path: '/quarantine-inbox' },
+                    ...(isMaster ? [{ icon: DatabaseZap, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
+                ]
+            });
+        }
 
         navItems.push({
             section: t('nav.section_learn') || 'LEARN (L&D)', items: [
