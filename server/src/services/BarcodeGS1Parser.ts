@@ -57,6 +57,15 @@ export class BarcodeGS1Parser {
              result.errors.push('No recognized GS1 patterns found');
         }
 
+        // Sprint 5 Enhancement - Global Weight Plausibility Check
+        if (result.net_weight_lb !== null && (result.net_weight_lb > 160 || result.net_weight_lb < 0.5)) {
+             result.errors.push(`Weight Plausibility Failed: Extracted ${result.net_weight_lb.toFixed(2)} LBS is biologically impossible for a single box. Voiding regex match.`);
+             result.net_weight_lb = null;
+             result.net_weight_kg = null;
+             // Strip the confidence gained from the rogue weight match
+             result.confidence_score = Math.max(0, result.confidence_score - 0.3);
+        }
+
         return result;
     }
 }
