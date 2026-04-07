@@ -158,8 +158,8 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             // First click: Highlight company, plot points on globe
             setFocusedCompany(card);
             
-            // Generate refined geographic points
-            setCompanyPoints(generatePointsData(activeRegion || '', Math.min(card.stores, 150), card.dbMatch)); 
+            // Generate refined geographic points mapping the exact number of stores (e.g. 700 for Outback)
+            setCompanyPoints(generatePointsData(activeRegion || '', card.stores, card.dbMatch)); 
             
             // Adjust camera slightly to show off the points
             if (globeEl.current) {
