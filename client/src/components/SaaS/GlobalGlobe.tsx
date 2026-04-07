@@ -276,24 +276,64 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                 <div className="w-full flex-shrink-0 flex justify-center mt-auto mb-10 pointer-events-auto transition-all duration-500" style={{ transform: focusedCompany ? 'scale(0.95)' : 'scale(1)', opacity: focusedCompany ? 0.3 : 1 }}>
                     {user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') && (
                         <div className="flex flex-wrap justify-center gap-4 md:gap-8 min-w-[300px]">
-                            {/* ... Action Hub Buttons remain structural but dim when focusing ... */}
-                            <button onClick={() => navigate('/saas-admin')} className="group flex flex-col items-center gap-3 w-20 md:w-24">
-                                <div className="w-14 h-14 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-emerald-500/50 rounded-full flex items-center justify-center transition-all">
-                                    <GlobeIcon className="w-5 h-5 text-emerald-500/70" />
+                            <button
+                                onClick={() => navigate('/saas-admin')}
+                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-24 md:w-32"
+                            >
+                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-emerald-500/50 rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                                    <GlobeIcon className="w-6 h-6 text-emerald-500/70 group-hover:text-emerald-400 transition-colors" />
                                 </div>
-                                <h4 className="text-white/70 text-[10px] font-bold tracking-widest uppercase text-center w-full">Platform Hub</h4>
+                                <div className="text-center w-full">
+                                    <h4 className="text-white text-xs font-bold tracking-widest uppercase">Platform Hub</h4>
+                                </div>
                             </button>
-                            <button onClick={() => navigate('/agv-network')} className="group flex flex-col items-center gap-3 w-20 md:w-24">
-                                <div className="w-14 h-14 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-indigo-500/50 rounded-full flex items-center justify-center transition-all">
-                                    <Network className="w-5 h-5 text-indigo-500/70" />
+
+                            <button
+                                onClick={() => navigate('/agv-network')}
+                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-24 md:w-32"
+                            >
+                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-indigo-500/50 rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_30px_rgba(99,102,241,0.3)]">
+                                    <Network className="w-6 h-6 text-indigo-500/70 group-hover:text-indigo-400 transition-colors" />
                                 </div>
-                                <h4 className="text-white/70 text-[10px] font-bold tracking-widest uppercase text-center w-full">Partner Net</h4>
+                                <div className="text-center w-full">
+                                    <h4 className="text-white text-xs font-bold tracking-widest uppercase">Partner Net</h4>
+                                </div>
                             </button>
-                            <button onClick={() => navigate('/owner-terminal')} className="group flex flex-col items-center gap-3 w-28 md:w-36">
-                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#C5A059]/30 hover:border-[#C5A059] rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-                                    <Zap className="w-6 h-6 text-[#C5A059]" />
+
+                            <button
+                                onClick={() => navigate('/agv-billing')}
+                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-24 md:w-32"
+                            >
+                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-blue-500/50 rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+                                    <DollarSign className="w-6 h-6 text-blue-500/70 group-hover:text-blue-400 transition-colors" />
                                 </div>
-                                <h4 className="text-white text-[11px] md:text-xs font-bold tracking-widest uppercase text-center w-full">Intel Center</h4>
+                                <div className="text-center w-full">
+                                    <h4 className="text-white text-xs font-bold tracking-widest uppercase">Billing</h4>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => navigate('/agv-fraud-audit')}
+                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-24 md:w-32"
+                            >
+                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-red-500/50 rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                                    <ShieldAlert className="w-6 h-6 text-red-500/70 group-hover:text-red-400 transition-colors" />
+                                </div>
+                                <div className="text-center w-full">
+                                    <h4 className="text-white text-xs font-bold tracking-widest uppercase">Global Radar</h4>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => navigate('/owner-terminal')}
+                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-28 md:w-36"
+                            >
+                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#C5A059]/30 hover:border-[#C5A059] rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_40px_rgba(197,160,89,0.5)]">
+                                    <Zap className="w-6 h-6 text-[#C5A059] group-hover:text-white transition-colors" />
+                                </div>
+                                <div className="text-center w-full">
+                                    <h4 className="text-white text-[11px] md:text-xs font-bold tracking-widest uppercase">Intel Center</h4>
+                                </div>
                             </button>
                         </div>
                     )}
