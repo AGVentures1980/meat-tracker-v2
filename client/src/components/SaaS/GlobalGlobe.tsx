@@ -113,9 +113,9 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     };
 
     return (
-        <div className="fixed inset-0 w-full h-full bg-[#000000] overflow-hidden flex flex-col z-[80]">
-            {/* 3D Photorealistic Rotating Globe Engine */}
-            <div className="absolute inset-0 z-0 opacity-80 mt-12 md:mt-24 flex justify-center items-center">
+        <div className="fixed inset-0 w-full h-full bg-[#030508] overflow-hidden flex flex-col z-[80]">
+            {/* 3D Photorealistic Rotating Globe Engine with soft backlight haze */}
+            <div className="absolute inset-0 z-0 opacity-95 mt-12 md:mt-24 flex justify-center items-center bg-[radial-gradient(circle_at_center,_rgba(92,162,255,0.08)_0%,_transparent_55%)]">
                 <Globe
                     ref={globeEl}
                     width={dimensions.width}
@@ -124,7 +124,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                     globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
                     bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
                     atmosphereColor="#5ca2ff"
-                    atmosphereAltitude={0.15}
+                    atmosphereAltitude={0.25} // Increased altitude for softer, wider edge glow
                     
                     // Radar Rings
                     ringsData={REGIONS}
