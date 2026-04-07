@@ -10,6 +10,11 @@ export const redisClient = process.env.REDIS_MOCK === 'true'
         enableAutoPipelining: true 
     }) : new Redis({ host: 'localhost', port: 6379 }));
 
+redisClient.on('error', (err: any) => {
+    console.error('[Redis Error] Circuit Breaker fallback applied. Redis connection failed:', err.message);
+});
+
+
 /**
  * ATOMIC LUA TRANSITION SCRIPT
  * Guarantees no race conditions across backend instances modifying thresholds.
