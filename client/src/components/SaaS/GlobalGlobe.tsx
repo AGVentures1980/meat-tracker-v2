@@ -1,17 +1,7 @@
-import { useEffect, useRef } from 'react';
-import createGlobe from 'cobe';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-
-// Define known locations for markers
-// USA (Dallas), Brazil (SP), UAE (Dubai), Philippines (Manila)
-const MARKERS = [
-    { location: [32.7767, -96.7970] as [number, number], size: 0.08 }, // Dallas, USA
-    { location: [-23.5505, -46.6333] as [number, number], size: 0.06 }, // São Paulo, Brazil
-    { location: [25.2048, 55.2708] as [number, number], size: 0.05 }, // Dubai, UAE
-    { location: [14.5995, 120.9842] as [number, number], size: 0.04 }, // Manila, Philippines
-];
 
 interface Company {
     id: string;
@@ -25,70 +15,34 @@ interface Company {
 interface GlobalGlobeProps {
     companies: Company[];
     onSelect: (company: Company) => void;
-    // Removed unused onArchive
 }
 
 export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
     const { user } = useAuth();
     const navigate = useNavigate();
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     useEffect(() => {
-        let currentPhi = 0;
-        
-        if (!canvasRef.current) return;
-        
-        const globe = createGlobe(canvasRef.current, {
-            devicePixelRatio: 2,
-            width: 2000,
-            height: 2000,
-            phi: 0,
-            theta: 0.2, // slightly tilt to show northern hemisphere
-            dark: 1,
-            diffuse: 1.2,
-            mapSamples: 16000,
-            mapBrightness: 6,
-            baseColor: [0.8, 0.8, 0.8],      // Lighter land mass to make it highly visible
-            markerColor: [0.77, 0.63, 0.35], // #C5A059 (Gold) rgb mapped to 0-1
-            glowColor: [0.5, 0.5, 0.5],      // Ambient glow
-            markers: MARKERS,
-            onRender: (state: any) => {
-                state.phi = currentPhi;
-                currentPhi += 0.006; // Rotate faster so it isn't "static"
-            },
-        } as any);
-
-        setTimeout(() => {
-            if (canvasRef.current) canvasRef.current.style.opacity = '1';
-        }, 500);
-
-        return () => {
-            globe.destroy();
-        };
+        const img = new Image();
+        img.src = '/earth-iphone-classic.png';
+        img.onload = () => setImageLoaded(true);
     }, []);
 
-    // Group companies by region logic if desired, or just show them in a glass panel
     const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa"));
 
     return (
-        <div className="fixed inset-0 w-full h-full bg-[#050505] overflow-hidden flex flex-col z-[80]">
-            {/* The Globe Canvas */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-60">
-                <div style={{ width: '100vw', maxWidth: '1200px', aspectRatio: '1/1', position: 'relative' }}>
-                    <canvas
-                        ref={canvasRef}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            opacity: 0,
-                            transition: 'opacity 2s ease',
-                        }}
-                    />
-                </div>
+        <div className="fixed inset-0 w-full h-full bg-[#000000] overflow-hidden flex flex-col z-[80]">
+            {/* The Classic Earth Image */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 mt-8 md:mt-24">
+                <img 
+                    src="/earth-iphone-classic.png" 
+                    alt="Classic iPhone Earth" 
+                    className={`w-[110%] md:w-[90%] max-w-[1200px] object-contain transition-opacity duration-1000 ease-in-out ${imageLoaded ? 'opacity-85' : 'opacity-0'} drop-shadow-[0_0_80px_rgba(255,255,255,0.05)] md:translate-y-12`}
+                />
             </div>
 
-            {/* Glowing Atmosphere Gradient */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_#050505_70%)] pointer-events-none"></div>
+            {/* Soft Overlay to blend bottom into black */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/30 to-transparent pointer-events-none z-0"></div>
 
             {/* Top Interactive Layer */}
             <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden custom-scrollbar">
