@@ -489,7 +489,6 @@ export const ProjectionsDashboard = () => {
                                 <tr key={store.id} className="hover:bg-[#252525] transition-colors">
                                     <td className="p-4 font-bold text-white sticky left-0 bg-[#1a1a1a] z-10 border-r border-[#333]">
                                         {store.name}
-                                        <span className="block text-[10px] text-gray-600 font-normal uppercase">{store.location}</span>
                                     </td>
 
                                     {/* Inputs & Outputs render bypass */}
