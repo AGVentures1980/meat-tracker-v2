@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert, X, Pause, Play, MapPin } from 'lucide-react';
+import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert, X, Pause, Play, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Globe from 'react-globe.gl';
 
@@ -29,6 +29,8 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const globeEl = useRef<any>();
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    
     const [dimensions, setDimensions] = useState({
         width: window.innerWidth,
         height: window.innerHeight
@@ -128,10 +130,9 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         if (regionId && clusters[regionId as keyof typeof clusters]) {
             activeClusters = clusters[regionId as keyof typeof clusters];
         } else {
-            // GLOBAL fallback: Mix USA and BR mostly, with a chance of UAE/PH if applicable
-            activeClusters = [...clusters.USA, ...clusters.BR];
-            if (companyName.includes('Fogo')) activeClusters.push(...clusters.UAE, ...clusters.PH);
-            if (companyName.includes('Texas')) activeClusters.push(...clusters.UAE);
+            // GLOBAL fallback: Currently all onboarded system companies are predominantly USA holding entities.
+            // When investigating from the Global Hub, exclusively map stores to the USA mainland.
+            activeClusters = [...clusters.USA];
         }
         
         for (let i = 0; i < count; i++) {
@@ -189,6 +190,13 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         setActiveRegion(null);
         setFocusedCompany(null);
         setCompanyPoints([]);
+    };
+
+    const scrollCards = (direction: 'left' | 'right') => {
+        if (scrollContainerRef.current) {
+            const shift = direction === 'left' ? -350 : 350;
+            scrollContainerRef.current.scrollBy({ left: shift, behavior: 'smooth' });
+        }
     };
 
     return (
@@ -359,45 +367,64 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-20">
-                        {displayedCards.map((company) => {
-                            const isFocused = focusedCompany?.id === company.id;
-                            const isDimmed = focusedCompany && !isFocused;
+                    <div className="relative group/carousel">
+                        {/* Horizontal Scroll Arrows */}
+                        <button 
+                            onClick={() => scrollCards('left')} 
+                            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 md:-ml-6 z-20 p-2 bg-[#1a1a1a]/80 backdrop-blur-md border border-white/10 text-white rounded-full opacity-0 group-hover/carousel:opacity-100 disabled:opacity-0 transition-opacity hover:bg-[#C5A059] hover:text-black shadow-lg"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
 
-                            return (
-                                <div
-                                    key={company.id}
-                                    onClick={() => handleSelectCard(company)}
-                                    className={`group relative bg-[#121212]/30 backdrop-blur-xl border p-6 rounded-2xl cursor-pointer transition-all duration-500 flex flex-col justify-between
-                                        ${isFocused ? 'border-[#C5A059] bg-[#1a1a1a]/80 shadow-[0_15px_40px_rgba(197,160,89,0.3)] scale-105 z-10 min-h-[160px]' : 'border-white/10 hover:bg-[#1a1a1a]/70 hover:border-[#C5A059]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}
-                                        ${isDimmed ? 'opacity-30 scale-95 pointer-events-none' : ''}
-                                    `}
-                                >
-                                    <div>
-                                        <div className="flex justify-between items-start mb-4">
-                                            {company.img ? (
-                                                <img src={company.img} alt={company.name} className={`h-[24px] object-contain ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''}`} />
-                                            ) : (
-                                                <h3 className="text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
-                                            )}
+                        <div 
+                            ref={scrollContainerRef}
+                            className="flex gap-4 pb-20 overflow-x-auto custom-scrollbar snap-x snap-mandatory scroll-smooth"
+                        >
+                            {displayedCards.map((company) => {
+                                const isFocused = focusedCompany?.id === company.id;
+                                const isDimmed = focusedCompany && !isFocused;
+
+                                return (
+                                    <div
+                                        key={company.id}
+                                        onClick={() => handleSelectCard(company)}
+                                        className={`shrink-0 w-[280px] snap-start group relative bg-[#121212]/30 backdrop-blur-xl border p-6 rounded-2xl cursor-pointer transition-all duration-500 flex flex-col justify-between
+                                            ${isFocused ? 'border-[#C5A059] bg-[#1a1a1a]/80 shadow-[0_15px_40px_rgba(197,160,89,0.3)] scale-100 z-10 min-h-[160px]' : 'border-white/10 hover:bg-[#1a1a1a]/70 hover:border-[#C5A059]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}
+                                            ${isDimmed ? 'opacity-30 pointer-events-none' : ''}
+                                        `}
+                                    >
+                                        <div>
+                                            <div className="flex justify-between items-start mb-4">
+                                                {company.img ? (
+                                                    <img src={company.img} alt={company.name} className={`h-[24px] object-contain ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''}`} />
+                                                ) : (
+                                                    <h3 className="text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center justify-between text-[10px] uppercase font-mono tracking-widest text-[#C5A059]">
+                                                <span>{company.stores} STORES <span className="text-gray-500">MAPPED</span></span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center justify-between text-[10px] uppercase font-mono tracking-widest text-[#C5A059]">
-                                            <span>{company.stores} STORES <span className="text-gray-500">MAPPED</span></span>
+
+                                        {/* Reveal "ACESSAR SYSTEMA" on First Click target */}
+                                        <div className={`mt-4 w-full overflow-hidden transition-all duration-500 ease-in-out ${isFocused ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                            <div className="pt-4 border-t border-white/5">
+                                                <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#C5A059] text-black font-bold text-xs uppercase tracking-widest rounded shadow-lg hover:bg-white transition-colors">
+                                                    Acessar Dashboard <ArrowRight className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
+                                );
+                            })}
+                        </div>
 
-                                    {/* Reveal "ACESSAR SYSTEMA" on First Click target */}
-                                    <div className={`mt-4 w-full overflow-hidden transition-all duration-500 ease-in-out ${isFocused ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                        <div className="pt-4 border-t border-white/5">
-                                            <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#C5A059] text-black font-bold text-xs uppercase tracking-widest rounded shadow-lg hover:bg-white transition-colors">
-                                                Acessar Dashboard <ArrowRight className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            );
-                        })}
+                        <button 
+                            onClick={() => scrollCards('right')} 
+                            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-3 md:-mr-6 z-20 p-2 bg-[#1a1a1a]/80 backdrop-blur-md border border-white/10 text-white rounded-full opacity-0 group-hover/carousel:opacity-100 disabled:opacity-0 transition-opacity hover:bg-[#C5A059] hover:text-black shadow-lg"
+                        >
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
 
