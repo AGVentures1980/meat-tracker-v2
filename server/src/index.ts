@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 3002;
 
 // Middleware
@@ -98,6 +98,9 @@ import path from 'path';
 
 // Auth Routes (Public)
 app.use('/api/v1/auth', authRoutes);
+
+// Private Application Routes
+app.use('/api/v1/vault', vaultRoutes);
 app.use('/api/v1/theme', themeRoutes); // Public theme fetching
 
 import { PartnerController } from './controllers/PartnerController';
@@ -553,41 +556,43 @@ async function ensureOutbackPilot() {
 }
 
 // Start Server after DB Check
-cleanupDuplicateProteins()
-    .then(() => ensureDefaultSettings())
-    .then(() => ensurePrimaryStoreUsers())
-    .then(() => ensureProductionAccounts())
-    .then(() => ensureOutbackPilot())
-    .then(() => {
-    // ... (existing imports)
+if (process.env.NODE_ENV !== 'test') {
+    cleanupDuplicateProteins()
+        .then(() => ensureDefaultSettings())
+        .then(() => ensurePrimaryStoreUsers())
+        .then(() => ensureProductionAccounts())
+        .then(() => ensureOutbackPilot())
+        .then(() => {
+        // ... (existing imports)
 
-    app.listen(PORT, () => {
-        console.log(`🚀 BRASA INTEL v4.2.0-DASHBOARD-EXEC running on http://localhost:${PORT}`);
-        console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
+        app.listen(PORT, () => {
+            console.log(`🚀 BRASA INTEL v4.2.0-DASHBOARD-EXEC running on http://localhost:${PORT}`);
+            console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
 
-        // 🟢 24/7 AI AGENT BACKGROUND LOOP
-        console.log(`🤖 AI Prospecting Agent: ONLINE (24/7 Watch Mode)`);
+            // 🟢 24/7 AI AGENT BACKGROUND LOOP
+            console.log(`🤖 AI Prospecting Agent: ONLINE (24/7 Watch Mode)`);
 
-        // 🔵 OFFICE 365 CONNECT (WATCHER)
-        OneDriveWatcher.start();
+            // 🔵 OFFICE 365 CONNECT (WATCHER)
+            OneDriveWatcher.start();
 
-        // Run immediately on startup
-        ProspectingAgent.discoverNewProspects();
-
-        // Then run every 6 hours (Simulation of "24/7" work)
-        setInterval(() => {
-            console.log(`🕒 Scheduled AI Scan Triggered...`);
+            // Run immediately on startup
             ProspectingAgent.discoverNewProspects();
-        }, 6 * 60 * 60 * 1000);
 
-        // 🔴 24/7 SENTINEL AI METRIC AUDITOR
-        console.log(`🛡️ Sentinel AI Background Auditor: ONLINE (Cron Mode)`);
-        
-        // Schedule to run every hour at minute 0 (0 * * * *) 
-        // For testing/demonstration purposes, we will also run it on startup
-        SentinelService.runDailyAudit();
-        cron.schedule('0 * * * *', () => {
+            // Then run every 6 hours (Simulation of "24/7" work)
+            setInterval(() => {
+                console.log(`🕒 Scheduled AI Scan Triggered...`);
+                ProspectingAgent.discoverNewProspects();
+            }, 6 * 60 * 60 * 1000);
+
+            // 🔴 24/7 SENTINEL AI METRIC AUDITOR
+            console.log(`🛡️ Sentinel AI Background Auditor: ONLINE (Cron Mode)`);
+            
+            // Schedule to run every hour at minute 0 (0 * * * *) 
+            // For testing/demonstration purposes, we will also run it on startup
             SentinelService.runDailyAudit();
+            cron.schedule('0 * * * *', () => {
+                SentinelService.runDailyAudit();
+            });
         });
     });
-});
+}

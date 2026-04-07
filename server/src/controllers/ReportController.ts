@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { MeatEngine } from '../engine/MeatEngine';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, startOfYear } from 'date-fns';
-
-const prisma = new PrismaClient();
 
 const getDateRange = (range: string = 'this-month') => {
     const now = new Date();
@@ -77,6 +74,7 @@ export class ReportController {
                 whereClause.region = user.director_region;
             }
 
+            const prisma = (req as any).scopedPrisma;
             const stores = await prisma.store.findMany({
                 where: whereClause,
                 include: {
@@ -89,9 +87,9 @@ export class ReportController {
                 }
             });
 
-            const flashData = stores.map(store => {
-                const totalLbs = store.orders.reduce((acc, order) => {
-                    return acc + order.items.reduce((sum, item) => sum + item.lbs, 0);
+            const flashData = stores.map((store: any) => {
+                const totalLbs = store.orders.reduce((acc: number, order: any) => {
+                    return acc + order.items.reduce((sum: number, item: any) => sum + item.lbs, 0);
                 }, 0);
 
                 return {
@@ -126,6 +124,7 @@ export class ReportController {
 
             let targetId = id;
             if (!targetId && (user.role === 'admin' || user.role === 'director')) {
+                const prisma = (req as any).scopedPrisma;
                 // Fetch the first store that belongs to their company
                 const firstStore = await prisma.store.findFirst({
                     where: user.companyId ? { company_id: user.companyId } : {}
@@ -138,6 +137,7 @@ export class ReportController {
             const stats = await MeatEngine.getDashboardStats(targetId, start, end);
             console.log(`[ReportController] Variance Analysis for store ${targetId} generated ${stats.topMeats.length} items.`);
 
+            const prisma = (req as any).scopedPrisma;
             return res.json({
                 storeId: targetId,
                 storeName: (await prisma.store.findUnique({ where: { id: targetId } }))?.store_name,
@@ -171,6 +171,7 @@ export class ReportController {
 
             let targetId = id;
             if (!targetId && (user.role === 'admin' || user.role === 'director')) {
+                const prisma = (req as any).scopedPrisma;
                 const firstStore = await prisma.store.findFirst({
                     where: user.companyId ? { company_id: user.companyId } : {}
                 });
@@ -213,6 +214,7 @@ export class ReportController {
                 companyWhere.store.region = user.director_region;
             }
 
+            const prisma = (req as any).scopedPrisma;
             const allPurchases = await prisma.purchaseRecord.findMany({
                 where: companyWhere,
                 include: { store: true }
@@ -224,7 +226,7 @@ export class ReportController {
 
             // 1. Calculate Network Average per Protein (across all company stores)
             const networkTotals: Record<string, { totalCost: number, totalQty: number }> = {};
-            allPurchases.forEach(p => {
+            allPurchases.forEach((p: any) => {
                 if (!networkTotals[p.item_name]) networkTotals[p.item_name] = { totalCost: 0, totalQty: 0 };
                 networkTotals[p.item_name].totalCost += p.cost_total;
                 networkTotals[p.item_name].totalQty += p.quantity;
@@ -238,14 +240,14 @@ export class ReportController {
 
             // 2. Filter data for the specific report (Scope by Store if Manager)
             const purchases = (user.role === 'manager' && user.storeId)
-                ? allPurchases.filter(p => p.store_id === user.storeId)
+                ? allPurchases.filter((p: any) => p.store_id === user.storeId)
                 : allPurchases;
 
             // 2. Group by Store -> Protein -> Latest Price (or Avg Price for period)
             // User requested "what each store pays". If multiple purchases, Weighted Avg is best.
             const storeStats: Record<string, Record<string, { totalCost: number, totalQty: number, storeName: string, location: string }>> = {};
 
-            purchases.forEach(p => {
+            purchases.forEach((p: any) => {
                 const storeKey = p.store_id.toString();
                 if (!storeStats[storeKey]) storeStats[storeKey] = {};
                 if (!storeStats[storeKey][p.item_name]) {

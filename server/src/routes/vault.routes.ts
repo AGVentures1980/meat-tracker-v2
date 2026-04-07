@@ -1,19 +1,23 @@
-import { Router } from 'express';
+import express from 'express';
 import { VaultController } from '../controllers/VaultController';
-import { requireAuth } from '../middleware/auth.middleware';
-import multer from 'multer';
+import { requireAuth, requireScope } from '../middleware/auth.middleware';
 
-const upload = multer({ storage: multer.memoryStorage() });
+const router = express.Router();
 
-const router = Router();
+// SRE Kill Switch: Instantly severs the entire Vault API layer natively
+router.use((req, res, next) => {
+    if (process.env.ENABLE_VAULT === 'false') {
+        return res.status(404).json({ error: 'Vault API is currently offline.' });
+    }
+    next();
+});
 
-// Require user to be logged in to even attempt PIN validation
-router.post('/verify', requireAuth, VaultController.verifyPin);
-router.get('/unread', requireAuth, VaultController.getUnreadCount);
-router.get('/messages', requireAuth, VaultController.getMessages);
-router.post('/messages', requireAuth, upload.single('file'), VaultController.postMessage);
+router.use(requireAuth);
 
-// Special System Agent sync route to feed context back to the AI
-router.get('/sync', VaultController.agentSync);
+// Store is the baseline rank, which allows STORE, AREA, COMPANY, and GLOBAL.
+// But GLOBAL is intercepted and forced to provide X-Audit-Reason.
+router.post('/request-upload', requireScope('STORE'), VaultController.requestUpload);
+router.post('/confirm-upload', requireScope('STORE'), VaultController.confirmUpload);
+router.get('/access/:id', requireScope('STORE'), VaultController.accessFile);
 
 export default router;

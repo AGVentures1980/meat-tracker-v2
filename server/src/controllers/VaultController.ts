@@ -1,218 +1,168 @@
 import { Request, Response } from 'express';
+import { VaultService } from '../services/vault.service';
+import { emitMetric, emitStructuredLog, VaultCircuitBreaker } from '../utils/vaultMetrics';
 import { PrismaClient } from '@prisma/client';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { s3Client } from '../utils/s3Client';
 
-const prisma = new PrismaClient();
-
-const VAULT_PIN = '452310';
+const globalPrisma = new PrismaClient();
 
 export class VaultController {
-    /**
-     * POST /api/v1/vault/verify
-     * Validates the Owner Vault PIN.
-     */
-    static async verifyPin(req: Request, res: Response) {
-        try {
-            const { pin } = req.body;
+    static async requestUpload(req: Request, res: Response) {
+        const startTimestamp = Date.now();
+        const user = (req as any).user || { id: 'unknown', companyId: 'unknown' };
+        
+        // Tenant-Aware Kill Switch Evaluation
+        if (!VaultCircuitBreaker.isVaultEnabled(user.companyId || user.company_id)) {
+            return res.status(503).json({ error: 'Vault systems disabled for this tenant.', code: 'VAULT_OFFLINE' });
+        }
 
-            if (pin === VAULT_PIN) {
-                return res.json({ success: true });
-            } else {
-                return res.status(401).json({ success: false, error: 'Invalid PIN' });
+        if (process.env.ENABLE_VAULT_UPLOAD === 'false') {
+            return res.status(503).json({ error: 'Vault uploads are temporarily disabled by SRE override.' });
+        }
+        try {
+            const scopedPrisma = (req as any).scopedPrisma;
+            const ip = req.ip || req.socket.remoteAddress || 'unknown';
+
+            const { document_type, mime_type, size_bytes, original_filename, store_id } = req.body;
+
+            if (!document_type || !mime_type || !size_bytes || !original_filename || !store_id) {
+                return res.status(400).json({ error: 'Missing required upload parameters' });
             }
-        } catch (error) {
-            console.error('Vault PIN verification error:', error);
-            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+
+            const result = await VaultService.requestUploadUrl(
+                scopedPrisma,
+                user.companyId || user.company_id,
+                Number(store_id),
+                user.id,
+                ip,
+                document_type,
+                mime_type,
+                Number(size_bytes),
+                original_filename
+            );
+
+            const latency = Date.now() - startTimestamp;
+            emitMetric({ metric: 'upload_request_success', endpoint: '/vault/request-upload', status: 200, companyId: user.companyId || user.company_id, latencyMs: latency });
+            return res.json(result);
+        } catch (error: any) {
+            const latency = Date.now() - startTimestamp;
+            const msg = error?.message || String(error);
+            const user = (req as any).user || { id: 'unknown', companyId: 'unknown' };
+            emitStructuredLog({ metric: 'upload_request_failure', error: msg, endpoint: '/vault/request-upload', status: msg.includes('400') ? 400 : 500, companyId: user.companyId || user.company_id, userId: user.id, latencyMs: latency });
+            
+            if (msg.includes('400')) {
+                return res.status(400).json({ error: msg });
+            }
+            return res.status(500).json({ error: 'Internal secure storage error', details: msg });
         }
     }
 
-    /**
-     * GET /api/v1/vault/messages
-     * Fetches all vault messages and marks them as read by the OWNER.
-     */
-    static async getMessages(req: Request, res: Response) {
+    static async confirmUpload(req: Request, res: Response) {
+        const startTimestamp = Date.now();
+        const user = (req as any).user || { id: 'unknown', companyId: 'unknown' };
+        
+        if (!VaultCircuitBreaker.isVaultEnabled(user.companyId || user.company_id)) {
+            return res.status(503).json({ error: 'Vault systems disabled for this tenant.', code: 'VAULT_OFFLINE' });
+        }
+        
         try {
-            const companyId = req.query.companyId as string;
-            if (!companyId) return res.status(400).json({ success: false, error: 'Company ID required' });
+            const scopedPrisma = (req as any).scopedPrisma;
+            const ip = req.ip || req.socket.remoteAddress || 'unknown';
+            const { file_id } = req.body;
 
-            const messages = await prisma.ownerVaultMessage.findMany({
-                where: { company_id: companyId },
-                orderBy: { created_at: 'asc' }
-            });
+            if (!file_id) return res.status(400).json({ error: 'Missing file_id' });
 
-            // Mark any unread system/AI messages as read since the vault is now open
-            await prisma.ownerVaultMessage.updateMany({
-                where: { company_id: companyId, is_read: false, sender: { not: 'OWNER' } },
-                data: { is_read: true }
-            });
+            await VaultService.confirmUpload(scopedPrisma, file_id, user.id, ip);
+            
+            const latency = Date.now() - startTimestamp;
+            emitMetric({ metric: 'upload_confirm_success', endpoint: '/vault/confirm-upload', status: 200, companyId: user.companyId || user.company_id, latencyMs: latency });
+            return res.json({ success: true, message: 'File is now active' });
+        } catch (error: any) {
+            const latency = Date.now() - startTimestamp;
+            const msg = error?.message || String(error);
+            const user = (req as any).user || { id: 'unknown', companyId: 'unknown' };
+            
+            if (msg.includes('conflict')) {
+                emitMetric({ metric: 'upload_confirm_conflict_resolved', endpoint: '/vault/confirm-upload', status: 200, companyId: user.companyId || user.company_id, latencyMs: latency });
+                // Return 200 safely for idempotent resolution of concurrent requests
+                return res.json({ success: true, message: 'File is already active (Conflict gracefully resolved)' });
+            }
 
-            return res.json({ success: true, messages });
-        } catch (error) {
-            console.error('Error fetching vault messages:', error);
-            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+            emitStructuredLog({ metric: 'upload_confirm_failure', error: msg, fileId: req.body.file_id, endpoint: '/vault/confirm-upload', status: 500, userId: user.id, companyId: user.companyId || user.company_id, latencyMs: latency });
+            return res.status(500).json({ error: 'Confirmation failed' });
         }
     }
 
-    /**
-     * GET /api/v1/vault/unread
-     * Fetches the count of unread system/AI messages.
-     */
-    static async getUnreadCount(req: Request, res: Response) {
-        try {
-            const companyId = req.query.companyId as string;
-            if (!companyId) return res.status(400).json({ success: false, error: 'Company ID required' });
+    static async accessFile(req: Request, res: Response) {
+        const startTimestamp = Date.now();
+        const user = (req as any).user || { id: 'unknown', companyId: 'unknown' };
 
-            const count = await prisma.ownerVaultMessage.count({
-                where: { company_id: companyId, is_read: false, sender: { not: 'OWNER' } }
-            });
-            return res.json({ success: true, count });
-        } catch (error) {
-            console.error('Error counting unread vault messages:', error);
-            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+        if (!VaultCircuitBreaker.isVaultEnabled(user.companyId || user.company_id)) {
+            return res.status(503).json({ error: 'Vault systems disabled for this tenant.', code: 'VAULT_OFFLINE' });
         }
-    }
 
-    /**
-     * POST /api/v1/vault/messages
-     * Creates a new vault message from the Owner, optionally with a file.
-     */
-    static async postMessage(req: Request, res: Response) {
-        try {
-            const { text, companyId } = req.body;
-            const file = req.file;
-
-            if (!companyId) return res.status(400).json({ success: false, error: 'Company ID required' });
-
-            if ((!text || text.trim() === '') && !file) {
-                return res.status(400).json({ success: false, error: 'Message text or file is required' });
-            }
-
-            let file_url = null;
-            let file_name = null;
-            let file_type = null;
-
-            if (file) {
-                // Convert buffer to Base64 Data URI for simple generic storage
-                const base64Str = file.buffer.toString('base64');
-                file_url = `data:${file.mimetype};base64,${base64Str}`;
-                file_name = file.originalname;
-                file_type = file.mimetype;
-            }
-
-            const message = await prisma.ownerVaultMessage.create({
-                data: {
-                    company_id: companyId,
-                    text: text ? text.trim() : null,
-                    file_url,
-                    file_name,
-                    file_type,
-                    sender: 'OWNER'
-                }
-            });
-
-            // --- REAL AI INTEGRATION: Conversation History & OpenAI API ---
-            let aiResponseText = "Estou processando sua ideia. (A chave da OpenAI não está disponível no servidor.)";
-
-            if (process.env.OPENAI_API_KEY) {
-                try {
-                    // Fetch last 6 messages to provide conversational context
-                    const recentMessages = await prisma.ownerVaultMessage.findMany({
-                        where: { company_id: companyId },
-                        take: 6,
-                        orderBy: { created_at: 'desc' }
-                    });
-
-                    const chatHistory = recentMessages.reverse().map(msg => ({
-                        role: msg.sender === 'OWNER' ? 'user' : 'assistant',
-                        content: msg.text || '(Attachment sent)'
-                    }));
-
-                    const systemPrompt = {
-                        role: "system",
-                        content: `Você é o 'AGV AI OS', um conselheiro executivo hiper-inteligente embarcado no Brasa Meat Intelligence, especializado na operação, CMV (Food Cost) e fluxo de caixa da rede de restaurantes de carnes. O usuário interagindo com você agora é o Alexandre Garcia, dono da rede.
-Sua missão:
-1. Analise ideias operacionais através da lente do Custo de Mercadoria Vendida (CMV).
-2. Reforce sempre a "Garcia Rule" (responsabilidade inegociável do inventário semanal para evitar perdas).
-3. Avalie a viabilidade das ideias focando em Shelf-life (tempo de prateleira) e redução de desperdícios (Spoilage).
-4. Seja direto, executivo e tático. Pergunte como a ideia se aplica na prática (ex: 'Isso afeta a Picanha ou a Fraldinha?').
-Comporte-se como um co-piloto focado em lucro, identificando gargalos antes que eles aconteçam.`
-                    };
-
-                    const openAiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-                        },
-                        body: JSON.stringify({
-                            model: "gpt-4o-mini",
-                            messages: [systemPrompt, ...chatHistory],
-                            temperature: 0.7,
-                            max_tokens: 300
-                        })
-                    });
-
-                    if (openAiRes.ok) {
-                        const aiData: any = await openAiRes.json();
-                        aiResponseText = aiData.choices[0].message.content;
-                    } else {
-                        console.error("OpenAI Error:", await openAiRes.text());
-                        aiResponseText = "Houve um problema ao conectar com a minha base de dados central (Erro OpenAI). Vamos focar no básico por enquanto.";
-                    }
-                } catch (aiErr) {
-                    console.error("AI Fetch execution failed", aiErr);
-                    aiResponseText = "Não consegui concluir a análise agora. O sistema pode estar offline.";
-                }
-            }
-
-            const aiMessage = await prisma.ownerVaultMessage.create({
-                data: {
-                    company_id: companyId,
-                    text: aiResponseText,
-                    file_url: null,
-                    file_name: null,
-                    file_type: null,
-                    sender: 'AI_AGENT'
-                }
-            });
-
-            return res.json({ success: true, message, ai_message: aiMessage });
-        } catch (error) {
-            console.error('Error posting vault message:', error);
-            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+        if (process.env.ENABLE_VAULT_DOWNLOAD === 'false') {
+            return res.status(503).json({ error: 'Vault downloads are temporarily disabled by SRE override.' });
         }
-    }
-
-    /**
-     * GET /api/v1/vault/sync
-     * Machine-to-machine endpoint for the AI Agent to fetch messages locally.
-     * Protected by AGV_AGENT_SECRET.
-     */
-    static async agentSync(req: Request, res: Response) {
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({ success: false, error: 'Unauthorized' });
+            const scopedPrisma = (req as any).scopedPrisma;
+            const ip = req.ip || req.socket.remoteAddress || 'unknown';
+            const fileId = req.params.id;
+            
+            const justification = req.headers['x-audit-reason'] as string | undefined;
+
+            if (user.scope?.type === 'GLOBAL' && !justification) {
+                return res.status(403).json({ error: 'X-Audit-Reason header is mandatory for GLOBAL vault access' });
             }
 
-            const token = authHeader.split(' ')[1];
-            const secret = process.env.AGV_AGENT_SECRET || 'agv-local-agent-sync-key-v1';
+            const result = await VaultService.requestDownloadUrl(
+                scopedPrisma,
+                fileId,
+                user.id,
+                ip,
+                justification
+            );
 
-            if (token !== secret) {
-                return res.status(403).json({ success: false, error: 'Forbidden' });
-            }
+            const latency = Date.now() - startTimestamp;
+            emitMetric({ metric: 'download_request_success', endpoint: '/vault/access', status: 200, companyId: user.companyId || user.company_id, latencyMs: latency });
+            return res.json(result);
+        } catch (error: any) {
+             const latency = Date.now() - startTimestamp;
+             const user = (req as any).user || { id: 'unknown', companyId: 'unknown', storeId: 'unknown' };
+             const msg = error?.message || String(error);
+             
+             // Soft Enforcement Check utilizing Tenant-Aware Circuit Breaker constraints
+             if (!VaultCircuitBreaker.isEnforcementEnabledSync(user.company_id || user.companyId)) {
+                 emitStructuredLog({ metric: 'shadow_mode_violation_suppressed', error: msg, endpoint: '/vault/access', fileId: req.params.id, userId: user.id, companyId: user.company_id || user.companyId, latencyMs: latency });
+                 
+                 // TRUE LEGACY EXECUTION FLOW: Bypass Scoped Prisma completely and fetch directly generating identical structure payload
+                 try {
+                     const unscopedS3LatencyStart = Date.now();
+                     const legacyFile = await globalPrisma.vaultFile.findUnique({ where: { id: req.params.id } });
+                     if (legacyFile) {
+                         const command = new GetObjectCommand({ Bucket: legacyFile.bucket_name, Key: legacyFile.storage_key });
+                         const viewUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 });
+                         const totalLatency = Date.now() - unscopedS3LatencyStart;
+                         emitMetric({ metric: 'fallback_usage_success', status: 200, endpoint: '/vault/access', companyId: user.company_id || user.companyId, latencyMs: totalLatency });
+                         return res.json({ viewUrl, metadata: legacyFile });
+                     }
+                 } catch (legacyErr) {
+                     // Failsafe
+                 }
+             } else {
+                 emitStructuredLog({ metric: 'download_request_failure', error: msg, endpoint: '/vault/access', fileId: req.params.id, userId: user.id, status: 500, companyId: user.company_id || user.companyId, latencyMs: latency });
+             }
 
-            const companyId = req.query.companyId as string;
-            if (!companyId) return res.status(400).json({ success: false, error: 'Company ID required for Sync' });
-
-            const messages = await prisma.ownerVaultMessage.findMany({
-                where: { company_id: companyId },
-                orderBy: { created_at: 'asc' }
-            });
-
-            return res.json({ success: true, messages });
-        } catch (error) {
-            console.error('Error in agent sync:', error);
-            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+             if (msg.includes('404')) {
+                 emitStructuredLog({ metric: 'access_denied_404', fileId: req.params.id, endpoint: '/vault/access', status: 404, userId: user.id, companyId: user.company_id || user.companyId, latencyMs: latency });
+                 return res.status(404).json({ error: 'File not found or access denied' });
+             }
+             if (msg.includes('403')) {
+                  emitStructuredLog({ metric: 'access_denied_403', fileId: req.params.id, endpoint: '/vault/access', status: 403, userId: user.id, companyId: user.company_id || user.companyId, latencyMs: latency });
+             }
+             return res.status(500).json({ error: 'Failed to access document vault', details: msg, stack: error?.stack });
         }
     }
 }

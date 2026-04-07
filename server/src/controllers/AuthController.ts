@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { differenceInDays } from 'date-fns';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'brasa-secret-key-change-me';
@@ -131,6 +132,7 @@ export class AuthController {
                     storeId: user.store_id,
                     companyId: defaultCompanyId, // Strict Tenant Enforcement
                     scope, // Injected Hierarchical Scope
+                    tv: user.token_version, // Enterprise Revocation 
 
                     isPrimary: user.is_primary,
                     eula_accepted: !!user.eula_accepted_at,
@@ -186,7 +188,8 @@ export class AuthController {
                 data: {
                     password_hash: hashedPassword,
                     last_password_change: new Date(),
-                    force_change: false
+                    force_change: false,
+                    token_version: { increment: 1 } // INVALIDATE JWTs
                 }
             });
 
@@ -285,21 +288,21 @@ export class AuthController {
 
             if (!user) {
                 // Don't leak whether the email exists, just return success
-                return res.json({ success: true, message: 'If the email exists, an OTP was sent.' });
+                return res.json({ success: true, message: 'If the email exists, a reset link has been sent.' });
             }
 
-            // Generate 4 digit OTP
-            const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+            // Generate True Entropy Token
+            const plainToken = crypto.randomBytes(32).toString('hex');
+            const tokenHash = crypto.createHash('sha256').update(plainToken).digest('hex');
             const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
-            // Store in SystemSettings
-            const key = `otp_reset_${user.email}`;
-            const value = JSON.stringify({ code: otpCode, expiresAt: expiresAt.toISOString() });
-
-            await prisma.systemSettings.upsert({
-                where: { key },
-                update: { value, type: 'otp_code' },
-                create: { key, value, type: 'otp_code' }
+            // Store securely
+            await prisma.passwordResetToken.create({
+                data: {
+                    user_id: user.id,
+                    token_hash: tokenHash,
+                    expires_at: expiresAt
+                }
             });
 
             // Send via EmailJS REST API from backend for security
@@ -310,8 +313,8 @@ export class AuthController {
                 template_params: {
                     to_email: user.email,
                     subject: "Brasa Meat Intelligence - Secure Password Reset",
-                    message: `Your critical security OTP for password recovery is: ${otpCode}. This code is strictly confidential and expires in 15 minutes.`,
-                    otp_code: otpCode
+                    message: `A password reset was requested for your account. Please use this secure token to reset it: ${plainToken}. This token is strictly confidential and expires in 15 minutes.`,
+                    otp_code: plainToken
                 }
             };
 
@@ -326,67 +329,113 @@ export class AuthController {
                 return res.status(500).json({ error: 'Failed to send OTP email.' });
             }
 
-            return res.json({ success: true, message: 'If the email exists, an OTP was sent.' });
+            return res.json({ success: true, message: 'If the email exists, a reset link has been sent.' });
         } catch (error) {
             console.error('Forgot Password Error:', error);
             return res.status(500).json({ error: 'Failed to process request' });
         }
     }
 
-    static async resetPasswordWithOtp(req: Request, res: Response) {
+    static async resetPassword(req: Request, res: Response) {
         try {
-            const { email, otp, newPassword } = req.body;
-            if (!email || !otp || !newPassword) {
-                return res.status(400).json({ error: 'Missing required fields' });
+            const { token, newPassword } = req.body;
+            if (!token || !newPassword) {
+                return res.status(400).json({ error: 'Missing required token or password parameters' });
             }
 
-            if (newPassword.length < 8) {
-                return res.status(400).json({ error: 'Password must be at least 8 characters' });
+            if (newPassword.length < 12) {
+                return res.status(400).json({ error: 'Enterprise policy requires passwords to be at least 12 characters' });
             }
 
-            const cleanEmail = email.toLowerCase();
-            const key = `otp_reset_${cleanEmail}`;
+            // Hash the input token to verify
+            const tokenHash = crypto.createHash('sha256').update(token.trim()).digest('hex');
+            const resetLog = await prisma.passwordResetToken.findUnique({ where: { token_hash: tokenHash }});
 
-            const setting = await prisma.systemSettings.findUnique({
-                where: { key }
-            });
-
-            if (!setting) {
-                return res.status(400).json({ error: 'Invalid or expired OTP' });
+            if (!resetLog) {
+                return res.status(400).json({ error: 'Invalid or expired secure token' });
             }
 
-            const data = JSON.parse(setting.value);
-
-            if (data.code !== otp.trim()) {
-                // To prevent brute force, we could log attempts, but for MVP:
-                return res.status(400).json({ error: 'Invalid OTP' });
+            if (new Date() > new Date(resetLog.expires_at)) {
+                await prisma.passwordResetToken.delete({ where: { token_hash: tokenHash } });
+                return res.status(400).json({ error: 'Token has expired. Request a new one.' });
             }
 
-            if (new Date() > new Date(data.expiresAt)) {
-                await prisma.systemSettings.delete({ where: { key } });
-                return res.status(400).json({ error: 'OTP has expired. Request a new one.' });
-            }
-
-            // OTP is valid!
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            // Token is valid!
+            const hashedPassword = await bcrypt.hash(newPassword, 12);
 
             await prisma.user.update({
-                where: { email: cleanEmail },
+                where: { id: resetLog.user_id },
                 data: {
                     password_hash: hashedPassword,
                     last_password_change: new Date(),
-                    force_change: false
+                    force_change: false,
+                    token_version: { increment: 1 } // INVALIDATE JWTs
                 }
             });
 
-            // Consume OTP
-            await prisma.systemSettings.delete({ where: { key } });
+            // Consume Token (Single-Use Only)
+            await prisma.passwordResetToken.delete({ where: { token_hash: tokenHash } });
 
             return res.json({ success: true, message: 'Password updated successfully' });
 
         } catch (error) {
-            console.error('Reset Password OTP Error:', error);
+            console.error('Reset Password Error:', error);
             return res.status(500).json({ error: 'Failed to reset password' });
+        }
+    }
+
+    static async forceResetPassword(req: Request, res: Response) {
+        try {
+            const adminUser = (req as any).user;
+            const targetUserId = req.params.id;
+            
+            // X-Audit-Reason is mandatory by architecture
+            const auditReason = req.headers['x-audit-reason'];
+            if (!auditReason || typeof auditReason !== 'string' || auditReason.trim().length === 0) {
+                return res.status(403).json({ error: 'X-Audit-Reason header is mandated for forced credential resets.' });
+            }
+
+            const targetUser = await prisma.user.findUnique({
+                where: { id: targetUserId }
+            });
+
+            if (!targetUser) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            // Immediately increment token_version to kill all active sessions.
+            await prisma.user.update({
+                where: { id: targetUserId },
+                data: {
+                    token_version: { increment: 1 },
+                    force_change: true
+                }
+            });
+
+            console.log(`[SECURITY AUDIT] Admin ${adminUser.email} forced credentials reset on User ${targetUser.email}. Reason: ${auditReason}`);
+
+            // Send notification email to the victim telling them an admin forcefully reset their access.
+            const emailjsPayload = {
+                service_id: "service_v5fsxwr",
+                template_id: "4mq0hxz", // Using the same OTP template for generic alerts right now
+                user_id: "15yzEVB4O5kIXWLUS",
+                template_params: {
+                    to_email: targetUser.email,
+                    subject: "Brasa Meat Intelligence - SECURITY ALERT",
+                    message: `An administrator (${adminUser.email}) has forcefully reset your credentials and revoked all active sessions. Please reach out to your Area Manager to regain access.`
+                }
+            };
+
+            await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(emailjsPayload)
+            });
+
+            return res.json({ success: true, message: 'Sessions revoked and user notified.' });
+        } catch (error) {
+            console.error('Force Reset Error:', error);
+            return res.status(500).json({ error: 'Failed to execute forced reset' });
         }
     }
 }

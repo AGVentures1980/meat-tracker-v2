@@ -39,6 +39,7 @@ model Company {
   templates                   StoreTemplate[]
   invoices                    SysInvoice[]
   CorporateProteinSpec        CorporateProteinSpec[]
+  vaultFiles                  VaultFile[]
 }
 
 model CompanyProduct {
@@ -128,6 +129,7 @@ model Store {
   AiYieldInsight             AiYieldInsight[]
   SystemAlert                SystemAlert[]
   BarcodeDecisionLog         BarcodeDecisionLog[]
+  vaultFiles                 VaultFile[]
 
   @@unique([company_id, store_name])
 }
@@ -158,27 +160,32 @@ model StoreMeatTarget {
 }
 
 model User {
-  id                   String             @id @default(uuid())
+  id                   String               @id @default(uuid())
   store_id             Int?
   first_name           String?
   last_name            String?
-  email                String             @unique
+  email                String               @unique
   password_hash        String
-  role                 Role               @default(viewer)
-  is_primary           Boolean            @default(false)
-  created_at           DateTime           @default(now())
-  force_change         Boolean            @default(false)
-  last_password_change DateTime           @default(now())
-  is_trial             Boolean            @default(false)
+  role                 Role                 @default(viewer)
+  is_primary           Boolean              @default(false)
+  created_at           DateTime             @default(now())
+  force_change         Boolean              @default(false)
+  last_password_change DateTime             @default(now())
+  is_trial             Boolean              @default(false)
   trial_expires_at     DateTime?
   eula_accepted_at     DateTime?
   position             String?
   director_region      String?
-  partner              Partner?           @relation("PartnerUser")
-  area_stores          Store[]            @relation("AreaManager")
+  partner              Partner?             @relation("PartnerUser")
+  area_stores          Store[]              @relation("AreaManager")
   support_tickets      SupportTicket[]
   training_progress    TrainingProgress[]
-  store                Store?             @relation(fields: [store_id], references: [id])
+  store                Store?               @relation(fields: [store_id], references: [id])
+  token_version        Int                  @default(1)
+  reset_tokens         PasswordResetToken[]
+  password_history     PasswordHistory[]
+  vaultFiles           VaultFile[]
+  fileAccessLogs       FileAccessLog[]
 }
 
 model OwnerVaultMessage {
@@ -523,23 +530,23 @@ model SupportMessage {
 }
 
 model ProcurementAIFeedback {
-  id                     String   @id @default(uuid())
-  store_id               Int
-  date                   DateTime @db.Date
-  protein                String
-  manager_prep_lbs       Float
-  ai_predicted_lbs       Float
-  chosen_winner          String
-  custom_correct_lbs     Float?
-  notes                  String?
-  created_at             DateTime @default(now())
-  ai_predicted_skewers   Float?
-  custom_correct_skewers Float?
-  manager_prep_skewers   Float?
-  target_trim_yield_percent Float?
+  id                           String   @id @default(uuid())
+  store_id                     Int
+  date                         DateTime @db.Date
+  protein                      String
+  manager_prep_lbs             Float
+  ai_predicted_lbs             Float
+  chosen_winner                String
+  custom_correct_lbs           Float?
+  notes                        String?
+  created_at                   DateTime @default(now())
+  ai_predicted_skewers         Float?
+  custom_correct_skewers       Float?
+  manager_prep_skewers         Float?
+  target_trim_yield_percent    Float?
   target_cooking_yield_percent Float?
-  max_yield_loss_percent Float? @default(20.0)
-  store                  Store    @relation(fields: [store_id], references: [id])
+  max_yield_loss_percent       Float?   @default(20.0)
+  store                        Store    @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, date, protein])
 }
@@ -733,10 +740,10 @@ model BarcodeScanEvent {
   scanned_at      DateTime   @default(now())
 
   // Sprint 5 Enhancement - Bait & Switch Payload Analytics
-  protein_name    String?
-  supplier        String?
-  weight          Float?
-  metadata        Json?
+  protein_name String?
+  supplier     String?
+  weight       Float?
+  metadata     Json?
 
   store Store @relation(fields: [store_id], references: [id])
 }
@@ -775,7 +782,7 @@ model BarcodeFamily {
   family_name          String
   symbology            String
   barcode_type         String   @default("GS1")
-  prefix_patterns      String[] 
+  prefix_patterns      String[]
   parsing_strategy     String   @default("generic")
   unit_default         String   @default("LB")
   confidence_threshold Float    @default(0.85)
@@ -785,7 +792,7 @@ model BarcodeFamily {
   is_active            Boolean  @default(true)
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
-  
+
   @@index([family_code, is_active])
 }
 
@@ -800,18 +807,18 @@ model UnknownBarcodeLog {
 }
 
 model ReceivingEvent {
-  id              String   @id @default(uuid())
-  store_id        Int
-  scanned_barcode String
-  gtin            String?
-  product_code    String?
-  weight          Float?
-  supplier        String?
-  status          String
-  alert_severity  String?
-  invoice_id      String?
+  id                    String   @id @default(uuid())
+  store_id              Int
+  scanned_barcode       String
+  gtin                  String?
+  product_code          String?
+  weight                Float?
+  supplier              String?
+  status                String
+  alert_severity        String?
+  invoice_id            String?
   invoiced_price_per_lb Float?
-  created_at      DateTime @default(now())
+  created_at            DateTime @default(now())
 
   store Store @relation(fields: [store_id], references: [id])
 }
@@ -828,16 +835,16 @@ model PullToPrepEvent {
 }
 
 model TrimRecordEvent {
-  id           String   @id @default(uuid())
-  store_id     Int
-  protein_name String?
-  input_weight Float
-  trim_weight  Float
-  yield_pct    Float
-  created_at   DateTime @default(now())
-  status       String   @default("APPROVED")
+  id                String   @id @default(uuid())
+  store_id          Int
+  protein_name      String?
+  input_weight      Float
+  trim_weight       Float
+  yield_pct         Float
+  created_at        DateTime @default(now())
+  status            String   @default("APPROVED")
   quarantine_reason String?
-  reviewed_by  String?
+  reviewed_by       String?
 
   store Store @relation(fields: [store_id], references: [id])
 }
@@ -874,47 +881,123 @@ model AiYieldInsight {
 }
 
 model SystemAlert {
-  id                  String   @id @default(uuid())
-  store_id            Int
-  severity            String
-  source              String
-  description         String
-  raw_data            Json?
-  is_resolved         Boolean  @default(false)
-  created_at          DateTime @default(now())
+  id          String   @id @default(uuid())
+  store_id    Int
+  severity    String
+  source      String
+  description String
+  raw_data    Json?
+  is_resolved Boolean  @default(false)
+  created_at  DateTime @default(now())
 
-  store               Store    @relation(fields: [store_id], references: [id])
+  store Store @relation(fields: [store_id], references: [id])
 }
 
 model IndustryBenchmark {
-  id              String   @id @default(uuid())
-  cut             String
-  yield_min       Float
-  yield_max       Float
-  trim_loss_min   Float
-  trim_loss_max   Float
-  source          String
-  version         String
-  active_flag     Boolean  @default(true)
-  created_at      DateTime @default(now())
+  id            String   @id @default(uuid())
+  cut           String
+  yield_min     Float
+  yield_max     Float
+  trim_loss_min Float
+  trim_loss_max Float
+  source        String
+  version       String
+  active_flag   Boolean  @default(true)
+  created_at    DateTime @default(now())
 }
 
 model BarcodeDecisionLog {
-  id                  String   @id @default(uuid())
-  store_id            Int
-  raw_barcode         String
-  cleaned_barcode     String   @default("")
-  context             String   @default("RECEIVING") 
-  status              String   @default("UNKNOWN")   
-  reason_code         String?
-  attempted_parsers   String[]
-  scores              Float[]
-  selected_parser     String
-  runner_up_parser    String   @default("NONE")
-  confidence_gap      Float
-  created_at          DateTime @default(now())
-  
-  store               Store    @relation(fields: [store_id], references: [id])
-  
+  id                String   @id @default(uuid())
+  store_id          Int
+  raw_barcode       String
+  cleaned_barcode   String   @default("")
+  context           String   @default("RECEIVING")
+  status            String   @default("UNKNOWN")
+  reason_code       String?
+  attempted_parsers String[]
+  scores            Float[]
+  selected_parser   String
+  runner_up_parser  String   @default("NONE")
+  confidence_gap    Float
+  created_at        DateTime @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
+
   @@index([store_id, context, status])
+}
+
+model PasswordResetToken {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  token_hash String   @unique // SHA-256 hashed string
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model PasswordHistory {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  hash       String // bcrypt
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model VaultFile {
+  id         String @id @default(uuid())
+  company_id String
+  store_id   Int
+
+  document_type String // e.g., 'INVOICE', 'CONTRACT', 'TRAINING_CERT'
+  bucket_name   String
+  storage_key   String
+
+  original_filename String
+  mime_type         String
+  size_bytes        Int
+  checksum          String?
+
+  is_active     Boolean @default(false)
+  upload_status String  @default("PENDING") // PENDING, COMPLETED, QUARANTINED
+
+  uploaded_by_user_id String
+  created_at          DateTime  @default(now())
+  deleted_at          DateTime?
+
+  company Company @relation(fields: [company_id], references: [id])
+  store   Store   @relation(fields: [store_id], references: [id])
+  user    User    @relation(fields: [uploaded_by_user_id], references: [id])
+
+  access_logs FileAccessLog[]
+
+  @@index([company_id, store_id])
+  @@index([document_type])
+  @@index([storage_key])
+}
+
+model FileAccessLog {
+  id         String @id @default(uuid())
+  file_id    String
+  user_id    String
+  company_id String
+  store_id   Int
+
+  action        String // UPLOAD_REQUEST, UPLOAD_COMPLETED, DOWNLOAD_REQUEST, GLOBAL_AUDIT_VIEW
+  ip            String
+  justification String? // Mandatory for GLOBAL role views
+
+  created_at DateTime @default(now())
+
+  file VaultFile @relation(fields: [file_id], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [user_id], references: [id])
+
+  @@index([file_id])
+  @@index([user_id])
+  @@index([company_id, store_id])
 }

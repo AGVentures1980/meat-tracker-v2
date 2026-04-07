@@ -4,7 +4,17 @@ import { Role } from '@prisma/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'brasa-secret-key-change-me';
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+import { getScopedPrisma } from '../config/scopedPrisma';
+import { probingDetector } from '../utils/probingDetector';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    if (probingDetector.isBlocked('unknown', ip)) {
+        return res.status(429).json({ error: 'Too many unauthorized attempts. IP Blocked.' });
+    }
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -22,6 +32,17 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as any;
 
+        // Enterprise Revocation Check: Ensure token_version matches DB
+        if (decoded.id && decoded.tv) {
+            const userCheck = await prisma.user.findUnique({
+                where: { id: decoded.id },
+                select: { token_version: true }
+            });
+            if (!userCheck || userCheck.token_version !== decoded.tv) {
+                return res.status(401).json({ error: 'Session revoked. Please login again.' });
+            }
+        }
+
         // Multi-Tenant Override: Allow frontend to specify Active Company if user is executive
         const requestedCompanyId = req.headers['x-company-id'];
         if (requestedCompanyId && typeof requestedCompanyId === 'string' && ['admin', 'director'].includes(decoded.role)) {
@@ -29,9 +50,19 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
         }
 
         (req as any).user = decoded;
+        
+        // ENTERPRISE HARDENING: Inject mathematically scoped Prisma Client
+        if (process.env.ENABLE_SCOPED_PRISMA === 'true') {
+            (req as any).scopedPrisma = getScopedPrisma(decoded);
+        } else {
+            (req as any).scopedPrisma = prisma;
+        }
+        
         next();
     } catch (error) {
         console.error('JWT Verify Error:', error);
+        const ip = req.ip || req.socket.remoteAddress || 'unknown';
+        probingDetector.trackAttempt('unknown', ip, req.originalUrl);
         return res.status(401).json({ error: 'Invalid token', details: (error as any).message });
     }
 };
@@ -54,6 +85,54 @@ export const requireRole = (allowedRoles: Role[]) => {
                 error: 'Permission Denied',
                 message: `This action requires one of the following roles: ${allowedRoles.join(', ')}`
             });
+        }
+
+        next();
+    };
+};
+
+/**
+ * Enterprise Scope-Based Access Control Middleware
+ * @param allowedScopes Array of organizational scopes that can access this route
+ */
+export const requireScope = (requiredType: 'GLOBAL' | 'COMPANY' | 'AREA' | 'STORE') => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        const user = (req as any).user;
+        const ip = req.ip || req.socket.remoteAddress || 'unknown';
+        const userId = user?.id || 'unknown';
+
+        if (probingDetector.isBlocked(userId, ip)) {
+            return res.status(429).json({ error: 'Too many unauthorized attempts. Blocked.' });
+        }
+
+        if (!user || !user.scope) {
+            probingDetector.trackAttempt(userId, ip, req.originalUrl);
+            return res.status(403).json({ error: 'Access Denied: Missing scope context' });
+        }
+
+        if (requiredType === 'GLOBAL') {
+            if (user.scope.type !== 'GLOBAL' && user.scope.type !== 'PARTNER') {
+                probingDetector.trackAttempt(userId, ip, req.originalUrl);
+                return res.status(403).json({ error: 'Access Denied: Requires GLOBAL rights.' });
+            }
+
+            const auditReason = req.headers['x-audit-reason'];
+            if (!auditReason || typeof auditReason !== 'string' || auditReason.trim().length === 0) {
+                probingDetector.trackAttempt(userId, ip, req.originalUrl);
+                return res.status(403).json({ error: 'Access Denied: X-Audit-Reason header is mandated for GLOBAL actions.' });
+            }
+
+            console.log(`[AUDIT: GLOBAL ACTION] User: ${user.email} - Action: ${req.method} ${req.url} - Reason: ${auditReason}`);
+            return next();
+        }
+
+        const hierarchy = ['STORE', 'AREA', 'COMPANY', 'GLOBAL', 'PARTNER'];
+        const userRank = hierarchy.indexOf(user.scope.type);
+        const requiredRank = hierarchy.indexOf(requiredType);
+
+        if (userRank < requiredRank) {
+             probingDetector.trackAttempt(userId, ip, req.originalUrl);
+             return res.status(403).json({ error: `Access Denied: Requires ${requiredType} scope minimum.` });
         }
 
         next();

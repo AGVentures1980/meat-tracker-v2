@@ -23,12 +23,10 @@ export class DashboardController {
                 return res.status(400).json({ error: 'Invalid Store ID' });
             }
 
-            // 1. Verify Store exists and belongs to User's Company
+            // 1. Verify Store exists (ownership is now geometrically enforced by scopedPrisma extension)
+            const prisma = (req as any).scopedPrisma;
             const store = await prisma.store.findFirst({
-                where: {
-                    id,
-                    company_id: user.companyId
-                }
+                where: { id }
             });
 
             if (!store) {
