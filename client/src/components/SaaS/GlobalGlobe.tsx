@@ -87,11 +87,14 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         'PH': [
             { id: 'ph-1', dbMatch: 'Fogo', name: 'Fogo de Chão Philippines', img: '/fdc-logo-pure-white.png', stores: 1, plan: 'ENTERPRISE' }
         ]
-        const displayedCards = activeRegion ? regionalOperations[activeRegion as keyof typeof regionalOperations] : systemCompanies.map(c => ({
+    };
+
+    const displayedCards = activeRegion ? regionalOperations[activeRegion as keyof typeof regionalOperations] : systemCompanies.map(c => ({
         id: c.id,
         dbMatch: c.name,
         name: c.name,
         stores: c.name.toLowerCase().includes('outback') ? 700 : c._count.stores,
+
         plan: c.plan,
         img: c.name.includes('Fogo') ? '/fdc-logo-pure-white.png' :
              c.name.includes('Texas') ? '/tdb-logo-white.svg' :
@@ -376,7 +379,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
 
                         <div 
                             ref={scrollContainerRef}
-                            className="flex gap-4 py-8 -my-8 px-2 -mx-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory scroll-smooth"
+                            className="flex items-center gap-4 py-8 -my-8 px-4 -mx-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory scroll-smooth"
                         >
                             {displayedCards.map((company) => {
                                 const isFocused = focusedCompany?.id === company.id;
@@ -390,7 +393,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                                             ${isFocused ? 'border-[#C5A059] bg-[#1a1a1a]/80 shadow-[0_15px_40px_rgba(197,160,89,0.3)] scale-100 z-10 min-h-[160px]' : 'border-white/10 hover:bg-[#1a1a1a]/70 hover:border-[#C5A059]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}
                                             ${isDimmed ? 'opacity-30 pointer-events-none' : ''}
                                         `}
-                                    >         >
+                                    >
                                         <div>
                                             <div className="flex justify-between items-start mb-4">
                                                 {company.img ? (
