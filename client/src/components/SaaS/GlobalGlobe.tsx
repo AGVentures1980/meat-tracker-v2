@@ -113,49 +113,54 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     };
 
     return (
-        <div className="fixed inset-0 w-full h-full bg-[#05070A] overflow-hidden flex flex-col z-[80]">
-            {/* 3D Photorealistic Rotating Globe Engine with soft backlight haze */}
-            <div className="absolute inset-0 z-0 opacity-95 mt-12 md:mt-24 flex justify-center items-center bg-[radial-gradient(circle_at_center,_rgba(92,162,255,0.08)_0%,_transparent_55%)]">
-                <Globe
-                    ref={globeEl}
-                    width={dimensions.width}
-                    height={dimensions.height}
-                    backgroundColor="rgba(0,0,0,0)" // Transparent to blend with our gradient
-                    globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-                    bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                    atmosphereColor="#5ca2ff"
-                    atmosphereAltitude={0.25} // Increased altitude for softer, wider edge glow
-                    
-                    // Radar Rings
-                    ringsData={REGIONS}
-                    ringLat={(d: any) => d.lat}
-                    ringLng={(d: any) => d.lng}
-                    ringColor={(d: any) => d.color}
-                    ringMaxRadius={(d: any) => d.size}
-                    ringPropagationSpeed={3}
-                    ringRepeatPeriod={1500}
-                    
-                    // Region Labels
-                    labelsData={REGIONS}
-                    labelLat={(d: any) => d.lat}
-                    labelLng={(d: any) => d.lng}
-                    labelText={(d: any) => d.name}
-                    labelSize={1.5}
-                    labelDotRadius={0.5}
-                    labelColor={(d: any) => d.color}
-                    labelResolution={2}
-                    
-                    // Interactions
-                    onRingClick={handleRegionClick}
-                    onLabelClick={handleRegionClick}
-                />
-
-                {/* Cinematic Vignette Overlay to blend the hard edges of the WebGL sphere perfectly into the background */}
-                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_closest-side_at_center,_transparent_70%,_#05070A_98%)]"></div>
+        <div className="fixed inset-0 w-full h-full bg-[#020202] overflow-hidden flex flex-col z-[80]">
+            {/* 3D Photorealistic Rotating Globe Engine with CSS Mask for true cinematic fade */}
+            <div 
+                className="absolute inset-0 z-0 mt-12 md:mt-24 flex justify-center items-center pointer-events-none"
+                style={{ 
+                    maskImage: 'radial-gradient(circle, black 40%, transparent 75%)', 
+                    WebkitMaskImage: 'radial-gradient(circle, black 40%, transparent 75%)' 
+                }}
+            >
+                <div className="pointer-events-auto">
+                    <Globe
+                        ref={globeEl}
+                        width={dimensions.width}
+                        height={dimensions.height}
+                        backgroundColor="rgba(0,0,0,0)" // Transparent
+                        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+                        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+                        atmosphereColor="#5ca2ff"
+                        atmosphereAltitude={0.20} // Slightly reduced to keep it sharp
+                        
+                        // Radar Rings
+                        ringsData={REGIONS}
+                        ringLat={(d: any) => d.lat}
+                        ringLng={(d: any) => d.lng}
+                        ringColor={(d: any) => d.color}
+                        ringMaxRadius={(d: any) => d.size}
+                        ringPropagationSpeed={3}
+                        ringRepeatPeriod={1500}
+                        
+                        // Region Labels
+                        labelsData={REGIONS}
+                        labelLat={(d: any) => d.lat}
+                        labelLng={(d: any) => d.lng}
+                        labelText={(d: any) => d.name}
+                        labelSize={1.5}
+                        labelDotRadius={0.5}
+                        labelColor={(d: any) => d.color}
+                        labelResolution={2} // Better text crispness
+                        
+                        // Interactions
+                        onRingClick={handleRegionClick}
+                        onLabelClick={handleRegionClick}
+                    />
+                </div>
             </div>
 
-            {/* Deep space soft overlay to merge the globe cleanly into black and anchor the bottom cards */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-[#05070A]/50 to-transparent pointer-events-none z-0"></div>
+            {/* Deep space soft overlay to anchor the bottom cards */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#020202] via-[#020202]/50 to-transparent pointer-events-none z-0"></div>
 
             {/* Top Interactive Layer */}
             <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden custom-scrollbar pointer-events-none">
