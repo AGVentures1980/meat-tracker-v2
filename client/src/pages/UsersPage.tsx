@@ -120,6 +120,17 @@ export const UsersPage = () => {
                             areaManagerName: `${am.first_name || ''} ${am.last_name || ''}`.trim() || am.email,
                             stores: am.area_stores.map((s: any) => ({ ...s, gms: [], staff: [] }))
                         }));
+
+                        const assignedStoreIds = new Set(ams.flatMap((am: any) => am.area_stores.map((s: any) => s.id)));
+                        const unassignedStores = (data.allStores || []).filter((s: any) => !assignedStoreIds.has(s.id));
+                        
+                        if (unassignedStores.length > 0) {
+                            tree.push({
+                                areaManagerId: 'unassigned',
+                                areaManagerName: 'Unassigned Stores (Corporate Direct)',
+                                stores: unassignedStores.map((s: any) => ({ ...s, gms: [], staff: [] }))
+                            });
+                        }
                     }
                     
                     setHierarchy(tree);
@@ -344,7 +355,7 @@ export const UsersPage = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    {isMasterOrAdmin && (
+                                                    {isMasterOrAdmin && node.areaManagerId !== 'unassigned' && (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); openAssignModal(node.areaManagerId, node.stores); }}
                                                             className="text-[9px] bg-[#C5A059]/10 text-[#C5A059] px-2 py-1 rounded font-bold uppercase tracking-widest hover:bg-[#C5A059]/20 transition-colors border border-[#C5A059]/20"
