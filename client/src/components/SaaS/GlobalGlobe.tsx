@@ -95,7 +95,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         }
     }, [activeRegion, isPaused, focusedCompany]);
 
-    const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa"));
+    const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa") || c.name.toLowerCase().includes("terra"));
 
     // Hardcode the region variations based on master database
     const regionalOperations = {
@@ -103,7 +103,8 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             { id: 'usa-1', dbMatch: 'Fogo', name: 'Fogo de Chão USA', img: '/fdc-logo-pure-white.png', stores: 58, plan: 'ENTERPRISE' },
             { id: 'usa-2', dbMatch: 'Texas', name: 'Texas de Brazil', img: '/tdb-logo-white.svg', stores: 49, plan: 'ENTERPRISE' },
             { id: 'usa-3', dbMatch: 'Outback', name: 'Outback USA', img: '/outback-logo.svg', stores: 700, plan: 'ENTERPRISE' },
-            { id: 'usa-4', dbMatch: 'Brasa', name: 'Brasa USA', img: '/brasa-logo-v3.png', stores: 1, plan: 'HQ' }
+            { id: 'usa-4', dbMatch: 'Brasa', name: 'Brasa USA', img: '/brasa-logo-v3.png', stores: 1, plan: 'HQ' },
+            { id: 'usa-5', dbMatch: 'Terra', name: 'Terra Gaúcha USA', img: 'https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg', stores: 6, plan: 'ENTERPRISE' }
         ],
         'BR': [
             { id: 'br-1', dbMatch: 'Fogo', name: 'Fogo de Chão Brasil', img: '/fdc-logo-pure-white.png', stores: 9, plan: 'ENTERPRISE' },
@@ -128,6 +129,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         img: c.name.includes('Fogo') ? '/fdc-logo-pure-white.png' :
              c.name.includes('Texas') ? '/tdb-logo-white.svg' :
              c.name.toLowerCase().includes('outback') ? '/outback-logo.svg' : 
+             c.name.toLowerCase().includes('terra') ? 'https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg' :
              '/brasa-logo-v3.png'
     }));
 
