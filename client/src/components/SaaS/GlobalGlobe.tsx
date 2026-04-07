@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert, X } from 'lucide-react';
+import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert, X, Pause, Play } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Globe from 'react-globe.gl';
 
@@ -34,6 +34,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         height: window.innerHeight
     });
     const [activeRegion, setActiveRegion] = useState<string | null>(null);
+    const [isPaused, setIsPaused] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
@@ -52,12 +53,12 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Stop rotation when a region is focused to lock onto it
+    // Stop rotation when a region is focused to lock onto it or manually paused
     useEffect(() => {
         if (globeEl.current) {
-            globeEl.current.controls().autoRotate = !activeRegion;
+            globeEl.current.controls().autoRotate = !activeRegion && !isPaused;
         }
-    }, [activeRegion]);
+    }, [activeRegion, isPaused]);
 
     const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa"));
 
@@ -114,6 +115,18 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
 
     return (
         <div className="fixed inset-0 w-full h-full bg-[#020202] overflow-hidden flex flex-col z-[80]">
+            
+            {/* Minimalist Top Right Controls */}
+            <div className="absolute top-6 right-6 z-[90] pointer-events-auto">
+                <button 
+                    onClick={() => setIsPaused(!isPaused)}
+                    className="p-3 rounded-full bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-white/40 hover:text-white transition-all duration-300 shadow-lg group"
+                    title={isPaused ? "Retomar Rotação" : "Pausar Globo"}
+                >
+                    {isPaused ? <Play className="w-4 h-4 text-[#C5A059] fill-current" /> : <Pause className="w-4 h-4 group-hover:text-[#C5A059]" />}
+                </button>
+            </div>
+
             {/* 3D Photorealistic Rotating Globe Engine with CSS Mask for true cinematic fade */}
             <div 
                 className="absolute inset-0 z-0 mt-12 md:mt-24 flex justify-center items-center pointer-events-none"
