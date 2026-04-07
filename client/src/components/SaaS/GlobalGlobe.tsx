@@ -99,22 +99,46 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
              '/brasa-logo-v3.png'
     }));
 
-    const generatePointsData = (regionId: string, count: number) => {
+    const generatePointsData = (regionId: string, count: number, companyName: string) => {
         const points = [];
-        const bounds = {
-            // Rough bounding boxes for generating realistic-looking scatter plots of stores
-            'USA': { minLat: 28, maxLat: 42, minLng: -115, maxLng: -75 },
-            'BR': { minLat: -23, maxLat: -5, minLng: -50, maxLng: -38 },
-            'UAE': { minLat: 24.8, maxLat: 25.3, minLng: 55.1, maxLng: 55.4 },
-            'PH': { minLat: 10, maxLat: 14.5, minLng: 120.9, maxLng: 121.2 },
-            'GLOBAL': { minLat: -20, maxLat: 40, minLng: -100, maxLng: 50 }, // fallback
+        
+        // Refined geographic clusters to ensure points land perfectly on continental urban areas (no ocean drops)
+        const clusters = {
+            'USA': [
+                { minLat: 29, maxLat: 33, minLng: -98, maxLng: -95 }, // Texas Corridor
+                { minLat: 25.5, maxLat: 28.5, minLng: -82, maxLng: -80 }, // Florida
+                { minLat: 40.5, maxLat: 42, minLng: -75, maxLng: -71 }, // Northeast USA
+                { minLat: 33.5, maxLat: 38, minLng: -122, maxLng: -117 }, // California
+                { minLat: 41.5, maxLat: 42.5, minLng: -88, maxLng: -87 } // Chicago
+            ],
+            'BR': [
+                { minLat: -24, maxLat: -22, minLng: -47, maxLng: -43 }, // SP / RJ
+                { minLat: -16, maxLat: -15, minLng: -48, maxLng: -47 } // Brasilia
+            ],
+            'UAE': [
+                { minLat: 24.8, maxLat: 25.3, minLng: 55.1, maxLng: 55.4 } // Dubai
+            ],
+            'PH': [
+                { minLat: 14.4, maxLat: 14.7, minLng: 120.9, maxLng: 121.1 } // Manila
+            ]
         };
-        const b = bounds[regionId as keyof typeof bounds] || bounds['GLOBAL'];
+
+        // Determine which clusters to use
+        let activeClusters: any[] = [];
+        if (regionId && clusters[regionId as keyof typeof clusters]) {
+            activeClusters = clusters[regionId as keyof typeof clusters];
+        } else {
+            // GLOBAL fallback: Mix USA and BR mostly, with a chance of UAE/PH if applicable
+            activeClusters = [...clusters.USA, ...clusters.BR];
+            if (companyName.includes('Fogo')) activeClusters.push(...clusters.UAE, ...clusters.PH);
+            if (companyName.includes('Texas')) activeClusters.push(...clusters.UAE);
+        }
         
         for (let i = 0; i < count; i++) {
+            const cluster = activeClusters[Math.floor(Math.random() * activeClusters.length)];
             points.push({
-                lat: b.minLat + Math.random() * (b.maxLat - b.minLat),
-                lng: b.minLng + Math.random() * (b.maxLng - b.minLng),
+                lat: cluster.minLat + Math.random() * (cluster.maxLat - cluster.minLat),
+                lng: cluster.minLng + Math.random() * (cluster.maxLng - cluster.minLng),
             });
         }
         return points;
@@ -133,22 +157,19 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             // First click: Highlight company, plot points on globe
             setFocusedCompany(card);
             
-            // Generate points based on the active region, or default to global fallback
-            let pointRegion = activeRegion;
-            if (!pointRegion) {
-                if (card.dbMatch?.includes('Fogo')) pointRegion = 'USA'; // Just center visual on USA for global Fogo mainly
-                else pointRegion = 'GLOBAL';
-            }
-            
-            setCompanyPoints(generatePointsData(pointRegion, Math.min(card.stores, 150))); // Cap visual points for performance
+            // Generate refined geographic points
+            setCompanyPoints(generatePointsData(activeRegion || '', Math.min(card.stores, 150), card.dbMatch)); 
             
             // Adjust camera slightly to show off the points
             if (globeEl.current) {
-                if (pointRegion !== 'GLOBAL') {
-                    const r = REGIONS.find(reg => reg.id === pointRegion);
+                if (activeRegion) {
+                    const r = REGIONS.find(reg => reg.id === activeRegion);
                     if (r) {
                         globeEl.current.pointOfView({ lat: r.lat, lng: r.lng, altitude: 0.8 }, 1000);
                     }
+                } else {
+                    // Pull back slightly for global view
+                    globeEl.current.pointOfView({ altitude: 2.2 }, 1000);
                 }
             }
         }
