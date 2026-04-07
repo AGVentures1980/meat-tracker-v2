@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     TrendingUp,
+    Trophy,
     LogOut,
     Menu,
     StickyNote,
