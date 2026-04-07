@@ -285,6 +285,7 @@ router.get('/setup/fdc-deploy', async (req: Request, res: Response): Promise<voi
     }
 });
 
+// GET /api/v1/theme/setup/terra-deploy
 router.get('/setup/terra-deploy', async (req: Request, res: Response): Promise<void> => {
     try {
         const { exec } = require('child_process');
@@ -300,7 +301,8 @@ router.get('/setup/terra-deploy', async (req: Request, res: Response): Promise<v
             });
         };
 
-        outputLog += await runCommand('npx ts-node src/scripts/seed_terra_gaucha.ts') + '\n';
+        // Try the JS compiled file first, fallback to TS-node if running locally
+        outputLog += await runCommand('node dist/src/scripts/seed_terra_gaucha.js || npx tsx src/scripts/seed_terra_gaucha.ts') + '\n';
         
         res.send(`<pre>${outputLog}</pre>`);
     } catch (e: any) {
