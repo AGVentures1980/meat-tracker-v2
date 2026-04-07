@@ -113,7 +113,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     };
 
     return (
-        <div className="fixed inset-0 w-full h-full bg-[#030508] overflow-hidden flex flex-col z-[80]">
+        <div className="fixed inset-0 w-full h-full bg-[#05070A] overflow-hidden flex flex-col z-[80]">
             {/* 3D Photorealistic Rotating Globe Engine with soft backlight haze */}
             <div className="absolute inset-0 z-0 opacity-95 mt-12 md:mt-24 flex justify-center items-center bg-[radial-gradient(circle_at_center,_rgba(92,162,255,0.08)_0%,_transparent_55%)]">
                 <Globe
@@ -149,10 +149,13 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                     onRingClick={handleRegionClick}
                     onLabelClick={handleRegionClick}
                 />
+
+                {/* Cinematic Vignette Overlay to blend the hard edges of the WebGL sphere perfectly into the background */}
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_closest-side_at_center,_transparent_70%,_#05070A_98%)]"></div>
             </div>
 
-            {/* Deep space soft overlay to merge the globe cleanly into black */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/60 to-transparent pointer-events-none z-0"></div>
+            {/* Deep space soft overlay to merge the globe cleanly into black and anchor the bottom cards */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] via-[#05070A]/50 to-transparent pointer-events-none z-0"></div>
 
             {/* Top Interactive Layer */}
             <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden custom-scrollbar pointer-events-none">
