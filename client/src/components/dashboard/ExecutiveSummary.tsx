@@ -195,7 +195,7 @@ export const ExecutiveSummary = () => {
                                 {top_savers.map((store) => (
                                     <tr key={store.id} className="hover:bg-white/5">
                                         <td className="px-4 py-3 font-medium text-white">
-                                            {store.name} <span className="text-gray-500 text-xs ml-1">({store.location})</span>
+                                            {store.name}
                                         </td>
                                         <td className="px-4 py-3 text-right font-mono text-gray-500">
                                             {(store.target || 1.76).toFixed(2)}
@@ -235,7 +235,7 @@ export const ExecutiveSummary = () => {
                                 {top_spenders.map((store) => (
                                     <tr key={store.id} className="hover:bg-white/5">
                                         <td className="px-4 py-3 font-medium text-white">
-                                            {store.name} <span className="text-gray-500 text-xs ml-1">({store.location})</span>
+                                            {store.name}
                                         </td>
                                         <td className="px-4 py-3 text-right font-mono text-gray-500">
                                             {(store.target || 1.76).toFixed(2)}
