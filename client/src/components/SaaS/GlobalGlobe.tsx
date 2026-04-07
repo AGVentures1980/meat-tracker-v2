@@ -157,6 +157,18 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             ]
         };
 
+        // If Terra Gaucha, return exact geographic points for the 6 actual stores
+        if (companyName.toLowerCase().includes('terra') && count === 6) {
+            return [
+                { lat: 30.2520, lng: -81.5540 }, // Jacksonville, FL (Southside)
+                { lat: 27.9254, lng: -82.5065 }, // Tampa, FL (Dale Mabry)
+                { lat: 41.0526, lng: -73.5382 }, // Stamford, CT
+                { lat: 39.9137, lng: -86.1061 }, // Indianapolis, IN (Union Chapel)
+                { lat: 41.2619, lng: -96.1264 }, // Omaha, NE (FNB Pkwy)
+                { lat: 39.0566, lng: -77.1213 }, // Rockville, MD (Chapman Ave)
+            ];
+        }
+
         // Determine which clusters to use
         let activeClusters: any[] = [];
         if (regionId && clusters[regionId as keyof typeof clusters]) {
