@@ -41,6 +41,35 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     // Store mapping states
     const [focusedCompany, setFocusedCompany] = useState<any>(null);
     const [companyPoints, setCompanyPoints] = useState<any[]>([]);
+    
+    const [isServerOnline, setIsServerOnline] = useState(true);
+
+    useEffect(() => {
+        let isMounted = true;
+        
+        const checkHealth = async () => {
+            try {
+                // Fetch with a 5s timeout to catch Railway sleeping/offline quickly
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const res = await fetch('/api/health', { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (isMounted) setIsServerOnline(res.ok);
+            } catch (err) {
+                if (isMounted) setIsServerOnline(false);
+            }
+        };
+
+        checkHealth();
+        const interval = setInterval(checkHealth, 30000); // Check every 30s
+        
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, []);
 
     useEffect(() => {
         const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
@@ -276,8 +305,10 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                         Global <span className="text-[#C5A059]">Intelligence</span>
                     </h1>
                     <div className="flex items-center justify-center gap-3">
-                        <span className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse shadow-[0_0_10px_#00FF94]"></span>
-                        <p className="text-[#00FF94] font-mono uppercase tracking-[0.3em] text-[10px] md:text-xs font-bold">Network Systems Online</p>
+                        <span className={`w-2 h-2 rounded-full ${isServerOnline ? 'bg-[#00FF94] animate-pulse shadow-[0_0_10px_#00FF94]' : 'bg-red-500 shadow-[0_0_10px_red]'}`}></span>
+                        <p className={`${isServerOnline ? 'text-[#00FF94]' : 'text-red-500'} font-mono uppercase tracking-[0.3em] text-[10px] md:text-xs font-bold`}>
+                            {isServerOnline ? 'Network Systems Online' : 'Network Systems Offline'}
+                        </p>
                     </div>
                 </div>
 

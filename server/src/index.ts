@@ -43,6 +43,11 @@ app.get('/health', (req, res) => {
     res.json({ status: 'UP', timestamp: new Date() });
 });
 
+// Proxied Health Check for Frontend
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'UP', timestamp: new Date() });
+});
+
 // Import Real Auth Middleware
 import { requireAuth } from './middleware/auth.middleware';
 import authRoutes from './routes/auth.routes';
