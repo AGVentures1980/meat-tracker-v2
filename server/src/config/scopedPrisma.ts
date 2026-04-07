@@ -1,8 +1,16 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const globalPrisma = new PrismaClient();
 
 const MAX_ROWS = 5000;
+
+// DYNAMIC WHITELIST: Pre-compute which models actually possess a company_id
+// This prevents interceptor crashes when querying non-tenant bound tables explicitly.
+const modelsWithCompanyId = new Set(
+    Prisma.dmmf.datamodel.models
+        .filter(m => m.fields.some(f => f.name === 'company_id'))
+        .map(m => m.name)
+);
 
 export function getScopedPrisma(user: any) {
     if (!user || !user.scope) {
@@ -23,12 +31,22 @@ export function getScopedPrisma(user: any) {
 
                     const enforceTenant = (argsWhere: any = {}) => {
                         let securedWhere = { ...argsWhere };
+                        
+                        // ZERO TRUST: Mathematically lock the tenant boundary on every query
+                        // But ONLY if the model structurally supports tenant scoping via company_id
+                        if (user.companyId && modelsWithCompanyId.has(model)) {
+                           securedWhere.company_id = user.companyId;
+                        }
+
                         if (user.scope.type === 'STORE') {
                             securedWhere.store_id = user.scope.storeId;
                         } else if (user.scope.type === 'AREA') {
                             securedWhere.store_id = { in: user.scope.storeIds || [] };
                         } else if (user.scope.type === 'COMPANY') {
-                            securedWhere.company_id = user.scope.companyId;
+                            // Already handled by the universal boundary above
+                            if (modelsWithCompanyId.has(model)) {
+                                securedWhere.company_id = user.scope.companyId || user.companyId; 
+                            }
                         }
                         return securedWhere;
                     };

@@ -47,9 +47,21 @@ export class YieldController {
           ? `CRITICAL EXCEPTION: Fat/Trim loss was ${lossPct.toFixed(1)}%, exceeding the corporate maximum threshold of ${maxAllowedLoss}%. Awaiting Supply Chain Review.` 
           : null;
 
-      // 2. Persist the TrimRecordEvent for auditing and AI forecasting baseline
-      const trimRecord = await prisma.trimRecordEvent.create({
-          data: {
+      const clientEventId = req.body.client_event_id || req.headers['x-client-event-id'] || Date.now().toString();
+
+      // 2. Persist the TrimRecordEvent for auditing and Idempotent Offline Sync
+      // We use an isolated atomic UPSERT to guarantee that network flapping does not cause duplicates.
+      const trimRecord = await prisma.trimRecordEvent.upsert({
+          where: {
+              company_id_client_event_id: {
+                  company_id: companyId,
+                  client_event_id: clientEventId as string
+              }
+          },
+          update: {}, // Do nothing if it already exists (absolute idempotency)
+          create: {
+              company_id: companyId,
+              client_event_id: clientEventId as string,
               store_id: parseInt(storeId, 10),
               protein_name: protein || 'Unknown',
               input_weight: boxWeight,

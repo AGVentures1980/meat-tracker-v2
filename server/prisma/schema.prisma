@@ -1,6 +1,7 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["tracing"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -40,6 +41,7 @@ model Company {
   invoices                    SysInvoice[]
   CorporateProteinSpec        CorporateProteinSpec[]
   vaultFiles                  VaultFile[]
+  AuditLog                    AuditLog[]
 }
 
 model CompanyProduct {
@@ -130,6 +132,7 @@ model Store {
   SystemAlert                SystemAlert[]
   BarcodeDecisionLog         BarcodeDecisionLog[]
   vaultFiles                 VaultFile[]
+  OcrQuarantineQueue         OcrQuarantineQueue[]
 
   @@unique([company_id, store_name])
 }
@@ -161,6 +164,7 @@ model StoreMeatTarget {
 
 model User {
   id                   String               @id @default(uuid())
+  company_id           String?
   store_id             Int?
   first_name           String?
   last_name            String?
@@ -186,6 +190,7 @@ model User {
   password_history     PasswordHistory[]
   vaultFiles           VaultFile[]
   fileAccessLogs       FileAccessLog[]
+  AuditLog             AuditLog[]
 }
 
 model OwnerVaultMessage {
@@ -273,13 +278,16 @@ model Report {
 }
 
 model InventoryRecord {
-  id        String   @id @default(uuid())
-  store_id  Int
-  date      DateTime @db.Date
-  item_name String
-  quantity  Float
-  store     Store    @relation(fields: [store_id], references: [id])
+  id              String   @id @default(uuid())
+  company_id      String?
+  client_event_id String?
+  store_id        Int
+  date            DateTime @db.Date
+  item_name       String
+  quantity        Float
+  store           Store    @relation(fields: [store_id], references: [id])
 
+  @@unique([company_id, client_event_id])
   @@index([store_id, date])
 }
 
@@ -320,13 +328,21 @@ model SystemSettings {
 
 model AuditLog {
   id               String   @id @default(uuid())
+  company_id       String?
   user_id          String?
   action           String
   resource         String
+  reason           String?
   details          Json?
   created_at       DateTime @default(now())
-  location         String
+  ip_address       String?
+  location         String   @default("SYSTEM")
   target_lbs_guest Float    @default(1.76)
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id, created_at])
 }
 
 model WasteLog {
@@ -504,6 +520,7 @@ model FAQ {
 
 model SupportTicket {
   id              String           @id @default(uuid())
+  company_id      String?
   store_id        Int
   user_id         String
   title           String
@@ -808,6 +825,8 @@ model UnknownBarcodeLog {
 
 model ReceivingEvent {
   id                    String   @id @default(uuid())
+  company_id            String?
+  client_event_id       String?
   store_id              Int
   scanned_barcode       String
   gtin                  String?
@@ -821,10 +840,14 @@ model ReceivingEvent {
   created_at            DateTime @default(now())
 
   store Store @relation(fields: [store_id], references: [id])
+
+  @@unique([company_id, client_event_id])
 }
 
 model PullToPrepEvent {
   id              String   @id @default(uuid())
+  company_id      String?
+  client_event_id String?
   store_id        Int
   scanned_barcode String
   gtin            String?
@@ -832,10 +855,14 @@ model PullToPrepEvent {
   created_at      DateTime @default(now())
 
   store Store @relation(fields: [store_id], references: [id])
+
+  @@unique([company_id, client_event_id])
 }
 
 model TrimRecordEvent {
   id                String   @id @default(uuid())
+  company_id        String?
+  client_event_id   String?
   store_id          Int
   protein_name      String?
   input_weight      Float
@@ -847,6 +874,8 @@ model TrimRecordEvent {
   reviewed_by       String?
 
   store Store @relation(fields: [store_id], references: [id])
+
+  @@unique([company_id, client_event_id])
 }
 
 model FinancialLeakageEvent {
@@ -1000,4 +1029,27 @@ model FileAccessLog {
   @@index([file_id])
   @@index([user_id])
   @@index([company_id, store_id])
+}
+
+model OcrQuarantineQueue {
+  id                    String    @id @default(uuid())
+  company_id            String?
+  store_id              Int
+  invoice_number        String?
+  invoice_date          DateTime?
+  supplier_id           String?
+  raw_line_text         String
+  normalized_cut_name   String?
+  contract_price_per_lb Float?
+  invoiced_price_per_lb Float?
+  variance_abs          Float?
+  variance_pct          Float?
+  ocr_confidence        Float
+  alert_status          String    @default("PENDING_REVIEW")
+  reviewed_by           String?
+  reviewed_at           DateTime?
+  resolution_notes      String?
+  created_at            DateTime  @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
 }

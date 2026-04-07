@@ -32,21 +32,28 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as any;
 
-        // Enterprise Revocation Check: Ensure token_version matches DB
+        // Enterprise Revocation Check & Zero-Trust Tenant Extraction
         if (decoded.id && decoded.tv) {
             const userCheck = await prisma.user.findUnique({
                 where: { id: decoded.id },
                 select: { token_version: true }
             });
+
             if (!userCheck || userCheck.token_version !== decoded.tv) {
                 return res.status(401).json({ error: 'Session revoked. Please login again.' });
             }
-        }
 
-        // Multi-Tenant Override: Allow frontend to specify Active Company if user is executive
-        const requestedCompanyId = req.headers['x-company-id'];
-        if (requestedCompanyId && typeof requestedCompanyId === 'string' && ['admin', 'director'].includes(decoded.role)) {
-            decoded.companyId = requestedCompanyId;
+            // ZERO TRUST: Enforce companyId exclusively from JWT Truth (calculated at Login), NOT headers
+            // Only GLOBAL admins can override the tenant boundary context.
+            const requestedCompanyId = req.headers['x-company-id'];
+            if (requestedCompanyId && typeof requestedCompanyId === 'string') {
+                if (decoded.scope && (decoded.scope.type === 'GLOBAL' || decoded.scope.type === 'PARTNER')) {
+                    decoded.companyId = requestedCompanyId; // Authorized override
+                } else if (requestedCompanyId !== decoded.companyId) {
+                    console.warn(`[SECURITY] Tenant spoofing blocked for user ${decoded.id}`);
+                    return res.status(403).json({ error: 'Tenant spoofing detected and blocked.' });
+                }
+            }
         }
 
         (req as any).user = decoded;

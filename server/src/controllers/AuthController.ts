@@ -144,8 +144,19 @@ export class AuthController {
                     lastName: user.last_name
                 },
                 JWT_SECRET,
-                { expiresIn: '12h' }
+                { expiresIn: '15m' } // HARDENED: Short-lived token
             );
+            
+            // Generate Refresh Token
+            const refreshToken = crypto.randomUUID();
+            // In a production Level 4 SaaS this is pushed to Redis with an expiry of 7d
+            // e.g. redisClient.setex(`refresh:${refreshToken}`, 604800, user.id);
+            res.cookie('refreshToken', refreshToken, { 
+                httpOnly: true, 
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            });
 
             // 6. Return
             return res.json({

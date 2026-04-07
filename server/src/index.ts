@@ -1,3 +1,15 @@
+// ==========================================
+// DATADOG APM TRACER (Must be strictly line 1)
+// ==========================================
+import tracer from 'dd-trace';
+// The tracer automatically grabs DD_API_KEY, DD_SERVICE, DD_ENV from the environment
+tracer.init({
+    service: process.env.DD_SERVICE || 'brasa-os-backend',
+    env: process.env.DD_ENV || 'production',
+    logInjection: true, // Propagates trace_id and span_id directly into winston
+});
+export default tracer;
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -52,12 +64,29 @@ app.get('/api/health', (req, res) => {
 import { requireAuth } from './middleware/auth.middleware';
 import authRoutes from './routes/auth.routes';
 
-// Global Request Logger
+// Global Request Logger & Structural Tracing
+import crypto from 'crypto';
+import { logger, hijackConsoleLogs } from './utils/logger';
+
+// Optionally hijack global console to capture un-migrated code
+hijackConsoleLogs();
+
+// Append Trace Context
+app.use((req, res, next) => {
+    (req as any).id = crypto.randomUUID();
+    next();
+});
+
+// Structural Access Log
 app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
         const duration = Date.now() - start;
-        console.log(`[HTTP] ${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
+        const tenantStr = (req as any).user?.company_id || 'unauthenticated';
+        logger.info(`${req.method} ${req.url} ${res.statusCode} ${duration}ms`, {
+             requestId: (req as any).id,
+             companyId: tenantStr
+        });
     });
     next();
 });
@@ -86,6 +115,7 @@ import reportRoutes from './routes/report.routes';
 import forecastRoutes from './routes/forecast.routes';
 import ownerRoutes from './routes/owner.routes';
 import userRoutes from './routes/user.routes';
+import companyRoutes from './routes/company.routes';
 import supportRoutes from './routes/support.routes';
 import vaultRoutes from './routes/vault.routes';
 import themeRoutes from './routes/theme.routes';
@@ -140,6 +170,7 @@ app.use('/api/v1/forecast', requireAuth, forecastRoutes);
 app.use('/api/v1/support', requireAuth, supportRoutes);
 app.use('/api/v1/owner', ownerRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/companies', companyRoutes);
 app.use('/api/v1/vault', vaultRoutes);
 app.use('/api/v1/partner', partnerRoutes);
 app.use('/api/v1/admin-partner', agvAdminRoutes);
