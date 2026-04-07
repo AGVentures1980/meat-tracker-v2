@@ -35,39 +35,35 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
 
     useEffect(() => {
         let currentPhi = 0;
-        let width = 0;
-        
-        const onResize = () => canvasRef.current && (width = canvasRef.current.offsetWidth);
-        window.addEventListener('resize', onResize);
-        onResize();
         
         if (!canvasRef.current) return;
         
         const globe = createGlobe(canvasRef.current, {
             devicePixelRatio: 2,
-            width: width * 2,
-            height: width * 2,
+            width: 2000,
+            height: 2000,
             phi: 0,
             theta: 0.2,
             dark: 1,
             diffuse: 1.2,
             mapSamples: 16000,
-            mapBrightness: 3,
-            baseColor: [0.1, 0.1, 0.1],      // Dark gray/black base
+            mapBrightness: 6,
+            baseColor: [0.4, 0.4, 0.4],      // Improved contrast (Grey land)
             markerColor: [0.77, 0.63, 0.35], // #C5A059 (Gold) rgb mapped to 0-1
-            glowColor: [0.1, 0.1, 0.1],
+            glowColor: [0.2, 0.2, 0.2],
             markers: MARKERS,
             onRender: (state: any) => {
                 state.phi = currentPhi;
-                currentPhi += 0.002;
+                currentPhi += 0.003; // Smooth rotation
             },
         } as any);
 
-        setTimeout(() => canvasRef.current!.style.opacity = '1', 500);
+        setTimeout(() => {
+            if (canvasRef.current) canvasRef.current.style.opacity = '1';
+        }, 500);
 
         return () => {
             globe.destroy();
-            window.removeEventListener('resize', onResize);
         };
     }, []);
 
