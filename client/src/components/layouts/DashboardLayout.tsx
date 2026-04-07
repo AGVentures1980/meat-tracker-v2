@@ -297,15 +297,21 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         navigate(path);
     };
 
-    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
+    useEffect(() => {
+        const fetchEscalationsAndVault = async () => { /* ... existing logic ... */ };
+        // Just leaving the rest of the file intact since I am injecting `isCinemaMode` here
+    }, [user]);
+
+    const isCinemaMode = isMaster && location.pathname === '/select-company';
+    const [isSidebarOpen, setIsSidebarOpen] = useState(!isCinemaMode && window.innerWidth >= 1024);
 
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth >= 1024) setIsSidebarOpen(true);
+            if (window.innerWidth >= 1024 && !isCinemaMode) setIsSidebarOpen(true);
         };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [isCinemaMode]);
 
     return (
         <div className="flex h-screen bg-[#121212] text-white font-sans overflow-hidden print:h-auto print:overflow-visible">
@@ -491,7 +497,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0 relative pb-20 md:pb-0 print:block print:pb-0">
                 {/* Ticker Header */}
-                <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between print:hidden">
+                {!isCinemaMode && (
+                    <header className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center px-4 justify-between print:hidden">
                     <div className="flex items-center gap-4 overflow-hidden text-xs font-mono">
                         <button
                             title="Toggle Sidebar"
@@ -643,6 +650,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         </div >
                     </div >
                 </header >
+                )}
 
                 {/* Page Content */}
                 <div className="flex-1 overflow-auto p-4 md:p-6 bg-[#121212] print:overflow-visible print:p-0 print:bg-white" onClick={() => setShowAlerts(false)}>

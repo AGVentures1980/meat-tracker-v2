@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, ArrowRight, Users, Zap, Lock, Archive } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { GlobalGlobe } from '../components/SaaS/GlobalGlobe';
 
 interface Company {
     id: string;
@@ -70,6 +71,10 @@ export const CompanySelector = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C5A059]"></div>
             </div>
         );
+    }
+
+    if (user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co')) {
+        return <GlobalGlobe companies={companies} onSelect={handleSelect} />;
     }
 
     return (
