@@ -108,6 +108,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             navItems.push({
                 section: t('nav.section_view') || (isRodizio ? 'RODIZIO (Core Metrics)' : 'VIEW (Financial Analytics)'), items: [
                     { icon: LayoutDashboard, label: isRodizio ? 'Lbs/Pax Analytics Hub' : (t('nav.performanceHub') || 'Performance Hub'), path: '/dashboard' },
+                    { icon: Trophy, label: 'Butcher Quarter Battle', path: '/leaderboard' },
                     { icon: TrendingUp, label: isRodizio ? 'Yield & Consumption Projections' : (t('nav.projections') || 'Projections'), path: '/projections' },
                     { icon: StickyNote, label: isRodizio ? 'Cost/Pax P&L Reports' : (t('nav.reports') || 'P&L Executive Reports'), path: '/reports' },
                 ]

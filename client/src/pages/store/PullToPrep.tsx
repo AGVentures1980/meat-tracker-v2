@@ -8,7 +8,8 @@ import {
   AlertTriangle,
   Camera,
   Keyboard,
-  ListRestart
+  ListRestart,
+  CloudLightning
 } from 'lucide-react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useAuth } from '../../context/AuthContext';
@@ -32,6 +33,9 @@ export default function PullToPrep() {
   const [isLoading, setIsLoading] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
+  const [weatherAdvisory, setWeatherAdvisory] = useState<any>(null);
+  const [advisoryAcknowledged, setAdvisoryAcknowledged] = useState(false);
+
   // Focus management for Bluetooth ring scanners
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -41,6 +45,25 @@ export default function PullToPrep() {
       inputRef.current.focus();
     }
   }, [isScanning]);
+
+  useEffect(() => {
+    // Fetch simulated weather advisory for the Enterprise Wow Factor Demo
+    const fetchWeather = async () => {
+        try {
+            // Hardcoding simulateRain=true to ensure the WOW factor is visible during investor pitches
+            const res = await fetch('/api/v1/weather/advisory?simulateRain=true', {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setWeatherAdvisory(data);
+            }
+        } catch(e) {
+            console.error('Weather fetch error', e);
+        }
+    };
+    if (user?.token) fetchWeather();
+  }, [user]);
 
   const parseGS1128 = (barcode: string) => {
     if (barcode.length < 10) return null;
@@ -198,6 +221,36 @@ export default function PullToPrep() {
             <span className="font-medium">A La Carte Mode</span>
           </div>
         </div>
+
+        {weatherAdvisory && weatherAdvisory.impactExpected && !advisoryAcknowledged && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex flex-col md:flex-row items-start space-x-0 space-y-4 md:space-y-0 md:space-x-4 mb-6 shadow-lg shadow-red-500/5">
+                <div className="bg-red-500/20 p-3 rounded-full shrink-0">
+                    <CloudLightning className="w-8 h-8 text-red-400 animate-pulse" />
+                </div>
+                <div className="flex-1">
+                    <h3 className="text-red-400 font-bold text-lg flex items-center">
+                        {weatherAdvisory.icon} Severe Forecast Alert: {weatherAdvisory.condition}
+                    </h3>
+                    <p className="text-red-200 mt-1 text-sm md:text-base">
+                        {weatherAdvisory.message}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                        <button 
+                            onClick={() => setAdvisoryAcknowledged(true)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 text-sm rounded-lg font-medium transition-colors"
+                        >
+                            Apply {weatherAdvisory.suggestedReduction}% Reduction to Pull
+                        </button>
+                        <button 
+                            onClick={() => setAdvisoryAcknowledged(true)}
+                            className="bg-transparent border border-red-500/50 hover:bg-red-500/10 text-red-300 px-5 py-2 text-sm rounded-lg font-medium transition-colors"
+                        >
+                            Acknowledge Warning & Override
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           

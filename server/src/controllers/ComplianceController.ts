@@ -160,6 +160,31 @@ export class ComplianceController {
       }
   }
 
+  // POST /api/v1/compliance/master/fraud-audit/bulk-delete
+  // Deletes resolved fraud audit logs
+  async deleteFraudAudits(req: Request, res: Response) {
+      try {
+          const user = (req as any).user;
+          if (!user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co')) {
+             return res.status(403).json({ success: false, error: 'Unauthorized. Master access only.' });
+          }
+
+          const { ids } = req.body;
+          if (!ids || !Array.isArray(ids)) {
+              return res.status(400).json({ success: false, error: 'Array of ids is required.' });
+          }
+
+          await prisma.barcodeScanEvent.deleteMany({
+              where: { id: { in: ids } }
+          });
+          
+          res.json({ success: true, message: 'Audits deleted successfully' });
+      } catch (error: any) {
+          console.error("Error deleting fraud audits:", error);
+          res.status(500).json({ success: false, error: 'Database error deleting fraud audits.' });
+      }
+  }
+
   // DELETE /api/v1/compliance/specs/:id
   async deleteCorporateSpec(req: Request, res: Response) {
     try {

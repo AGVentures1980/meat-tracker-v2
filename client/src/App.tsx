@@ -37,6 +37,7 @@ import { EulaAgreement } from './pages/EulaAgreement';
 import { IdeaVault } from './pages/IdeaVault';
 import { CorpProcurement } from './pages/CorpProcurement';
 import { ProcurementShadowDashboard } from './pages/Intelligence/ProcurementShadowDashboard';
+import ButcherLeaderboard from './pages/store/ButcherLeaderboard';
 
 // Partner / Reseller Components
 import { PartnerLayout } from './components/layouts/PartnerLayout';
@@ -214,6 +215,7 @@ function AppContent() {
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />
                     <Route path="/audit" element={<PerformanceDashboard />} />
+                    <Route path="/leaderboard" element={<GovernanceGuard><ButcherLeaderboard /></GovernanceGuard>} />
                     <Route path="/data-analyst" element={<DataAnalyst />} />
                     <Route path="/owner" element={<OwnerDashboard />} />
                     <Route path="/admin-support" element={<AdminSupport />} />

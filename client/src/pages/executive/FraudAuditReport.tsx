@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, Download, Calendar, Loader2, Search, Building2, Clock, Box } from 'lucide-react';
+import { ShieldAlert, Download, Calendar, Loader2, Search, Building2, Clock, Box, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -10,6 +10,8 @@ export const FraudAuditReport = () => {
     const [attempts, setAttempts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [isDeleting, setIsDeleting] = useState(false);
     
     // Default last 30 days
     const [startDate, setStartDate] = useState(() => {
@@ -80,6 +82,51 @@ export const FraudAuditReport = () => {
         document.body.removeChild(link);
     };
 
+    const toggleSelectAll = () => {
+        if (selectedIds.length === filteredAttempts.length && filteredAttempts.length > 0) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filteredAttempts.map(a => a.id));
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(prev => prev.filter(x => x !== id));
+        } else {
+            setSelectedIds(prev => [...prev, id]);
+        }
+    };
+
+    const handleDeleteSelected = async () => {
+        if (selectedIds.length === 0) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} resolved logs?`)) return;
+        
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/v1/compliance/master/fraud-audit/bulk-delete`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${user?.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ids: selectedIds })
+            });
+            
+            if (res.ok) {
+                setSelectedIds([]);
+                fetchAuditLogs();
+            } else {
+                alert('Failed to delete logs.');
+            }
+        } catch (error) {
+            console.error('Error deleting logs:', error);
+            alert('Error connecting to the server.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     const exportToPDF = () => {
         const doc = new jsPDF('landscape');
         
@@ -113,7 +160,8 @@ export const FraudAuditReport = () => {
             styles: {
                 fillColor: [30, 30, 30],
                 textColor: [200, 200, 200],
-                borderColor: [60, 60, 60]
+                lineColor: [60, 60, 60],
+                lineWidth: 0.1
             },
             headStyles: {
                 fillColor: [200, 40, 70],
@@ -185,6 +233,16 @@ export const FraudAuditReport = () => {
                 </div>
                 
                 <div className="flex gap-3">
+                    {selectedIds.length > 0 && (
+                        <button 
+                            onClick={handleDeleteSelected}
+                            disabled={isDeleting}
+                            className="flex items-center gap-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mr-2"
+                        >
+                            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                            Delete ({selectedIds.length})
+                        </button>
+                    )}
                     <button 
                         onClick={exportToCSV}
                         className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-4 py-2.5 rounded-lg text-sm font-medium transition-all shadow-lg"
@@ -208,6 +266,16 @@ export const FraudAuditReport = () => {
                     <table className="w-full text-sm text-left text-slate-300">
                         <thead className="text-xs text-slate-400 uppercase bg-slate-800/50">
                             <tr>
+                                <th className="px-6 py-4 w-12 text-center">
+                                    <input 
+                                        type="checkbox" 
+                                        title="Select All"
+                                        aria-label="Select All"
+                                        className="w-4 h-4 rounded border-slate-600 text-rose-500 focus:ring-rose-500/50 bg-slate-800"
+                                        checked={filteredAttempts.length > 0 && selectedIds.length === filteredAttempts.length}
+                                        onChange={toggleSelectAll}
+                                    />
+                                </th>
                                 <th className="px-6 py-4">Timestamp</th>
                                 <th className="px-6 py-4">Organization & Store</th>
                                 <th className="px-6 py-4">Analyzed Profile</th>
@@ -230,7 +298,17 @@ export const FraudAuditReport = () => {
                                     </td>
                                 </tr>
                             ) : filteredAttempts.map((attempt) => (
-                                <tr key={attempt.id} className="hover:bg-slate-800/40 transition-colors">
+                                <tr key={attempt.id} className={`transition-colors ${selectedIds.includes(attempt.id) ? 'bg-rose-500/5' : 'hover:bg-slate-800/40'}`}>
+                                    <td className="px-6 py-4 text-center">
+                                        <input 
+                                            type="checkbox" 
+                                            title="Select Log"
+                                            aria-label="Select Log"
+                                            className="w-4 h-4 rounded border-slate-600 text-rose-500 focus:ring-rose-500/50 bg-slate-800"
+                                            checked={selectedIds.includes(attempt.id)}
+                                            onChange={() => toggleSelect(attempt.id)}
+                                        />
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2 text-slate-300 font-mono text-xs">
                                             <Clock className="w-3.5 h-3.5 text-slate-500" />

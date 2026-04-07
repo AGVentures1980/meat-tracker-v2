@@ -10,6 +10,7 @@ router.post('/specs', requireAuth, controller.createCorporateSpec);
 router.get('/specs/:companyId', requireAuth, controller.getCorporateSpecs);
 router.get('/prevented-attempts/:companyId', requireAuth, controller.getPreventedAttempts);
 router.get('/master/fraud-audit', requireAuth, controller.getMasterFraudAudit);
+router.post('/master/fraud-audit/bulk-delete', requireAuth, controller.deleteFraudAudits);
 router.delete('/specs/:id', requireAuth, controller.deleteCorporateSpec);
 
 // Receiving Scanner Routes

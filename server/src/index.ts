@@ -88,6 +88,7 @@ import partnerRoutes from './routes/partner.routes';
 import agvAdminRoutes from './routes/agv-admin.routes';
 import ediRoutes from './routes/edi.routes';
 import leadRoutes from './routes/lead.routes';
+import weatherRoutes from './routes/weather.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
@@ -142,6 +143,7 @@ app.use('/api/v1/compliance', complianceRoutes);
 app.use('/api/v1/yield', requireAuth, yieldRoutes);
 app.use('/api/v1/billing', requireAuth, billingRoutes);
 app.use('/api/v1', leadRoutes);
+app.use('/api/v1/weather', weatherRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
