@@ -402,6 +402,15 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                 </div>
 
             </div>
+
+            {/* AGV Premium Watermark */}
+            <div className="absolute bottom-4 right-6 md:bottom-6 md:right-8 z-[90] pointer-events-none flex flex-col items-end opacity-20 transition-opacity hover:opacity-40">
+                <h3 className="text-[#C5A059] font-serif font-black tracking-[0.15em] text-xl md:text-2xl leading-none mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AGV</h3>
+                <p className="text-[#e2e8f0] font-mono text-[7px] md:text-[9px] tracking-[0.2em] uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] mix-blend-screen">
+                    &copy; 2026 Alex Garcia Ventures. All Rights Reserved.
+                </p>
+            </div>
+            
         </div>
     );
 };
