@@ -206,7 +206,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             </div>
 
             {/* Pure 3D WebGL Rendering (No CSS Hacks or Layers to prevent banding) */}
-            <div className="absolute inset-0 z-0 mt-12 md:mt-24 flex justify-center items-center pointer-events-none">
+            <div className="absolute inset-0 z-0 flex justify-center items-center pointer-events-none">
                 <div className="pointer-events-auto">
                     <Globe
                         ref={globeEl}
