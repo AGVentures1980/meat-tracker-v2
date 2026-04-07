@@ -217,14 +217,18 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                         labelColor={(d: any) => d.color}
                         labelResolution={2} // Better text crispness
                         
-                        // Generated Store Locations for Focused Company
-                        pointsData={companyPoints}
-                        pointLat={(d: any) => d.lat}
-                        pointLng={(d: any) => d.lng}
-                        pointColor={() => '#C5A059'}
-                        pointAltitude={0.01}
-                        pointRadius={0.25}
-                        pointsMerge={true} // Performance optimization for lots of dots
+                        // Generated Store Locations for Focused Company (Cinematic Glowing Dots)
+                        htmlElementsData={companyPoints}
+                        htmlLat={(d: any) => d.lat}
+                        htmlLng={(d: any) => d.lng}
+                        htmlElement={() => {
+                            const el = document.createElement('div');
+                            // Tiny glowing golden core with beautiful outer drop-shadow bloom
+                            el.innerHTML = `
+                                <div class="w-1.5 h-1.5 bg-[#fef08a] rounded-full shadow-[0_0_12px_4px_#C5A059]"></div>
+                            `;
+                            return el;
+                        }}
                         
                         // Interactions
                         onRingClick={handleRegionClick}
