@@ -396,7 +396,11 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                                         <div>
                                             <div className="flex justify-between items-start mb-4">
                                                 {company.img ? (
-                                                    <img src={company.img} alt={company.name} className={`h-[24px] object-contain ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''}`} />
+                                                    <img 
+                                                        src={company.img} 
+                                                        alt={company.name} 
+                                                        className={`h-[36px] md:h-[44px] w-auto max-w-[180px] object-contain object-left ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''}`} 
+                                                    />
                                                 ) : (
                                                     <h3 className="text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
                                                 )}
