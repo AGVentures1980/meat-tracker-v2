@@ -109,9 +109,26 @@ async function main() {
 
     console.log(`[+] Seeded Corporate Exec Account (Email: paulo@terragaucha.com | Password: Terra2026@)`);
 
-    // 5. Ghost Math Injection (Sentinel Bait for Paulo to see)
-    // Clear current open tickets for the first store so the new one pops up cleanly
-    const pilotStore = createdStores[0];
+    // The Tampa Store Manager (Pitch Demo Account)
+    const tampaStore = createdStores.find(s => s.store_name === 'Tampa');
+    if (tampaStore) {
+        await prisma.user.upsert({
+            where: { email: 'tampa.terra@terragaucha.com' },
+            update: { role: 'manager', store_id: tampaStore.id, password_hash: password },
+            create: {
+                email: 'tampa.terra@terragaucha.com',
+                first_name: 'Store Manager', last_name: 'Tampa',
+                password_hash: password,
+                role: 'manager',
+                store_id: tampaStore.id,
+            }
+        });
+        console.log(`[+] Seeded Tampa Store Manager (Email: tampa.terra@terragaucha.com | Password: Terra2026@)`);
+    }
+
+    // 5. Ghost Math Injection (Sentinel Bait for Paulo & Tampa Manager to see)
+    // Clear current open tickets for the demo store so the new one pops up cleanly
+    const pilotStore = tampaStore || createdStores[0];
     await prisma.supportTicket.deleteMany({
         where: { store_id: pilotStore.id, title: { contains: '[SENTINEL' } }
     });
