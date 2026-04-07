@@ -285,6 +285,29 @@ router.get('/setup/fdc-deploy', async (req: Request, res: Response): Promise<voi
     }
 });
 
+router.get('/setup/terra-deploy', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { exec } = require('child_process');
+        
+        let outputLog = 'Initializing Terra Gaucha deployment...\n\n';
+
+        const runCommand = (cmd: string): Promise<string> => {
+            return new Promise((resolve, reject) => {
+                exec(cmd, { cwd: process.cwd() }, (err: any, stdout: string, stderr: string) => {
+                    if (err) resolve(`[ERROR] ${cmd}: ${stderr || err.message}`);
+                    else resolve(`[SUCCESS] ${cmd}:\n${stdout}`);
+                });
+            });
+        };
+
+        outputLog += await runCommand('npx ts-node src/scripts/seed_terra_gaucha.ts') + '\n';
+        
+        res.send(`<pre>${outputLog}</pre>`);
+    } catch (e: any) {
+        res.status(500).send(e.message);
+    }
+});
+
 // GET /api/v1/theme/:subdomain
 router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => {
     try {
