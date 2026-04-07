@@ -171,7 +171,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     };
 
     return (
-        <div className="fixed inset-0 w-full h-full bg-[#020202] overflow-hidden flex flex-col z-[80]">
+        <div className="fixed inset-0 w-full h-full bg-[#000000] overflow-hidden flex flex-col z-[80]">
             
             {/* Minimalist Top Right Controls */}
             <div className="absolute top-6 right-6 z-[90] pointer-events-auto">
@@ -184,24 +184,19 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                 </button>
             </div>
 
-            {/* 3D Photorealistic Rotating Globe Engine with CSS Mask for true cinematic fade */}
-            <div 
-                className="absolute inset-0 z-0 mt-12 md:mt-24 flex justify-center items-center pointer-events-none"
-                style={{ 
-                    maskImage: 'radial-gradient(circle, black 40%, transparent 75%)', 
-                    WebkitMaskImage: 'radial-gradient(circle, black 40%, transparent 75%)' 
-                }}
-            >
+            {/* Pure 3D WebGL Rendering (No CSS Hacks or Layers to prevent banding) */}
+            <div className="absolute inset-0 z-0 mt-12 md:mt-24 flex justify-center items-center pointer-events-none">
                 <div className="pointer-events-auto">
                     <Globe
                         ref={globeEl}
                         width={dimensions.width}
                         height={dimensions.height}
-                        backgroundColor="rgba(0,0,0,0)" // Transparent
+                        backgroundColor="rgba(0,0,0,0)" // Transparent into pure #000000
                         globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                        atmosphereColor="#5ca2ff"
-                        atmosphereAltitude={0.20} // Slightly reduced to keep it sharp
+                        showAtmosphere={true}
+                        atmosphereColor="#0f2a4a" // Very deep, dark cinematic blue to transition into black smoothly
+                        atmosphereAltitude={0.15}
                         
                         // Radar Rings
                         ringsData={REGIONS}
@@ -237,9 +232,6 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                     />
                 </div>
             </div>
-
-            {/* Deep space soft overlay to anchor the bottom cards */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#020202] via-[#020202]/50 to-transparent pointer-events-none z-0"></div>
 
             {/* Top Interactive Layer */}
             <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden custom-scrollbar pointer-events-none">
