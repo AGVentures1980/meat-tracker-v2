@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert, X, Pause, Play } from 'lucide-react';
+import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert, X, Pause, Play, MapPin } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Globe from 'react-globe.gl';
 
@@ -35,6 +35,10 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     });
     const [activeRegion, setActiveRegion] = useState<string | null>(null);
     const [isPaused, setIsPaused] = useState(false);
+    
+    // Store mapping states
+    const [focusedCompany, setFocusedCompany] = useState<any>(null);
+    const [companyPoints, setCompanyPoints] = useState<any[]>([]);
 
     useEffect(() => {
         const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
@@ -56,9 +60,9 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     // Stop rotation when a region is focused to lock onto it or manually paused
     useEffect(() => {
         if (globeEl.current) {
-            globeEl.current.controls().autoRotate = !activeRegion && !isPaused;
+            globeEl.current.controls().autoRotate = !activeRegion && !isPaused && !focusedCompany;
         }
-    }, [activeRegion, isPaused]);
+    }, [activeRegion, isPaused, focusedCompany]);
 
     const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa"));
 
@@ -95,22 +99,75 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
              '/brasa-logo-v3.png'
     }));
 
+    const generatePointsData = (regionId: string, count: number) => {
+        const points = [];
+        const bounds = {
+            // Rough bounding boxes for generating realistic-looking scatter plots of stores
+            'USA': { minLat: 28, maxLat: 42, minLng: -115, maxLng: -75 },
+            'BR': { minLat: -23, maxLat: -5, minLng: -50, maxLng: -38 },
+            'UAE': { minLat: 24.8, maxLat: 25.3, minLng: 55.1, maxLng: 55.4 },
+            'PH': { minLat: 10, maxLat: 14.5, minLng: 120.9, maxLng: 121.2 },
+            'GLOBAL': { minLat: -20, maxLat: 40, minLng: -100, maxLng: 50 }, // fallback
+        };
+        const b = bounds[regionId as keyof typeof bounds] || bounds['GLOBAL'];
+        
+        for (let i = 0; i < count; i++) {
+            points.push({
+                lat: b.minLat + Math.random() * (b.maxLat - b.minLat),
+                lng: b.minLng + Math.random() * (b.maxLng - b.minLng),
+            });
+        }
+        return points;
+    };
+
     const handleSelectCard = (card: any) => {
-        // Resolve parent company from database for accurate routing
-        const targetDbCompany = companies.find(c => c.name.includes(card.dbMatch) || card.dbMatch.includes(c.name));
-        if (targetDbCompany) {
-            onSelect(targetDbCompany);
-        } else if (systemCompanies.length > 0) {
-            onSelect(systemCompanies[0]); // fallback
+        if (focusedCompany?.id === card.id) {
+            // Second click: Actually enter the dashboard
+            const targetDbCompany = companies.find(c => c.name.includes(card.dbMatch) || card.dbMatch.includes(c.name));
+            if (targetDbCompany) {
+                onSelect(targetDbCompany);
+            } else if (systemCompanies.length > 0) {
+                onSelect(systemCompanies[0]); // fallback
+            }
+        } else {
+            // First click: Highlight company, plot points on globe
+            setFocusedCompany(card);
+            
+            // Generate points based on the active region, or default to global fallback
+            let pointRegion = activeRegion;
+            if (!pointRegion) {
+                if (card.dbMatch?.includes('Fogo')) pointRegion = 'USA'; // Just center visual on USA for global Fogo mainly
+                else pointRegion = 'GLOBAL';
+            }
+            
+            setCompanyPoints(generatePointsData(pointRegion, Math.min(card.stores, 150))); // Cap visual points for performance
+            
+            // Adjust camera slightly to show off the points
+            if (globeEl.current) {
+                if (pointRegion !== 'GLOBAL') {
+                    const r = REGIONS.find(reg => reg.id === pointRegion);
+                    if (r) {
+                        globeEl.current.pointOfView({ lat: r.lat, lng: r.lng, altitude: 0.8 }, 1000);
+                    }
+                }
+            }
         }
     };
 
     const handleRegionClick = (region: any) => {
         setActiveRegion(region.id);
+        setFocusedCompany(null);
+        setCompanyPoints([]); // Clear points when jumping regions
         // Spin globe to the region clicked
         if (globeEl.current) {
             globeEl.current.pointOfView({ lat: region.lat, lng: region.lng, altitude: 1.5 }, 1500);
         }
+    };
+
+    const clearSelection = () => {
+        setActiveRegion(null);
+        setFocusedCompany(null);
+        setCompanyPoints([]);
     };
 
     return (
@@ -165,6 +222,15 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                         labelColor={(d: any) => d.color}
                         labelResolution={2} // Better text crispness
                         
+                        // Generated Store Locations for Focused Company
+                        pointsData={companyPoints}
+                        pointLat={(d: any) => d.lat}
+                        pointLng={(d: any) => d.lng}
+                        pointColor={() => '#C5A059'}
+                        pointAltitude={0.01}
+                        pointRadius={0.25}
+                        pointsMerge={true} // Performance optimization for lots of dots
+                        
                         // Interactions
                         onRingClick={handleRegionClick}
                         onLabelClick={handleRegionClick}
@@ -179,8 +245,8 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden custom-scrollbar pointer-events-none">
                 
                 {/* Header */}
-                <div className="text-center mb-10 mt-6 md:mt-2 pointer-events-auto">
-                    <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 mb-2 md:mb-4 tracking-tighter uppercase">
+                <div className="text-center mb-10 mt-6 md:mt-4 pointer-events-auto transition-all duration-500" style={{ opacity: focusedCompany ? 0 : 1 }}>
+                    <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 mb-2 tracking-tighter uppercase">
                         Global <span className="text-[#C5A059]">Intelligence</span>
                     </h1>
                     <div className="flex items-center justify-center gap-3">
@@ -190,67 +256,27 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                 </div>
 
                 {/* Master Action Hub */}
-                <div className="w-full flex-shrink-0 flex justify-center mt-auto mb-10 pt-10 pointer-events-auto">
+                <div className="w-full flex-shrink-0 flex justify-center mt-auto mb-10 pointer-events-auto transition-all duration-500" style={{ transform: focusedCompany ? 'scale(0.95)' : 'scale(1)', opacity: focusedCompany ? 0.3 : 1 }}>
                     {user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') && (
                         <div className="flex flex-wrap justify-center gap-4 md:gap-8 min-w-[300px]">
-                            <button
-                                onClick={() => navigate('/saas-admin')}
-                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-24 md:w-32"
-                            >
-                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-emerald-500/50 rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-                                    <GlobeIcon className="w-6 h-6 text-emerald-500/70 group-hover:text-emerald-400 transition-colors" />
+                            {/* ... Action Hub Buttons remain structural but dim when focusing ... */}
+                            <button onClick={() => navigate('/saas-admin')} className="group flex flex-col items-center gap-3 w-20 md:w-24">
+                                <div className="w-14 h-14 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-emerald-500/50 rounded-full flex items-center justify-center transition-all">
+                                    <GlobeIcon className="w-5 h-5 text-emerald-500/70" />
                                 </div>
-                                <div className="text-center w-full">
-                                    <h4 className="text-white text-xs font-bold tracking-widest uppercase">Platform Hub</h4>
-                                </div>
+                                <h4 className="text-white/70 text-[10px] font-bold tracking-widest uppercase text-center w-full">Platform Hub</h4>
                             </button>
-
-                            <button
-                                onClick={() => navigate('/agv-network')}
-                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-24 md:w-32"
-                            >
-                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-indigo-500/50 rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_30px_rgba(99,102,241,0.3)]">
-                                    <Network className="w-6 h-6 text-indigo-500/70 group-hover:text-indigo-400 transition-colors" />
+                            <button onClick={() => navigate('/agv-network')} className="group flex flex-col items-center gap-3 w-20 md:w-24">
+                                <div className="w-14 h-14 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-indigo-500/50 rounded-full flex items-center justify-center transition-all">
+                                    <Network className="w-5 h-5 text-indigo-500/70" />
                                 </div>
-                                <div className="text-center w-full">
-                                    <h4 className="text-white text-xs font-bold tracking-widest uppercase">Partner Net</h4>
-                                </div>
+                                <h4 className="text-white/70 text-[10px] font-bold tracking-widest uppercase text-center w-full">Partner Net</h4>
                             </button>
-
-                            <button
-                                onClick={() => navigate('/agv-billing')}
-                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-24 md:w-32"
-                            >
-                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-blue-500/50 rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]">
-                                    <DollarSign className="w-6 h-6 text-blue-500/70 group-hover:text-blue-400 transition-colors" />
+                            <button onClick={() => navigate('/owner-terminal')} className="group flex flex-col items-center gap-3 w-28 md:w-36">
+                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#C5A059]/30 hover:border-[#C5A059] rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+                                    <Zap className="w-6 h-6 text-[#C5A059]" />
                                 </div>
-                                <div className="text-center w-full">
-                                    <h4 className="text-white text-xs font-bold tracking-widest uppercase">Billing</h4>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => navigate('/agv-fraud-audit')}
-                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-24 md:w-32"
-                            >
-                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#333] hover:border-red-500/50 rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_30px_rgba(239,68,68,0.3)]">
-                                    <ShieldAlert className="w-6 h-6 text-red-500/70 group-hover:text-red-400 transition-colors" />
-                                </div>
-                                <div className="text-center w-full">
-                                    <h4 className="text-white text-xs font-bold tracking-widest uppercase">Global Radar</h4>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => navigate('/owner-terminal')}
-                                className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95 w-28 md:w-36"
-                            >
-                                <div className="w-16 h-16 bg-[#1a1a1a]/60 backdrop-blur-md border border-[#C5A059]/30 hover:border-[#C5A059] rounded-full flex items-center justify-center transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:shadow-[0_0_40px_rgba(197,160,89,0.5)]">
-                                    <Zap className="w-6 h-6 text-[#C5A059] group-hover:text-white transition-colors" />
-                                </div>
-                                <div className="text-center w-full">
-                                    <h4 className="text-white text-[11px] md:text-xs font-bold tracking-widest uppercase">Intelligence Center</h4>
-                                </div>
+                                <h4 className="text-white text-[11px] md:text-xs font-bold tracking-widest uppercase text-center w-full">Intel Center</h4>
                             </button>
                         </div>
                     )}
@@ -259,15 +285,17 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                 {/* Company Glassmorphism Floating Dock */}
                 <div className="w-full max-w-6xl flex-shrink-0 pointer-events-auto">
                     
-                    {activeRegion && (
+                    {(activeRegion || focusedCompany) && (
                         <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
                             <h2 className="text-[#C5A059] text-sm uppercase tracking-widest font-bold flex items-center gap-2">
-                                <Zap className="w-4 h-4" /> 
-                                Operações em: {REGIONS.find(r => r.id === activeRegion)?.name}
+                                <MapPin className="w-4 h-4 animate-bounce" /> 
+                                {focusedCompany 
+                                    ? `MAPA DE OPERAÇÕES: ${focusedCompany.name.toUpperCase()}`
+                                    : `OPERAÇÕES EM: ${REGIONS.find(r => r.id === activeRegion)?.name}`}
                             </h2>
                             <button 
-                                onClick={() => setActiveRegion(null)}
-                                className="text-xs text-gray-400 hover:text-white flex items-center gap-1 uppercase tracking-wider"
+                                onClick={clearSelection}
+                                className="text-xs px-3 py-1 rounded bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 flex items-center gap-1 uppercase tracking-wider transition-colors"
                             >
                                 <X className="w-3 h-3" /> Ver Hub Global
                             </button>
@@ -275,26 +303,44 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-20">
-                        {displayedCards.map((company) => (
-                            <div
-                                key={company.id}
-                                onClick={() => handleSelectCard(company)}
-                                className="group relative bg-[#121212]/30 backdrop-blur-xl border border-white/10 p-6 rounded-2xl cursor-pointer hover:bg-[#1a1a1a]/70 hover:border-[#C5A059]/50 transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_50px_rgba(197,160,89,0.2)]"
-                            >
-                                <div className="flex justify-between items-start mb-4">
-                                    {company.img ? (
-                                        <img src={company.img} alt={company.name} className={`h-[24px] object-contain ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''}`} />
-                                    ) : (
-                                        <h3 className="text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
-                                    )}
-                                    <ArrowRight className="w-5 h-5 text-gray-600 group-hover:text-[#C5A059]" />
+                        {displayedCards.map((company) => {
+                            const isFocused = focusedCompany?.id === company.id;
+                            const isDimmed = focusedCompany && !isFocused;
+
+                            return (
+                                <div
+                                    key={company.id}
+                                    onClick={() => handleSelectCard(company)}
+                                    className={`group relative bg-[#121212]/30 backdrop-blur-xl border p-6 rounded-2xl cursor-pointer transition-all duration-500 flex flex-col justify-between
+                                        ${isFocused ? 'border-[#C5A059] bg-[#1a1a1a]/80 shadow-[0_15px_40px_rgba(197,160,89,0.3)] scale-105 z-10 min-h-[160px]' : 'border-white/10 hover:bg-[#1a1a1a]/70 hover:border-[#C5A059]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}
+                                        ${isDimmed ? 'opacity-30 scale-95 pointer-events-none' : ''}
+                                    `}
+                                >
+                                    <div>
+                                        <div className="flex justify-between items-start mb-4">
+                                            {company.img ? (
+                                                <img src={company.img} alt={company.name} className={`h-[24px] object-contain ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''}`} />
+                                            ) : (
+                                                <h3 className="text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center justify-between text-[10px] uppercase font-mono tracking-widest text-[#C5A059]">
+                                            <span>{company.stores} STORES <span className="text-gray-500">MAPPED</span></span>
+                                        </div>
+                                    </div>
+
+                                    {/* Reveal "ACESSAR SYSTEMA" on First Click target */}
+                                    <div className={`mt-4 w-full overflow-hidden transition-all duration-500 ease-in-out ${isFocused ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                        <div className="pt-4 border-t border-white/5">
+                                            <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#C5A059] text-black font-bold text-xs uppercase tracking-widest rounded shadow-lg hover:bg-white transition-colors">
+                                                Acessar Dashboard <ArrowRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+
                                 </div>
-                                <div className="flex items-center justify-between text-[10px] uppercase font-mono tracking-widest">
-                                    <span className="text-gray-400">{company.stores} <span className="text-gray-600">{company.stores === 1 ? 'STORE' : 'STORES'}</span></span>
-                                    <span className="text-[#C5A059]/70 bg-[#C5A059]/10 px-2 py-0.5 rounded border border-[#C5A059]/20">{company.plan}</span>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
