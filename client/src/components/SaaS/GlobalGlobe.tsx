@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Globe from 'react-globe.gl';
 
 interface Company {
     id: string;
@@ -20,29 +21,48 @@ interface GlobalGlobeProps {
 export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [imageLoaded, setImageLoaded] = useState(false);
+    const globeEl = useRef<any>();
+    const [dimensions, setDimensions] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
 
     useEffect(() => {
-        const img = new Image();
-        img.src = '/earth-iphone-classic.png';
-        img.onload = () => setImageLoaded(true);
+        const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
+        window.addEventListener('resize', handleResize);
+
+        // Configure auto-rotation and initial zoom after a tick
+        setTimeout(() => {
+            if (globeEl.current) {
+                globeEl.current.controls().autoRotate = true;
+                globeEl.current.controls().autoRotateSpeed = 0.5;
+                globeEl.current.controls().enableZoom = false; // Disable zoom to keep it locked like wallpaper
+            }
+        }, 100);
+
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa"));
 
     return (
         <div className="fixed inset-0 w-full h-full bg-[#000000] overflow-hidden flex flex-col z-[80]">
-            {/* The Classic Earth Image */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 mt-8 md:mt-24">
-                <img 
-                    src="/earth-iphone-classic.png" 
-                    alt="Classic iPhone Earth" 
-                    className={`w-[110%] md:w-[90%] max-w-[1200px] object-contain transition-opacity duration-1000 ease-in-out ${imageLoaded ? 'opacity-85' : 'opacity-0'} drop-shadow-[0_0_80px_rgba(255,255,255,0.05)] md:translate-y-12`}
+            {/* 3D Photorealistic Rotating Globe Engine */}
+            <div className="absolute inset-0 z-0 opacity-80 mt-12 md:mt-24 pointer-events-none flex justify-center items-center">
+                <Globe
+                    ref={globeEl}
+                    width={dimensions.width}
+                    height={dimensions.height}
+                    backgroundColor="rgba(0,0,0,0)" // Transparent to blend with our gradient
+                    globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+                    bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+                    atmosphereColor="#5ca2ff"
+                    atmosphereAltitude={0.15}
                 />
             </div>
 
-            {/* Soft Overlay to blend bottom into black */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/30 to-transparent pointer-events-none z-0"></div>
+            {/* Deep space soft overlay to merge the globe cleanly into black */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/60 to-transparent pointer-events-none z-0"></div>
 
             {/* Top Interactive Layer */}
             <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden custom-scrollbar">
