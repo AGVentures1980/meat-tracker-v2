@@ -168,8 +168,8 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                         globeEl.current.pointOfView({ lat: r.lat, lng: r.lng, altitude: 0.8 }, 1000);
                     }
                 } else {
-                    // Pull back slightly for global view
-                    globeEl.current.pointOfView({ altitude: 2.2 }, 1000);
+                    // Pull back and center exactly over the Americas (USA + Brazil) since 95% of system operations are there
+                    globeEl.current.pointOfView({ lat: 15, lng: -80, altitude: 2.2 }, 1500);
                 }
             }
         }
@@ -244,9 +244,9 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                         htmlLng={(d: any) => d.lng}
                         htmlElement={() => {
                             const el = document.createElement('div');
-                            // Tiny glowing golden core with beautiful outer drop-shadow bloom
+                            // Ultra-tiny glowing stars
                             el.innerHTML = `
-                                <div class="w-1.5 h-1.5 bg-[#fef08a] rounded-full shadow-[0_0_12px_4px_#C5A059]"></div>
+                                <div class="w-1 h-1 bg-[#fef08a] rounded-full shadow-[0_0_5px_1px_#C5A059] opacity-80 pb-0 mb-0"></div>
                             `;
                             return el;
                         }}
