@@ -267,7 +267,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             </div>
 
             {/* Top Interactive Layer */}
-            <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden custom-scrollbar pointer-events-none">
+            <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pointer-events-none">
                 
                 {/* Header */}
                 <div className="text-center mb-10 mt-6 md:mt-4 pointer-events-auto transition-all duration-500" style={{ opacity: focusedCompany ? 0 : 1 }}>
@@ -378,7 +378,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
 
                         <div 
                             ref={scrollContainerRef}
-                            className="flex gap-4 pb-20 overflow-x-auto custom-scrollbar snap-x snap-mandatory scroll-smooth"
+                            className="flex gap-4 pb-20 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory scroll-smooth"
                         >
                             {displayedCards.map((company) => {
                                 const isFocused = focusedCompany?.id === company.id;
