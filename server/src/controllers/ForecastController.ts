@@ -38,7 +38,10 @@ export class ForecastController {
             });
 
             return res.json({ success: true, forecast });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Get Forecast Error:', error);
             return res.status(500).json({ error: 'Failed to get forecast' });
         }
@@ -112,7 +115,10 @@ export class ForecastController {
 
             return res.json({ success: true, forecast });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Upsert Forecast Error:', error);
             return res.status(500).json({ error: 'Failed to save forecast' });
         }
@@ -151,7 +157,10 @@ export class ForecastController {
             });
 
             return res.json({ success: true, summary });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Get Network Forecast Error:', error);
             return res.status(500).json({ error: 'Failed to get network forecast' });
         }

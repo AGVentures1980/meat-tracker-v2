@@ -60,6 +60,9 @@ export const BarcodeController = {
             });
 
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Barcode Parse Endpoint Crash Avoidance:', error);
             // Must return 200 OK with fail status so hardware wedge doesn't crash
             return res.json({

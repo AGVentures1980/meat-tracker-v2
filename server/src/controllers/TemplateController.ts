@@ -4,6 +4,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../services/AuditService';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -31,7 +33,10 @@ export class TemplateController {
                 orderBy: [{ is_system: 'desc' }, { name: 'asc' }]
             });
             return res.json(templates);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('List Templates Error:', error);
             return res.status(500).json({ error: 'Failed to list templates' });
         }
@@ -57,9 +62,12 @@ export class TemplateController {
                     is_system: false
                 }
             });
-            await AuditService.logAction(user.userId, 'CREATE', 'StoreTemplate', `Created template: ${name}`, 0);
+            await AuditService.logAction(getUserId(user), 'CREATE', 'StoreTemplate', `Created template: ${name}`, 0);
             return res.json(template);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Create Template Error:', error);
             return res.status(500).json({ error: 'Failed to create template' });
         }
@@ -123,7 +131,7 @@ export class TemplateController {
 
             // 3. Audit log
             await AuditService.logAction(
-                user.userId,
+                getUserId(user),
                 'APPLY_TEMPLATE',
                 'Store',
                 `Applied template "${template.name}" to store ${storeId}`,
@@ -131,7 +139,10 @@ export class TemplateController {
             );
 
             return res.json({ success: true, template_name: template.name, store_id: storeId });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Apply Template Error:', error);
             return res.status(500).json({ error: 'Failed to apply template' });
         }

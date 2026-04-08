@@ -56,6 +56,10 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
             }
         }
 
+        // Normalize identity payload
+        decoded.id = decoded.id ?? decoded.userId;
+        decoded.userId = decoded.userId ?? decoded.id;
+
         (req as any).user = decoded;
         
         // ENTERPRISE HARDENING: Inject mathematically scoped Prisma Client

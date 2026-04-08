@@ -47,6 +47,9 @@ export class VaultController {
             emitMetric({ metric: 'upload_request_success', endpoint: '/vault/request-upload', status: 200, companyId: user.companyId || user.company_id, latencyMs: latency });
             return res.json(result);
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             const latency = Date.now() - startTimestamp;
             const msg = error?.message || String(error);
             const user = (req as any).user || { id: 'unknown', companyId: 'unknown' };
@@ -80,6 +83,9 @@ export class VaultController {
             emitMetric({ metric: 'upload_confirm_success', endpoint: '/vault/confirm-upload', status: 200, companyId: user.companyId || user.company_id, latencyMs: latency });
             return res.json({ success: true, message: 'File is now active' });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             const latency = Date.now() - startTimestamp;
             const msg = error?.message || String(error);
             const user = (req as any).user || { id: 'unknown', companyId: 'unknown' };
@@ -129,6 +135,9 @@ export class VaultController {
             emitMetric({ metric: 'download_request_success', endpoint: '/vault/access', status: 200, companyId: user.companyId || user.company_id, latencyMs: latency });
             return res.json(result);
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
              const latency = Date.now() - startTimestamp;
              const user = (req as any).user || { id: 'unknown', companyId: 'unknown', storeId: 'unknown' };
              const msg = error?.message || String(error);
@@ -148,7 +157,10 @@ export class VaultController {
                          emitMetric({ metric: 'fallback_usage_success', status: 200, endpoint: '/vault/access', companyId: user.company_id || user.companyId, latencyMs: totalLatency });
                          return res.json({ viewUrl, metadata: legacyFile });
                      }
-                 } catch (legacyErr) {
+                 } catch (legacyErr: any) {
+            if (legacyErr?.name === 'AuthContextMissingError') {
+                return res.status(legacyErr.status).json({ error: legacyErr.message });
+            }
                      // Failsafe
                  }
              } else {

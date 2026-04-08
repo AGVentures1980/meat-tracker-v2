@@ -47,7 +47,10 @@ export class StoreSettingsController {
 
             return res.json(store);
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error fetching store settings:', error);
             res.status(500).json({ error: 'Failed to fetch store settings' });
         }
@@ -96,7 +99,10 @@ export class StoreSettingsController {
 
             return res.json({ success: true, store: updatedStore });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error updating store settings:', error);
             res.status(500).json({ error: 'Failed to update store settings' });
         }

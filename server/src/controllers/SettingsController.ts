@@ -8,7 +8,10 @@ export class SettingsController {
         try {
             const settings = await prisma.systemSettings.findMany();
             return res.json(settings);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Fetch Settings Error:', error);
             return res.status(500).json({ error: 'Failed to fetch settings' });
         }
@@ -43,7 +46,10 @@ export class SettingsController {
             }
 
             return res.json({ message: 'Settings updated successfully' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Update Settings Error:', error);
             return res.status(500).json({ error: 'Failed to update settings' });
         }
@@ -69,7 +75,10 @@ export class SettingsController {
                 }
             });
             return res.json(stores);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Fetch Stores Error:', error);
             return res.status(500).json({ error: 'Failed to fetch stores' });
         }
@@ -174,6 +183,9 @@ export class SettingsController {
             return res.json(result);
 
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Create Store Error:', error);
             return res.status(500).json({ error: error.message || 'Failed to create store' });
         }
@@ -338,7 +350,10 @@ export class SettingsController {
             });
 
             return res.json(updatedStore);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Update Store Error:', error);
             return res.status(500).json({ error: 'Failed to update store' });
         }
@@ -360,7 +375,10 @@ export class SettingsController {
             });
 
             return res.json({ message: 'Success' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Set No Delivery Flag Error:', error);
             return res.status(500).json({ error: 'Failed to update flag' });
         }
@@ -381,7 +399,10 @@ export class SettingsController {
             });
 
             return res.json(products);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Fetch Company Products Error:', error);
             return res.status(500).json({ error: 'Failed to fetch company products' });
         }

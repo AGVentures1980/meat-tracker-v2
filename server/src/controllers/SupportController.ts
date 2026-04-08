@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -29,7 +31,10 @@ export class SupportController {
             });
 
             res.json(faqs);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to get FAQs', error);
             res.status(500).json({ error: 'Failed to load FAQs' });
         }
@@ -39,7 +44,7 @@ export class SupportController {
         try {
             const { content, store_id: bodyStoreId } = req.body;
             // The Auth Middleware injects `req.user` theoretically
-            const userId = (req as any).user?.userId || (req as any).user?.id;
+            const userId = getUserId((req as any).user) || (req as any).user?.id;
             if (!userId) return res.status(401).json({ error: 'User context required' });
 
             let store_id = (req as any).user?.storeId;
@@ -151,7 +156,10 @@ export class SupportController {
 
             res.json({ ticketId: ticket.id, messages: updatedThread, isEscalated: escalate });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to process message', error);
             res.status(500).json({ error: 'Failed to process message' });
         }
@@ -218,7 +226,10 @@ export class SupportController {
                 requiresRating,
                 status: ticket.status
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to load thread', error);
             res.status(500).json({ error: 'Failed to load thread' });
         }
@@ -246,7 +257,10 @@ export class SupportController {
             });
 
             res.json(tickets);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to open tickets', error);
             res.status(500).json({ error: 'Failed to fetch active tickets' });
         }
@@ -278,7 +292,10 @@ export class SupportController {
             }
 
             res.json(message);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Admin reply failed', error);
             res.status(500).json({ error: 'Failed to send admin reply' });
         }
@@ -302,7 +319,10 @@ export class SupportController {
             });
 
             res.json({ success: true, ticket });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to submit rating', error);
             res.status(500).json({ error: 'Failed to submit rating' });
         }
@@ -355,7 +375,10 @@ export class SupportController {
             }).sort((a, b) => b.average_rating - a.average_rating);
 
             res.json(results);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to get company ratings', error);
             res.status(500).json({ error: 'Failed to load ratings' });
         }

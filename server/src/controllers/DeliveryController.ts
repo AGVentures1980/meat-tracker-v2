@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import OpenAI from 'openai';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -164,7 +166,10 @@ export class DeliveryController {
                 metrics: { totalLbs, calculatedGuests: totalGuests, amount: totalAmount },
                 proteinBreakdown: proteinBreakdownArray
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('OLO Sync Failed:', error);
             return res.status(500).json({ success: false, error: 'OLO Sync Failed' });
         }
@@ -226,7 +231,7 @@ export class DeliveryController {
             mimeType = 'image/jpeg';
 
             const base64Image = processedBuffer.toString('base64');
-            const companyId = user.companyId || 'tdb-main';
+            const companyId = requireTenant((req as any).user);
 
             let providerSpecificRules = "";
             let expectedVendor = "wholesale food distributor";
@@ -343,6 +348,9 @@ If you cannot read the image or find no meat items, return {"items": []}.`
                 items: scannedItems
             });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error(`[OCR DEBUG ${requestId}] ERROR:`, error);
             return res.status(500).json({ success: false, error: 'OCR Saving Failed' });
         }
@@ -374,7 +382,10 @@ If you cannot read the image or find no meat items, return {"items": []}.`
             });
 
             return res.json({ success: true, history });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ success: false, error: 'Failed to fetch history' });
         }
     }
@@ -391,7 +402,7 @@ If you cannot read the image or find no meat items, return {"items": []}.`
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
-                    whereStore.area_manager_id = user.userId;
+                    whereStore.area_manager_id = getUserId(user);
                 } else {
                     whereStore.id = user.storeId;
                 }
@@ -425,7 +436,10 @@ If you cannot read the image or find no meat items, return {"items": []}.`
             }).slice(0, 57).sort((a, b) => b.deliveryCount - a.deliveryCount); // Sort by delivery count and limit to 57 for parity
 
             return res.json({ success: true, stores: networkStatus });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to fetch network status:', error);
             return res.status(500).json({ success: false, error: 'Failed to fetch network status' });
         }

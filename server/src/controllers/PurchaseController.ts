@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -38,7 +40,10 @@ export class PurchaseController {
             }
 
             return res.json({ compliance_locked: false });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Garcia Rule Check Error:', error);
             return res.status(500).json({ success: false, error: 'Compliance Check Failed' });
         }
@@ -69,7 +74,10 @@ export class PurchaseController {
             });
 
             return res.json({ success: true, invoice });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to add invoice:', error);
             return res.status(500).json({ success: false, error: 'Failed to add invoice' });
         }
@@ -159,7 +167,10 @@ export class PurchaseController {
             });
 
             return res.json({ success: true, averages: results });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to calculate averages:', error);
             return res.status(500).json({ success: false, error: 'Failed to calculate averages' });
         }
@@ -250,11 +261,11 @@ export class PurchaseController {
                         console.log('Image preparation complete. Calling Vision API...');
 
                         const companyProducts = await (prisma as any).companyProduct.findMany({
-                            where: { company_id: (req as any).user?.companyId || 'tdb-main' }
+                            where: { company_id: requireTenant((req as any).user) }
                         });
                         const registeredMeats = companyProducts.map((p: any) => p.name).join(', ');
 
-                        const userCompanyId = (req as any).user?.companyId || 'tdb-main';
+                        const userCompanyId = requireTenant((req as any).user);
                         let providerSpecificRules = "";
                         let expectedVendor = "wholesale food distributor";
 
@@ -306,11 +317,11 @@ export class PurchaseController {
 
                         if (documentText && documentText.length > 50) {
                             const companyProducts = await (prisma as any).companyProduct.findMany({
-                                where: { company_id: (req as any).user?.companyId || 'tdb-main' }
+                                where: { company_id: requireTenant((req as any).user) }
                             });
                             const registeredMeats = companyProducts.map((p: any) => p.name).join(', ');
 
-                            const userCompanyId = (req as any).user?.companyId || 'tdb-main';
+                            const userCompanyId = requireTenant((req as any).user);
                             let providerSpecificRules = "";
                             let expectedVendor = "wholesale food distributor";
 
@@ -356,6 +367,9 @@ export class PurchaseController {
                         console.log(`Real AI Extraction Successful: Mapped ${finalOCRResults.length} items`);
                     }
                 } catch (AI_ERR: any) {
+            if (AI_ERR?.name === 'AuthContextMissingError') {
+                return res.status(AI_ERR.status).json({ error: AI_ERR.message });
+            }
                     console.error('Real AI Extraction Failed. Falling back to Mock Mágico...', AI_ERR);
                     aiErrorMessage = AI_ERR.message || String(AI_ERR);
                 }
@@ -390,7 +404,10 @@ export class PurchaseController {
                     status: 'pending_review'
                 }))
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ success: false, error: 'OCR Processing Failed' });
         }
     }
@@ -442,7 +459,10 @@ export class PurchaseController {
                                 protein: inv.detected_item
                             }
                         });
-                    } catch (e) {
+                    } catch (e: any) {
+            if (e?.name === 'AuthContextMissingError') {
+                return res.status(e.status).json({ error: e.message });
+            }
                         console.warn('Failed to save alias', e);
                     }
                 }
@@ -465,7 +485,10 @@ export class PurchaseController {
             const validCreated = created.filter(c => c !== null);
 
             return res.json({ success: true, count: validCreated.length });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Confirm Error:', error);
             return res.status(500).json({ success: false, error: 'Failed to confirm invoices' });
         }

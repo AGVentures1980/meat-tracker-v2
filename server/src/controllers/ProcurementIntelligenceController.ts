@@ -151,7 +151,10 @@ CRITICAL SYSCO INVOICE RULES (TDB Environment):
                 stores: dashboardData
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Shadow Dashboard Error:', error);
             return res.status(500).json({ error: 'Failed to fetch shadow dashboard data' });
         }
@@ -199,7 +202,10 @@ CRITICAL SYSCO INVOICE RULES (TDB Environment):
 
             return res.json({ success: true, feedback });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Procurement Feedback Error:', error);
             return res.status(500).json({ error: 'Failed to submit feedback' });
         }

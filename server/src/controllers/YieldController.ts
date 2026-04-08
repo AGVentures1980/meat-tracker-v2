@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -13,7 +15,7 @@ export class YieldController {
     try {
       const { storeId } = req.params;
       const { boxWeightLbs, scrapWeightLbs, userId, protein } = req.body;
-      const companyId = (req as any).user?.company_id || (req as any).user?.companyId || 'tdb-main';
+      const companyId = requireTenant((req as any).user);
 
       // Validation
       if (!boxWeightLbs || !scrapWeightLbs) {
@@ -102,7 +104,10 @@ export class YieldController {
         data: result
       });
 
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('YieldController.logYield Error:', error);
       return res.status(500).json({ error: 'Failed to log yield data' });
     }
@@ -156,7 +161,10 @@ export class YieldController {
         data: result
       });
 
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('YieldController.auditPortion Error:', error);
       return res.status(500).json({ error: 'Failed to audit portion' });
     }
@@ -169,7 +177,7 @@ export class YieldController {
     try {
       const { storeId } = req.params;
       const { calculatedYieldLbs, unaccountedLbs, variancePct, status } = req.body;
-      const userId = (req as any).user?.userId || 'system';
+      const userId = getUserId((req as any).user) || 'system';
 
       if (variancePct === undefined || !status) {
         return res.status(400).json({ error: 'Missing required audit parameters.' });
@@ -216,7 +224,10 @@ export class YieldController {
         data: result
       });
 
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('YieldController.saveGhostMathAudit Error:', error);
       return res.status(500).json({ error: 'Failed to save EOD ghost math.' });
     }
@@ -249,7 +260,10 @@ export class YieldController {
       });
 
       return res.status(200).json(queue);
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('YieldController.getQuarantineQueue Error:', error);
       return res.status(500).json({ error: 'Failed to fetch quarantine queue' });
     }
@@ -262,7 +276,7 @@ export class YieldController {
     try {
       const { id } = req.params;
       const { action } = req.body; // 'APPROVE' or 'REJECT'
-      const userId = (req as any).user?.userId || 'system';
+      const userId = getUserId((req as any).user) || 'system';
 
       if (action !== 'APPROVE' && action !== 'REJECT') {
         return res.status(400).json({ error: 'Invalid action. Must be APPROVE or REJECT.' });
@@ -290,7 +304,10 @@ export class YieldController {
         message: `Quarantine record successfully ${action.toLowerCase()}ed.`,
         data: updatedRecord
       });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('YieldController.resolveQuarantine Error:', error);
       return res.status(500).json({ error: 'Failed to resolve quarantine record' });
     }

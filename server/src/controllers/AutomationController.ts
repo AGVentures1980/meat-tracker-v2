@@ -36,7 +36,10 @@ export class AutomationController {
                 data: scannedData
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('OCR Error:', error);
             return res.status(500).json({ error: 'Failed to scan invoice' });
         }
@@ -114,7 +117,10 @@ export class AutomationController {
                 data: oloData
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('OLO Error:', error);
             return res.status(500).json({ error: 'Failed to sync OLO data' });
         }

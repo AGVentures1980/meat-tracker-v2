@@ -6,6 +6,8 @@ import { MEAT_STANDARDS } from '../config/standards';
 import { MEAT_COSTS_LB, FINANCIAL_TARGET_GUEST, FINANCIAL_TOLERANCE_THRESHOLD } from '../config/costs';
 
 import { HolidayPredictorAgent } from '../agents/HolidayPredictorAgent';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -22,7 +24,7 @@ export class SmartPrepController {
             const date = new Date(dateStr);
 
             const whereClause: any = {};
-            const companyId = user.companyId || user.company_id || 'tdb-main';
+            const companyId = requireTenant(user);
             if (companyId) {
                 whereClause.company_id = companyId;
             }
@@ -72,7 +74,10 @@ export class SmartPrepController {
                 stores: statusGrid
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Network Prep Status Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network prep status', details: String(error) });
         }
@@ -81,10 +86,10 @@ export class SmartPrepController {
     static async getDailyPrep(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const userId = user.userId;
+            const userId = getUserId(user);
             const userRole = user.role;
             let userStoreId = user.store_id;
-            const companyId = user.companyId || user.company_id || 'tdb-main';
+            const companyId = requireTenant(user);
             if (!userStoreId) {
                 const firstStore = await prisma.store.findFirst({ where: { company_id: companyId } });
                 userStoreId = firstStore ? firstStore.id : 1;
@@ -407,6 +412,9 @@ export class SmartPrepController {
             // The fix is to ensure the if/else if/else structure is fully closed
             // before the catch block.
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Smart Prep Error:', error);
             return res.status(500).json({ error: 'Failed to generate prep list: ' + (error?.message || String(error)) });
         }
@@ -415,7 +423,7 @@ export class SmartPrepController {
     static async lockPrepPlan(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const userId = user.userId;
+            const userId = getUserId(user);
             const { store_id, date, forecast, lunch_forecast, dinner_forecast, data } = req.body;
 
             if (!store_id || !date || (!forecast && Number.isNaN(lunch_forecast + dinner_forecast)) || !data) {
@@ -434,7 +442,7 @@ export class SmartPrepController {
             if (user.role === 'admin') {
                 store = await prisma.store.findFirst({ where: { id: targetStoreId } });
             } else {
-                const companyId = user.companyId || user.company_id || 'tdb-main';
+                const companyId = requireTenant(user);
                 store = await prisma.store.findFirst({
                     where: { id: targetStoreId, company_id: companyId }
                 });
@@ -470,7 +478,10 @@ export class SmartPrepController {
             });
 
             res.json({ success: true });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Lock Prep Error:', error);
             res.status(500).json({ error: 'Failed to lock prep plan' });
         }

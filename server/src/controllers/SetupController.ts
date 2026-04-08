@@ -78,7 +78,10 @@ export const SetupController = {
                 message: `Seeding Complete. Added ${totalCreated} targets across ${allStores.length} stores.`
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Seeding Failed:', error);
             return res.status(500).json({ success: false, error: 'Seeding Failed' });
         }

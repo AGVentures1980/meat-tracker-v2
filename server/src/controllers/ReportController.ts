@@ -44,7 +44,10 @@ export class ReportController {
                 top_spenders: stats.top_spenders,
                 period: { start, end }
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('[ReportController] Report Error (Executive Summary):', error);
             if (error instanceof Error) {
                 console.error('[ReportController] Stack:', error.stack);
@@ -101,7 +104,10 @@ export class ReportController {
             });
 
             return res.json(flashData);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Report Error (Flash):', error);
             return res.status(500).json({ error: 'Failed to generate flash report' });
         }
@@ -149,7 +155,10 @@ export class ReportController {
                     status: m.actual <= m.ideal ? 'Saving' : 'Loss'
                 }))
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Report Error (Variance):', error);
             return res.status(500).json({ error: 'Failed to generate variance report' });
         }
@@ -188,7 +197,10 @@ export class ReportController {
                 storeId: targetId,
                 history
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Report Error (Inventory):', error);
             return res.status(500).json({ error: 'Failed to generate inventory report' });
         }
@@ -296,7 +308,10 @@ export class ReportController {
 
             return res.json(reportData);
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Report Error (Meat Prices):', error);
             return res.status(500).json({ error: 'Failed to generate meat prices report' });
         }

@@ -28,7 +28,11 @@ export const submitLead = async (req: Request, res: Response): Promise<void> => 
             leadId: newLead.id 
         });
 
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                res.status(error.status).json({ error: error.message });
+                return;
+            }
         console.error('Error capturing lead:', error);
         res.status(500).json({ error: 'Internal server error while processing lead.' });
     }
@@ -41,7 +45,11 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
         });
 
         res.status(200).json(leads);
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                res.status(error.status).json({ error: error.message });
+                return;
+            }
         console.error('Error fetching leads:', error);
         res.status(500).json({ error: 'Internal server error while fetching leads.' });
     }

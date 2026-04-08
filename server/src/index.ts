@@ -212,7 +212,7 @@ app.post('/api/v1/debug/test-scan', async (req, res) => {
         
         let { companyId, gtin, barcode } = req.body;
         
-        companyId = companyId || 'tdb-main';
+        // Deprecated fallback removed
         gtin = gtin || '90076338879475';
         barcode = barcode || '0190076338879475320100083511260312210201000787';
 

@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -9,7 +11,7 @@ export const TrainingController = {
         try {
             const user = (req as any).user;
             const progress = await prisma.trainingProgress.findMany({
-                where: { user_id: user.userId }
+                where: { user_id: getUserId(user) }
             });
 
             // Check if all 5 modules are done
@@ -38,7 +40,10 @@ export const TrainingController = {
                 isCertified,
                 operationType
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Training status error:', error);
             res.status(500).json({ success: false, error: 'Failed to fetch training status' });
         }
@@ -47,7 +52,7 @@ export const TrainingController = {
     // Save module progress (1-5)
     saveProgress: async (req: Request, res: Response) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = getUserId((req as any).user);
             const { moduleId, score } = req.body;
 
             if (!moduleId || score === undefined) {
@@ -73,7 +78,10 @@ export const TrainingController = {
             });
 
             res.json({ success: true, progress });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Save progress error:', error);
             res.status(500).json({ success: false, error: 'Failed to save progress', details: String(error) });
         }
@@ -82,7 +90,7 @@ export const TrainingController = {
     // Handle Certification Exam attempt
     submitExam: async (req: Request, res: Response) => {
         try {
-            const userId = (req as any).user.userId;
+            const userId = getUserId((req as any).user);
             const { score } = req.body; // Score passed from client (0-100)
 
             // Verify prerequisites (optional, but good practice)
@@ -148,7 +156,10 @@ export const TrainingController = {
                 locked
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Exam submission error:', error);
             res.status(500).json({ success: false, error: 'Failed to submit exam' });
         }
@@ -175,7 +186,10 @@ export const TrainingController = {
             });
 
             res.json({ success: true, message: 'Training progress reset.' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Reset error:', error);
             res.status(500).json({ success: false, error: 'Failed to reset progress' });
         }
@@ -230,7 +244,10 @@ export const TrainingController = {
             audit.sort((a, b) => b.pct - a.pct);
 
             res.json({ success: true, audit });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Audit fetch error:', error);
             res.status(500).json({ success: false, error: 'Failed to fetch audit data' });
         }

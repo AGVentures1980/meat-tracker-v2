@@ -59,7 +59,10 @@ export class IntelligenceController {
                 success: true,
                 anomalies: [...qcAnomalies, ...baseAnomalies]
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ success: false, error: 'Failed to fetch anomalies' });
         }
     }
@@ -146,7 +149,10 @@ If you absolutely cannot find any info, STILL return found: true but with protei
             const result = JSON.parse(content);
             return res.json(result);
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Agent Resolution Error:', error);
             return res.status(500).json({ success: false, error: 'Agent search failed' });
         }
@@ -368,7 +374,10 @@ If you absolutely cannot find any info, STILL return found: true but with protei
                 suggestions
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Smart Order Error:', error);
             return res.status(500).json({ success: false, error: 'Failed to generate suggestions' });
         }
@@ -434,7 +443,10 @@ If you absolutely cannot find any info, STILL return found: true but with protei
                 timeline
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Pilot Dashboard Error:', error);
             return res.status(500).json({ success: false, error: 'Failed to fetch pilot data' });
         }
@@ -555,7 +567,10 @@ Return EXACTLY a JSON object with {"items": [...]}. No markup, no markdown.`;
                 results: processedItems
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('OCR Invoice Processing Error:', error);
             return res.status(500).json({ success: false, error: 'Failed to process invoice OCR' });
         }
@@ -592,7 +607,10 @@ Return EXACTLY a JSON object with {"items": [...]}. No markup, no markdown.`;
                 }))
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('OCR Drifts Error:', error);
             return res.status(500).json({ success: false, error: 'Failed to fetch price drifts' });
         }

@@ -28,7 +28,10 @@ export const DebugController = {
                 errors: stderr
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('[Debug] Migration Failed:', error);
             return res.status(500).json({
                 error: 'Migration Failed',
@@ -67,7 +70,10 @@ export const DebugController = {
             // Also clean up any mock orders? Maybe not needed.
 
             return res.json({ success: true, deletedCount: result.count, meats: unwanted });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ error: String(error) });
         }
     },
@@ -168,7 +174,10 @@ export const DebugController = {
 
             log("FDC Sync Complete.");
             return res.json({ success: true, logs });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error(error);
             return res.status(500).json({ error: String(error) });
         }

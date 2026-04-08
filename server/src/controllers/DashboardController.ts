@@ -5,6 +5,8 @@ import { Request, Response } from 'express';
 import { MeatEngine } from '../engine/MeatEngine';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../services/AuditService';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -40,7 +42,10 @@ export class DashboardController {
 
             const stats = await MeatEngine.getDashboardStats(id);
             return res.json(stats);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Dashboard Error:', error);
             return res.status(500).json({ error: 'Failed to fetch dashboard stats' });
         }
@@ -59,7 +64,10 @@ export class DashboardController {
             const stats = await MeatEngine.getNetworkBiStats(y, w, activeCompanyId, user);
 
             return res.json(stats);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Network BI Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network stats' });
         }
@@ -78,7 +86,10 @@ export class DashboardController {
 
             const stats = await MeatEngine.getNetworkReportCard(y, w, activeCompanyId);
             return res.json(stats);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Report Card Error:', error);
             return res.status(500).json({ error: 'Failed to fetch report card' });
         }
@@ -92,7 +103,10 @@ export class DashboardController {
 
             const stats = await MeatEngine.getCompanyAggregateStats(y || 2026, w || 10);
             return res.json(stats);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Company Aggregate Error:', error);
             return res.status(500).json({ error: 'Failed to fetch company stats' });
         }
@@ -110,7 +124,10 @@ export class DashboardController {
 
             const stats = await MeatEngine.getExecutiveStats(user);
             return res.json(stats);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Executive Stats Error:', error);
             return res.status(500).json({ error: 'Failed to fetch executive stats' });
         }
@@ -151,14 +168,17 @@ export class DashboardController {
 
             // Audit Log
             await AuditService.logAction(
-                user.userId,
+                getUserId(user),
                 'UPDATE_STORE_TARGETS',
                 'Store',
                 { count: updated.length, storeIds: targets.map(t => t.storeId) }
             );
 
             return res.json({ message: `Updated ${updated.length} stores`, updated });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Update Targets Error:', error);
             return res.status(500).json({ error: 'Failed to update targets' });
         }
@@ -180,7 +200,7 @@ export class DashboardController {
             // Admin/Director can see all stores in their company, or a specific one if provided
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
-                    where.area_manager_id = user.userId;
+                    where.area_manager_id = getUserId(user);
                 } else {
                     where.id = user.storeId;
                 }
@@ -202,7 +222,7 @@ export class DashboardController {
             const companyIdReq = activeCompanyId;
 
             let company: any = null;
-            if (companyIdReq && companyIdReq !== 'tdb-main') {
+            if (companyIdReq) {
                 company = await prisma.company.findUnique({
                     where: { id: companyIdReq }
                 });
@@ -248,7 +268,10 @@ export class DashboardController {
                 annualGrowthRate: company?.annual_growth_rate || 5.0,
                 operationType: company?.operationType || 'RODIZIO'
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Projections Data Error:', error);
             return res.status(500).json({ error: 'Failed to fetch projections data' });
         }
@@ -339,14 +362,17 @@ export class DashboardController {
             // Audit Log
             const user = (req as any).user;
             await AuditService.logAction(
-                user.userId,
+                getUserId(user),
                 'SYNC_STORE_TARGETS',
                 'Store',
                 { updatedCount }
             );
 
             return res.json({ message: `Synced targets for ${updatedCount} stores.` });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Sync Targets Error:', error);
             return res.status(500).json({ error: 'Failed to sync targets' });
         }
@@ -365,7 +391,7 @@ export class DashboardController {
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
-                    whereStore.area_manager_id = user.userId;
+                    whereStore.area_manager_id = getUserId(user);
                 } else {
                     whereStore.id = user.storeId;
                 }
@@ -406,7 +432,10 @@ export class DashboardController {
                 .map(([store, count]) => ({ store, count, status: 'HIGH RISK' }));
 
             return res.json({ logs, suspicious });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Audit Analysis Error:', error);
             // Return empty if auditLog table not ready
             return res.json({ logs: [], suspicious: [] });
@@ -430,7 +459,7 @@ export class DashboardController {
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
-                    whereStore.area_manager_id = user.userId;
+                    whereStore.area_manager_id = getUserId(user);
                 } else {
                     whereStore.id = user.storeId;
                 }
@@ -464,7 +493,10 @@ export class DashboardController {
                 .sort((a, b) => b.weight - a.weight);
 
             return res.json({ rankedVillains });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Villain Deep Dive Error:', error);
             return res.json({ rankedVillains: [] });
         }
@@ -480,7 +512,7 @@ export class DashboardController {
 
             // 1. Get Company Baseline (Skip if no companyId provided)
             let company = null;
-            if (companyIdReq && companyIdReq !== 'tdb-main') {
+            if (companyIdReq) {
                 company = await prisma.company.findUnique({
                     where: { id: companyIdReq }
                 });
@@ -496,7 +528,7 @@ export class DashboardController {
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
-                    where.area_manager_id = user.userId;
+                    where.area_manager_id = getUserId(user);
                 } else {
                     where.id = user.storeId;
                 }
@@ -598,7 +630,10 @@ export class DashboardController {
                 }
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Performance Audit Error:', error);
             return res.status(500).json({ error: 'Failed to generate performance audit' });
         }

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import paypal from '@paypal/payouts-sdk';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -72,7 +74,10 @@ export class AdminPartnerController {
         partners: partnerCards
       });
 
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error fetching global partner network:', error);
       res.status(500).json({ success: false, error: 'Failed to fetch network' });
     }
@@ -99,7 +104,10 @@ export class AdminPartnerController {
         success: true,
         proposals: escalated
       });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error fetching escalated proposals:', error);
       res.status(500).json({ success: false, error: 'Fetch failed' });
     }
@@ -184,6 +192,9 @@ export class AdminPartnerController {
       });
 
     } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('PayPal Execution Error:', error);
       res.status(500).json({ 
         success: false, 
@@ -238,7 +249,10 @@ export class AdminPartnerController {
         }))
       });
 
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error fetching vault agreements:', error);
       res.status(500).json({ success: false, error: 'Failed to fetch agreements' });
     }
@@ -258,7 +272,10 @@ export class AdminPartnerController {
 
       await prisma.proposal.delete({ where: { id: proposalId } });
       res.json({ success: true, message: 'Proposal deleted permanently.' });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error deleting proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to delete proposal' });
     }
@@ -303,7 +320,10 @@ export class AdminPartnerController {
       ]);
 
       res.json({ success: true, message: 'Partner deleted permanently.' });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error deleting partner:', error);
       res.status(500).json({ success: false, error: 'Failed to delete partner' });
     }
@@ -337,7 +357,7 @@ export class AdminPartnerController {
           stripe_customer_id: 'MANUAL_BYPASS_' + proposalId.substring(0, 8),
           billing_type: 'MANUAL_INVOICE',
           company_status: 'Active',
-          owner_id: user.userId // Attached to the Admin who clicked it
+          owner_id: getUserId(user) // Attached to the Admin who clicked it
         }
       });
 
@@ -374,6 +394,9 @@ export class AdminPartnerController {
       res.json({ success: true, message: `Organization ${proposal.client_name} provisioned manually!` });
 
     } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error forcing provision:', error);
       res.status(500).json({ success: false, error: 'Failed to provision organization', details: error.message });
     }

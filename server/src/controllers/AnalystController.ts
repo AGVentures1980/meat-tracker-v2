@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -173,7 +175,10 @@ export class AnalystController {
                 stores: reportData
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error(error);
             res.status(500).json({ success: false, error: 'Failed to generate ROI report' });
         }
@@ -210,7 +215,10 @@ export class AnalystController {
             });
 
             res.json({ success: true, store: updatedStore });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error("Failed to update baselines", error);
             res.status(500).json({ success: false, error: 'Failed to update baselines' });
         }
@@ -229,7 +237,7 @@ export class AnalystController {
 
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
-                    whereClause.area_manager_id = user.userId;
+                    whereClause.area_manager_id = getUserId(user);
                 } else {
                     whereClause.id = user.storeId;
                 }
@@ -299,7 +307,10 @@ export class AnalystController {
 
             res.json(scanData);
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error("Failed to generate Analyst Scan", error);
             res.status(500).json({ success: false, error: 'Failed to generate scan' });
         }

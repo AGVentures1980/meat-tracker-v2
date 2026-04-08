@@ -62,6 +62,9 @@ export class ComplianceController {
       
       res.status(201).json({ success: true, spec: newSpec });
     } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error creating spec:', error);
       res.status(500).json({ success: false, error: 'Database error creating compliance spec.' });
     }
@@ -89,6 +92,9 @@ export class ComplianceController {
       
       res.json({ success: true, specs, preventedCount });
     } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error fetching specs:', error);
       res.status(500).json({ success: false, error: 'Database error fetching specs.' });
     }
@@ -112,6 +118,9 @@ export class ComplianceController {
       });
       res.json({ success: true, attempts });
     } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error fetching prevented attempts:', error);
       res.status(500).json({ success: false, error: 'Database error fetching prevented attempts.' });
     }
@@ -155,6 +164,9 @@ export class ComplianceController {
           
           res.json({ success: true, attempts });
       } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
           console.error("Error fetching master fraud audit:", error);
           res.status(500).json({ success: false, error: 'Database error fetching master fraud audit.' });
       }
@@ -180,6 +192,9 @@ export class ComplianceController {
           
           res.json({ success: true, message: 'Audits deleted successfully' });
       } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
           console.error("Error deleting fraud audits:", error);
           res.status(500).json({ success: false, error: 'Database error deleting fraud audits.' });
       }
@@ -196,6 +211,9 @@ export class ComplianceController {
       
       res.json({ success: true, message: 'Specification deleted successfully' });
     } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error deleting spec:', error);
       res.status(500).json({ success: false, error: 'Database error deleting spec.' });
     }

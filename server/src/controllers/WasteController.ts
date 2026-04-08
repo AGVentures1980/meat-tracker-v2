@@ -2,6 +2,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../services/AuditService';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -12,7 +14,7 @@ export class WasteController {
     static async getStatus(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const companyId = user.companyId || user.company_id || 'tdb-main';
+            const companyId = requireTenant(user);
             let storeId = user.storeId;
             if (!storeId) {
                 const firstStore = await prisma.store.findFirst({ where: { company_id: companyId } });
@@ -219,7 +221,10 @@ export class WasteController {
                 }
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error(error);
             res.status(500).json({
                 error: 'Failed to fetch waste status',
@@ -232,9 +237,9 @@ export class WasteController {
     static async logWaste(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const userId = user.userId;
+            const userId = getUserId(user);
             const userRole = user.role;
-            const companyId = user.companyId || user.company_id || 'tdb-main';
+            const companyId = requireTenant(user);
             let userStoreId = user.storeId || 1;
 
             const { shift, items, date, store_id } = req.body;
@@ -332,7 +337,10 @@ export class WasteController {
 
             res.json({ success: true });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error(error);
             res.status(500).json({ error: 'Failed to log waste' });
         }
@@ -384,7 +392,7 @@ export class WasteController {
     static async getHistory(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const companyId = user.companyId || user.company_id || 'tdb-main';
+            const companyId = requireTenant(user);
             let storeId = user.storeId || 1;
 
             if ((user.role === 'admin' || user.role === 'director') && req.query.store_id) {
@@ -439,7 +447,10 @@ export class WasteController {
             }));
 
             res.json(chartData);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to fetch waste history', error);
             res.status(500).json({ error: 'Failed to fetch history' });
         }
@@ -448,7 +459,7 @@ export class WasteController {
     static async getDetailedHistory(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const companyId = user.companyId || user.company_id || 'tdb-main';
+            const companyId = requireTenant(user);
             let storeId = user.storeId || 1;
 
             if ((user.role === 'admin' || user.role === 'director') && req.query.store_id) {
@@ -474,7 +485,10 @@ export class WasteController {
 
             // Return raw logs, frontend will group
             res.json(logs);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Failed to fetch detailed history', error);
             res.status(500).json({ error: 'Failed to fetch detailed history' });
         }
@@ -483,7 +497,7 @@ export class WasteController {
     static async getNetworkWasteStatus(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const companyId = user.companyId || user.company_id || 'tdb-main';
+            const companyId = requireTenant(user);
 
             const today = new Date();
             const centralDate = WasteController.getCentralDateTime(today);
@@ -561,7 +575,10 @@ export class WasteController {
                 stores: statusGrid
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Network Waste Status Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network waste status' });
         }
@@ -607,7 +624,10 @@ export class WasteController {
                 stores: statusGrid
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Network Accountability Status Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network accountability status' });
         }

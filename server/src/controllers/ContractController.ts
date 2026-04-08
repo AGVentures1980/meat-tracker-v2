@@ -36,7 +36,10 @@ export const ContractController = {
                 contract 
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error generating contract:', error);
             return res.status(500).json({ error: 'Internal server error while generating contract' });
         }
@@ -236,6 +239,9 @@ export const ContractController = {
             });
 
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error dispatching signature:', error.response?.body || error);
             // Catch specific consent required error
             if (error.response?.body?.error === 'consent_required') {
@@ -331,7 +337,10 @@ export const ContractController = {
                 tenant: { company: company.name, admin: user.email }
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error processing webhook:', error);
             return res.status(500).json({ error: 'Failed to process webhook + provisioning.' });
         }
@@ -346,7 +355,10 @@ export const ContractController = {
             });
 
             return res.status(200).json(contracts);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error fetching contracts:', error);
             return res.status(500).json({ error: 'Failed to fetch contracts.' });
         }
@@ -378,7 +390,10 @@ export const ContractController = {
             });
 
             return res.status(200).json({ message: 'Contract updated', contract: updated });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error updating contract:', error);
             return res.status(500).json({ error: 'Failed to update contract.' });
         }
@@ -392,7 +407,10 @@ export const ContractController = {
                 where: { id }
             });
             return res.status(200).json({ message: 'Contract deleted successfully.' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error deleting contract:', error);
             return res.status(500).json({ error: 'Failed to delete contract.' });
         }

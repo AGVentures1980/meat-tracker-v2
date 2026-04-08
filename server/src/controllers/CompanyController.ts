@@ -18,7 +18,10 @@ export class CompanyController {
                 orderBy: { name: 'asc' }
             });
             return res.json(data);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Create Product Error:', error);
             return res.status(500).json({ error: 'Failed to fetch products' });
         }
@@ -54,7 +57,10 @@ export class CompanyController {
             );
 
             return res.json(product);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Create Product Error:', error);
             return res.status(500).json({ error: 'Failed to create product' });
         }
@@ -87,7 +93,10 @@ export class CompanyController {
             );
 
             return res.json({ success: true });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Delete Product Error:', error);
             return res.status(500).json({ error: 'Failed to delete product' });
         }
@@ -103,7 +112,10 @@ export class CompanyController {
                 orderBy: { store_name: 'asc' }
             });
             return res.json(data);
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ error: 'Failed to fetch stores' });
         }
     }
@@ -166,7 +178,10 @@ export class CompanyController {
 
             return res.json(store);
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Add Store Error:', error);
             return res.status(500).json({ error: 'Failed to add store' });
         }
@@ -201,7 +216,10 @@ export class CompanyController {
             );
 
             return res.json({ success: true });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Delete Store Error:', error);
             return res.status(500).json({ error: 'Failed to delete store' });
         }
@@ -232,7 +250,7 @@ export class CompanyController {
             // To ensure strict multi-tenant boundary even for master admins who can switch companies:
             const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
             let company = null;
-            if (companyIdReq && companyIdReq !== 'tdb-main') {
+            if (companyIdReq) {
                 company = await prisma.company.findUnique({ where: { id: companyIdReq } });
             }
             
@@ -264,7 +282,10 @@ export class CompanyController {
             });
 
             return res.json({ areaManagers, allStores });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Fetch Area Managers Error:', error);
             return res.status(500).json({ error: 'Failed to fetch Area Managers' });
         }
@@ -299,7 +320,10 @@ export class CompanyController {
             });
 
             return res.json({ success: true, message: 'Stores assigned successfully' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Assign Stores Error:', error);
             return res.status(500).json({ error: 'Failed to assign stores' });
         }
@@ -342,7 +366,10 @@ export class CompanyController {
             );
 
             return res.json({ success: true, user: { id: am.id, email: am.email, first_name: am.first_name, last_name: am.last_name } });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Add Area Manager Error:', error);
             return res.status(500).json({ error: 'Failed to add area manager' });
         }
@@ -379,7 +406,10 @@ export class CompanyController {
             );
 
             return res.json({ success: true });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Delete Area Manager Error:', error);
             return res.status(500).json({ error: 'Failed to delete area manager' });
         }

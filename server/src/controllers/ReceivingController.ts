@@ -5,6 +5,8 @@ import OpenAI from 'openai';
 import { BarcodeDecisionEngine } from '../services/BarcodeDecisionEngine';
 import { ComplianceEngine } from '../services/ComplianceEngine';
 import { AlertEngine } from '../services/AlertEngine';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -14,7 +16,7 @@ export const ReceivingController = {
             const user = (req as any).user;
             const { barcode, weight, gtin, store_id } = req.body;
             
-            let companyId = "tdb-main";
+            let companyId = requireTenant((req as any).user);
             let storeId = store_id || user.storeId;
             let verifiedStoreId: number | null = null;
             
@@ -136,6 +138,9 @@ export const ReceivingController = {
             });
 
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Scan Barcode Error:', error);
             res.status(500).json({ error: error.message ? `CRASH TRACE: ${error.message.substring(0, 150)}` : 'Internal Server Error' });
         }
@@ -150,7 +155,7 @@ export const ReceivingController = {
                 return res.status(403).json({ error: 'Unauthorized to map barcodes' });
             }
 
-            let companyId = "tdb-main"; 
+            let companyId = requireTenant((req as any).user); 
             let storeId = store_id || user.storeId;
             
             if (user.scope && user.scope.type === 'COMPANY') {
@@ -178,7 +183,10 @@ export const ReceivingController = {
                                     created_by: user.first_name + " " + user.last_name
                                 }
                             });
-                        } catch (e) {
+                        } catch (e: any) {
+            if (e?.name === 'AuthContextMissingError') {
+                return res.status(e.status).json({ error: e.message });
+            }
                             // ignore duplicates if they exist
                         }
                     }
@@ -212,7 +220,10 @@ export const ReceivingController = {
 
             res.json({ success: true, status: 'APPROVED', protein: protein_name });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Map Barcode Error:', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
@@ -251,7 +262,10 @@ export const ReceivingController = {
             }
 
             res.json({ status: 'SUCCESS', records_created: records.length });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Submit Batch Error:', error);
             res.status(500).json({ error: 'Internal Server Error submitting batch' });
         }
@@ -265,7 +279,10 @@ export const ReceivingController = {
                 }
             });
             return res.json({ success: true, message: "Todas as sujeiras da IA foram limpas do Banco Oficial!" });
-        } catch (err) {
+        } catch (err: any) {
+            if (err?.name === 'AuthContextMissingError') {
+                return res.status(err.status).json({ error: err.message });
+            }
             return res.status(500).json({ error: "Failed to purge AI data" });
         }
     },
@@ -274,7 +291,10 @@ export const ReceivingController = {
         try {
             const specs = await prisma.corporateProteinSpec.findMany();
             return res.json(specs);
-        } catch (err) {
+        } catch (err: any) {
+            if (err?.name === 'AuthContextMissingError') {
+                return res.status(err.status).json({ error: err.message });
+            }
             return res.status(500).json({ error: "Failed to fetch raw specs" });
         }
     }

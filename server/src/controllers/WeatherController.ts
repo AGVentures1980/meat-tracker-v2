@@ -23,7 +23,10 @@ export class WeatherController {
                     icon: "☀️"
                 });
             }
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Weather API Error:', error);
             res.status(500).json({ error: 'Internal server error while fetching weather data.' });
         }

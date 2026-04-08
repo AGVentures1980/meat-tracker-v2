@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { startOfMonth, endOfMonth, differenceInDays, getDate } from 'date-fns';
 import { MEAT_STANDARDS, GLOBAL_TARGET_PER_GUEST } from '../config/standards';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -341,7 +343,7 @@ export class MeatEngine {
 
         if (user && user.role !== 'admin' && user.role !== 'director') {
             if (user.role === 'area_manager') {
-                where.area_manager_id = user.userId;
+                where.area_manager_id = getUserId(user);
             } else if (user.storeId) {
                 where.id = user.storeId;
             }
@@ -430,7 +432,7 @@ export class MeatEngine {
 
         if (user.role !== 'admin' && user.role !== 'director') {
             if (user.role === 'area_manager') {
-                where.area_manager_id = user.userId;
+                where.area_manager_id = getUserId(user);
             } else if (user.storeId) {
                 where.id = user.storeId;
             }
@@ -675,7 +677,7 @@ export class MeatEngine {
 
         if (user.role !== 'admin' && user.role !== 'director') {
             if (user.role === 'area_manager') {
-                where.area_manager_id = user.userId;
+                where.area_manager_id = getUserId(user);
             } else if (user.storeId) {
                 where.id = user.storeId;
             }

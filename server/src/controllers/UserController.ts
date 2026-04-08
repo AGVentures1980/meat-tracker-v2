@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -66,7 +68,10 @@ export const UserController = {
 
             return res.status(400).json({ error: 'Invalid layer requested' });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('getHierarchy error:', error);
             res.status(500).json({ error: 'Failed to fetch hierarchy' });
         }
@@ -121,7 +126,10 @@ export const UserController = {
             });
 
             res.json({ success: true, users });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('getStoreUsers error:', error);
             res.status(500).json({ error: 'Failed to fetch store users' });
         }
@@ -200,7 +208,10 @@ export const UserController = {
             });
 
             res.json({ success: true, user: newUser });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('createStoreUser error:', error);
             res.status(500).json({ error: 'Failed to create user' });
         }
@@ -259,7 +270,10 @@ export const UserController = {
             });
 
             res.json({ success: true, message: 'User deleted successfully' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('deleteStoreUser error:', error);
             res.status(500).json({ error: 'Failed to delete user' });
         }
@@ -270,22 +284,25 @@ export const UserController = {
             const user = (req as any).user;
             console.log(`[EULA] Acceptance request received for user ID: ${user?.userId}`);
             
-            if (!user || !user.userId) {
+            if (!user || !getUserId(user)) {
                 console.warn('[EULA] Failed: Not authenticated or missing userId in token');
                 return res.status(401).json({ error: 'Not authenticated' });
             }
 
-            console.log(`[EULA] Proceeding to update database for user ID: ${user.userId}`);
+            console.log(`[EULA] Proceeding to update database for user ID: ${getUserId(user)}`);
             await prisma.user.update({
-                where: { id: user.userId },
+                where: { id: getUserId(user) },
                 data: {
                     eula_accepted_at: new Date()
                 }
             });
 
-            console.log(`[EULA] Success: Database updated for user ID: ${user.userId}`);
+            console.log(`[EULA] Success: Database updated for user ID: ${getUserId(user)}`);
             res.json({ success: true, message: 'EULA accepted successfully' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('[EULA] acceptEula error:', error);
             res.status(500).json({ error: 'Failed to accept EULA' });
         }
@@ -299,13 +316,16 @@ export const UserController = {
             }
 
             const stores = await prisma.store.findMany({
-                where: { area_manager_id: user.userId },
+                where: { area_manager_id: getUserId(user) },
                 select: { id: true, store_name: true },
                 orderBy: { store_name: 'asc' }
             });
 
             res.json({ success: true, stores });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('getAreaStores error:', error);
             res.status(500).json({ error: 'Failed to fetch area stores' });
         }
@@ -317,7 +337,10 @@ export const UserController = {
             const company = await prisma.company.findUnique({ where: { id }, select: { name: true, operationType: true } });
             if (!company) return res.status(404).json({ error: 'Company not found' });
             return res.json({ name: company.name, operationType: company.operationType });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('getCompanyName error:', error);
             return res.status(500).json({ error: 'Failed to fetch company name' });
         }
@@ -354,7 +377,10 @@ export const UserController = {
             });
 
             res.json({ success: true, message: 'Neri and Jean directors created/updated successfully with password Fogo2026@' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('setupFdcDirectors error:', error);
             res.status(500).json({ error: 'Failed to setup FDC directors' });
         }
@@ -399,7 +425,10 @@ export const UserController = {
             }
 
             res.json({ success: true, message: `Successfully restored ${results.length} Area Managers: ${results.join(', ')} with password Fogo2026@` });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('setupFdcAreaManagers error:', error);
             res.status(500).json({ error: 'Failed to setup FDC Area Managers' });
         }

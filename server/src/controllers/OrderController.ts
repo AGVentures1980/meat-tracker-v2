@@ -46,7 +46,10 @@ export class OrderController {
 
             return res.status(201).json(result);
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Order Creation Error:', error);
             return res.status(500).json({ error: 'Failed to create order' });
         }

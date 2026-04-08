@@ -48,7 +48,10 @@ export class PartnerController {
       }
 
       res.json({ success: true, partner });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
        console.error('Error fetching partner profile:', error);
        res.status(500).json({ success: false, error: 'Failed to fetch partner profile' });
     }
@@ -121,7 +124,10 @@ export class PartnerController {
         proposals: partner.proposals, // recent proposals
         payouts: partner.payouts // recent history
       });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error fetching partner dashboard stats:', error);
       res.status(500).json({ success: false, error: 'Failed to fetch partner stats' });
     }
@@ -235,7 +241,10 @@ export class PartnerController {
           : 'Proposal Draft created successfully.'
       });
 
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error creating proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to create proposal' });
     }
@@ -409,6 +418,9 @@ export class PartnerController {
       });
 
     } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
         console.error('Error provisioning massive tenant payload:', error);
         res.status(500).json({ success: false, error: 'FATAL FRAMEWORK ERROR: Transaction rolled back.', details: error.message });
     }
@@ -451,7 +463,10 @@ export class PartnerController {
       }
 
       res.json({ success: true, proposal });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error fetching public proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to fetch proposal details' });
     }
@@ -522,7 +537,10 @@ export class PartnerController {
         checkout_url: session.url
       });
 
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error accepting proposal:', error);
       res.status(500).json({ success: false, error: 'Failed to accept proposal and generate invoice.' });
     }
@@ -546,7 +564,10 @@ export class PartnerController {
       });
 
       res.json({ success: true, partner });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error completing partner training:', error);
       res.status(500).json({ success: false, error: 'Failed to complete training.' });
     }
@@ -587,7 +608,10 @@ export class PartnerController {
       });
 
       res.json({ success: true, partner });
-    } catch (error) {
+    } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
       console.error('Error signing partner agreement:', error);
       res.status(500).json({ success: false, error: 'Failed to sign agreement.' });
     }

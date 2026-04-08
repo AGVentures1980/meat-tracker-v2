@@ -67,6 +67,9 @@ export const BillingController = {
 
             return res.json({ success: true, url: session.url });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Stripe Checkout Error:', error);
             return res.status(500).json({ error: error.message });
         }
@@ -94,6 +97,9 @@ export const BillingController = {
 
             return res.json({ success: true, url: session.url });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Stripe Portal Error:', error);
             return res.status(500).json({ error: error.message });
         }
@@ -137,6 +143,9 @@ export const BillingController = {
 
             return res.json({ success: true, invoice });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ error: error.message });
         }
     },
@@ -165,6 +174,9 @@ export const BillingController = {
                 }
             });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ error: error.message });
         }
     },
@@ -237,6 +249,9 @@ export const BillingController = {
             });
 
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Error running monthly billing:', error);
             return res.status(500).json({ error: error.message });
         }
@@ -292,7 +307,10 @@ export const BillingController = {
                 },
                 subscriptions
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('getAllSubscriptions error:', error);
             return res.status(500).json({ error: 'Internal server error' });
         }

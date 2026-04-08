@@ -57,7 +57,10 @@ export class NetworkHealthController {
                 last_updated: new Date().toISOString()
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Network Health Error:', error);
             return res.status(500).json({ error: 'Failed to fetch network health' });
         }

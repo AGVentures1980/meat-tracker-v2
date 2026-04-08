@@ -179,7 +179,10 @@ export class InventoryController {
 
             return res.status(200).json({ success: true, message: 'Weekly close saved successfully.' });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Weekly Close Error:', error);
             return res.status(500).json({ error: 'Failed to submit weekly close' });
         }
@@ -237,7 +240,10 @@ export class InventoryController {
                 message: 'Box validated and pulled to Prep successfully.',
                 protein: proteinName
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Pull to Prep Error:', error);
             return res.status(500).json({ error: 'Failed to process Prep Pull' });
         }

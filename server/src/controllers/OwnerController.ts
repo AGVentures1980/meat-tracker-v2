@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ProspectingAgent } from '../services/ProspectingAgent';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 const prisma = new PrismaClient();
 
@@ -90,6 +92,9 @@ export const OwnerController = {
                 ]
             });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Owner Setup Failed:', error);
             return res.status(500).json({ error: error.message });
         }
@@ -100,7 +105,7 @@ export const OwnerController = {
             const user = (req as any).user;
             if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-            const userId = user.userId;
+            const userId = getUserId(user);
             const role = user.role;
             const email = user.email || '';
             const isMaster = email.toLowerCase().includes('alexandre@alexgarciaventures.co');
@@ -142,6 +147,9 @@ export const OwnerController = {
 
             return res.json({ success: true, companies });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ error: error.message });
         }
     },
@@ -176,6 +184,9 @@ export const OwnerController = {
 
             return res.json({ success: true, message: `Organization ${company.name} successfully archived.` });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Archive Company Error:', error);
             return res.status(500).json({ error: 'Failed to archive organization.' });
         }
@@ -191,6 +202,9 @@ export const OwnerController = {
 
             return res.json(result);
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Email Send Error:', error);
             return res.status(500).json({ error: error.message });
         }
@@ -310,6 +324,9 @@ export const OwnerController = {
 
             return res.json({ success: true, message: 'Outback Pilot Seeding Complete via API!' });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Seed outback error:', error);
             return res.status(500).json({ error: error.message });
         }

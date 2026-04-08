@@ -9,6 +9,8 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'brasa-secret-key-change-me';
 
 import { SentinelService } from '../services/SentinelService';
+import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+
 
 export class AuthController {
 
@@ -167,7 +169,7 @@ export class AuthController {
                     email: user.email,
                     role: user.role,
                     storeId: user.store_id,
-                    companyId: defaultCompanyId || 'tdb-main',
+                    companyId: defaultCompanyId,
                     scope, // Ensure frontend knows its scope boundary
                     isPrimary: user.is_primary,
                     eula_accepted: !!user.eula_accepted_at,
@@ -180,7 +182,10 @@ export class AuthController {
                 forcePasswordChange
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Login Error:', error);
             return res.status(500).json({ error: 'Internal Server Error' });
         }
@@ -188,7 +193,7 @@ export class AuthController {
 
     static async changePassword(req: Request, res: Response) {
         try {
-            const userId = (req as any).user.userId; // From JWT
+            const userId = getUserId((req as any).user); // From JWT
             const { newPassword } = req.body;
 
             if (!newPassword || newPassword.length < 8) {
@@ -209,7 +214,10 @@ export class AuthController {
 
             return res.json({ success: true, message: 'Password updated successfully' });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Change Password Error:', error);
             return res.status(500).json({ error: 'Failed to update password' });
         }
@@ -285,7 +293,10 @@ export class AuthController {
                 expiresAt: expiration
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Request Demo Error:', error);
             return res.status(500).json({ error: 'Failed to generate demo access' });
         }
@@ -344,7 +355,10 @@ export class AuthController {
             }
 
             return res.json({ success: true, message: 'If the email exists, a reset link has been sent.' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Forgot Password Error:', error);
             return res.status(500).json({ error: 'Failed to process request' });
         }
@@ -392,7 +406,10 @@ export class AuthController {
 
             return res.json({ success: true, message: 'Password updated successfully' });
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Reset Password Error:', error);
             return res.status(500).json({ error: 'Failed to reset password' });
         }
@@ -447,7 +464,10 @@ export class AuthController {
             });
 
             return res.json({ success: true, message: 'Sessions revoked and user notified.' });
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             console.error('Force Reset Error:', error);
             return res.status(500).json({ error: 'Failed to execute forced reset' });
         }

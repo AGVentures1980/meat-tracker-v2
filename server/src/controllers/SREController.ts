@@ -10,6 +10,9 @@ export class SREController {
             const data = await SREStartupGuard.verifyEnvironmentSafety();
             return res.status(200).json(data);
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ error: error.message });
         }
     }
@@ -36,6 +39,9 @@ export class SREController {
                 dry_run_hash: result.hash
             });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ error: error.message });
         }
     }
@@ -61,6 +67,9 @@ export class SREController {
                 job: result
             });
         } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
             return res.status(500).json({ error: error.message });
         }
     }
