@@ -23,13 +23,16 @@ export const logger = winston.createLogger({
 });
 
 // 2. SOC2 COMPLIANCE SINK (Datadog via Native Http Transport)
-if (process.env.DATADOG_API_KEY) {
+if (process.env.DATADOG_API_KEY || process.env.DD_API_KEY) {
+    const ddSite = process.env.DD_SITE || 'datadoghq.com';
+    const apiKey = process.env.DD_API_KEY || process.env.DATADOG_API_KEY;
+    
     logger.add(new winston.transports.Http({
-        host: 'http-intake.logs.datadoghq.com',
-        path: `/api/v2/logs?dd-api-key=${process.env.DATADOG_API_KEY}&ddsource=nodejs&service=brasa-os-backend`,
+        host: `http-intake.logs.${ddSite}`,
+        path: `/api/v2/logs?dd-api-key=${apiKey}&ddsource=nodejs&service=brasa-os-backend`,
         ssl: true
     }));
-    logger.info('Datadog Logging Transport initialized successfully.');
+    logger.info(`Datadog Logging Transport initialized successfully on site: ${ddSite}`);
 }
 
 // Avoid crashes if the user accidentally calls console directly in new PRs
