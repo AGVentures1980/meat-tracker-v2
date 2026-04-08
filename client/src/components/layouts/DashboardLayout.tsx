@@ -55,6 +55,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const isMaster = user?.email?.toLowerCase()?.includes('alexandre@alexgarciaventures.co') || false;
     const isDavid = user?.email?.toLowerCase()?.includes('davidcastro') || false;
     const isRodrigo = user?.email?.toLowerCase()?.includes('rodrigo') || false;
+    const isPaulo = user?.email?.toLowerCase()?.includes('paulo') || false;
     const isSystemAdmin = user?.role === 'admin' || isRodrigo || isMaster;
 
     let navItems: any[] = [];
@@ -84,14 +85,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {
                 section: t('nav.section_gate') || (isStoreLevel ? 'GATE (Supply & Yield)' : 'MARKET DATA'), items: [
                     { icon: ArrowUpRight, label: isStoreLevel ? (t('nav.invoices') || 'Protein Cost & Invoices') : 'Protein Market Cost', path: '/prices' },
-                    ...(isStoreLevel || isAreaLevel ? [{ icon: ScanLine, label: 'Receiving Dock QC', path: '/receiving' }] : []),
+                    ...(isStoreLevel || isAreaLevel || isPaulo ? [{ icon: ScanLine, label: 'Receiving Dock QC', path: '/receiving' }] : []),
                     { icon: Trash, label: isStoreLevel ? 'Process Yield & Variance' : 'Network Variance Status', path: '/waste' },
-                    ...(isStoreLevel || isAreaLevel ? [{ icon: ShieldAlert, label: 'Period End Inventory', path: '/inventory' }] : []),
+                    ...(isStoreLevel || isAreaLevel || isPaulo ? [{ icon: ShieldAlert, label: 'Period End Inventory', path: '/inventory' }] : []),
                 ]
             }
         );
 
-        if (isStoreLevel || isAreaLevel) {
+        if (isStoreLevel || isAreaLevel || isPaulo) {
             navItems.push({
                 section: t('nav.section_run') || 'RUN (Daily Operations)', items: [
                     { icon: PlayCircle, label: t('nav.commandCenter') || 'Manager Shift Log', path: '/command-center' },
