@@ -65,6 +65,10 @@ const ACCOUNTS = {
 };
 
 async function main() {
+    if (process.env.NODE_ENV === 'production' && process.env.FORCE_SEED !== 'true') {
+        console.log('Skipping seed in production environment. Use FORCE_SEED=true to override.');
+        return;
+    }
     console.log('🌱 Starting Seed with 55 Stores...');
 
     const tdb = await prisma.company.upsert({

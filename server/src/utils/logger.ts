@@ -40,5 +40,13 @@ export const hijackConsoleLogs = () => {
     console.log = (...args) => logger.info(args.join(' '));
     console.info = (...args) => logger.info(args.join(' '));
     console.warn = (...args) => logger.warn(args.join(' '));
-    console.error = (...args) => logger.error(args.join(' '));
+    console.error = (...args) => {
+        const msg = args.join(' ');
+        // Prevent false failure signals in Railway logs from npm/prisma
+        if (msg.includes('npm notice') || msg.includes('Update available') || msg.includes('Prisma')) {
+            logger.info(msg);
+        } else {
+            logger.error(msg);
+        }
+    };
 };
