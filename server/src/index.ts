@@ -604,7 +604,7 @@ if (process.env.NODE_ENV !== 'test') {
         .then(() => {
         // ... (existing imports)
 
-        app.listen(PORT, () => {
+        app.listen(Number(PORT) || 3002, '0.0.0.0', () => {
             console.log(`🚀 BRASA INTEL v4.2.0-DASHBOARD-EXEC running on http://localhost:${PORT}`);
             console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
 
