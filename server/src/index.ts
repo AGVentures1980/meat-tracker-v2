@@ -177,6 +177,7 @@ app.use('/api/v1/yield', requireAuth, yieldRoutes);
 app.use('/api/v1/billing', requireAuth, billingRoutes);
 app.use('/api/v1', leadRoutes);
 app.use('/api/v1/weather', weatherRoutes);
+app.use('/api/v1/sre', sreRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
