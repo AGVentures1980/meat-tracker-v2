@@ -1,14 +1,8 @@
 // ==========================================
 // DATADOG APM TRACER (Must be strictly line 1)
 // ==========================================
-import tracer from 'dd-trace';
-// The tracer automatically grabs DD_API_KEY, DD_SERVICE, DD_ENV from the environment
-tracer.init({
-    service: process.env.DD_SERVICE || 'brasa-os-backend',
-    env: process.env.DD_ENV || 'production',
-    logInjection: true, // Propagates trace_id and span_id directly into winston
-});
-export default tracer;
+// import tracer from 'dd-trace';
+// tracer.init({ logInjection: true });
 
 import express from 'express';
 import cors from 'cors';
