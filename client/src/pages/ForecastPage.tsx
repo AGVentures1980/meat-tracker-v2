@@ -11,6 +11,7 @@ export const ForecastPage = () => {
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [lunchGuests, setLunchGuests] = useState<number>(0);
     const [dinnerGuests, setDinnerGuests] = useState<number>(0);
+    const [oloOrders, setOloOrders] = useState<number>(0);
     const [isLocked, setIsLocked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -43,12 +44,14 @@ export const ForecastPage = () => {
                 if (data.success && data.forecast) {
                     setLunchGuests(data.forecast.forecast_lunch);
                     setDinnerGuests(data.forecast.forecast_dinner);
+                    setOloOrders(data.forecast.forecast_olo || 0);
                     setIsLocked(data.forecast.is_locked);
                     setRefreshKey(prev => prev + 1); // Trigger table load if forecast exists
                 } else {
                     // Reset if no forecast found
                     setLunchGuests(0);
                     setDinnerGuests(0);
+                    setOloOrders(0);
                     setIsLocked(false);
                 }
             } catch (err) {
@@ -74,7 +77,8 @@ export const ForecastPage = () => {
                 body: JSON.stringify({
                     week_start: selectedDate,
                     lunch_guests: lunchGuests,
-                    dinner_guests: dinnerGuests
+                    dinner_guests: dinnerGuests,
+                    olo_orders: oloOrders
                 })
             });
 
@@ -151,6 +155,7 @@ export const ForecastPage = () => {
                                 <th className="p-4">Location</th>
                                 <th className="p-4 text-center">Lunch</th>
                                 <th className="p-4 text-center">Dinner</th>
+                                <th className="p-4 text-center text-[#C5A059]">OLO</th>
                                 <th className="p-4 text-center">Total Guests</th>
                                 <th className="p-4 text-center">Status</th>
                                 <th className="p-4 text-right">Action</th>
@@ -165,6 +170,7 @@ export const ForecastPage = () => {
                                     </td>
                                     <td className="p-4 text-center font-mono text-gray-300">{store.forecast_lunch}</td>
                                     <td className="p-4 text-center font-mono text-gray-300">{store.forecast_dinner}</td>
+                                    <td className="p-4 text-center font-mono font-bold text-[#C5A059]">{store.forecast_olo}</td>
                                     <td className="p-4 text-center font-bold text-white text-lg">{store.total_guests}</td>
                                     <td className="p-4 text-center">
                                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${store.status === 'Locked' ? 'bg-[#00FF94]/20 text-[#00FF94]' :
@@ -294,6 +300,18 @@ export const ForecastPage = () => {
                                     placeholder="0"
                                     disabled={loading || isReadOnly}
                                     className={`w-full bg-[#1a1a1a] border ${isReadOnly ? 'border-gray-800 text-gray-500 cursor-not-allowed' : 'border-[#333] text-white hover:border-[#C5A059]'} p-4 rounded text-2xl font-mono focus:outline-none transition-colors transition-all`}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[#C5A059] text-[10px] items-center gap-1 uppercase font-bold tracking-widest mb-2">OLO / To-Go Orders</label>
+                                <input
+                                    type="number"
+                                    value={oloOrders || ''}
+                                    onChange={(e) => setOloOrders(Number(e.target.value))}
+                                    placeholder="0"
+                                    disabled={loading || isReadOnly}
+                                    className={`w-full bg-[#1a1a1a] border ${isReadOnly ? 'border-gray-800 text-gray-500 cursor-not-allowed' : 'border-[#C5A059]/50 text-[#C5A059] hover:border-[#C5A059]'} p-4 rounded text-2xl font-mono focus:outline-none transition-colors transition-all`}
                                 />
                             </div>
 

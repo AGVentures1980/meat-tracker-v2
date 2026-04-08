@@ -54,7 +54,7 @@ export class ForecastController {
      */
     static async upsertForecast(req: Request, res: Response) {
         try {
-            const { week_start, lunch_guests, dinner_guests } = req.body;
+            const { week_start, lunch_guests, dinner_guests, olo_orders } = req.body;
             const storeId = (req as any).user?.storeId || 1;
             const userRole = (req as any).user?.role;
 
@@ -101,6 +101,7 @@ export class ForecastController {
                 update: {
                     forecast_lunch: Number(lunch_guests),
                     forecast_dinner: Number(dinner_guests),
+                    forecast_olo: Number(olo_orders || 0),
                     // If director edits after lock, we might want to log it or set locked status
                     is_locked: isLocked // If admin edits late, it remains "locked" for managers
                 },
@@ -109,6 +110,7 @@ export class ForecastController {
                     week_start: targetWeekStart,
                     forecast_lunch: Number(lunch_guests),
                     forecast_dinner: Number(dinner_guests),
+                    forecast_olo: Number(olo_orders || 0),
                     is_locked: isLocked // Should be false if created on time
                 }
             });
@@ -150,6 +152,7 @@ export class ForecastController {
                     location: store.location,
                     forecast_lunch: forecast?.forecast_lunch || 0,
                     forecast_dinner: forecast?.forecast_dinner || 0,
+                    forecast_olo: forecast?.forecast_olo || 0,
                     total_guests: (forecast?.forecast_lunch || 0) + (forecast?.forecast_dinner || 0),
                     is_locked: forecast?.is_locked || false,
                     status: forecast ? (forecast.is_locked ? 'Locked' : 'Draft') : 'Missing'

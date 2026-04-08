@@ -150,6 +150,7 @@ import contractsRoutes from './routes/contracts.routes';
 import complianceRoutes from './routes/compliance.routes';
 import yieldRoutes from './routes/yield.routes';
 import billingRoutes from './routes/billing.routes';
+import burgerRoutes from './routes/burger.routes';
 
 // Protected Routes
 app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
@@ -175,6 +176,7 @@ app.use('/api/v1/contracts', requireAuth, contractsRoutes);
 app.use('/api/v1/compliance', complianceRoutes);
 app.use('/api/v1/yield', requireAuth, yieldRoutes);
 app.use('/api/v1/billing', requireAuth, billingRoutes);
+app.use('/api/v1/burger', burgerRoutes);
 app.use('/api/v1', leadRoutes);
 app.use('/api/v1/weather', weatherRoutes);
 app.use('/api/v1/sre', sreRoutes);

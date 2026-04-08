@@ -85,6 +85,8 @@ model Store {
   baseline_trailing_pax      Float                   @default(1.85)
   target_cost_guest          Float                   @default(9.94)
   target_lbs_guest           Float                   @default(1.76)
+  olo_target_lbs_order       Float                   @default(0.50)
+  target_patty_oz            Float                   @default(8.0)
   lunch_target_lbs_guest     Float?
   lunch_excluded_proteins    String[]                @default([])
   dinner_price               Float                   @default(58.90)
@@ -419,6 +421,7 @@ model SalesForecast {
   week_start      DateTime  @db.Date
   forecast_lunch  Int       @default(0)
   forecast_dinner Int       @default(0)
+  forecast_olo    Int       @default(0)
   is_locked       Boolean   @default(false)
   locked_at       DateTime?
   locked_by       String?
@@ -773,6 +776,7 @@ model BurgerInventoryPool {
   total_fat_waste     Float    @default(0)
   theoretical_patties Int      @default(0)
   pos_patties_sold    Int      @default(0)
+  manager_declared_on_hand Int @default(0)
   fraud_alert_qty     Int      @default(0)
   is_fraud_flagged    Boolean  @default(false)
   created_at          DateTime @default(now())
@@ -852,6 +856,7 @@ model PullToPrepEvent {
   scanned_barcode String
   gtin            String?
   weight          Float?
+  intended_use    String   @default("RODIZIO") // RODIZIO or BURGER_POOL
   created_at      DateTime @default(now())
 
   store Store @relation(fields: [store_id], references: [id])
@@ -870,6 +875,7 @@ model TrimRecordEvent {
   yield_pct         Float
   created_at        DateTime @default(now())
   status            String   @default("APPROVED")
+  sent_to           String   @default("WASTE_BIN") // WASTE_BIN or BURGER_POOL
   quarantine_reason String?
   reviewed_by       String?
 

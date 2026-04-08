@@ -74,19 +74,23 @@ CRITICAL SYSCO INVOICE RULES (TDB Environment):
                 });
 
                 // B. Get Sales Forecast
-                let guests = 0;
+                let dineInGuests = 0;
+                let oloOrders = 0;
+
                 if (prepLog) {
-                    guests = prepLog.forecast;
-                } else {
-                    // Try to find in SalesForecast based on week_start
-                    const weekStart = new Date(queryDate);
-                    weekStart.setDate(queryDate.getDate() - queryDate.getDay());
-                    const salesForecast = await (prisma as any).salesForecast.findFirst({
-                        where: { store_id: store.id, week_start: weekStart }
-                    });
-                    if (salesForecast) {
-                        guests = Math.round((salesForecast.forecast_dinner + salesForecast.forecast_lunch) / 7);
-                    }
+                    dineInGuests = prepLog.forecast; // Legacy fallback
+                } 
+                
+                // Try to find in SalesForecast based on week_start
+                const weekStart = new Date(queryDate);
+                weekStart.setDate(queryDate.getDate() - (queryDate.getDay() || 7) + 1); // Get Monday
+                const salesForecast = await (prisma as any).salesForecast.findFirst({
+                    where: { store_id: store.id, week_start: weekStart }
+                });
+                
+                if (salesForecast) {
+                    dineInGuests = Math.round((salesForecast.forecast_dinner + salesForecast.forecast_lunch) / 7);
+                    oloOrders = Math.round((salesForecast.forecast_olo || 0) / 7);
                 }
 
                 // C. Get Feedback if already submitted
@@ -97,6 +101,7 @@ CRITICAL SYSCO INVOICE RULES (TDB Environment):
                 // D. Build the protein comparison list
                 const proteins = [];
                 const targetLbsPerGuest = (store as any).target_lbs_guest || 1.76;
+                const oloTargetLbsPerOrder = (store as any).olo_target_lbs_order || 0.50; // default 8 oz per box
 
                 // We will iterate through all store meat targets to build the AI Prediction
                 for (const target of store.meat_targets) {
@@ -104,7 +109,12 @@ CRITICAL SYSCO INVOICE RULES (TDB Environment):
                     // Default to 5 lbs per skewer if not configured
                     const lbsPerSkewer = productConfig?.lbs_per_skewer || 5.0;
 
-                    const aiPredictedLbs = guests > 0 ? (target.target / 100) * targetLbsPerGuest * guests : 0;
+                    const proteinTargetPct = target.target / 100;
+                    
+                    const aiPredictedDineInLbs = dineInGuests > 0 ? proteinTargetPct * targetLbsPerGuest * dineInGuests : 0;
+                    const aiPredictedOloLbs = oloOrders > 0 ? proteinTargetPct * oloTargetLbsPerOrder * oloOrders : 0;
+                    
+                    const aiPredictedLbs = aiPredictedDineInLbs + aiPredictedOloLbs;
                     const aiPredictedSkewers = aiPredictedLbs > 0 ? aiPredictedLbs / lbsPerSkewer : 0;
 
                     let managerPrepLbs = 0;
@@ -140,7 +150,8 @@ CRITICAL SYSCO INVOICE RULES (TDB Environment):
                 dashboardData.push({
                     store_id: store.id,
                     store_name: store.store_name,
-                    forecast_guests: guests,
+                    forecast_guests: dineInGuests,
+                    forecast_olo: oloOrders,
                     has_manager_log: !!prepLog,
                     proteins: proteins
                 });
