@@ -150,5 +150,6 @@ export const SaaSAdminDashboard = () => {
             <DealDeskModal isOpen={isDealDeskOpen} onClose={() => setIsDealDeskOpen(false)} />
             <TenantDeletionEngineModal isOpen={isTenantWiperOpen} onClose={() => setIsTenantWiperOpen(false)} />
         </div>
+        </div>
     );
 };
