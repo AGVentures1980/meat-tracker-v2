@@ -1053,3 +1053,27 @@ model OcrQuarantineQueue {
 
   store Store @relation(fields: [store_id], references: [id])
 }
+
+enum DeletionJobStatus {
+  ANALYZED
+  EXECUTED
+  FAILED_HASH_MISMATCH
+  FAILED_EXECUTION
+  REJECTED
+}
+
+model TenantDeletionJob {
+  id              String            @id @default(uuid())
+  company_id      String
+  actor_id        String
+  actor_email     String
+  status          DeletionJobStatus @default(ANALYZED)
+  dry_run_payload Json
+  dry_run_hash    String
+  environment     String
+  created_at      DateTime          @default(now())
+  executed_at     DateTime?
+
+  @@index([company_id])
+  @@index([status])
+}

@@ -3,9 +3,11 @@ import { Users, ArrowUpRight, Zap, CreditCard, FileSignature, DollarSign, Layout
 import { useNavigate } from 'react-router-dom';
 import { AIProspectingEngine } from '../components/SaaS/AIProspectingEngine';
 import { DealDeskModal } from '../components/SaaS/DealDeskModal';
+import { TenantDeletionEngineModal } from '../components/SaaS/TenantDeletionEngineModal';
 
 export const SaaSAdminDashboard = () => {
     const [isDealDeskOpen, setIsDealDeskOpen] = useState(false);
+    const [isTenantWiperOpen, setIsTenantWiperOpen] = useState(false);
     const navigate = useNavigate();
 
     const stats = [
@@ -106,31 +108,47 @@ export const SaaSAdminDashboard = () => {
                             </button>
                         </div>
 
-                        {/* Legal Deal Desk / Contract Generator */}
-                        <div className="bg-gradient-to-br from-[#1a1a1a] to-[#050505] border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-[#00FF94]/50 transition-all cursor-pointer" onClick={() => setIsDealDeskOpen(true)}>
-                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                <FileSignature size={100} className="text-[#00FF94]" />
-                            </div>
-                            <h3 className="text-white font-bold mb-2 flex items-center gap-2">
-                                <FileSignature size={16} className="text-[#00FF94]" /> Legal Deal Desk
-                            </h3>
-                            <p className="text-gray-500 text-[10px] leading-relaxed mb-4">
-                                Frictionless B2B Enterprise Closing. Fire pre-filled MSA & Pilot contracts instantly to prospects via E-Signature.
-                            </p>
-                            <button className="w-full py-3 bg-white/5 text-[#00FF94] border border-[#00FF94]/20 text-xs font-black uppercase tracking-widest rounded-2xl group-hover:bg-[#00FF94] group-hover:text-black transition-all flex items-center justify-center gap-2">
-                                <Zap size={14} /> Execute Deal
-                            </button>
+                    {/* Legal Deal Desk / Contract Generator */}
+                    <div className="bg-gradient-to-br from-[#1a1a1a] to-[#050505] border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-[#00FF94]/50 transition-all cursor-pointer" onClick={() => setIsDealDeskOpen(true)}>
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <FileSignature size={100} className="text-[#00FF94]" />
                         </div>
+                        <h3 className="text-white font-bold mb-2 flex items-center gap-2">
+                            <FileSignature size={16} className="text-[#00FF94]" /> Legal Deal Desk
+                        </h3>
+                        <p className="text-gray-500 text-[10px] leading-relaxed mb-4">
+                            Frictionless B2B Enterprise Closing. Fire pre-filled MSA & Pilot contracts instantly to prospects via E-Signature.
+                        </p>
+                        <button className="w-full py-3 bg-white/5 text-[#00FF94] border border-[#00FF94]/20 text-xs font-black uppercase tracking-widest rounded-2xl group-hover:bg-[#00FF94] group-hover:text-black transition-all flex items-center justify-center gap-2">
+                            <Zap size={14} /> Execute Deal
+                        </button>
                     </div>
 
-                    {/* Full Width AI Prospecting Engine */}
-                    <div className="lg:col-span-3 mt-12 bg-[#050505] border border-white/5 p-8 rounded-[40px] shadow-2xl">
-                        <AIProspectingEngine />
+                    {/* SRE Wipe Engine */}
+                    <div className="bg-gradient-to-br from-[#1a0505] to-[#050000] border border-red-900/30 rounded-3xl p-6 relative overflow-hidden group hover:border-red-600/50 transition-all cursor-pointer" onClick={() => setIsTenantWiperOpen(true)}>
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <ShieldCheck size={100} className="text-red-500" />
+                        </div>
+                        <h3 className="text-red-500 font-bold mb-2 flex items-center gap-2">
+                            <ShieldCheck size={16} className="text-red-500" /> SRE Protocol
+                        </h3>
+                        <p className="text-red-900/70 text-[10px] leading-relaxed mb-4 font-mono">
+                            DANGER ZONE. Execute idempotent Tenant Destruction. Topological sweeping enabled.
+                        </p>
+                        <button className="w-full py-3 bg-red-950/30 text-red-500 border border-red-900/50 text-xs font-black uppercase tracking-widest rounded-2xl group-hover:bg-red-600 group-hover:text-white transition-all flex items-center justify-center gap-2">
+                            Initialize Engine
+                        </button>
                     </div>
+                </div>
+
+                {/* Full Width AI Prospecting Engine */}
+                <div className="lg:col-span-4 mt-12 bg-[#050505] border border-white/5 p-8 rounded-[40px] shadow-2xl">
+                    <AIProspectingEngine />
                 </div>
             </div>
 
             <DealDeskModal isOpen={isDealDeskOpen} onClose={() => setIsDealDeskOpen(false)} />
+            <TenantDeletionEngineModal isOpen={isTenantWiperOpen} onClose={() => setIsTenantWiperOpen(false)} />
         </div>
     );
 };

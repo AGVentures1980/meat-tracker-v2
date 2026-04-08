@@ -57,6 +57,8 @@ app.get('/api/health', (req, res) => {
 // Import Real Auth Middleware
 import { requireAuth } from './middleware/auth.middleware';
 import authRoutes from './routes/auth.routes';
+import sreRoutes from './routes/sre.routes';
+
 
 // Global Request Logger & Structural Tracing
 import crypto from 'crypto';
