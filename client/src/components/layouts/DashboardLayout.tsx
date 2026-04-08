@@ -76,8 +76,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const isStoreLevel = user?.scope?.type === 'STORE';
     const isAreaLevel = user?.scope?.type === 'AREA';
     const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
-    const hideReceivingFromExecs = user?.role === 'director' || user?.role === 'admin' || isMaster;
-    const shouldHideReceiving = hideReceivingFromExecs || isCompanyOrGlobal;
 
     if (selectedCompany) {
 
@@ -301,9 +299,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     };
 
     useEffect(() => {
-        const fetchEscalationsAndVault = async () => { /* ... existing logic ... */ };
-        // Just leaving the rest of the file intact since I am injecting `isCinemaMode` here
-    }, [user]);
+        // fetchEscalationsAndVault is obsolete here, keep empty
+    }, [selectedCompany]);
 
     const isCinemaMode = isMaster && location.pathname === '/select-company';
     const [isSidebarOpen, setIsSidebarOpen] = useState(!isCinemaMode && window.innerWidth >= 1024);
