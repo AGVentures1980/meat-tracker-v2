@@ -48,80 +48,98 @@ const STORE_BOUND = [
     'Order' // We'll handle Order items first
 ];
 
-const PROTECTED_TENANTS = [
-    'CMP-001',
-    '9e371bc2-594f-46a3-8c95-8fc91a13041f', // Terra Gaucha
-    '43670635-c205-4b19-99d4-445c7a683730',
-    'tdb-main',
-    '66c8dc51-e1ed-48dd-8c03-57603796d22f'
-];
+    const PROTECTED_TENANTS = [
+        '9726565c-2936-43d1-81f1-f8961e32d624', // Terra Gaucha
+        '16beef10-f959-402d-a214-c9707a3549f0', // Outback Pilot
+        'tdb-main'                            // Texas de Brazil
+    ];
 
-export class TenantDeletionEngine {
-    
-    /**
-     * Helper to compute a stable SHA-256 hash for a JSON object
-     */
-    private static hashPayload(payload: any): string {
-        return crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
-    }
-
-    /**
-     * Dry Run Analysis - Calculates precise impact without committing any destructives.
-     */
-    static async performDryRun(companyId: string, actorId: string, actorEmail: string, requestEnv: string) {
-        if (PROTECTED_TENANTS.includes(companyId)) {
-            throw new Error('TENANT_IS_PROTECTED_DENYLIST');
-        }
-
-        const company = await prisma.company.findUnique({ where: { id: companyId } });
-        if (!company) throw new Error('TENANT_NOT_FOUND');
-
-        // 1. Resolve Target Stores
-        const stores = await prisma.store.findMany({ where: { company_id: companyId }, select: { id: true, store_name: true } });
-        const storeIds = stores.map((s: any) => s.id);
-
-        const dependencyImpact: Record<string, number> = {};
+    export class TenantDeletionEngine {
         
-        // 2. Count Order Items (Level 3)
-        if (storeIds.length > 0) {
-            const orderCount = await prisma.orderItem.count({
-                where: { order: { store_id: { in: storeIds } } }
-            });
-            if (orderCount > 0) dependencyImpact['OrderItem'] = orderCount;
+        /**
+         * Helper to compute a stable SHA-256 hash for a JSON object
+         */
+        private static hashPayload(payload: any): string {
+            return crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
         }
 
-        // 3. Count Store Bound (Level 2)
-        if (storeIds.length > 0) {
-            for (const table of STORE_BOUND) {
-                const count = await (prisma as any)[table.charAt(0).toLowerCase() + table.slice(1)].count({
-                    where: { store_id: { in: storeIds } }
-                });
-                if (count > 0) dependencyImpact[table] = count;
+        /**
+         * Dry Run Analysis - Calculates precise impact without committing any destructives.
+         */
+        static async performDryRun(companyId: string, actorId: string, actorEmail: string, requestEnv: string) {
+            if (PROTECTED_TENANTS.includes(companyId)) {
+                throw new Error('TENANT_IS_PROTECTED_DENYLIST');
             }
-        }
 
-        // 4. Count Company Bound (Level 2)
-        for (const table of COMPANY_BOUND) {
-            const count = await (prisma as any)[table.charAt(0).toLowerCase() + table.slice(1)].count({
-                where: { company_id: companyId }
-            });
-            if (count > 0) dependencyImpact[table] = count;
-        }
+            const company = await prisma.company.findUnique({ where: { id: companyId } });
+            if (!company) throw new Error('TENANT_NOT_FOUND');
 
-        dependencyImpact['Store'] = stores.length;
-        dependencyImpact['Company'] = 1;
+            // 1. Resolve Target Stores
+            const stores = await prisma.store.findMany({ where: { company_id: companyId }, select: { id: true, store_name: true } });
+            const storeIds = stores.map((s: any) => s.id);
 
-        const totalRecords = Object.values(dependencyImpact).reduce((a, b) => a + b, 0);
+            const dependencyImpact: Record<string, number> = {};
+            const deletion_plan: string[] = []; // Explicit sequential order of operations
+            
+            // 2. Count Order Items (Level 3)
+            if (storeIds.length > 0) {
+                const orderCount = await prisma.orderItem.count({
+                    where: { order: { store_id: { in: storeIds } } }
+                });
+                if (orderCount > 0) {
+                    dependencyImpact['OrderItem'] = orderCount;
+                    deletion_plan.push('OrderItem');
+                }
+                const inventoryCount = await prisma.inventoryItem.count({
+                    where: { cycle: { store_id: { in: storeIds } } }
+                });
+                if (inventoryCount > 0) {
+                    dependencyImpact['InventoryItem'] = inventoryCount;
+                    deletion_plan.push('InventoryItem');
+                }
+            }
 
-        const payload = {
-            target_company: { id: company.id, name: company.name },
-            target_stores: stores,
-            impact: dependencyImpact,
-            total_records_affected: totalRecords,
-            estimated_risk: totalRecords > 1000 ? 'HIGH' : 'MEDIUM'
-        };
+            // 3. Count Store Bound (Level 2)
+            if (storeIds.length > 0) {
+                for (const table of STORE_BOUND) {
+                    const count = await (prisma as any)[table.charAt(0).toLowerCase() + table.slice(1)].count({
+                        where: { store_id: { in: storeIds } }
+                    });
+                    if (count > 0) {
+                        dependencyImpact[table] = count;
+                        deletion_plan.push(table);
+                    }
+                }
+            }
 
-        const dryRunHash = this.hashPayload(payload);
+            // 4. Count Company Bound (Level 2)
+            for (const table of COMPANY_BOUND) {
+                const count = await (prisma as any)[table.charAt(0).toLowerCase() + table.slice(1)].count({
+                    where: { company_id: companyId }
+                });
+                if (count > 0) {
+                    dependencyImpact[table] = count;
+                    deletion_plan.push(table);
+                }
+            }
+
+            dependencyImpact['Store'] = stores.length;
+            dependencyImpact['Company'] = 1;
+            deletion_plan.push('Store');
+            deletion_plan.push('Company');
+
+            const totalRecords = Object.values(dependencyImpact).reduce((a, b) => a + b, 0);
+
+            const payload = {
+                target_company: { id: company.id, name: company.name },
+                target_stores: stores,
+                impact: dependencyImpact,
+                total_records_affected: totalRecords,
+                deletion_plan: deletion_plan,
+                estimated_risk: totalRecords > 1000 ? 'HIGH' : 'MEDIUM'
+            };
+
+            const dryRunHash = this.hashPayload(payload);
 
         // Store audit job
         const job = await prisma.tenantDeletionJob.create({

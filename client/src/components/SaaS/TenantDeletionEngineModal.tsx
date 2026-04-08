@@ -168,8 +168,19 @@ export const TenantDeletionEngineModal: React.FC<TenantDeletionEngineModalProps>
                                     </span>
                                 </h3>
                                 
-                                <div className="mt-4 p-4 bg-[#050505] rounded-xl font-mono text-[11px] text-green-400 overflow-x-auto border border-green-900/30">
-                                    <pre>{JSON.stringify(dryRunData, null, 2)}</pre>
+                                <div className="mt-4 p-4 bg-[#050505] rounded-xl font-mono text-[11px] text-gray-300 border border-gray-900/50">
+                                    <div className="mb-2 font-bold text-[#C5A059]">CASCADE SEQUENCE:</div>
+                                    <div className="flex flex-wrap gap-2 mb-6">
+                                        {dryRunData.deletion_plan?.map((table: string, idx: number) => (
+                                            <span key={idx} className="bg-red-950/40 text-red-300 px-2 py-1 rounded text-[10px] border border-red-900/30">
+                                                {idx + 1}. {table} ({dryRunData.impact[table] || 0})
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="border-t border-white/5 pt-2 flex justify-between text-white font-bold">
+                                        <span>TOTAL RECORDS:</span>
+                                        <span className="text-red-500">{dryRunData.total_records_affected}</span>
+                                    </div>
                                 </div>
                                 <div className="mt-4 p-4 bg-orange-950/20 rounded-xl font-mono text-[11px] text-orange-200 border border-orange-900/30 flex items-center gap-3">
                                     <Key size={16} className="text-orange-500 shrink-0"/>
