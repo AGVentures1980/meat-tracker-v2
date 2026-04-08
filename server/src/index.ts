@@ -615,7 +615,7 @@ if (process.env.NODE_ENV !== 'test') {
             OneDriveWatcher.start();
 
             // Run immediately on startup
-            ProspectingAgent.discoverNewProspects();
+            ProspectingAgent.discoverNewProspects().catch(err => console.error("Agent error:", err.message));
 
             // Then run every 6 hours (Simulation of "24/7" work)
             setInterval(() => {
@@ -629,9 +629,9 @@ if (process.env.NODE_ENV !== 'test') {
             
             // Schedule to run every hour at minute 0 (0 * * * *) 
             // For testing/demonstration purposes, we will also run it on startup
-            SentinelService.runDailyAudit();
+            SentinelService.runDailyAudit().catch(err => console.error("Sentinel error:", err.message));
             cron.schedule('0 * * * *', () => {
-                SentinelService.runDailyAudit();
+                SentinelService.runDailyAudit().catch(err => console.error("Sentinel Cron error:", err.message));
             });
         });
     }).catch(err => {
