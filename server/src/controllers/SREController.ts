@@ -1,8 +1,19 @@
 import { Request, Response } from 'express';
 import { TenantDeletionEngine } from '../services/TenantDeletionEngine';
+import { SREStartupGuard } from '../utils/SREStartupGuard';
 
 export class SREController {
     
+    // GET /api/sre/diagnostics
+    static async diagnostics(req: Request, res: Response) {
+        try {
+            const data = await SREStartupGuard.verifyEnvironmentSafety();
+            return res.status(200).json(data);
+        } catch (error: any) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     // POST /api/sre/tenants/delete/dry-run
     static async dryRun(req: Request, res: Response) {
         try {

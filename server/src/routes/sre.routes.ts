@@ -4,9 +4,10 @@ import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Strict SRE/Admin protection should be placed here.
-// For now, using standard `authenticate` but checking roles inside or assuming proxy protects this route.
+// Endpoint for SRE Debug / Railway Drift Analysis
+router.get('/diagnostics', requireAuth as any, SREController.diagnostics);
 
+// Administrative Engine
 router.post('/tenants/delete/dry-run', requireAuth as any, SREController.dryRun);
 router.post('/tenants/delete/execute', requireAuth as any, SREController.execute);
 

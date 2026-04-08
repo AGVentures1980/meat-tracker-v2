@@ -71,6 +71,10 @@ const STORE_BOUND = [
                 throw new Error('TENANT_IS_PROTECTED_DENYLIST');
             }
 
+            // Extract Fingerprint
+            const dbUrl = process.env.DATABASE_URL || '';
+            const dbFingerprint = crypto.createHash('md5').update(dbUrl).digest('hex').substring(0, 8);
+
             const company = await prisma.company.findUnique({ where: { id: companyId } });
             if (!company) throw new Error('TENANT_NOT_FOUND');
 
@@ -136,6 +140,8 @@ const STORE_BOUND = [
                 impact: dependencyImpact,
                 total_records_affected: totalRecords,
                 deletion_plan: deletion_plan,
+                database_fingerprint: dbFingerprint,
+                engine_environment: requestEnv,
                 estimated_risk: totalRecords > 1000 ? 'HIGH' : 'MEDIUM'
             };
 
@@ -173,9 +179,19 @@ const STORE_BOUND = [
             throw new Error('PRODUCTION_PROTECTION_ENABLED');
         }
 
+        // Database Fingerprint Verification
+        const dbUrl = process.env.DATABASE_URL || '';
+        const currentDbFingerprint = crypto.createHash('md5').update(dbUrl).digest('hex').substring(0, 8);
+        const payload = job.dry_run_payload as any;
+
+        if (payload.database_fingerprint !== currentDbFingerprint) {
+            // Failsafing with standard execution error until Enum is updated
+            await prisma.tenantDeletionJob.update({ where: { id: jobId }, data: { status: 'FAILED_EXECUTION' } });
+            throw new Error('CROSS_ENVIRONMENT_MUTATION_DETECTED');
+        }
+
         // Proceed to destruct within massive transaction
         const companyId = job.company_id;
-        const payload = job.dry_run_payload as any;
         const storeIds = payload.target_stores.map((s: any) => s.id);
 
         try {

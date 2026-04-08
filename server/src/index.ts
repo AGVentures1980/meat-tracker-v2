@@ -9,6 +9,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { SREStartupGuard } from './utils/SREStartupGuard';
 
 dotenv.config();
 
@@ -591,7 +592,8 @@ async function ensureOutbackPilot() {
 
 // Start Server after DB Check
 if (process.env.NODE_ENV !== 'test') {
-    cleanupDuplicateProteins()
+    SREStartupGuard.verifyEnvironmentSafety()
+        .then(() => cleanupDuplicateProteins())
         .then(() => ensureDefaultSettings())
         .then(() => ensurePrimaryStoreUsers())
         .then(() => ensureProductionAccounts())
@@ -614,9 +616,10 @@ if (process.env.NODE_ENV !== 'test') {
 
             // Then run every 6 hours (Simulation of "24/7" work)
             setInterval(() => {
-                console.log(`🕒 Scheduled AI Scan Triggered...`);
-                ProspectingAgent.discoverNewProspects();
-            }, 6 * 60 * 60 * 1000);
+                const now = new Date();
+                const mem = process.memoryUsage();
+                console.log(`[${now.toISOString()}] 🩺 HEARTBEAT | Memory: ${Math.round(mem.rss / 1024 / 1024)}MB RSS | Mode: PROSPECTING`);
+            }, 60 * 60 * 1000); // Hourly
 
             // 🔴 24/7 SENTINEL AI METRIC AUDITOR
             console.log(`🛡️ Sentinel AI Background Auditor: ONLINE (Cron Mode)`);
@@ -628,5 +631,8 @@ if (process.env.NODE_ENV !== 'test') {
                 SentinelService.runDailyAudit();
             });
         });
+    }).catch(err => {
+        console.error("🔥 [FATAL BOOT ERROR] Startup aborted.", err);
+        process.exit(1);
     });
 }
