@@ -769,18 +769,18 @@ model BarcodeScanEvent {
 }
 
 model BurgerInventoryPool {
-  id                  String   @id @default(uuid())
-  store_id            Int
-  date                DateTime @db.Date
-  total_lean_lbs      Float    @default(0)
-  total_fat_waste     Float    @default(0)
-  theoretical_patties Int      @default(0)
-  pos_patties_sold    Int      @default(0)
-  manager_declared_on_hand Int @default(0)
-  fraud_alert_qty     Int      @default(0)
-  is_fraud_flagged    Boolean  @default(false)
-  created_at          DateTime @default(now())
-  updated_at          DateTime @updatedAt
+  id                       String   @id @default(uuid())
+  store_id                 Int
+  date                     DateTime @db.Date
+  total_lean_lbs           Float    @default(0)
+  total_fat_waste          Float    @default(0)
+  theoretical_patties      Int      @default(0)
+  pos_patties_sold         Int      @default(0)
+  manager_declared_on_hand Int      @default(0)
+  fraud_alert_qty          Int      @default(0)
+  is_fraud_flagged         Boolean  @default(false)
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
 
   store Store @relation(fields: [store_id], references: [id])
 
@@ -1082,4 +1082,25 @@ model TenantDeletionJob {
 
   @@index([company_id])
   @@index([status])
+}
+
+model RawIntegrationPayload {
+  id              String   @id @default(uuid())
+  idempotency_key String   @unique
+  source_id       String // "ALOHA_WEBHOOK"
+  store_id        String? // Might be nested in JSON, but good to index if known
+  raw_json        Json
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  created_at      DateTime @default(now())
+
+  @@index([source_id, status])
+}
+
+model CanonicalEvent {
+  id              String    @id @default(uuid())
+  payload_id      String    @unique
+  store_id        String
+  event_type      String // "SalesSummaryReceived"
+  normalized_data Json
+  processed_at    DateTime? @default(now())
 }

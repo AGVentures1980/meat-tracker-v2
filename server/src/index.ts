@@ -121,6 +121,7 @@ import agvAdminRoutes from './routes/agv-admin.routes';
 import ediRoutes from './routes/edi.routes';
 import leadRoutes from './routes/lead.routes';
 import weatherRoutes from './routes/weather.routes';
+import alohaRoutes from './routes/aloha.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
@@ -131,6 +132,9 @@ import path from 'path';
 
 // Auth Routes (Public)
 app.use('/api/v1/auth', authRoutes);
+
+// External Webhook Routes (Protected internally by API Keys)
+app.use('/api/v1/integrations/aloha', alohaRoutes);
 
 // Private Application Routes
 app.use('/api/v1/vault', vaultRoutes);

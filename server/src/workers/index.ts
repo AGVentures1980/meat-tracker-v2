@@ -9,6 +9,7 @@
 // });
 
 import './ocrProcessor';
+import './alohaProcessor';
 // import './yieldAggregator'; // Future workers go here
 
 console.log('Worker Service Successfully Booted and Listening for Jobs...');
