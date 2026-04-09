@@ -1087,13 +1087,15 @@ model TenantDeletionJob {
 model RawIntegrationPayload {
   id              String   @id @default(uuid())
   idempotency_key String   @unique
+  trace_id        String?  @default(uuid()) // For SRE Observability Tracking
   source_id       String // "ALOHA_WEBHOOK"
   store_id        String? // Might be nested in JSON, but good to index if known
   raw_json        Json
-  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  status          String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
   created_at      DateTime @default(now())
 
   @@index([source_id, status])
+  @@index([trace_id])
 }
 
 model CanonicalEvent {

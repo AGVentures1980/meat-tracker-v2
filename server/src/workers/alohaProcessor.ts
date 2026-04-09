@@ -10,10 +10,26 @@ export let alohaWorker: Worker | null = null;
 if (hasRedis) {
     const connection = new Redis(process.env.REDIS_URL as string);
     alohaWorker = new Worker('aloha-ingestion', async job => {
-        const { rawPayloadId, payload, receivedAt } = job.data;
+        const { rawPayloadId, traceId, payload, receivedAt } = job.data;
         
-        console.log(`[ALOHA WORKER] Processing Raw DB Payload ID: ${rawPayloadId} received at ${receivedAt}`);
+        console.log(`[${traceId}] [ALOHA WORKER] Processing Raw DB Payload ID: ${rawPayloadId} received at ${receivedAt}`);
         
+        // 1. Worker Idempotency Check: Did we already process this?
+        const existingCanonical = await prisma.canonicalEvent.findUnique({
+            where: { payload_id: rawPayloadId }
+        });
+
+        if (existingCanonical) {
+            console.log(`[${traceId}] [ALOHA WORKER] Idempotency trip: CanonicalEvent already exists for payload. Ignoring.`);
+            return { status: 'already_processed', canonicalId: existingCanonical.id };
+        }
+
+        // Update status to PROCESSING
+        await prisma.rawIntegrationPayload.update({
+            where: { id: rawPayloadId },
+            data: { status: 'PROCESSING' }
+        });
+
         if (!payload.store_id) {
             await prisma.rawIntegrationPayload.update({
                 where: { id: rawPayloadId },
@@ -23,7 +39,7 @@ if (hasRedis) {
         }
 
         const { store_id, business_date, items } = payload;
-        console.log(`[ALOHA WORKER] Mapping ALOHA payload to CanonicalEvent for Store: ${store_id}`);
+        console.log(`[${traceId}] [ALOHA WORKER] Mapping ALOHA payload to CanonicalEvent for Store: ${store_id}`);
 
         let totalProcessed = 0;
         let normalizedItems: any[] = [];
@@ -40,7 +56,7 @@ if (hasRedis) {
             }
         }
 
-        // Create the CanonicalEvent
+        // 2. Create the CanonicalEvent
         const canonical = await prisma.canonicalEvent.create({
             data: {
                 payload_id: rawPayloadId,
@@ -50,13 +66,13 @@ if (hasRedis) {
             }
         });
 
-        // Mark the RawPayload as completed
+        // 3. Mark the RawPayload as completed
         await prisma.rawIntegrationPayload.update({
             where: { id: rawPayloadId },
             data: { status: 'COMPLETED' }
         });
 
-        console.log(`[ALOHA WORKER] Canonical Event ${canonical.id} generated (${totalProcessed} line items).`);
+        console.log(`[${traceId}] [ALOHA WORKER] Canonical Event ${canonical.id} generated (${totalProcessed} line items).`);
         
         return {
             status: 'completed',

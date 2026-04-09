@@ -14,5 +14,6 @@ const alohaRateLimiter = rateLimit({
 });
 
 router.post('/closeout', alohaRateLimiter, AlohaWebhookController.ingestPayload);
+router.get('/job/status/:payload_id', AlohaWebhookController.getJobStatus);
 
 export default router;
