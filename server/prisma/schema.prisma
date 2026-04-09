@@ -342,7 +342,7 @@ model AuditLog {
   target_lbs_guest Float    @default(1.76)
 
   company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  user    User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  // user    User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([company_id, created_at])
 }

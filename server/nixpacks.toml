@@ -1,2 +1,0 @@
-[start]
-cmd = "node scripts/cleanAuditLogs.js && npx prisma migrate deploy && npm start"
