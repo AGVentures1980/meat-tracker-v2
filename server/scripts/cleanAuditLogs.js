@@ -1,8 +1,14 @@
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
 async function cleanAuditLogs() {
     console.log("[SRE] Initiating pre-migration orphaned AuditLog cleanup...");
+    
+    if (!process.env.DATABASE_URL) {
+        console.log("[SRE] DATABASE_URL missing during build phase. Skipping cleanup.");
+        process.exit(0);
+    }
+
+    const prisma = new PrismaClient();
     try {
         await prisma.$connect();
         const result = await prisma.$executeRawUnsafe(`
@@ -12,9 +18,10 @@ async function cleanAuditLogs() {
         `);
         console.log(`[SRE] Cleaned up ${result} orphaned AuditLogs successfully.`);
     } catch(err) {
-        console.error("[SRE] Clean audit logs skipped or failed:", err.message);
+        console.warn("[SRE] Clean audit logs skipped or failed:", err.message);
     } finally {
-        await prisma.$disconnect();
+        try { await prisma.$disconnect(); } catch (e) {}
+        process.exit(0);
     }
 }
 
