@@ -8,7 +8,6 @@
         "node": ">=20.0.0"
     },
     "scripts": {
-        "postinstall": "npx prisma generate && node scripts/cleanAuditLogs.js",
         "start": "node dist/src/index.js",
         "start:api": "node dist/src/index.js",
         "start:worker": "node dist/src/workers/index.js",

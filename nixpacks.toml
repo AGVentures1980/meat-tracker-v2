@@ -1,0 +1,2 @@
+[start]
+cmd = "cd server && node scripts/cleanAuditLogs.js && npx prisma migrate deploy && npm start"
