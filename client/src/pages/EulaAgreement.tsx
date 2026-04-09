@@ -124,6 +124,19 @@ export const EulaAgreement = () => {
                             By clicking agree, your digital signature, along with a timestamp and IP footprint, will be permanently recorded in the system audit logs.
                         </p>
 
+                        <div className="flex items-center gap-3 w-full max-w-sm mb-4 px-2">
+                            <input 
+                                type="checkbox" 
+                                id="eula-accept"
+                                checked={scrolledToBottom}
+                                onChange={(e) => setScrolledToBottom(e.target.checked)}
+                                className="w-5 h-5 rounded border-[#C5A059] text-brand-gold focus:ring-brand-gold bg-[#111]"
+                            />
+                            <label htmlFor="eula-accept" className="text-sm text-gray-300 font-medium">
+                                I have read and agree to the EULA terms
+                            </label>
+                        </div>
+
                         <button
                             onClick={handleAccept}
                             disabled={!scrolledToBottom || isAccepting}
@@ -136,8 +149,8 @@ export const EulaAgreement = () => {
                                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    {scrolledToBottom ? <ShieldCheck className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
-                                    {scrolledToBottom ? 'I Agree to the EULA' : 'Scroll to read EULA'}
+                                    <ShieldCheck className="w-5 h-5" />
+                                    I Agree to the EULA
                                 </>
                             )}
                         </button>
