@@ -8,7 +8,7 @@
         "node": ">=20.0.0"
     },
     "scripts": {
-        "start": "PRISMA_HIDE_UPDATE_MESSAGE=true npx prisma migrate deploy && node dist/src/index.js",
+        "start": "npx prisma migrate resolve --applied 20260206045606_init || true && PRISMA_HIDE_UPDATE_MESSAGE=true npx prisma migrate deploy && node dist/src/index.js",
         "start:api": "node dist/src/index.js",
         "start:worker": "node dist/src/workers/index.js",
         "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
