@@ -1106,3 +1106,84 @@ model CanonicalEvent {
   normalized_data Json
   processed_at    DateTime? @default(now())
 }
+
+enum BoxStatus {
+  RECEIVED
+  IN_COOLER
+  PULLED_TO_PREP
+  CONSUMED
+  WASTE
+  QUARANTINED
+  ADJUSTED
+}
+
+enum BoxEvent {
+  RECEIVE
+  PUT_AWAY
+  PULL_TO_PREP
+  PREP_FINISHED
+  CONSUME
+  MARK_WASTE
+  ADMIN_ADJUST
+  QUARANTINE_LOCKED
+}
+
+model ProteinBox {
+  id                      String    @id @default(uuid())
+  tenant_id               Int       
+  store_id                Int       
+  barcode                 String    
+  gtin                    String?   
+  lot_code                String?   
+  product_name            String    
+  vendor                  String?   
+  
+  received_weight_lb      Float
+  available_weight_lb     Float     
+  
+  status                  BoxStatus @default(RECEIVED)
+  
+  received_at             DateTime  @default(now())
+  received_by             String    
+  
+  source_receiving_event  String?   
+  business_date           DateTime? 
+  
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  events                  BoxLifecycleEvent[]
+
+  @@unique([store_id, barcode, business_date]) 
+  @@index([store_id, status])
+  @@index([gtin, lot_code])
+}
+
+model BoxLifecycleEvent {
+  id              String    @id @default(uuid())
+  box_id          String
+  store_id        Int
+  event_type      BoxEvent  
+  previous_status BoxStatus
+  new_status      BoxStatus
+  
+  triggered_by    String    
+  timestamp       DateTime  @default(now())
+  
+  weight_variance Float?    
+  reason          String?   
+
+  box             ProteinBox @relation(fields: [box_id], references: [id])
+}
+
+model WeeklyReconciliationSnapshot {
+  id              String    @id @default(uuid())
+  store_id        Int
+  business_date   DateTime
+  scanned_boxes   String[]  
+  missing_boxes   String[]  
+  total_variance_lb Float
+
+  submitted_by    String
+  created_at      DateTime  @default(now())
+}

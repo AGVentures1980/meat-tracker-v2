@@ -196,49 +196,57 @@ export class InventoryController {
                 return res.status(400).json({ error: 'Missing store_id or barcode' });
             }
 
-            // Verify the barcode was actually received in the Cooler (Receiving Dock)
-            const scanEvent = await prisma.barcodeScanEvent.findFirst({
+            const user = (req as any).user;
+            const userId = user?.id || user?.sub || "SYSTEM";
+
+            // BRASA PROTEIN BOX LIFECYCLE ENGINE: Pull to Prep
+            const targetBox = await prisma.proteinBox.findFirst({
                 where: {
                     store_id: Number(store_id),
-                    scanned_barcode: barcode,
-                    is_approved: true
-                },
-                include: { store: true }
+                    barcode: barcode
+                }
             });
 
-            if (!scanEvent) {
+            if (!targetBox) {
                 return res.status(404).json({ error: 'Security Warning: This barcode was NEVER received into the store inventory! It must pass the Receiving Dock QC first.' });
             }
 
-            // Find the Protein Name from Corporate Specs
-            let proteinName = 'Protein Auto-Matched'; // Fallback
-            if (scanEvent.store?.company_id) {
-                const specs = await prisma.corporateProteinSpec.findMany({
-                    where: { company_id: scanEvent.store.company_id }
-                });
-
-                const gtin = scanEvent.gtin || '';
-                const cleanGtin = gtin.replace(/\D/g, '');
-
-                const spec = specs.find(s => {
-                    const cleanAppCode = s.approved_item_code.replace(/\D/g, '');
-                    if (cleanGtin && cleanAppCode && (cleanAppCode.includes(cleanGtin) || cleanGtin.includes(cleanAppCode))) return true;
-                    return (
-                        barcode.includes(s.approved_item_code) ||
-                        (gtin && s.approved_item_code.includes(gtin)) ||
-                        cleanAppCode === barcode.replace(/\D/g, '')
-                    );
-                });
-
-                if (spec) {
-                    proteinName = spec.protein_name;
-                }
+            if (targetBox.status === 'CONSUMED' || targetBox.status === 'WASTE') {
+                return res.status(409).json({ error: 'Conflict: This piece of meat has already been marked as ' + targetBox.status + ' and cannot be pulled.' });
             }
+            
+            if (targetBox.status === 'PULLED_TO_PREP') {
+                 return res.json({ 
+                    success: true, 
+                    message: 'Box is already in PULLED_TO_PREP status.',
+                    protein: targetBox.product_name
+                });
+            }
+
+            // Execute the lifecycle mutation transaction
+            await prisma.$transaction(async (tx) => {
+                await tx.proteinBox.update({
+                    where: { id: targetBox.id },
+                    data: { status: 'PULLED_TO_PREP' }
+                });
+
+                await tx.boxLifecycleEvent.create({
+                    data: {
+                        box_id: targetBox.id,
+                        store_id: Number(store_id),
+                        event_type: 'PULL_TO_PREP',
+                        previous_status: targetBox.status as any,
+                        new_status: 'PULLED_TO_PREP',
+                        triggered_by: String(userId),
+                        reason: 'Workstation pull request'
+                    }
+                });
+            });
 
             return res.json({ 
                 success: true, 
-                message: 'Box validated and pulled to Prep successfully.',
-                protein: proteinName
+                message: 'Box validated, tracked, and pulled to Prep successfully.',
+                protein: targetBox.product_name
             });
         } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {
@@ -246,6 +254,172 @@ export class InventoryController {
             }
             console.error('Pull to Prep Error:', error);
             return res.status(500).json({ error: 'Failed to process Prep Pull' });
+        }
+    }
+    static async consumeBox(req: Request, res: Response) {
+        try {
+            const { store_id, barcode, note, weight_used } = req.body;
+            const user = (req as any).user;
+            const userId = user?.id || user?.sub || "SYSTEM";
+
+            if (!store_id || !barcode) {
+                return res.status(400).json({ error: 'Missing store_id or barcode' });
+            }
+
+            const targetBox = await prisma.proteinBox.findFirst({
+                where: {
+                    store_id: Number(store_id),
+                    barcode: barcode
+                }
+            });
+
+            if (!targetBox) {
+                return res.status(404).json({ error: 'Box not found. This barcode was never received.' });
+            }
+
+            if (targetBox.status === 'CONSUMED' || targetBox.status === 'WASTE') {
+                return res.status(409).json({ error: 'Conflict: Box is already in a terminal state (' + targetBox.status + ')' });
+            }
+
+            if (targetBox.status !== 'PULLED_TO_PREP' && targetBox.status !== 'RECEIVED' && targetBox.status !== 'IN_COOLER') {
+                 return res.status(400).json({ error: 'Cannot consume box from state: ' + targetBox.status });
+            }
+
+            await prisma.$transaction(async (tx) => {
+                await tx.proteinBox.update({
+                    where: { id: targetBox.id },
+                    data: { 
+                        status: 'CONSUMED',
+                        available_weight_lb: 0 
+                    }
+                });
+
+                await tx.boxLifecycleEvent.create({
+                    data: {
+                        box_id: targetBox.id,
+                        store_id: Number(store_id),
+                        event_type: 'CONSUME',
+                        previous_status: targetBox.status as any,
+                        new_status: 'CONSUMED',
+                        triggered_by: String(userId),
+                        reason: note || 'Marked as consumed by user',
+                        weight_variance: targetBox.available_weight_lb 
+                    }
+                });
+            });
+
+            return res.json({ 
+                success: true, 
+                message: 'Box marked as CONSUMED successfully.',
+                protein: targetBox.product_name,
+                terminal_state: 'CONSUMED'
+            });
+        } catch (error: any) {
+            console.error('Consume Box Error:', error);
+            return res.status(500).json({ error: 'Failed to consume box' });
+        }
+    }
+
+    static async wasteBox(req: Request, res: Response) {
+        try {
+            const { store_id, barcode, reason, weight_lost } = req.body;
+            const user = (req as any).user;
+            const userId = user?.id || user?.sub || "SYSTEM";
+
+            if (!store_id || !barcode || !reason) {
+                return res.status(400).json({ error: 'Missing store_id, barcode, or mandatory reason for waste' });
+            }
+
+            const targetBox = await prisma.proteinBox.findFirst({
+                where: {
+                    store_id: Number(store_id),
+                    barcode: barcode
+                }
+            });
+
+            if (!targetBox) {
+                return res.status(404).json({ error: 'Box not found. This barcode was never received.' });
+            }
+
+            if (targetBox.status === 'CONSUMED' || targetBox.status === 'WASTE') {
+                return res.status(409).json({ error: 'Conflict: Box is already in a terminal state (' + targetBox.status + ')' });
+            }
+
+            const variance = weight_lost !== undefined ? Number(weight_lost) : targetBox.available_weight_lb;
+
+            await prisma.$transaction(async (tx) => {
+                await tx.proteinBox.update({
+                    where: { id: targetBox.id },
+                    data: { 
+                        status: 'WASTE',
+                        available_weight_lb: Math.max(0, targetBox.available_weight_lb - variance)
+                    }
+                });
+
+                await tx.boxLifecycleEvent.create({
+                    data: {
+                        box_id: targetBox.id,
+                        store_id: Number(store_id),
+                        event_type: 'MARK_WASTE',
+                        previous_status: targetBox.status as any,
+                        new_status: 'WASTE',
+                        triggered_by: String(userId),
+                        reason: reason,
+                        weight_variance: variance
+                    }
+                });
+            });
+
+            return res.json({ 
+                success: true, 
+                message: 'Box marked as WASTE successfully.',
+                protein: targetBox.product_name,
+                terminal_state: 'WASTE'
+            });
+        } catch (error: any) {
+            console.error('Waste Box Error:', error);
+            return res.status(500).json({ error: 'Failed to mark box as waste' });
+        }
+    }
+
+    static async auditStaleBoxes(req: Request, res: Response) {
+        try {
+            const { companyId } = req.query; // optional filter
+            const AlertEngine = require('../services/AlertEngine').AlertEngine;
+
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+            const staleBoxes = await prisma.proteinBox.findMany({
+                where: {
+                    status: 'PULLED_TO_PREP',
+                    updated_at: {
+                        lt: twentyFourHoursAgo
+                    },
+                    tenant_id: companyId ? Number(companyId) : undefined
+                }
+            });
+
+            const alertsGenerated = [];
+
+            for (const box of staleBoxes) {
+                const alert = await AlertEngine.trigger(
+                    box.store_id, 
+                    'WARNING', 
+                    'OPERATIONS_GOVERNANCE', 
+                    `Box (Barcode: ${box.barcode}) has been in PULLED_TO_PREP for > 24 hours without being consumed. Potential unaccounted consume or missing stock.`, 
+                    { box_id: box.id, barcode: box.barcode, time_since_pull: box.updated_at }
+                );
+                alertsGenerated.push(alert);
+            }
+
+            return res.json({ 
+                success: true, 
+                message: `Audited ${staleBoxes.length} stale boxes.`,
+                alerts_generated: alertsGenerated.length
+            });
+        } catch (error: any) {
+             console.error('Audit Stale Boxes Error:', error);
+             return res.status(500).json({ error: 'Failed to audit stale boxes' });
         }
     }
 }

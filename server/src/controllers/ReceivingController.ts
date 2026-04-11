@@ -87,7 +87,7 @@ export const ReceivingController = {
             const compliance = await ComplianceEngine.evaluate(normalized, companyId);
 
             if (verifiedStoreId) {
-                await prisma.barcodeScanEvent.create({
+                const scanEvent = await prisma.barcodeScanEvent.create({
                     data: {
                         store_id: verifiedStoreId,
                         scanned_barcode: barcode,
@@ -119,6 +119,51 @@ export const ReceivingController = {
                     await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'COMPLIANCE', 'Receiving Scanner Rejection', { barcode, details: compliance.details });
                 } else if (compliance.status === 'ACCEPTED_WITH_WARNING') {
                     await AlertEngine.trigger(verifiedStoreId, 'WARNING', 'COMPLIANCE', 'Receiving Tracker Exception', { barcode, details: compliance.details });
+                }
+                
+                // BRASA PROTEIN BOX LIFECYCLE ENGINE - FASE 1: Instantiation
+                if (compliance.status !== 'REJECTED') {
+                    try {
+                        const todayDate = new Date();
+                        todayDate.setUTCHours(0,0,0,0);
+                        
+                        await prisma.$transaction(async (tx) => {
+                            const newBox = await tx.proteinBox.create({
+                                data: {
+                                    tenant_id: Number(companyId),
+                                    store_id: verifiedStoreId,
+                                    barcode: barcode,
+                                    gtin: finalGtin,
+                                    lot_code: normalized.batch_number || null,
+                                    product_name: compliance.specMatched?.protein_name || normalized.product_name || "Unknown",
+                                    vendor: compliance.specMatched?.supplier || normalized.packer || "Unknown",
+                                    received_weight_lb: finalWeight,
+                                    available_weight_lb: finalWeight,
+                                    status: 'RECEIVED',
+                                    received_by: String(user.id || getUserId(user) || "SYSTEM"),
+                                    source_receiving_event: scanEvent.id,
+                                    business_date: todayDate,
+                                }
+                            });
+
+                            await tx.boxLifecycleEvent.create({
+                                data: {
+                                    box_id: newBox.id,
+                                    store_id: verifiedStoreId,
+                                    event_type: 'RECEIVE',
+                                    previous_status: 'RECEIVED',
+                                    new_status: 'RECEIVED',
+                                    triggered_by: String(user.id || getUserId(user) || "SYSTEM"),
+                                    reason: 'Initial scan at Receiving Dock'
+                                }
+                            });
+                        });
+                    } catch (err: any) {
+                        // Ignore P2002 (Double Validation / Repeated barcode) silently
+                        if (err.code !== 'P2002') {
+                            console.error('ProteinBox creation failed:', err.message);
+                        }
+                    }
                 }
             }
 
