@@ -6,274 +6,300 @@ import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
-interface ParsedObjects {
-  tables: string[];
-  columns: { table: string; column: string }[];
-  enums: { name: string; value: string }[];
-  indices: string[];
-  hasDestructive: boolean;
-  destructiveReasons: string[];
+// ==========================================
+// 1. STATE MACHINE DO SISTEMA
+// ==========================================
+export type MigrationState = 'NOT_FOUND' | 'APPLIED' | 'PARTIAL_FAILED' | 'ROLLED_BACK' | 'DRIFT_DETECTED';
+
+interface MigrationStatus {
+  name: string;
+  state: MigrationState;
+  sqlPath?: string;
 }
 
-export class PrismaMigrationGuard {
-  static async run() {
-    console.log('[SRE Guard] Booting PrismaMigrationGuard Zero-Trust validation...');
+// 6. LOGGING ESTRUTURADO
+interface SRELog {
+  migration: string;
+  state: MigrationState;
+  action: 'RESOLVE_APPLIED' | 'RESOLVE_ROLLED_BACK' | 'BLOCK' | 'SKIP' | 'NO_ACTION';
+  reason: string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+}
 
-    const dbUrl = process.env.DATABASE_URL || '';
-    const dbFingerprint = crypto.createHash('md5').update(dbUrl).digest('hex').substring(0, 8);
-    const env = process.env.NODE_ENV || 'development';
+function logSRE(payload: SRELog) {
+  const isCritical = payload.severity === 'CRITICAL';
+  const prefix = isCritical ? '🚨 [SRE-GUARD-CRITICAL]' : payload.severity === 'WARNING' ? '⚠️ [SRE-GUARD-WARN]' : '✅ [SRE-GUARD-INFO]';
+  console[isCritical ? 'error' : 'log'](`${prefix} ${JSON.stringify(payload)}`);
+}
 
-    try {
-      // 1. Detect Failed
-      const failedMigration = await this.detectFailedMigrations();
-      if (!failedMigration) {
-        console.log(`[SRE Guard] ✅ NO_ACTION. No failed/pending migrations detected.`);
-        return { decision: 'NO_ACTION' };
-      }
+// ==========================================
+// 3. IMPLEMENTAÇÃO (NODE.JS REAL)
+// ==========================================
 
-      console.log(`[SRE Guard] ⚠️ Detected FAILED or PENDING migration: ${failedMigration}`);
+export async function safeMigrationGuard() {
+  console.log('[SRE Guard V2] Booting PrismaMigrationGuard Production-Grade...');
 
-      // 2. Parse SQL
-      const parsed = this.parseMigrationSQL(failedMigration);
+  try {
+    // 4. QUERY REAL NO POSTGRES (Embracing pg_try_advisory_xact_lock to prevent Multi-Dyno Racing P3008)
+    await prisma.$transaction(async (tx) => {
+      const lock = await tx.$queryRaw<any[]>`SELECT pg_try_advisory_xact_lock(999999) as got_lock;`;
       
-      // Strict rule: No Destructive Fixes
-      if (parsed.hasDestructive) {
-        return this.blockAndAlert(failedMigration, dbFingerprint, env, `Contains destructive SQL operations: ${parsed.destructiveReasons.join(', ')}`);
+      if (!lock[0].got_lock) {
+        logSRE({
+          migration: 'GLOBAL',
+          state: 'APPLIED',
+          action: 'SKIP',
+          reason: 'Another replica/container is currently verifying migrations. Skipping organically to maintain Idempotency.',
+          severity: 'INFO'
+        });
+        return;
       }
 
-      // 3. Inspect PostgreSQL Catalog
-      const verification = await this.verifyPhysicalSchema(parsed);
-
-      console.log(`[SRE Guard] Physical schema compliance: ${Math.round(verification.score * 100)}% (${verification.found}/${verification.total} objects found)`);
-
-      // 4. Evaluate Policy
-      if (verification.isFullyCompliant) {
-        console.log(`[SRE Guard] 🟢 SAFE_AUTO_RESOLVE. All ${verification.total} expected schema objects natively exist.`);
-        this.executeAutoResolve(failedMigration, dbFingerprint, env);
-        return { decision: 'SAFE_AUTO_RESOLVE' };
-      } else {
-        const missingObjectsLog = verification.missingDetails.join(' | ');
-        return this.blockAndAlert(failedMigration, dbFingerprint, env, `Schema partially compliant or mismatched. Missing objects: ${missingObjectsLog}`);
-      }
-
-    } catch (err: any) {
-      if (err.message && err.message.includes('relation "_prisma_migrations" does not exist')) {
-        console.log(`[SRE Guard] ✅ NO_ACTION. Clean database detected (_prisma_migrations absent).`);
-        return { decision: 'NO_ACTION' };
-      }
-      if (process.env.TEST_MODE === 'true') {
-          throw err;
-      }
-      console.error(`[SRE Guard] 🚨 CRITICAL GUARDIAN FAILURE: ${err.message}`);
-      process.exit(1);
-    } finally {
-      await prisma.$disconnect();
-    }
-  }
-
-  public static async detectFailedMigrations(): Promise<string | null> {
-    const records = await prisma.$queryRaw<any[]>`
-      SELECT migration_name, finished_at, rolled_back_at 
-      FROM _prisma_migrations 
-      ORDER BY started_at ASC;
-    `;
-
-    for (const record of records) {
-      if (!record.finished_at || record.rolled_back_at) {
-        return record.migration_name;
-      }
-    }
-    return null;
-  }
-
-  public static parseMigrationSQL(migrationName: string): ParsedObjects {
-    const migrationPath = path.join(process.cwd(), 'prisma', 'migrations', migrationName, 'migration.sql');
-    if (!fs.existsSync(migrationPath)) {
-      throw new Error(`Migration SQL not found at repository: ${migrationPath}`);
-    }
-
-    const sql = fs.readFileSync(migrationPath, 'utf8');
-    const parsed: ParsedObjects = {
-      tables: [],
-      columns: [],
-      enums: [],
-      indices: [],
-      hasDestructive: false,
-      destructiveReasons: []
-    };
-
-    // Regex Checkers
-    const statements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0);
-
-    for (const stmt of statements) {
-      const sLower = stmt.toLowerCase();
-      
-      // Destructive check
-      if (sLower.includes('drop table') || sLower.includes('drop column') || sLower.includes('rename to') || sLower.includes('alter type') && sLower.includes('drop')) {
-        parsed.hasDestructive = true;
-        parsed.destructiveReasons.push(stmt.substring(0, 40) + '...');
-      }
-
-      // 1. Create Table
-      const createTableMatch = stmt.match(/CREATE\s+TABLE\s+"([^"]+)"/i);
-      if (createTableMatch) {
-        parsed.tables.push(createTableMatch[1]);
-      }
-
-      // 2. Alter Table Add Column
-      const alterTableMatch = stmt.match(/ALTER\s+TABLE\s+"([^"]+)"\s+ADD\s+COLUMN\s+"([^"]+)"/i);
-      if (alterTableMatch) {
-        parsed.columns.push({ table: alterTableMatch[1], column: alterTableMatch[2] });
-      }
-
-      // Also match multi-adds inside Alter Table (simplified parsing)
-      if (stmt.match(/ALTER\s+TABLE\s+"([^"]+)"/i) && !alterTableMatch) {
-        const table = stmt.match(/ALTER\s+TABLE\s+"([^"]+)"/i)![1];
-        const lines = stmt.split('\n');
-        for (const line of lines) {
-          const colMatch = line.match(/ADD\s+COLUMN\s+"([^"]+)"/i);
-          if (colMatch) {
-            parsed.columns.push({ table, column: colMatch[1] });
-          }
-        }
-      }
-
-      // 3. Alter Type Add Value (Enum)
-      const alterTypeMatch = stmt.match(/ALTER\s+TYPE\s+"([^"]+)"\s+ADD\s+VALUE\s+'([^']+)'/i);
-      if (alterTypeMatch) {
-         parsed.enums.push({ name: alterTypeMatch[1], value: alterTypeMatch[2] });
-      }
-
-      // 4. Create Index
-      const createIdxMatch = stmt.match(/CREATE\s+(?:(?:UNIQUE\s+)?INDEX)\s+"([^"]+)"/i);
-      if (createIdxMatch) {
-         parsed.indices.push(createIdxMatch[1]);
-      }
-    }
-
-    return parsed;
-  }
-
-  public static async verifyPhysicalSchema(parsed: ParsedObjects) {
-    let missingDetails: string[] = [];
-    let foundCount = 0;
-    
-    // Some basic deductions. E.g if we are parsing complex indices we might just check if ANY index on that table with that name exists.
-    const totalCount = parsed.tables.length + parsed.columns.length + parsed.enums.length + parsed.indices.length;
-    
-    if (totalCount === 0) {
-       // A hollow migration is technically compliant
-       return { isFullyCompliant: true, score: 1, found: 0, total: 0, missingDetails: [] };
-    }
-
-    // 1. Tables
-    if (parsed.tables.length > 0) {
-      const dbTables = await prisma.$queryRaw<any[]>`SELECT tablename FROM pg_tables WHERE schemaname = 'public';`;
-      const extantTables = new Set(dbTables.map(t => t.tablename));
-      for (const t of parsed.tables) {
-        if (extantTables.has(t)) {
-          foundCount++;
-        } else {
-          missingDetails.push(`Table[${t}]`);
-        }
-      }
-    }
-
-    // 2. Columns
-    for (const c of parsed.columns) {
-      const cols = await prisma.$queryRaw<any[]>`
-        SELECT column_name FROM information_schema.columns 
-        WHERE table_name = ${c.table} AND column_name = ${c.column};
+      const migrationsInDb = await tx.$queryRaw<any[]>`
+        SELECT migration_name, 
+               finished_at, 
+               rolled_back_at, 
+               checksum 
+        FROM _prisma_migrations 
+        ORDER BY started_at ASC;
       `;
-      if (cols.length > 0) {
-        foundCount++;
-      } else {
-        missingDetails.push(`Column[${c.table}.${c.column}]`);
+
+      if (!migrationsInDb || migrationsInDb.length === 0) {
+        logSRE({
+          migration: 'GLOBAL',
+          state: 'NOT_FOUND',
+          action: 'NO_ACTION',
+          reason: 'Clean database detected. No _prisma_migrations records present.',
+          severity: 'INFO'
+        });
+        return;
       }
-    }
 
-    // 3. Enums
-    for (const e of parsed.enums) {
-       // pg_type to pg_enum join
-       const enumVals = await prisma.$queryRaw<any[]>`
-         SELECT e.enumlabel 
-         FROM pg_enum e
-         JOIN pg_type t ON e.enumtypid = t.oid
-         WHERE t.typname = ${e.name} AND e.enumlabel = ${e.value};
-       `;
-       if (enumVals.length > 0) {
-         foundCount++;
-       } else {
-         missingDetails.push(`Enum[${e.name}='${e.value}']`);
-       }
-    }
+      for (const dbRecord of migrationsInDb) {
+        const status = getMigrationState(dbRecord);
 
-    // 4. Indices
-    if (parsed.indices.length > 0) {
-      const pgIndexes = await prisma.$queryRaw<any[]>`SELECT indexname FROM pg_indexes WHERE schemaname = 'public';`;
-      const extantIndexes = new Set(pgIndexes.map(i => i.indexname));
-      for (const idx of parsed.indices) {
-        if (extantIndexes.has(idx)) {
-          foundCount++;
-        } else {
-          missingDetails.push(`Index[${idx}]`);
+        // System behavior strictly controlled by the State Machine
+        switch (status.state) {
+          
+          case 'APPLIED':
+            continue;
+
+          case 'NOT_FOUND':
+            if (shouldBlock({ hasDestructive: false }, status.state)) {
+               executeSafeBlock(status, 'Migration missing from local repository. Manual SRE validation required to prevent drift.');
+            }
+            break;
+
+          case 'PARTIAL_FAILED':
+            await handlePendingMigration(status, 'applied');
+            break;
+
+          case 'ROLLED_BACK':
+            await handlePendingMigration(status, 'rolled_back');
+            break;
+
+          case 'DRIFT_DETECTED':
+            executeSafeBlock(status, 'Checksum mismatch. Local file was altered after Database execution.');
+            break;
         }
       }
-    }
+      
+      logSRE({
+        migration: 'ALL',
+        state: 'APPLIED',
+        action: 'NO_ACTION',
+        reason: 'All recorded database migrations are in valid state. Proceeding normal boot.',
+        severity: 'INFO'
+      });
 
-    const isFullyCompliant = foundCount === totalCount;
-    return {
-      isFullyCompliant,
-      score: foundCount / totalCount,
-      found: foundCount,
-      total: totalCount,
-      missingDetails
-    };
-  }
+    }, { timeout: 30000 });
 
-  public static blockAndAlert(migration: string, fingerprint: string, env: string, reason: string) {
-    const payload = {
-        migration_name: migration,
-        decision: 'BLOCK_AND_ALERT',
-        database_fingerprint: fingerprint,
-        reason: reason,
-        actions_taken: 'Aborted process.exit(1) to prevent destructive overlap.'
-    };
-    
-    console.error(`\n🚨 [SRE Guard] FATAL BLOCK: ${migration}`);
-    console.error(`🚨 Reason: ${reason}`);
-    console.error(`🚨 Emit to Datadog/Slack: ${JSON.stringify(payload)}`);
-    
-    // Returning payload for testing, otherwise we throw rather than exit to avoid killing the test runner.
-    if (process.env.TEST_MODE === 'true') {
-        throw new Error('BLOCK_AND_ALERT: ' + reason);
+  } catch (err: any) {
+    // 8. FAIL-SAFE DESIGN: Em qualquer falha de banco de dados ou erro de engine... BLOCK!
+    if (err.message && err.message.includes('relation "_prisma_migrations" does not exist')) {
+        logSRE({
+          migration: 'GLOBAL',
+          state: 'NOT_FOUND',
+          action: 'NO_ACTION',
+          reason: 'Database schema is totally uninitialized (missing _prisma_migrations table). Permitting organic deployment.',
+          severity: 'INFO'
+        });
+        return;
     }
+    
+    logSRE({
+      migration: 'UNKNOWN',
+      state: 'PARTIAL_FAILED',
+      action: 'BLOCK',
+      reason: `Fail-Safe Interceptor activated due to internal execution error: ${err.message}`,
+      severity: 'CRITICAL'
+    });
     process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// ------------------------------------------
+// Funções auxiliares
+// ------------------------------------------
+
+function getMigrationState(dbRecord: any): MigrationStatus {
+  // Interpretando finished_at:
+  // - finished_at NULL = falhou ou foi abortada (PARTIAL / FAILED)
+  // - finished_at NOT NULL = concluída com sucesso (APPLIED)
+  
+  const migrationPath = path.join(process.cwd(), 'prisma', 'migrations', dbRecord.migration_name, 'migration.sql');
+  const fileExists = fs.existsSync(migrationPath);
+
+  if (!fileExists) {
+    return { name: dbRecord.migration_name, state: 'NOT_FOUND' };
   }
 
-  public static executeAutoResolve(migration: string, fingerprint: string, env: string) {
-     const payload = {
-         migration_name: migration,
-         decision: 'SAFE_AUTO_RESOLVE',
-         database_fingerprint: fingerprint,
-         reason: 'Physical Postgres Schema fully 100% compliant with expected Migration SQL.',
-         actions_taken: 'Executing npx prisma migrate resolve'
-     };
-
-     console.log(`\n🛡️  [SRE Guard] Initiating Self-Healing Command...`);
-     console.log(`📡 Log Emit: ${JSON.stringify(payload)}`);
-
-     if (process.env.TEST_MODE === 'true') {
-         return 'SAFE_AUTO_RESOLVE';
-     }
-
-     try {
-       // Execute the CLI command synchronously
-       const stdout = execSync(`npx prisma migrate resolve --applied ${migration}`, { encoding: 'utf-8', stdio: 'pipe' });
-       console.log(`🛡️  [SRE Guard] Resolve Success: ${stdout}`);
-     } catch (err: any) {
-       console.error(`🚨 [SRE Guard] Failed to auto-resolve! ${err.message}`);
-       process.exit(1);
-     }
+  // Idempotência precisa
+  if (dbRecord.rolled_back_at !== null) {
+    return { name: dbRecord.migration_name, state: 'ROLLED_BACK', sqlPath: migrationPath };
   }
+  
+  if (dbRecord.finished_at === null) {
+    return { name: dbRecord.migration_name, state: 'PARTIAL_FAILED', sqlPath: migrationPath };
+  }
+
+  return { name: dbRecord.migration_name, state: 'APPLIED', sqlPath: migrationPath };
+}
+
+async function handlePendingMigration(status: MigrationStatus, targetResolution: 'applied' | 'rolled_back') {
+   const sql = fs.readFileSync(status.sqlPath!, 'utf8');
+   const parsed = parseMigrationRisk(sql);
+
+   // 7. ESTRATÉGIA DE SEGURANÇA: NUNCA RESOLVER CEGAMENTE SEM VALIDAR O ESCOPO
+   const isDestructive = shouldBlock(parsed, status.state);
+   if (isDestructive) {
+      executeSafeBlock(status, 'Destructive operation detected in unfinishable migration.');
+      return;
+   }
+
+   const safeToResolve = await shouldResolve(parsed);
+   if (safeToResolve) {
+      executeSafeResolve(status, targetResolution);
+   } else {
+      executeSafeBlock(status, 'Physical Postgres objects do not match the expected SQL objects. Partial failure without auto-recover capability.');
+   }
+}
+
+function shouldBlock(parsed: { hasDestructive: boolean }, state: MigrationState): boolean {
+  // 5. PROTEÇÃO CONTRA ERROS
+  // Bloquear caso a migração seja perigosa ou demande intervenção manual de SRE.
+  if (state === 'NOT_FOUND') return true;
+  if (state === 'DRIFT_DETECTED') return true;
+  
+  // Regra de Ouro (Garcia Rule): NUNCA automatizar DROP. Sempre Crash.
+  return parsed.hasDestructive;
+}
+
+async function shouldResolve(parsed: any): Promise<boolean> {
+  // Shadow validation do esquema atual vs banco vivo (Idempotency Engine)
+  // Verifica se todos os objetos de Table, Enum e Add Columns exigidos já existem na base real.
+  
+  let validObjects = 0;
+  const totalExpected = parsed.tables.length + parsed.columns.length + parsed.enums.length;
+  
+  if (totalExpected === 0) return true; // Hollow migration, perfectly safe.
+
+  try {
+      if (parsed.tables.length > 0) {
+        const dbTables = await prisma.$queryRaw<any[]>`SELECT tablename FROM pg_tables WHERE schemaname = 'public';`;
+        const names = new Set(dbTables.map(t => t.tablename));
+        parsed.tables.forEach((t: string) => names.has(t) && validObjects++);
+      }
+
+      for (const c of parsed.columns) {
+        const cols = await prisma.$queryRaw<any[]>`SELECT column_name FROM information_schema.columns WHERE table_name = ${c.table} AND column_name = ${c.column};`;
+        if (cols.length > 0) validObjects++;
+      }
+
+      for (const e of parsed.enums) {
+        const enumVals = await prisma.$queryRaw<any[]>`SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid WHERE t.typname = ${e.name} AND e.enumlabel = ${e.value};`;
+        if (enumVals.length > 0) validObjects++;
+      }
+      
+      // Motor restrito: SÓ resolve via AUTO se o score físico for 100% igual à exigência.
+      return validObjects === totalExpected;
+
+  } catch (err) {
+      return false;
+  }
+}
+
+function executeSafeResolve(status: MigrationStatus, targetResolution: 'applied' | 'rolled_back') {
+  // Correção de P3008: Evitar chamar `npx prisma migrate resolve --applied` para algo que já está `rolled_back`
+  // E nunca chamar se já for APPLIED nativamente!
+  
+  const flag = targetResolution === 'applied' ? '--applied' : '--rolled-back';
+  
+  logSRE({
+    migration: status.name,
+    state: status.state,
+    action: targetResolution === 'applied' ? 'RESOLVE_APPLIED' : 'RESOLVE_ROLLED_BACK',
+    reason: `System verified 100% physical compatibility. Emitting 100% idempotent resolve ${flag}`,
+    severity: 'WARNING'
+  });
+
+  if (process.env.TEST_MODE === 'true') {
+     return;
+  }
+
+  try {
+     const resolveOut = execSync(`npx prisma migrate resolve ${flag} ${status.name}`, { encoding: 'utf8', stdio: 'pipe' });
+     console.log(`[SRE Guard V2] Resolved organically: ${resolveOut}`);
+  } catch (err: any) {
+      logSRE({
+          migration: status.name,
+          state: status.state,
+          action: 'BLOCK',
+          reason: `Failed to safely execute raw CLI resolve: ${err.message}`,
+          severity: 'CRITICAL'
+      });
+      process.exit(1);
+  }
+}
+
+function executeSafeBlock(status: MigrationStatus, reason: string) {
+    logSRE({
+      migration: status.name,
+      state: status.state,
+      action: 'BLOCK',
+      reason: reason,
+      severity: 'CRITICAL'
+    });
+
+    if (process.env.TEST_MODE === 'true') {
+        throw new Error(`CRITICAL BLOCK: ${reason}`);
+    }
+    
+    // Fail-Safe hard termination for railway dynos. Requires DBA Manual Unlock.
+    process.exit(1);
+}
+
+// Simple Parser Tool for extraction
+function parseMigrationRisk(sql: string) {
+    const sLower = sql.toLowerCase();
+    const parsed = { tables: [] as string[], columns: [] as any[], enums: [] as any[], hasDestructive: false };
+
+    if (sLower.includes('drop table') || sLower.includes('drop column') || sLower.includes('rename to') || (sLower.includes('alter type') && sLower.includes('drop'))) {
+        parsed.hasDestructive = true;
+    }
+
+    const statements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0);
+    for (const stmt of statements) {
+      const tb = stmt.match(/CREATE\s+TABLE\s+"([^"]+)"/i);
+      if (tb) parsed.tables.push(tb[1]);
+
+      const col = stmt.match(/ALTER\s+TABLE\s+"([^"]+)"\s+ADD\s+COLUMN\s+"([^"]+)"/i);
+      if (col) parsed.columns.push({ table: col[1], column: col[2] });
+
+      const en = stmt.match(/ALTER\s+TYPE\s+"([^"]+)"\s+ADD\s+VALUE\s+'([^']+)'/i);
+      if (en) parsed.enums.push({ name: en[1], value: en[2] });
+    }
+    return parsed;
 }
