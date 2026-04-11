@@ -79,41 +79,48 @@ export class SREController {
   
   static async injectChaosSafe(req: Request, res: Response) {
     const { PrismaClient } = require('@prisma/client');
+    const fs = require('fs');
+    const path = require('path');
     const prisma = new PrismaClient();
     try {
-      // Mark 2099 safe mock as failed
+      const migDir = path.join(process.cwd(), 'prisma', 'migrations', '20990101000000_mock_safe');
+      if (!fs.existsSync(migDir)) fs.mkdirSync(migDir, { recursive: true });
+      fs.writeFileSync(path.join(migDir, 'migration.sql'), '-- Mock Safe Migration\nALTER TABLE "Store" ADD COLUMN "target_cost_guest" DOUBLE PRECISION NOT NULL DEFAULT 9.94;\n');
+
       await prisma.$executeRaw`
         INSERT INTO _prisma_migrations 
         (id, checksum, bytes_applied, applied_steps_count, logs, migration_name, started_at, finished_at) 
-        VALUES (gen_random_uuid()::text, 'checksum_safe', 0, 0, 'mock failure', '20990101000000_mock_safe', NOW(), NULL);
+        VALUES (gen_random_uuid()::text, 'checksum_safe', 0, 0, 'mock failure', '20990101000000_mock_safe', NOW(), NULL)
+        ON CONFLICT DO NOTHING;
       `;
-      res.status(200).json({ message: "BOMBA SAFE PLANTADA. O GUARD DEVE DETECTAR E AUTO-RESOLVER NO PRÓXIMO BOOT." });
+      // We don't exit so we can see the response, but the next boot will resolve it. We wait 1s then exit to force boot.
+      setTimeout(() => process.exit(1), 1000);
+      res.status(200).json({ message: "BOMBA SAFE PLANTADA E ARQUIVO GERADO. SERVIDOR REINICIANDO AGORA." });
     } catch (e: any) {
-      if (e.message.includes('unique constraint')) {
-        res.status(200).json({ message: "Bomba SAFE já plantada. Reboot server to test." });
-      } else {
-        res.status(500).json({ error: e.message });
-      }
+      res.status(500).json({ error: e.message });
     }
   }
 
   static async injectChaosBlock(req: Request, res: Response) {
     const { PrismaClient } = require('@prisma/client');
+    const fs = require('fs');
+    const path = require('path');
     const prisma = new PrismaClient();
     try {
-      // Mark 2099 block mock as failed
+      const migDir = path.join(process.cwd(), 'prisma', 'migrations', '20990101000001_mock_block');
+      if (!fs.existsSync(migDir)) fs.mkdirSync(migDir, { recursive: true });
+      fs.writeFileSync(path.join(migDir, 'migration.sql'), '-- Mock Block Migration\nDROP TABLE "StoreMeatTarget";\n');
+
       await prisma.$executeRaw`
         INSERT INTO _prisma_migrations 
         (id, checksum, bytes_applied, applied_steps_count, logs, migration_name, started_at, finished_at) 
-        VALUES (gen_random_uuid()::text, 'checksum_block', 0, 0, 'mock failure', '20990101000001_mock_block', NOW(), NULL);
+        VALUES (gen_random_uuid()::text, 'checksum_block', 0, 0, 'mock failure', '20990101000001_mock_block', NOW(), NULL)
+        ON CONFLICT DO NOTHING;
       `;
-      res.status(200).json({ message: "BOMBA DESTRUCTION PLANTADA. O GUARD DEVE DAR FATAL BLOCK NO PRÓXIMO BOOT." });
+      setTimeout(() => process.exit(1), 1000);
+      res.status(200).json({ message: "BOMBA DESTRUCTION PLANTADA E ARQUIVO GERADO. SERVIDOR REINICIANDO AGORA." });
     } catch (e: any) {
-      if (e.message.includes('unique constraint')) {
-        res.status(200).json({ message: "Bomba DESTRUCTIVE já plantada. Reboot server to test." });
-      } else {
-        res.status(500).json({ error: e.message });
-      }
+      res.status(500).json({ error: e.message });
     }
   }
 
@@ -122,7 +129,7 @@ export class SREController {
     const prisma = new PrismaClient();
     try {
       await prisma.$executeRaw`DELETE FROM _prisma_migrations WHERE migration_name LIKE '2099010100000%';`;
-      res.status(200).json({ message: "CAOS LIMPO. BOOT DEVE SEGUIR NORMALMENTE (NO_ACTION)." });
+      res.status(200).json({ message: "CAOS LIMPO VÍA BD. Os files em disco serão ignorados sem o registro pending. Boot deve seguir limpo." });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
