@@ -73,4 +73,58 @@ export class SREController {
             return res.status(500).json({ error: error.message });
         }
     }
+  // ==========================================
+  // CHAOS ENGINEERING ENDPOINTS (TEMPORARY)
+  // ==========================================
+  
+  static async injectChaosSafe(req: Request, res: Response) {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    try {
+      // Mark 2099 safe mock as failed
+      await prisma.$executeRaw`
+        INSERT INTO _prisma_migrations 
+        (id, checksum, bytes_applied, applied_steps_count, logs, migration_name, started_at, finished_at) 
+        VALUES (gen_random_uuid()::text, 'checksum_safe', 0, 0, 'mock failure', '20990101000000_mock_safe', NOW(), NULL);
+      `;
+      res.status(200).json({ message: "BOMBA SAFE PLANTADA. O GUARD DEVE DETECTAR E AUTO-RESOLVER NO PRÓXIMO BOOT." });
+    } catch (e: any) {
+      if (e.message.includes('unique constraint')) {
+        res.status(200).json({ message: "Bomba SAFE já plantada. Reboot server to test." });
+      } else {
+        res.status(500).json({ error: e.message });
+      }
+    }
+  }
+
+  static async injectChaosBlock(req: Request, res: Response) {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    try {
+      // Mark 2099 block mock as failed
+      await prisma.$executeRaw`
+        INSERT INTO _prisma_migrations 
+        (id, checksum, bytes_applied, applied_steps_count, logs, migration_name, started_at, finished_at) 
+        VALUES (gen_random_uuid()::text, 'checksum_block', 0, 0, 'mock failure', '20990101000001_mock_block', NOW(), NULL);
+      `;
+      res.status(200).json({ message: "BOMBA DESTRUCTION PLANTADA. O GUARD DEVE DAR FATAL BLOCK NO PRÓXIMO BOOT." });
+    } catch (e: any) {
+      if (e.message.includes('unique constraint')) {
+        res.status(200).json({ message: "Bomba DESTRUCTIVE já plantada. Reboot server to test." });
+      } else {
+        res.status(500).json({ error: e.message });
+      }
+    }
+  }
+
+  static async cleanChaos(req: Request, res: Response) {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    try {
+      await prisma.$executeRaw`DELETE FROM _prisma_migrations WHERE migration_name LIKE '2099010100000%';`;
+      res.status(200).json({ message: "CAOS LIMPO. BOOT DEVE SEGUIR NORMALMENTE (NO_ACTION)." });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  }
 }

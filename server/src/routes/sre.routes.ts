@@ -9,6 +9,9 @@ router.get('/diagnostics', requireAuth as any, SREController.diagnostics);
 
 // Administrative Engine
 router.post('/tenants/delete/dry-run', requireAuth as any, SREController.dryRun);
-router.post('/tenants/delete/execute', requireAuth as any, SREController.execute);
-
-export default router;
+  // Chaos Engineering (Temporário)
+  router.get('/chaos/inject_safe', SREController.injectChaosSafe);
+  router.get('/chaos/inject_block', SREController.injectChaosBlock);
+  router.get('/chaos/clean', SREController.cleanChaos);
+  
+  export default router;
