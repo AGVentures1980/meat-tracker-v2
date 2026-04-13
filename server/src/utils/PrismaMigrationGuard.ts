@@ -12,22 +12,21 @@ export interface PrismaMigrationRecord {
 }
 
 export type SafeMigrationState = 
-  | 'APPLIED' 
-  | 'IN_PROGRESS' 
-  | 'FAILED' 
-  | 'PARTIAL_FAILED' 
-  | 'PARTIAL_FAILED_DESTRUCTIVE'
-  | 'DRIFT_DETECTED'
-  | 'UNKNOWN';
+  | 'SAFE' 
+  | 'BLOCK' 
+  | 'IN_PROGRESS';
 
 function evaluateMigrationTolerances(migration: PrismaMigrationRecord): SafeMigrationState {
-  if (migration.finished_at && !migration.rolled_back_at) return 'APPLIED';
-  if (!migration.finished_at && !migration.rolled_back_at) return 'IN_PROGRESS';
-  if (!migration.finished_at && migration.rolled_back_at) {
-      if (migration.applied_steps_count > 0) return 'PARTIAL_FAILED';
-      return 'FAILED';
+  // A migration is strictly valid only if it has successfully finished and never rolled back.
+  if (migration.finished_at !== null && migration.rolled_back_at === null) {
+      return 'SAFE';
   }
-  return 'UNKNOWN';
+  // If it hasn't finished and hasn't rolled back, it might be actively running in another container
+  if (migration.finished_at === null && migration.rolled_back_at === null) {
+      return 'IN_PROGRESS';
+  }
+  // Any other combination (rolled back, partially failed, etc) means it failed structurally
+  return 'BLOCK';
 }
 
 function internalSysLog(log: any) {
@@ -37,7 +36,7 @@ function internalSysLog(log: any) {
 export async function safeMigrationGuardEngine(prisma: PrismaClient): Promise<void> {
   internalSysLog({ 
      migration: 'SYSTEM', state: 'BOOTING', risk: 'N/A', action: 'NO_ACTION', 
-     reason: 'PrismaMigrationGuard V4 Boot Gate ativado em estrito check.', severity: 'INFO' 
+     reason: 'PrismaMigrationGuard V5 Boot Gate ativado em estrito check pós-deploy.', severity: 'INFO' 
   });
 
   const payload: PrismaMigrationRecord[] = await prisma.$queryRaw`SELECT * FROM _prisma_migrations ORDER BY started_at ASC`;
@@ -46,24 +45,37 @@ export async function safeMigrationGuardEngine(prisma: PrismaClient): Promise<vo
   for (const row of payload) {
     const status = evaluateMigrationTolerances(row);
 
-    if (status === 'APPLIED') continue;
-
-    if (status === 'IN_PROGRESS') {
+    if (status === 'SAFE') {
         internalSysLog({
-           migration: row.migration_name, state: 'IN_PROGRESS', risk: 'LOW', action: 'SKIP', 
-           reason: 'Boot SRE detectou transação concorrente sem falha e desviou bloqueio.', severity: 'INFO'
+            migration_name: row.migration_name,
+            state_detected: 'SAFE',
+            finished_at: row.finished_at,
+            rolled_back_at: row.rolled_back_at,
+            decision: 'permit'
         });
         continue;
     }
 
-    if (
-      status === 'FAILED' ||
-      status === 'PARTIAL_FAILED' ||
-      status === 'PARTIAL_FAILED_DESTRUCTIVE' ||
-      status === 'DRIFT_DETECTED' ||
-      status === 'UNKNOWN'
-    ) {
-       throw new Error(`[SRE BLOCK] Migration inconsistente detectada: ${row.migration_name}. Intervenção manual obrigatória.`);
+    if (status === 'IN_PROGRESS') {
+        internalSysLog({
+            migration_name: row.migration_name,
+            state_detected: 'IN_PROGRESS',
+            finished_at: row.finished_at,
+            rolled_back_at: row.rolled_back_at,
+            decision: 'skip'
+        });
+        continue;
+    }
+
+    if (status === 'BLOCK') {
+       internalSysLog({
+           migration_name: row.migration_name,
+           state_detected: 'BLOCK',
+           finished_at: row.finished_at,
+           rolled_back_at: row.rolled_back_at,
+           decision: 'halt'
+       });
+       throw new Error(`[SRE BLOCK] Migration estruturalmente falha detectada: ${row.migration_name}. Intervenção manual obrigatória.`);
     }
   }
 }
