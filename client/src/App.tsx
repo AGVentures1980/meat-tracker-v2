@@ -23,6 +23,7 @@ import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
+import { ValidationCenter } from './pages/executive/ValidationCenter';
 import StoreSettings from './pages/StoreSettings';
 import { UsersPage } from './pages/UsersPage';
 import CFOReport from './pages/CFOReport';
@@ -211,6 +212,9 @@ function AppContent() {
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/jvp-dashboard" element={<GovernanceGuard><JVPDashboard /></GovernanceGuard>} />
                     <Route path="/executive/specs" element={<CorporateSpecs />} />
+                    <Route path="/executive/quarantine-inbox" element={<QuarantineInbox />} />
+                    <Route path="/executive/agv-fraud-audit" element={<FraudAuditReport />} />
+                    <Route path="/executive/validation" element={<ValidationCenter />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />

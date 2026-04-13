@@ -119,10 +119,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             navItems.push({
                 section: t('nav.section_executive') || 'EXECUTIVE CONTROL', items: [
                     ...(isMaster ? [{ icon: Globe, label: t('nav.saasAdmin') || 'Brand Overview Center', path: '/saas-admin' }] : []),
-                    ...((isMaster) ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/procurement' }] : []),
+                    ...(isMaster ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/procurement' }] : []),
+                    ...(isMaster ? [{ icon: DatabaseZap, label: 'Validation Center', path: '/validation' }] : []),
                     { icon: Users, label: t('nav.corporateSpecs') || 'Network Standard Specs', path: '/executive/specs' },
                     ...( (isDavid || isMaster) ? [{ icon: ShieldAlert, label: 'Supply Chain Inbox', path: '/quarantine-inbox' }] : []),
-                    ...(isMaster ? [{ icon: DatabaseZap, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
+                    ...(isMaster ? [{ icon: ShieldAlert, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
                 ]
             });
         }
