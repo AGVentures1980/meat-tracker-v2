@@ -136,7 +136,7 @@ export class ComplianceController {
              return res.status(403).json({ success: false, error: 'Unauthorized. Master access only.' });
           }
 
-          const { startDate, endDate } = req.query;
+          const { startDate, endDate, companyId } = req.query;
           
           let dateFilter: any = {};
           if (startDate && endDate) {
@@ -149,7 +149,8 @@ export class ComplianceController {
           const attempts = await prisma.barcodeScanEvent.findMany({
               where: {
                   is_approved: false,
-                  ...(startDate && endDate ? { scanned_at: dateFilter } : {})
+                  ...(startDate && endDate ? { scanned_at: dateFilter } : {}),
+                  ...(companyId ? { store: { company_id: companyId as string } } : {})
               },
               include: {
                   store: { 
