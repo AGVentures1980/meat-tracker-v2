@@ -1265,3 +1265,60 @@ model BillingPlan {
   annual_discount_pct      Float     @default(0.0)
   created_at               DateTime  @default(now())
 }
+
+// ==========================================
+// VALIDATION CENTER (SRE & QA)
+// ==========================================
+
+model GoldenDatasetItem {
+  id               String   @id @default(uuid())
+  source_type      String   // barcode, olo, invoice, image
+  raw_input        String   // raw string or json
+  expected_output  Json
+  validation_notes String?
+  priority         String   @default("NORMAL")
+  created_at       DateTime @default(now())
+  is_active        Boolean  @default(true)
+}
+
+model ValidationRun {
+  id                          String   @id @default(uuid())
+  executed_by                 String
+  tenant_id                   String?
+  store_id                    Int?
+  source_type                 String?  // nullable if ALL
+  total_cases_run             Int
+  failed_cases                Int
+  score_barcode_accuracy      Float
+  score_parsing_accuracy      Float
+  score_reconciliation        Float
+  score_leak_breaches         Int
+  score_duplicate_detection   Float
+  health_status               String   // PASS, WARNING, CRITICAL
+  started_at                  DateTime @default(now())
+  completed_at                DateTime?
+  audit_trail                 Json?
+}
+
+model ValidationQuarantine {
+  id               String   @id @default(uuid())
+  source_type      String
+  reason           String
+  tenant_id        String?
+  store_id         Int?
+  raw_payload      Json
+  status           String   @default("PENDING") // PENDING, RESOLVED, ESCALATED
+  created_at       DateTime @default(now())
+  assigned_to      String?
+}
+
+model ShadowModeCompare {
+  id               String   @id @default(uuid())
+  store_id         Int?
+  event_type       String
+  v1_result        Json?
+  shadow_result    Json?
+  drift_pct        Float    @default(0.0)
+  status           String   @default("REVIEW_NEEDED") // MATCH, REVIEW_NEEDED
+  created_at       DateTime @default(now())
+}
