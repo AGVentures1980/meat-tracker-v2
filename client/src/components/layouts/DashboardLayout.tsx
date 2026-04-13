@@ -119,7 +119,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             navItems.push({
                 section: t('nav.section_executive') || 'EXECUTIVE CONTROL', items: [
                     ...(isMaster ? [{ icon: Globe, label: t('nav.saasAdmin') || 'Brand Overview Center', path: '/saas-admin' }] : []),
-                    ...((isSystemAdmin || isMaster) ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/sourcing-ai' }] : []),
+                    ...((isSystemAdmin || isMaster) ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/procurement' }] : []),
                     { icon: Users, label: t('nav.corporateSpecs') || 'Network Standard Specs', path: '/executive/specs' },
                     ...( (isDavid || isMaster) ? [{ icon: ShieldAlert, label: 'Supply Chain Inbox', path: '/quarantine-inbox' }] : []),
                     ...(isMaster ? [{ icon: DatabaseZap, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
