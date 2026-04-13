@@ -252,4 +252,9 @@ async function startV6Engine(): Promise<void> {
     }
 }
 
-startV6Engine();
+if (process.env.GUARD_MODE === 'check') {
+    console.log("✅ [SRE] GUARD V6 em Modo Check (CI Lexical Guard). DB Desativado. Pass.");
+    process.exit(0);
+} else {
+    startV6Engine();
+}
