@@ -11,6 +11,10 @@ export async function executeIncidentManualRecoveryProcedure(
   console.log(`-> Target Incident Object: ${migrationName}`);
   console.log(`-> Commanded Override Procedure: ${resolutionContext}`);
 
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("AUTO-RECOVERY DESABILITADO EM PRODUÇÃO");
+  }
+
   // Gateway Diagnosis 
   if (resolutionContext === 'diagnose_only') {
       console.log(`[SYS-AUDIT] Executando Análise de Tracker sem aplicar mutações lógicas.`);

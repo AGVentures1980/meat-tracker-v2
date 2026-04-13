@@ -63,15 +63,6 @@ export async function safeMigrationGuardEngine(prisma: PrismaClient): Promise<vo
       status === 'DRIFT_DETECTED' ||
       status === 'UNKNOWN'
     ) {
-       if (row.migration_name === '20260206045606_init') {
-           internalSysLog({
-              migration: row.migration_name, state: status, risk: 'LOW', action: 'AUTO_RESOLVE', 
-              reason: 'Bypass automático para a migration init legado.', severity: 'WARNING'
-           });
-           await prisma.$executeRaw`UPDATE _prisma_migrations SET finished_at = NOW(), rolled_back_at = NULL WHERE migration_name = '20260206045606_init'`;
-           continue;
-       }
-
        throw new Error(`[SRE BLOCK] Migration inconsistente detectada: ${row.migration_name}. Intervenção manual obrigatória.`);
     }
   }
