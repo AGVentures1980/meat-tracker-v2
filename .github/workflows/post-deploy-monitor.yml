@@ -1,0 +1,55 @@
+name: SRE Post-Deploy Continuous Monitor
+
+on:
+  workflow_run:
+    workflows: ["Deploy Production"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sre-monitoring:
+    name: "Production Telemetry & Latency Gateway"
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    environment: production
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+    - name: Setup Node Platform
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Install Runtime Requirements
+      run: npm ci
+
+    - name: Execute Extended Telemetry
+      run: npx ts-node src/scripts/postDeployCheck.ts
+      env:
+        API_URL: ${{ secrets.API_URL_PROD }}
+        TEST_AUTH_TOKEN: ${{ secrets.TEST_AUTH_TOKEN_PROD }}
+
+    - name: SRE Explicit Failure Alerting
+      if: failure()
+      run: |
+        echo "========================================================"
+        echo "🚨 POST-DEPLOY MONITOR FATAL DEGRADATION DETECTED 🚨"
+        echo "A telemetria End-to-End falhou em Produção."
+        echo "AÇÃO EXECUTIVA EXIGIDA (SRE RUNBOOK PROCEDURE):"
+        echo "-> O Operador / Tech Lead deve abrir o arquivo RUNBOOK_PRODUCTION_INCIDENT.md."
+        echo "-> Isole a anomalia através dos logs transacionais acima."
+        echo "========================================================"
+        exit 1

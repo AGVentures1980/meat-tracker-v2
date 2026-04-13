@@ -1,0 +1,53 @@
+name: Deploy Staging
+
+on:
+  workflow_run:
+    workflows: ["SRE Continuous Integration"]
+    types:
+      - completed
+    branches:
+      - pitch-ready
+
+permissions:
+  contents: read
+
+jobs:
+  sre-staging-rollout:
+    name: "Railway Staging Controlled Deployment"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: staging
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node Platform
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Runtime Requirements
+        run: npm ci
+
+      - name: Zero-Trust Drift Gate
+        run: npx ts-node src/scripts/checkSchemaDrift.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_STAGING }}
+
+      - name: SRE Schema Mutation Deploy
+        run: PRISMA_HIDE_UPDATE_MESSAGE=true npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_STAGING }}
+
+      - name: E2E Pipeline Validation (Smoke Test)
+        run: npx ts-node src/scripts/smokeTest.ts
+        env:
+          API_URL: ${{ secrets.API_URL_STAGING }}
+          TEST_AUTH_TOKEN: ${{ secrets.TEST_AUTH_TOKEN_STAGING }}

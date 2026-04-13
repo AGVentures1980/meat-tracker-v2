@@ -1,0 +1,75 @@
+name: Deploy Production
+
+on:
+  workflow_run:
+    workflows: ["SRE Continuous Integration"]
+    types:
+      - completed
+    branches:
+      - pitch-ready
+
+permissions:
+  contents: read
+
+jobs:
+  sre-production-rollout:
+    name: "Railway Production Controlled Sequence"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: production
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node Platform
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Runtime Requirements
+        run: npm ci
+
+      - name: Zero-Trust Drift Gate
+        run: npx ts-node src/scripts/checkSchemaDrift.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
+
+      - name: SRE Schema Mutation Deploy
+        run: PRISMA_HIDE_UPDATE_MESSAGE=true npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
+
+      - name: Deterministic Operations Sync Gate
+        run: |
+          echo "Aguardando propagação nativa do container na Nuvem..."
+          API="${{ secrets.API_URL_PROD }}/api/health"
+
+          for i in {1..18}; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$API" || echo "000")
+
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+              echo "✅ Container sync validado. Healthcheck OK."
+              break
+            fi
+
+            echo "⚠️ Plataforma ciclando (HTTP $HTTP_STATUS). Warmup na tentativa $i/18..."
+            sleep 10
+
+            if [ "$i" -eq 18 ]; then
+              echo "🚨 FATAL SRE Timeout: Container não assumiu tráfego (Offline)."
+              exit 1
+            fi
+          done
+
+      - name: E2E Production System Validation
+        run: npx ts-node src/scripts/smokeTest.ts
+        env:
+          API_URL: ${{ secrets.API_URL_PROD }}
+          TEST_AUTH_TOKEN: ${{ secrets.TEST_AUTH_TOKEN_PROD }}

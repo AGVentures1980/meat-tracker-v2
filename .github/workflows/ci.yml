@@ -1,0 +1,43 @@
+name: SRE Continuous Integration
+
+on:
+  push:
+    branches:
+      - pitch-ready
+  pull_request:
+    branches:
+      - pitch-ready
+
+permissions:
+  contents: read
+
+jobs:
+  sre-ci-pipeline:
+    name: "Zero-Trust Static CI Gates"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node Platform
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Runtime Requirements
+        run: npm ci
+
+      - name: Static Environment Syntax Check
+        run: npx tsc --noEmit
+
+      - name: SRE Zero-Trust Lexical Guard (Check Mode)
+        run: GUARD_MODE=check npx ts-node src/scripts/runMigrationGuard.ts
+
+      - name: Prisma AST Evaluation
+        run: |
+          npx prisma validate
+          npx prisma generate

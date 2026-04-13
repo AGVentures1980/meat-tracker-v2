@@ -1,0 +1,95 @@
+name: SRE Manual Rollback Procedure
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        type: choice
+        description: 'Target Environment'
+        options:
+        - production
+        - staging
+      rollback_reason:
+        description: 'Audit Protocol: Rollback Justification'
+        required: true
+      target_git_ref:
+        description: 'Git SHA / Branch base livre do defeito (Revert Hash)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  sre-rollback-auditor:
+    name: "Database Safety Audit For Rollback"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_environment }}
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+    - name: Validate Audit Inputs
+      run: |
+        if [ -z "${{ inputs.rollback_reason }}" ]; then
+          echo "🚨 SRE Fatal: Rollback reason não pode estar vazio."
+          exit 1
+        fi
+        if [ -z "${{ inputs.target_git_ref }}" ]; then
+          echo "🚨 SRE Fatal: Target Git REF não pode estar vazio."
+          exit 1
+        fi
+        if [ "${{ inputs.target_environment }}" != "production" ] && [ "${{ inputs.target_environment }}" != "staging" ]; then
+          echo "🚨 SRE Fatal: Ambiente inválido."
+          exit 1
+        fi
+
+    - name: Checkout Base Code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.target_git_ref }}
+
+    - name: Setup Node Platform
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Install Environment Req
+      run: npm ci
+
+    - name: Connect Secured Context Target
+      id: set-db
+      run: |
+        if [ "${{ inputs.target_environment }}" == "production" ]; then
+          echo "DB_URI=${{ secrets.DATABASE_URL_PROD }}" >> $GITHUB_ENV
+        fi
+        if [ "${{ inputs.target_environment }}" == "staging" ]; then
+          echo "DB_URI=${{ secrets.DATABASE_URL_STAGING }}" >> $GITHUB_ENV
+        fi
+
+    - name: Execute Security Rule Boundary
+      run: |
+        echo "⚠️ STATUS SRE: DRY RUN / AUDIT ONLY."
+        echo "WORKFLOW DESPROVIDO DE CAPACIDADE DOWN-MIGRATION E DEPLOY NUVEM."
+        echo "Autenticando que o Hash-alvo não quebrará por Drift DB."
+
+    - name: Verify Schema Compliance Against Physical Tables
+      run: |
+        npx prisma migrate status || { echo "🚨 O Rollback exigiria deleção manual de DB. ABORTADO."; exit 1; }
+      env:
+        DATABASE_URL: ${{ env.DB_URI }}
+
+    - name: Conclude Operation Status
+      run: |
+        echo "=========================================================="
+        echo "🚨 ROLLBACK PROCEDURE PRE-SHARED AUDIT CONCLUDED 🚨"
+        echo "Motivo Auditado: ${{ inputs.rollback_reason }}"
+        echo "Target Hash Ref: ${{ inputs.target_git_ref }}"
+        echo "=========================================================="
+        echo "STATUS: O Hash Antigo está perfeitamente seguro frente ao Banco Nativo."
+        echo "=========================================================="
+        echo "EXECUÇÃO HUMANA OBRIGATÓRIA (REVERT FÍSICO APP):"
+        echo "1. Painel Railway UI -> Environment [ ${{ inputs.target_environment }} ]"
+        echo "2. Selecione o build respectivo ao hash verificado."
+        echo "3. Acione o menu 'Redeploy' para injetar a imagem antiga em uso."
+        echo "=========================================================="
