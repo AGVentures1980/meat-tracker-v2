@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../services/AuditService';
 import { getUserId } from '../utils/authContext';
+import { generateFingerprint } from '../utils/cryptoUtils';
 
 const prisma = new PrismaClient();
 
@@ -207,21 +208,23 @@ export class ValidationController {
             this.authorizeExecutiveAccess(req.user);
             const { tenant_id, store_id } = this.extractScope(req);
             const { raw_input, expected_output, validation_notes, priority } = req.body;
+            const fingerprint = generateFingerprint('barcode', tenant_id, store_id, raw_input);
 
-            const item = await prisma.goldenDatasetItem.create({
-                data: {
-                    tenant_id,
-                    store_id,
-                    source_type: 'barcode',
-                    raw_input,
-                    expected_output,
-                    validation_notes,
-                    priority: priority || 'NORMAL'
+            try {
+                const item = await prisma.goldenDatasetItem.create({
+                    data: {
+                        tenant_id, store_id, source_type: 'barcode', raw_input, expected_output, validation_notes, priority: priority || 'NORMAL', fingerprint, status: 'RECEIVED'
+                    }
+                });
+                await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'barcode' });
+                res.json({ success: true, item });
+            } catch (pError: any) {
+                if (pError.code === 'P2002') {
+                    await prisma.intakeAudit.create({ data: { correlation_id: `dup_${Date.now()}_barcode`, actor_user_id: getUserId(req.user), actor_role: req.user.role || 'executive', action: 'INTAKE_DUPLICATE_REJECTED', target_resource: 'barcode', effective_scope: tenant_id, fingerprint, result_status: 'QUARANTINED' }});
+                    return res.status(409).json({ error: 'Duplicate Payload Detected (Idempotency Locked)', quarantine_cause: 'DUPLICATE_INPUT' });
                 }
-            });
-            
-            await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'barcode' });
-            res.json({ success: true, item });
+                throw pError;
+            }
         } catch (e: any) {
             res.status(403).json({ error: e.message });
         }
@@ -232,21 +235,24 @@ export class ValidationController {
             this.authorizeExecutiveAccess(req.user);
             const { tenant_id, store_id } = this.extractScope(req);
             const { raw_input, expected_output, validation_notes, priority } = req.body;
+            const strInput = typeof raw_input === 'string' ? raw_input : JSON.stringify(raw_input);
+            const fingerprint = generateFingerprint('olo', tenant_id, store_id, strInput);
 
-            const item = await prisma.goldenDatasetItem.create({
-                data: {
-                    tenant_id,
-                    store_id,
-                    source_type: 'olo',
-                    raw_input: typeof raw_input === 'string' ? raw_input : JSON.stringify(raw_input),
-                    expected_output,
-                    validation_notes,
-                    priority: priority || 'NORMAL'
+            try {
+                const item = await prisma.goldenDatasetItem.create({
+                    data: {
+                        tenant_id, store_id, source_type: 'olo', raw_input: strInput, expected_output, validation_notes, priority: priority || 'NORMAL', fingerprint, status: 'RECEIVED'
+                    }
+                });
+                await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'olo' });
+                res.json({ success: true, item });
+            } catch (pError: any) {
+                if (pError.code === 'P2002') {
+                    await prisma.intakeAudit.create({ data: { correlation_id: `dup_${Date.now()}_olo`, actor_user_id: getUserId(req.user), actor_role: req.user.role || 'executive', action: 'INTAKE_DUPLICATE_REJECTED', target_resource: 'olo', effective_scope: tenant_id, fingerprint, result_status: 'QUARANTINED' }});
+                    return res.status(409).json({ error: 'Duplicate Payload Detected (Idempotency Locked)', quarantine_cause: 'DUPLICATE_INPUT' });
                 }
-            });
-            
-            await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'olo' });
-            res.json({ success: true, item });
+                throw pError;
+            }
         } catch (e: any) {
             res.status(403).json({ error: e.message });
         }
@@ -257,21 +263,24 @@ export class ValidationController {
             this.authorizeExecutiveAccess(req.user);
             const { tenant_id, store_id } = this.extractScope(req);
             const { file_name, extracted_text, expected_output, validation_notes, priority } = req.body;
+            const strInput = `[FILE: ${file_name}] ${extracted_text}`;
+            const fingerprint = generateFingerprint('invoice', tenant_id, store_id, strInput);
 
-            const item = await prisma.goldenDatasetItem.create({
-                data: {
-                    tenant_id,
-                    store_id,
-                    source_type: 'invoice',
-                    raw_input: `[FILE: ${file_name}] ${extracted_text}`,
-                    expected_output,
-                    validation_notes,
-                    priority: priority || 'NORMAL'
+            try {
+                const item = await prisma.goldenDatasetItem.create({
+                    data: {
+                        tenant_id, store_id, source_type: 'invoice', raw_input: strInput, expected_output, validation_notes, priority: priority || 'NORMAL', fingerprint, status: 'RECEIVED'
+                    }
+                });
+                await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'invoice' });
+                res.json({ success: true, item });
+            } catch (pError: any) {
+                if (pError.code === 'P2002') {
+                    await prisma.intakeAudit.create({ data: { correlation_id: `dup_${Date.now()}_invoice`, actor_user_id: getUserId(req.user), actor_role: req.user.role || 'executive', action: 'INTAKE_DUPLICATE_REJECTED', target_resource: 'invoice', effective_scope: tenant_id, fingerprint, result_status: 'QUARANTINED' }});
+                    return res.status(409).json({ error: 'Duplicate Payload Detected (Idempotency Locked)', quarantine_cause: 'DUPLICATE_INPUT' });
                 }
-            });
-            
-            await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'invoice' });
-            res.json({ success: true, item });
+                throw pError;
+            }
         } catch (e: any) {
             res.status(403).json({ error: e.message });
         }
@@ -282,21 +291,24 @@ export class ValidationController {
             this.authorizeExecutiveAccess(req.user);
             const { tenant_id, store_id } = this.extractScope(req);
             const { image_base64, expected_output, validation_notes, priority } = req.body;
+            const strInput = `[IMAGE LOG] Length: ${image_base64 ? image_base64.length : 0}`;
+            const fingerprint = generateFingerprint('image', tenant_id, store_id, strInput);
             
-            const item = await prisma.goldenDatasetItem.create({
-                data: {
-                    tenant_id,
-                    store_id,
-                    source_type: 'image',
-                    raw_input: `[IMAGE LOG] Length: ${image_base64 ? image_base64.length : 0}`,
-                    expected_output,
-                    validation_notes,
-                    priority: priority || 'NORMAL'
+            try {
+                const item = await prisma.goldenDatasetItem.create({
+                    data: {
+                        tenant_id, store_id, source_type: 'image', raw_input: strInput, expected_output, validation_notes, priority: priority || 'NORMAL', fingerprint, status: 'RECEIVED'
+                    }
+                });
+                await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'image' });
+                res.json({ success: true, item });
+            } catch (pError: any) {
+                if (pError.code === 'P2002') {
+                    await prisma.intakeAudit.create({ data: { correlation_id: `dup_${Date.now()}_image`, actor_user_id: getUserId(req.user), actor_role: req.user.role || 'executive', action: 'INTAKE_DUPLICATE_REJECTED', target_resource: 'image', effective_scope: tenant_id, fingerprint, result_status: 'QUARANTINED' }});
+                    return res.status(409).json({ error: 'Duplicate Payload Detected (Idempotency Locked)', quarantine_cause: 'DUPLICATE_INPUT' });
                 }
-            });
-            
-            await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'image' });
-            res.json({ success: true, item });
+                throw pError;
+            }
         } catch (e: any) {
             res.status(403).json({ error: e.message });
         }

@@ -39,8 +39,20 @@ export const DataIntakeConsole = ({ tenant, storeId, onImportSuccess }: { tenant
             const data = await res.json();
             if (data.success) {
                 // Prepend to our local preview
-                setImportedItems(prev => [data.item || data, ...prev]);
+                setImportedItems(prev => [{ ...data.item || data, internalStatus: 'SAVED' }, ...prev]);
                 onImportSuccess();
+                closeModal();
+            } else if (res.status === 409) {
+                // Duplicate handling
+                setImportedItems(prev => [{
+                    source_type: endpoint,
+                    tenant_id: tenant,
+                    raw_input: typeof payload === 'string' ? payload : JSON.stringify(payload),
+                    priority: 'CRITICAL',
+                    internalStatus: 'QUARANTINED',
+                    quarantine_cause: data.quarantine_cause || 'DUPLICATE_INPUT'
+                }, ...prev]);
+                alert(`⚠️ WARN: Dataset Duplication Detected.\nItem placed in Quarantine.`);
                 closeModal();
             } else {
                 alert(`Import Failed: ${data.error}`);
@@ -199,7 +211,13 @@ export const DataIntakeConsole = ({ tenant, storeId, onImportSuccess }: { tenant
                                         <td className="p-3">{item.tenant_id}</td>
                                         <td className="p-3 text-gray-500 font-mono text-xs truncate max-w-[200px]">{item.raw_input}</td>
                                         <td className="p-3"><span className="bg-[#333] px-2 py-1 rounded text-xs">{item.priority || 'NORMAL'}</span></td>
-                                        <td className="p-3"><span className="text-blue-400 border border-blue-400/30 bg-blue-400/10 px-2 py-1 rounded text-xs">SAVED</span></td>
+                                        <td className="p-3">
+                                            {item.internalStatus === 'QUARANTINED' ? (
+                                                <span className="text-orange-400 border border-orange-400/30 bg-orange-400/10 px-2 py-1 rounded text-xs font-bold" title={item.quarantine_cause}>QUARANTINED</span>
+                                            ) : (
+                                                <span className="text-blue-400 border border-blue-400/30 bg-blue-400/10 px-2 py-1 rounded text-xs">SAVED</span>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

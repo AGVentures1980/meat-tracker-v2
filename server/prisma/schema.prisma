@@ -1270,17 +1270,54 @@ model BillingPlan {
 // VALIDATION CENTER (SRE & QA)
 // ==========================================
 
+/// ENUM MACHINE STATE
+enum IntakeStatus {
+  RECEIVED
+  NORMALIZED
+  VALIDATED
+  QUARANTINED
+  REJECTED
+}
+
 model GoldenDatasetItem {
-  id               String   @id @default(uuid())
-  source_type      String   // barcode, olo, invoice, image
-  raw_input        String   // raw string or json
+  id               String       @id @default(uuid())
+  source_type      String       // barcode, olo, invoice, image
+  raw_input        String
   expected_output  Json
   validation_notes String?
-  priority         String   @default("NORMAL")
-  tenant_id        String?
-  store_id         Int?
-  created_at       DateTime @default(now())
-  is_active        Boolean  @default(true)
+  priority         String       @default("NORMAL")
+  
+  // HARDENED SCOPE VARIABLES
+  tenant_id        String       // [MANDATORY] Non-nullable to prevent orphans
+  store_id         Int?         // [OPTIONAL] Because Region/Global metrics can exist without store
+  
+  // IDEMPOTENCY & STATE
+  fingerprint      String       @unique // Hash: source_type + tenant_id + store_id + SHA256(raw_input)
+  status           IntakeStatus @default(RECEIVED)
+  quarantine_cause String?      // populated if REJECTED or QUARANTINED
+  batch_id         String?      // Links to IntakeBatch for bulk rollbacks
+  
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+  is_active        Boolean      @default(true)
+
+  @@index([tenant_id, created_at])
+  @@index([status, created_at])
+}
+
+model IntakeAudit {
+  id              String   @id @default(uuid())
+  correlation_id  String   @unique
+  actor_user_id   String
+  actor_role      String
+  action          String
+  target_resource String
+  effective_scope String
+  fingerprint     String
+  result_status   String
+  timestamp       DateTime @default(now())
+
+  @@index([effective_scope, action])
 }
 
 model ValidationRun {
