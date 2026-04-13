@@ -68,8 +68,7 @@ export async function safeMigrationGuardEngine(prisma: PrismaClient): Promise<vo
               migration: row.migration_name, state: status, risk: 'LOW', action: 'AUTO_RESOLVE', 
               reason: 'Bypass automático para a migration init legado.', severity: 'WARNING'
            });
-           const { execSync } = require('child_process');
-           execSync(`npx prisma migrate resolve --applied 20260206045606_init`, { stdio: 'inherit' });
+           await prisma.$executeRaw`UPDATE _prisma_migrations SET finished_at = NOW(), rolled_back_at = NULL WHERE migration_name = '20260206045606_init'`;
            continue;
        }
 
