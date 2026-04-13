@@ -17,7 +17,7 @@ export interface GuardMetrics {
 export const GuardStateSnapshot: GuardMetrics = {
     version: 'V6-OBSERVABLE-ZEROTRUST',
     boot_id: '',
-    decision: 'PENDING',
+    decision: 'PERMIT_BOOT',
     safe_count: 0,
     warn_count: 0,
     block_count: 0,
