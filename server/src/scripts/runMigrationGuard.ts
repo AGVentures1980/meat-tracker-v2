@@ -106,7 +106,7 @@ async function startV6Engine(): Promise<void> {
 
     const prisma = new PrismaClient();
     try {
-        const payload: PrismaMigrationRecord[] = await prisma.$queryRaw`SELECT * FROM _prisma_migrations ORDER BY started_at ASC`;
+        const payload = await prisma.$queryRaw<PrismaMigrationRecord[]>`SELECT * FROM _prisma_migrations ORDER BY started_at ASC`;
         const dbMap = new Map<string, PrismaMigrationRecord>();
         payload.forEach(row => dbMap.set(row.migration_name, row));
 
