@@ -214,7 +214,7 @@ function AppContent() {
                     <Route path="/executive/specs" element={<CorporateSpecs />} />
                     <Route path="/executive/quarantine-inbox" element={<QuarantineInbox />} />
                     <Route path="/executive/agv-fraud-audit" element={<FraudAuditReport />} />
-                    <Route path="/executive/validation" element={<ValidationCenter />} />
+                    <Route path="/validation" element={<ValidationCenter />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />
