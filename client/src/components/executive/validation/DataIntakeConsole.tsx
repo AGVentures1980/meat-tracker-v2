@@ -37,9 +37,16 @@ export const DataIntakeConsole = ({ tenant, storeId, onImportSuccess }: { tenant
             });
 
             const data = await res.json();
-            if (data.success) {
-                // Prepend to our local preview
-                setImportedItems(prev => [{ ...data.item || data, internalStatus: 'SAVED' }, ...prev]);
+            if (res.status === 202 || data.success) {
+                // Prepend to our local preview with correlation tracking
+                setImportedItems(prev => [{
+                    source_type: endpoint,
+                    tenant_id: tenant,
+                    raw_input: reqPayload.raw_input || reqPayload.image_base64 || reqPayload.extracted_text || JSON.stringify(reqPayload),
+                    priority,
+                    internalStatus: data.status || 'QUEUED',
+                    correlation_id: data.correlation_id
+                }, ...prev]);
                 onImportSuccess();
                 closeModal();
             } else if (res.status === 409) {
@@ -215,7 +222,7 @@ export const DataIntakeConsole = ({ tenant, storeId, onImportSuccess }: { tenant
                                             {item.internalStatus === 'QUARANTINED' ? (
                                                 <span className="text-orange-400 border border-orange-400/30 bg-orange-400/10 px-2 py-1 rounded text-xs font-bold" title={item.quarantine_cause}>QUARANTINED</span>
                                             ) : (
-                                                <span className="text-blue-400 border border-blue-400/30 bg-blue-400/10 px-2 py-1 rounded text-xs">SAVED</span>
+                                                <span className="text-blue-400 border border-blue-400/30 bg-blue-400/10 px-2 py-1 rounded text-xs">{item.internalStatus || 'QUEUED'}</span>
                                             )}
                                         </td>
                                     </tr>

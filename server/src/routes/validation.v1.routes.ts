@@ -24,5 +24,6 @@ router.post('/import/olo', (req, res) => controller.importOlo(req, res));
 router.post('/import/invoice', (req, res) => controller.importInvoice(req, res));
 router.post('/import/image', (req, res) => controller.importImage(req, res));
 router.post('/import/bulk', (req, res) => controller.importBulk(req, res));
+router.post('/intake/items/:id/reprocess', (req, res) => controller.reprocessItem(req, res));
 
 export default router;
