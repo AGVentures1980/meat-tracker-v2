@@ -9,7 +9,7 @@ try {
     const items = fs.readdirSync(migrationsDir);
     
     // Filter only directories that start with numbers (YYYYMMDD...)
-    const migrations = items.filter(item => {
+    const migrations = items.filter((item: string) => {
         return fs.statSync(path.join(migrationsDir, item)).isDirectory() && /^\d+/.test(item);
     });
 
@@ -20,7 +20,8 @@ try {
             console.log(`[SRE] Resolving ${migration}...`);
             execSync(`npx prisma migrate resolve --applied ${migration}`, { stdio: 'pipe' });
             console.log(`✅ [SRE] ${migration} natively marked applied.`);
-        } catch (error) {
+        } catch (e: unknown) {
+            const error = e as any;
             const stderr = error.stderr ? error.stderr.toString() : '';
             if (stderr.includes('P3008')) {
                  console.log(`ℹ️ [SRE] ${migration} is already recorded as applied.`);
@@ -31,6 +32,6 @@ try {
         }
     }
     console.log('[SRE] Forceful Resolution Complete. System Clear.');
-} catch (error) {
-    console.error('[SRE] FATAL ERROR during Forceful Resolution:', error);
+} catch (e: unknown) {
+    console.error('[SRE] FATAL ERROR during Forceful Resolution:', e);
 }
