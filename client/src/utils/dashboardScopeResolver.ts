@@ -46,7 +46,7 @@ export const validateScopeContext = (context: UserContextPayload): { valid: bool
     const isRegionalRole = ['area_manager'].includes(role);
     const isStoreRole = ['manager', 'user'].includes(role);
 
-    if (isExecutiveRole && !['COMPANY', 'TENANT_EXECUTIVE_SCOPE', 'MASTER_EXECUTIVE'].includes(scopeType)) {
+    if (isExecutiveRole && !['COMPANY', 'TENANT_EXECUTIVE_SCOPE', 'MASTER_EXECUTIVE', 'GLOBAL', 'Global'].includes(scopeType.toUpperCase())) {
         return { valid: false, reason: `Consistency Mismatch: Executive role '${role}' cannot have restricted scope '${scopeType}'` };
     }
 
@@ -92,7 +92,7 @@ export const resolveDashboardView = (context: UserContextPayload): ScopeResoluti
     const storeId = selectedStore || 'NO_STORE';
 
     // 1. EXECUTIVE
-    if (['admin', 'director', 'vp'].includes(role) || ['COMPANY', 'TENANT_EXECUTIVE_SCOPE', 'MASTER_EXECUTIVE'].includes(scopeType)) {
+    if (['admin', 'director', 'vp'].includes(role) || ['COMPANY', 'TENANT_EXECUTIVE_SCOPE', 'MASTER_EXECUTIVE', 'GLOBAL', 'Global'].includes(scopeType.toUpperCase())) {
         return { 
             view: 'EXECUTIVE', 
             isolationKey: `tenant:${safeTenant}|view:exec|role:${role}`
