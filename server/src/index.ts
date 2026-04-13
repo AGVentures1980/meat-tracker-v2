@@ -136,6 +136,7 @@ app.post('/api/v1/webhooks/stripe', express.raw({ type: 'application/json' }), S
 
 // API Routes
 import dashboardRoutes from './routes/dashboard.routes';
+import dashboardV2Routes from './routes/dashboard.v2.routes';
 import orderRoutes from './routes/order.routes';
 import uploadRoutes from './routes/upload.routes';
 import inventoryRoutes from './routes/inventory.routes';
@@ -196,6 +197,7 @@ import burgerRoutes from './routes/burger.routes';
 
 // Protected Routes
 app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
+app.use('/api/v2/dashboard', dashboardV2Routes);
 app.use('/api/v1/orders', requireAuth, orderRoutes);
 app.use('/api/v1/upload', requireAuth, uploadRoutes);
 app.use('/api/v1/inventory', requireAuth, inventoryRoutes);
