@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client';
+import { AuditService } from '../services/AuditService';
+import { getUserId } from '../utils/authContext';
 
 const prisma = new PrismaClient();
 
@@ -36,7 +38,17 @@ export class ValidationController {
     public getDataset = async (req: any, res: any) => {
         try {
             this.authorizeExecutiveAccess(req.user);
+            const activeTenant = req.headers['x-company-id'];
+            const where: any = {};
+            if (activeTenant) {
+                where.tenant_id = activeTenant;
+            } else {
+               // Fail-closed prevention mapping
+               where.tenant_id = "LOCKED_NON_EXISTENT_SCOPE";
+            }
+            
             const data = await prisma.goldenDatasetItem.findMany({
+                where,
                 orderBy: { priority: 'asc' },
                 take: 100
             });
@@ -156,12 +168,15 @@ export class ValidationController {
         try {
             this.authorizeExecutiveAccess(req.user);
             const { cases } = req.body;
+            const tenant_id = req.headers['x-company-id'] as string;
+            if (!tenant_id) throw new Error("Tenant Scope Required (Fail-Closed)");
             let imported = 0;
             
             if (Array.isArray(cases)) {
                 for (const c of cases) {
                     await prisma.goldenDatasetItem.create({
                         data: {
+                            tenant_id,
                             source_type: c.source_type,
                             raw_input: typeof c.raw_input === 'string' ? c.raw_input : JSON.stringify(c.raw_input),
                             expected_output: typeof c.expected_output === 'string' ? JSON.parse(c.expected_output) : c.expected_output,
@@ -173,6 +188,145 @@ export class ValidationController {
                 }
             }
 
+            res.json({ success: true, imported });
+        } catch (e: any) {
+             console.error(e);
+             res.status(403).json({ error: e.message });
+        }
+    };
+
+    private extractScope(req: any) {
+        const tenant_id = req.headers['x-company-id'] as string;
+        if (!tenant_id) throw new Error("Tenant Scope Required (Fail-Closed)");
+        const store_id = req.body.store_id ? parseInt(req.body.store_id, 10) : undefined;
+        return { tenant_id, store_id };
+    }
+
+    public importBarcode = async (req: any, res: any) => {
+        try {
+            this.authorizeExecutiveAccess(req.user);
+            const { tenant_id, store_id } = this.extractScope(req);
+            const { raw_input, expected_output, validation_notes, priority } = req.body;
+
+            const item = await prisma.goldenDatasetItem.create({
+                data: {
+                    tenant_id,
+                    store_id,
+                    source_type: 'barcode',
+                    raw_input,
+                    expected_output,
+                    validation_notes,
+                    priority: priority || 'NORMAL'
+                }
+            });
+            
+            await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'barcode' });
+            res.json({ success: true, item });
+        } catch (e: any) {
+            res.status(403).json({ error: e.message });
+        }
+    };
+
+    public importOlo = async (req: any, res: any) => {
+        try {
+            this.authorizeExecutiveAccess(req.user);
+            const { tenant_id, store_id } = this.extractScope(req);
+            const { raw_input, expected_output, validation_notes, priority } = req.body;
+
+            const item = await prisma.goldenDatasetItem.create({
+                data: {
+                    tenant_id,
+                    store_id,
+                    source_type: 'olo',
+                    raw_input: typeof raw_input === 'string' ? raw_input : JSON.stringify(raw_input),
+                    expected_output,
+                    validation_notes,
+                    priority: priority || 'NORMAL'
+                }
+            });
+            
+            await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'olo' });
+            res.json({ success: true, item });
+        } catch (e: any) {
+            res.status(403).json({ error: e.message });
+        }
+    };
+
+    public importInvoice = async (req: any, res: any) => {
+        try {
+            this.authorizeExecutiveAccess(req.user);
+            const { tenant_id, store_id } = this.extractScope(req);
+            const { file_name, extracted_text, expected_output, validation_notes, priority } = req.body;
+
+            const item = await prisma.goldenDatasetItem.create({
+                data: {
+                    tenant_id,
+                    store_id,
+                    source_type: 'invoice',
+                    raw_input: `[FILE: ${file_name}] ${extracted_text}`,
+                    expected_output,
+                    validation_notes,
+                    priority: priority || 'NORMAL'
+                }
+            });
+            
+            await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'invoice' });
+            res.json({ success: true, item });
+        } catch (e: any) {
+            res.status(403).json({ error: e.message });
+        }
+    };
+
+    public importImage = async (req: any, res: any) => {
+        try {
+            this.authorizeExecutiveAccess(req.user);
+            const { tenant_id, store_id } = this.extractScope(req);
+            const { image_base64, expected_output, validation_notes, priority } = req.body;
+            
+            const item = await prisma.goldenDatasetItem.create({
+                data: {
+                    tenant_id,
+                    store_id,
+                    source_type: 'image',
+                    raw_input: `[IMAGE LOG] Length: ${image_base64 ? image_base64.length : 0}`,
+                    expected_output,
+                    validation_notes,
+                    priority: priority || 'NORMAL'
+                }
+            });
+            
+            await AuditService.logAction(getUserId(req.user), 'VALIDATION_ITEM_SAVED', 'GoldenDatasetItem', { id: item.id, tenant_id, source_type: 'image' });
+            res.json({ success: true, item });
+        } catch (e: any) {
+            res.status(403).json({ error: e.message });
+        }
+    };
+
+    public importBulk = async (req: any, res: any) => {
+        try {
+            this.authorizeExecutiveAccess(req.user);
+            const { tenant_id, store_id } = this.extractScope(req);
+            const { cases } = req.body;
+            let imported = 0;
+            
+            if (Array.isArray(cases)) {
+                for (const c of cases) {
+                    await prisma.goldenDatasetItem.create({
+                        data: {
+                            tenant_id,
+                            store_id,
+                            source_type: c.source_type,
+                            raw_input: typeof c.raw_input === 'string' ? c.raw_input : JSON.stringify(c.raw_input),
+                            expected_output: typeof c.expected_output === 'string' ? JSON.parse(c.expected_output) : c.expected_output,
+                            validation_notes: c.validation_notes || '',
+                            priority: c.priority || 'NORMAL'
+                        }
+                    });
+                    imported++;
+                }
+            }
+            
+            await AuditService.logAction(getUserId(req.user), 'VALIDATION_IMPORT_COMPLETED', 'GoldenDatasetItem', { count: imported, tenant_id, source_type: 'bulk' });
             res.json({ success: true, imported });
         } catch (e: any) {
              console.error(e);

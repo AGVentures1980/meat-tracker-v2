@@ -3,6 +3,7 @@ import {
   Building2, MapPin, Store, Database,
   ShieldCheck, AlertTriangle, Play, Activity, CheckCircle, XCircle 
 } from 'lucide-react';
+import { DataIntakeConsole } from '../../components/executive/validation/DataIntakeConsole';
 
 export const ValidationCenter = () => {
     // Basic Authorizer lock
@@ -136,12 +137,16 @@ export const ValidationCenter = () => {
                 </div>
                 <button 
                     onClick={runValidation}
-                    disabled={isRunning}
-                    className="h-[42px] bg-red-600 hover:bg-red-500 px-6 rounded font-bold text-white flex items-center gap-2">
+                    disabled={isRunning || tenant === 'BRASA Global'}
+                    title={tenant === 'BRASA Global' ? 'Select Tenant First' : ''}
+                    className="h-[42px] bg-red-600 hover:bg-red-500 px-6 rounded font-bold text-white flex items-center gap-2 disabled:opacity-50">
                     {isRunning ? <span className="animate-spin text-xl">◷</span> : <Play size={16}/>}
                     {isRunning ? 'RUNNING...' : 'EXECUTE RUN'}
                 </button>
             </div>
+
+            {/* DATA INTAKE CONSOLE */}
+            <DataIntakeConsole tenant={tenant} storeId={storeId} onImportSuccess={fetchData} />
 
             {/* BLOCK A - OVERVIEW */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

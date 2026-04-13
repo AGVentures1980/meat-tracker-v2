@@ -19,5 +19,10 @@ router.get('/audit', controller.getAudit);
 
 router.post('/run', (req, res) => controller.runValidation(req, res));
 router.post('/import', (req, res) => controller.importDataset(req, res));
+router.post('/import/barcode', (req, res) => controller.importBarcode(req, res));
+router.post('/import/olo', (req, res) => controller.importOlo(req, res));
+router.post('/import/invoice', (req, res) => controller.importInvoice(req, res));
+router.post('/import/image', (req, res) => controller.importImage(req, res));
+router.post('/import/bulk', (req, res) => controller.importBulk(req, res));
 
 export default router;

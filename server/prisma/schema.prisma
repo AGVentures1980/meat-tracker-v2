@@ -1277,6 +1277,8 @@ model GoldenDatasetItem {
   expected_output  Json
   validation_notes String?
   priority         String   @default("NORMAL")
+  tenant_id        String?
+  store_id         Int?
   created_at       DateTime @default(now())
   is_active        Boolean  @default(true)
 }
