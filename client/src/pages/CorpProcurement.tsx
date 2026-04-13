@@ -10,12 +10,8 @@ export const CorpProcurement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
 
-    // Hard Lockout: ONLY executives/admins can see this page
-    const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
-    const isRodrigo = user?.email?.toLowerCase().includes('rodrigo');
-    const isValidExecutive = isMaster || isRodrigo || user?.role === 'admin' || user?.role === 'director';
-
-    if (!isValidExecutive) {
+    // Hard Lockout: ONLY the master owner can see this page (Ace in the Hole)
+    if (user?.email?.toLowerCase().trim() !== 'alexandre@alexgarciaventures.co') {
         return <Navigate to="/dashboard" replace />;
     }
 
