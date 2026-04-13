@@ -21,6 +21,15 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
         run: |
           npm ci
-          npx prisma migrate resolve --applied 20260206045606_init || true
-          npx prisma migrate resolve --applied 20260209134438_add_financial_targets_fix || true
-          npx prisma migrate resolve --applied 20260218194023_add_protein_group_and_lamb_toggle || true
+          echo "==== RESOLVING IN PRODUCTION ===="
+          DATABASE_URL="${{ secrets.DATABASE_URL_PROD }}" npx prisma migrate resolve --applied 20260218194023_add_protein_group_and_lamb_toggle || true
+          echo "==== RESOLVING IN STAGING ===="
+          DATABASE_URL="${{ secrets.DATABASE_URL_STAGING }}" npx prisma migrate resolve --applied 20260218194023_add_protein_group_and_lamb_toggle || true
+          echo "==== RE-VERIFYING STATUS PROD ===="
+          DATABASE_URL="${{ secrets.DATABASE_URL_PROD }}" npx prisma migrate status || true
+          echo "==== RE-VERIFYING STATUS STAGING ===="
+          DATABASE_URL="${{ secrets.DATABASE_URL_STAGING }}" npx prisma migrate status || true
+          echo "==== QUERYING DATABASE PROD ===="
+          DATABASE_URL="${{ secrets.DATABASE_URL_PROD }}" node -e "const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const res = await prisma.\$queryRaw\`SELECT migration_name, finished_at, rolled_back_at, logs, applied_steps_count FROM _prisma_migrations WHERE migration_name = '20260218194023_add_protein_group_and_lamb_toggle'\`; console.log(res); } main().catch(console.error).finally(()=> prisma.\$disconnect());"
+          echo "==== QUERYING DATABASE STAGING ===="
+          DATABASE_URL="${{ secrets.DATABASE_URL_STAGING }}" node -e "const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const res = await prisma.\$queryRaw\`SELECT migration_name, finished_at, rolled_back_at, logs, applied_steps_count FROM _prisma_migrations WHERE migration_name = '20260218194023_add_protein_group_and_lamb_toggle'\`; console.log(res); } main().catch(console.error).finally(()=> prisma.\$disconnect());"
