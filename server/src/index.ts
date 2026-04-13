@@ -54,16 +54,12 @@ app.get('/health', (req, res) => {
         status: 'healthy', 
         service: 'brasa-api',
         guard: {
-            version: GuardStateSnapshot.version,
             last_boot_decision: GuardStateSnapshot.decision,
             safe_count: GuardStateSnapshot.safe_count,
-            warn_count: GuardStateSnapshot.warn_count,
-            block_count: GuardStateSnapshot.block_count,
-            risk_score: GuardStateSnapshot.risk_score,
-            last_boot_at: GuardStateSnapshot.last_boot_at,
-            anomaly_detected: GuardStateSnapshot.anomaly_detected
+            error_count: GuardStateSnapshot.error_count,
+            last_boot_at: GuardStateSnapshot.last_boot_at
         },
-        database: { connected: true }
+        database: { status: 'not_checked_in_health' }
     });
 });
 
@@ -73,22 +69,28 @@ app.get('/api/health', (req, res) => {
 });
 
 // Enriched Readiness Endpoint
-app.get('/ready', (req, res) => {
-    const isReady = GuardStateSnapshot.decision === 'PERMIT_BOOT';
+app.get('/ready', async (req, res) => {
+    let dbAlive = false;
+    try {
+        const dbPromise = prisma.$queryRaw`SELECT 1`;
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000));
+        await Promise.race([dbPromise, timeoutPromise]);
+        dbAlive = true;
+    } catch (e) {
+        dbAlive = false;
+    }
+
+    const isReady = GuardStateSnapshot.decision === 'PERMIT_BOOT' && dbAlive;
     res.status(isReady ? 200 : 503).json({
         status: isReady ? 'ready' : 'unavailable',
         service: 'brasa-api',
         guard: {
-            version: GuardStateSnapshot.version,
             last_boot_decision: GuardStateSnapshot.decision,
             safe_count: GuardStateSnapshot.safe_count,
-            warn_count: GuardStateSnapshot.warn_count,
-            block_count: GuardStateSnapshot.block_count,
-            risk_score: GuardStateSnapshot.risk_score,
-            last_boot_at: GuardStateSnapshot.last_boot_at,
-            anomaly_detected: GuardStateSnapshot.anomaly_detected
+            error_count: GuardStateSnapshot.error_count,
+            last_boot_at: GuardStateSnapshot.last_boot_at
         },
-        database: { connected: true }
+        database: { connected: dbAlive }
     });
 });
 

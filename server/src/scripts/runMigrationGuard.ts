@@ -186,67 +186,41 @@ async function startV6Engine(): Promise<void> {
         
         // Threshold validations
         if (metrics.warn_score >= MIGRATION_GUARD_WARN_THRESHOLD) {
-             console.log(JSON.stringify({ event: 'ANOMALY_ALERT', reason: `warn_score ${metrics.warn_score} >= ${MIGRATION_GUARD_WARN_THRESHOLD}` }));
+             console.log(JSON.stringify({ event: 'ANOMALY_ALERT', reason: `warn_score ${metrics.warn_score} >= ${MIGRATION_GUARD_WARN_THRESHOLD}`, timestamp: new Date().toISOString() }));
              anomaly_detected = true;
         }
 
         if (metrics.risk_score >= MIGRATION_GUARD_RISK_THRESHOLD) {
-             console.log(JSON.stringify({ event: 'ANOMALY_ALERT', reason: `risk_score ${metrics.risk_score} >= ${MIGRATION_GUARD_RISK_THRESHOLD}` }));
+             console.log(JSON.stringify({ event: 'ANOMALY_ALERT', reason: `risk_score ${metrics.risk_score} >= ${MIGRATION_GUARD_RISK_THRESHOLD}`, timestamp: new Date().toISOString() }));
              anomaly_detected = true;
              blockOccurred = true;
         }
 
-        console.log("GUARD_SUMMARY");
+        // PARTE 5: PROTECAO FINAL
+        if (metrics.safe_count === 0 && allMigrations.size > 0) {
+            console.log(JSON.stringify({ event: 'ANOMALY_ALERT', reason: `Zero SAFE migrations detected. Possible catastrophic state or empty DB.`, timestamp: new Date().toISOString() }));
+            blockOccurred = true;
+        }
+
+        console.log(JSON.stringify({ event: 'GUARD_SUMMARY', metrics, timestamp: new Date().toISOString() }));
 
         const finalDecision: 'PERMIT_BOOT' | 'BLOCK_BOOT' = blockOccurred ? 'BLOCK_BOOT' : 'PERMIT_BOOT';
-        console.log(finalDecision);
+        console.log(JSON.stringify({ event: finalDecision, timestamp: new Date().toISOString() }));
         
-        // Emit final global metrics
-        emitMetric("migration_guard.safe_count", metrics.safe_count);
-        emitMetric("migration_guard.warn_count", metrics.warn_count);
-        emitMetric("migration_guard.block_count", metrics.block_count);
-        emitMetric("migration_guard.extra_in_db_count", metrics.extra_in_db_count);
-        emitMetric("migration_guard.checksum_mismatch_count", metrics.checksum_mismatch_count);
-        emitMetric("migration_guard.out_of_order_count", metrics.out_of_order_count);
-        emitMetric("migration_guard.risk_score", metrics.risk_score);
-        emitMetric("migration_guard.warn_score", metrics.warn_score);
-        emitMetric("migration_guard.boot_permitted", finalDecision === 'PERMIT_BOOT' ? 1 : 0);
-        emitMetric("migration_guard.boot_blocked", finalDecision === 'BLOCK_BOOT' ? 1 : 0);
-
         updateGuardSnapshot({
             decision: finalDecision,
-            ...metrics,
-            anomaly_detected,
+            safe_count: metrics.safe_count,
+            error_count: metrics.block_count,
             last_boot_at: new Date().toISOString()
         });
 
-        // Best effort Audit write
-        try {
-            // Write each log directly, fire-and-forget in case db fails
-            await prisma.migrationGuardAuditLog.createMany({
-                data: auditBulk,
-                skipDuplicates: true
-            });
-            await prisma.migrationGuardAuditLog.create({
-                data: {
-                    guard_version: "V6-OBSERVABLE-ZEROTRUST",
-                    boot_id: bootId,
-                    environment: "production",
-                    event: finalDecision,
-                    reason: `Final check: blockOccurred=${blockOccurred}`
-                }
-            });
-        } catch (auditErr: any) {
-            console.log(JSON.stringify({ event: 'WARN_ONLY', reason: 'Audit Database Write Failed Best-Effort', details: auditErr.message }));
-        }
-
+        // Pure read-only emission completed via stdout metrics (no DB mutation)
         await prisma.$disconnect();
         process.exit(blockOccurred ? 1 : 0);
         
     } catch (error: any) {
-        console.error("🚨 [SRE FATAL ERROR] Erro conectando ao prisma engine", error.message);
-        console.log("BOOT_BLOCKED");
-        emitMetric("migration_guard.boot_blocked", 1);
+        console.error(JSON.stringify({ event: 'SRE_FATAL_ERROR', message: error.message, timestamp: new Date().toISOString() }));
+        console.log(JSON.stringify({ event: 'BOOT_BLOCKED', timestamp: new Date().toISOString() }));
         await prisma.$disconnect();
         process.exit(1);
     }

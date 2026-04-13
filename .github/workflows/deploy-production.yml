@@ -36,8 +36,13 @@ jobs:
       - name: Install Runtime Requirements
         run: npm ci
 
-      - name: Zero-Trust Drift Gate
-        run: npx ts-node src/scripts/checkSchemaDrift.ts
+      - name: Zero-Trust Drift Gate (Read-Only)
+        run: |
+          # 1. Audit Current DB State
+          npx ts-node src/scripts/sre_migration_audit.ts || true
+          
+          # 2. Check Strict FS/DB Compare
+          npx ts-node src/scripts/sre_migration_compare.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
 

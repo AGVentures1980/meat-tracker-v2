@@ -1,35 +1,37 @@
+import fs from 'fs';
+import path from 'path';
+
 export interface GuardMetrics {
-    version: string;
-    boot_id: string;
+    last_boot_at: string;
     decision: 'PERMIT_BOOT' | 'BLOCK_BOOT' | 'PENDING';
     safe_count: number;
-    warn_count: number;
-    block_count: number;
-    extra_in_db_count: number;
-    checksum_mismatch_count: number;
-    out_of_order_count: number;
-    risk_score: number;
-    warn_score: number;
-    anomaly_detected: boolean;
-    last_boot_at: string;
+    error_count: number;
 }
 
+const snapshotPath = path.join(process.cwd(), '.guard-state.json');
+
 export const GuardStateSnapshot: GuardMetrics = {
-    version: 'V6-OBSERVABLE-ZEROTRUST',
-    boot_id: '',
-    decision: 'PERMIT_BOOT',
+    last_boot_at: new Date().toISOString(),
+    decision: 'PENDING',
     safe_count: 0,
-    warn_count: 0,
-    block_count: 0,
-    extra_in_db_count: 0,
-    checksum_mismatch_count: 0,
-    out_of_order_count: 0,
-    risk_score: 0,
-    warn_score: 0,
-    anomaly_detected: false,
-    last_boot_at: new Date().toISOString()
+    error_count: 0
 };
+
+// Hydrate from file if runMigrationGuard already deposited it
+if (fs.existsSync(snapshotPath)) {
+    try {
+        const data = fs.readFileSync(snapshotPath, 'utf8');
+        Object.assign(GuardStateSnapshot, JSON.parse(data));
+    } catch (e) {
+        console.error('[SRE] Failed to hydrate GuardStateSnapshot from disk');
+    }
+}
 
 export function updateGuardSnapshot(update: Partial<GuardMetrics>) {
     Object.assign(GuardStateSnapshot, update);
+    try {
+        fs.writeFileSync(snapshotPath, JSON.stringify(GuardStateSnapshot, null, 2));
+    } catch (e) {
+        // Soft fail
+    }
 }
