@@ -797,23 +797,6 @@ enum UsdaGrade {
   UNGRADED
 }
 
-model MigrationGuardAuditLog {
-  id              String    @id @default(uuid())
-  created_at      DateTime  @default(now())
-  guard_version   String
-  boot_id         String
-  environment     String
-  migration_name  String?
-  event           String
-  state_detected  String?
-  decision        String?
-  checksum_db     String?
-  checksum_local  String?
-  finished_at     DateTime?
-  rolled_back_at  DateTime?
-  reason          String?
-  details         Json?
-}
 
 model BarcodeFamily {
   id                   String   @id @default(uuid())
