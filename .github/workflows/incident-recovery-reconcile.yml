@@ -22,4 +22,5 @@ jobs:
         run: |
           npm ci
           npx prisma migrate resolve --applied 20260206045606_init || true
-          npx prisma migrate resolve --applied 20260209134438_add_financial_targets_fix
+          npx prisma migrate resolve --applied 20260209134438_add_financial_targets_fix || true
+          npx prisma migrate resolve --applied 20260218194023_add_protein_group_and_lamb_toggle || true
