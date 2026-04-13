@@ -5,7 +5,7 @@ const { execSync } = require('child_process');
 console.log('[SRE] Starting Forceful Migration Resolution...');
 
 try {
-    const migrationsDir = path.join(__dirname, '../../prisma/migrations');
+    const migrationsDir = path.join(process.cwd(), 'prisma/migrations');
     const items = fs.readdirSync(migrationsDir);
     
     // Filter only directories that start with numbers (YYYYMMDD...)
