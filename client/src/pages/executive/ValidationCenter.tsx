@@ -28,7 +28,7 @@ export const ValidationCenter = () => {
     useEffect(() => {
         // Enforce the access dynamically.
         // As requested: fail-closed if not master
-        const userStr = localStorage.getItem('user');
+        const userStr = localStorage.getItem('brasameat_user');
         if (userStr) {
             const user = JSON.parse(userStr);
             const isMaster = user.email.toLowerCase().includes('alexandre@alexgarciaventures.co');
@@ -46,7 +46,8 @@ export const ValidationCenter = () => {
     const fetchData = async () => {
         // Fetching all endpoints concurrently
         try {
-            const baseObj = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }};
+            const token = JSON.parse(localStorage.getItem('brasameat_user') || '{}')?.token;
+            const baseObj = { headers: { Authorization: `Bearer ${token}` } };
             const [ov, ds, mt, er, qu, sh, au] = await Promise.all([
                 fetch('/api/v1/validation/overview', baseObj).then(r => r.json()),
                 fetch('/api/v1/validation/dataset', baseObj).then(r => r.json()),
@@ -73,11 +74,12 @@ export const ValidationCenter = () => {
     const runValidation = async () => {
         setIsRunning(true);
         try {
+             const token = JSON.parse(localStorage.getItem('brasameat_user') || '{}')?.token;
              await fetch('/api/v1/validation/run', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                    Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({ tenant_id: tenant, store_id: storeId, source_type: sourceType })
              });
