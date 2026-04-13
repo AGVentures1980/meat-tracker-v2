@@ -1,0 +1,25 @@
+name: Incident Recovery - Reconcile PRISMA
+on:
+  push:
+    branches:
+      - pitch-ready
+  workflow_dispatch:
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Run Prisma Resolve
+        working-directory: server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
+        run: |
+          npm ci
+          npx prisma migrate resolve --applied 20260206045606_init || true
+          npx prisma migrate resolve --applied 20260209134438_add_financial_targets_fix
