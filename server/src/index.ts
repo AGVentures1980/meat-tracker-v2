@@ -45,9 +45,25 @@ app.use(helmet({
 }));
 app.use(morgan('dev'));
 
-// Basic Health Check
+import { GuardStateSnapshot } from './utils/GuardStateSnapshot';
+
+// Basic Health Check (Enriched V6)
 app.get('/health', (req, res) => {
-    res.json({ status: 'UP', timestamp: new Date() });
+    res.json({ 
+        status: 'healthy', 
+        service: 'brasa-api',
+        guard: {
+            version: GuardStateSnapshot.version,
+            last_boot_decision: GuardStateSnapshot.decision,
+            safe_count: GuardStateSnapshot.safe_count,
+            warn_count: GuardStateSnapshot.warn_count,
+            block_count: GuardStateSnapshot.block_count,
+            risk_score: GuardStateSnapshot.risk_score,
+            last_boot_at: GuardStateSnapshot.last_boot_at,
+            anomaly_detected: GuardStateSnapshot.anomaly_detected
+        },
+        database: { connected: true }
+    });
 });
 
 // Proxied Health Check for Frontend
@@ -55,7 +71,26 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'UP', timestamp: new Date() });
 });
 
-// Import Real Auth Middleware
+// Enriched Readiness Endpoint
+app.get('/ready', (req, res) => {
+    const isReady = GuardStateSnapshot.decision === 'PERMIT_BOOT';
+    res.status(isReady ? 200 : 503).json({
+        status: isReady ? 'ready' : 'unavailable',
+        service: 'brasa-api',
+        guard: {
+            version: GuardStateSnapshot.version,
+            last_boot_decision: GuardStateSnapshot.decision,
+            safe_count: GuardStateSnapshot.safe_count,
+            warn_count: GuardStateSnapshot.warn_count,
+            block_count: GuardStateSnapshot.block_count,
+            risk_score: GuardStateSnapshot.risk_score,
+            last_boot_at: GuardStateSnapshot.last_boot_at,
+            anomaly_detected: GuardStateSnapshot.anomaly_detected
+        },
+        database: { connected: true }
+    });
+});
+
 import { requireAuth } from './middleware/auth.middleware';
 import authRoutes from './routes/auth.routes';
 import sreRoutes from './routes/sre.routes';
