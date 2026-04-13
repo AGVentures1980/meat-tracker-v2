@@ -33,6 +33,19 @@ model Company {
   billing_status              String                 @default("trialing")
   stores_licensed             Int                    @default(1)
   api_key                     String?                @unique
+  // SRE & Enterprise Billing Extensions
+  current_tier             TierLevel              @default(TIER_1)
+  contract_status          DocuSignStatus         @default(PENDING)
+  contract_id              String?                @unique
+  contract_signed_at       DateTime?
+  contract_version         String                 @default("v1.0")
+  onboarding_started_at    DateTime?
+  polling_attempts         Int                    @default(0)
+  last_polled_at           DateTime?
+  polling_expires_at       DateTime?
+  grace_period_until       DateTime?
+  subscriptions            Subscription[]
+
   products                    CompanyProduct[]
   vault_messages              OwnerVaultMessage[]
   PartnerClient               PartnerClient[]
@@ -101,6 +114,12 @@ model Store {
   active_template_id         String?
   area_manager_id            String?
   region                     String?                 @default("Global")
+  
+  // Delivery & Billing State
+  status                     String                  @default("INACTIVE")
+  activated_at               DateTime?
+  billing_active             Boolean                 @default(false)
+
   delivery_sales             DeliverySale[]
   inventory_cycles           InventoryCycle[]
   inventory_records          InventoryRecord[]
@@ -1205,4 +1224,44 @@ model MigrationGuardAuditLog {
   rolled_back_at DateTime?
   reason         String?
   details        Json?
+}
+
+// Enterprise SRE & Billing Enums and Models
+enum TierLevel {
+  TIER_1
+  TIER_2
+  TIER_3
+}
+
+enum DocuSignStatus {
+  PENDING
+  SENT
+  DELIVERED
+  SIGNED
+  DECLINED
+  VOIDED
+}
+
+model Subscription {
+  id                       String    @id @default(uuid())
+  organization_id          String
+  stripe_subscription_id   String    @unique
+  tier                     TierLevel
+  price_per_store          Float
+  platform_fee             Float
+  store_count              Int       @default(0)
+  billing_cycle            String    @default("monthly")
+  status                   String    @default("active")
+  
+  company                  Company   @relation(fields: [organization_id], references: [id])
+}
+
+model BillingPlan {
+  id                       String    @id @default(uuid())
+  tier                     TierLevel @unique
+  price_per_store          Float
+  platform_fee             Float
+  min_store_commitment     Int       @default(1)
+  annual_discount_pct      Float     @default(0.0)
+  created_at               DateTime  @default(now())
 }
