@@ -13,7 +13,15 @@ export class IntelligenceController {
      */
     static async getAnomalies(req: Request, res: Response) {
         try {
-            const stats = await MeatEngine.getExecutiveStats((req as any).user);
+            const user = (req as any).user;
+            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+
+            // Override user's active company context for the query if provided
+            if (activeCompanyId) {
+                user.companyId = activeCompanyId;
+            }
+
+            const stats = await MeatEngine.getExecutiveStats(user);
             const anomalies = stats.performance.filter(store => {
                 const variancePct = (Math.abs(store.lbsGuestVar) / store.target_lbs_guest) * 100;
                 return variancePct > 15;
