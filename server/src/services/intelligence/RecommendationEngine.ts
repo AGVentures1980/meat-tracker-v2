@@ -13,7 +13,7 @@ export interface StoreAction {
   priority: ActionPriority;
   deadline_hours: number;
   confidence_score: number;
-  created_at: Date;
+  created_at_iso: string;
 }
 
 export class RecommendationEngine {
@@ -106,7 +106,7 @@ export class RecommendationEngine {
                 priority: priority,
                 deadline_hours: deadline,
                 confidence_score: Math.max(0, Math.min(100, Math.round(anomaly.confidence))),
-                created_at: anomaly.created_at
+                created_at_iso: new Date(anomaly.created_at).toISOString()
             };
 
             // Deduplication Logic - Keep highest severity (weights evaluated on priority)
@@ -117,7 +117,7 @@ export class RecommendationEngine {
                     actionMap.set(dedupeKey, newAction);
                 } else if (weights[newAction.priority] === weights[existing.priority]) {
                     // If priorities match, keep the most recent
-                    if (newAction.created_at > existing.created_at) {
+                    if (newAction.created_at_iso > existing.created_at_iso) {
                         actionMap.set(dedupeKey, newAction);
                     }
                 }
@@ -128,8 +128,19 @@ export class RecommendationEngine {
 
         const actions = Array.from(actionMap.values());
 
-        // Sort globally
-        const weights: Record<ActionPriority, number> = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
-        return actions.sort((a, b) => weights[b.priority] - weights[a.priority]);
+        // Sort globally (Priority -> Severity -> Timestamp)
+        const priorityWeights: Record<ActionPriority, number> = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
+        const severityWeights: Record<string, number> = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
+        
+        return actions.sort((a, b) => {
+            if (priorityWeights[a.priority] !== priorityWeights[b.priority]) {
+                return priorityWeights[b.priority] - priorityWeights[a.priority]; // Descending priority
+            }
+            if (severityWeights[a.severity] !== severityWeights[b.severity]) {
+                return severityWeights[b.severity] - severityWeights[a.severity]; // Descending severity
+            }
+            // Descending timestamp (newest first)
+            return b.created_at_iso.localeCompare(a.created_at_iso);
+        });
     }
 }

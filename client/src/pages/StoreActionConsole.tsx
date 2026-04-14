@@ -14,7 +14,7 @@ export interface StoreAction {
   priority: ActionPriority;
   deadline_hours: number;
   confidence_score: number;
-  created_at: string;
+  created_at_iso: string;
 }
 
 export const StoreActionConsole = () => {
@@ -52,14 +52,24 @@ export const StoreActionConsole = () => {
 
                 if (!signal.aborted) {
                     if (data.success && Array.isArray(data.data?.actions)) {
-                        setActions(data.data.actions as StoreAction[]);
+                        const incomingActions = data.data.actions as StoreAction[];
+                        
+                        // FAIL-CLOSED: Quick sanity check validating that we received ISO strings and Priority is present
+                        if (incomingActions.length > 0) {
+                            if (!incomingActions[0].created_at_iso || !incomingActions[0].priority) {
+                                throw new Error('Action ordering integrity compromised — verify backend sorting and DTO constraints.');
+                            }
+                        }
+
+                        // NOTE: Explicit NO-SORTING policy. The backend strictly controls the list.
+                        setActions(incomingActions);
                     } else {
                         throw new Error('Invalid payload structure from API');
                     }
                 }
             } catch (err: any) {
                 if (err.name !== 'AbortError') {
-                    console.error(err);
+                    console.error('Dispatch Error:', err);
                     setError(err.message);
                 }
             } finally {
@@ -90,6 +100,7 @@ export const StoreActionConsole = () => {
 
     const filteredActions = activeStoreFilter 
         ? actions.filter(a => a.store_id === activeStoreFilter) 
+        // No sorting, client is just display
         : actions;
 
     const getPriorityColor = (priority: ActionPriority) => {
@@ -138,6 +149,8 @@ export const StoreActionConsole = () => {
                                 <div className="flex items-center gap-3 font-mono text-[10px]">
                                     <span className="bg-[#111] px-2 py-1 text-gray-500 border border-[#333]">Store #{action.store_id}</span>
                                     <span className={action.confidence_score >= 85 ? 'text-[#00FF94]' : 'text-[#FF9F1C]'}>Confidence: {action.confidence_score}%</span>
+                                    {/* Display ISO derived time explicitly as display only logic */}
+                                    <span className="text-gray-600 border-l border-gray-700 pl-3 ml-1">Age: {new Date(action.created_at_iso).toLocaleDateString()}</span>
                                 </div>
                             </div>
 
