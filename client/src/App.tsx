@@ -23,6 +23,7 @@ import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
+import { StoreActionConsole } from './pages/StoreActionConsole';
 import { ValidationCenter } from './pages/executive/ValidationCenter';
 import StoreSettings from './pages/StoreSettings';
 import { UsersPage } from './pages/UsersPage';
@@ -217,6 +218,7 @@ function AppContent() {
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
                     <Route path="/smart-prep" element={<GovernanceGuard><SmartPrepPage /></GovernanceGuard>} />
                     <Route path="/delivery" element={<DeliveryPage />} />
+                    <Route path="/store-actions" element={<StoreActionConsole />} />
                     <Route path="/receiving" element={<ReceivingScanner />} />
                     <Route path="/waste" element={<WastePage />} />
                     <Route path="/pull-to-prep" element={<GovernanceGuard><PullToPrep /></GovernanceGuard>} />

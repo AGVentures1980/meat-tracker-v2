@@ -93,6 +93,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         if (isStoreLevel || isAreaLevel || isPaulo) {
             navItems.push({
                 section: t('nav.section_run') || 'RUN (Daily Operations)', items: [
+                    { icon: AlertOctagon, label: 'Store Action Console', path: '/store-actions' },
                     { icon: PlayCircle, label: t('nav.commandCenter') || 'Manager Shift Log', path: '/command-center' },
                     { icon: ScanLine, label: 'Daily Prep Par Levels', path: '/pull-to-prep' },
                     { icon: Scissors, label: 'Meat Yield Station', path: '/yield-station' },
