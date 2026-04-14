@@ -145,6 +145,7 @@ import deliveryRoutes from './routes/delivery.routes';
 import purchaseRoutes from './routes/purchase.routes';
 import barcodeRoutes from './routes/barcode.routes';
 import intelligenceRoutes from './routes/intelligence.routes';
+import executiveRoutes from './routes/executive.routes';
 import analystRoutes from './routes/analyst.routes';
 import negotiationRoutes from './routes/negotiation.routes';
 import reportRoutes from './routes/report.routes';
@@ -224,6 +225,7 @@ app.use('/api/v1/burger', burgerRoutes);
 app.use('/api/v1', leadRoutes);
 app.use('/api/v1/weather', weatherRoutes);
 app.use('/api/v1/sre', sreRoutes);
+app.use('/api/v1/executive', executiveRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
