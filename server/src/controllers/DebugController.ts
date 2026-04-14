@@ -101,15 +101,15 @@ export const DebugController = {
 
             // 1. ADD NEW FDC LOCATIONS
             const newStores = [
-                { store_name: 'Santa Monica', company_id: defaultFdcCompanyId, location: 'California', timezone: 'America/Los_Angeles', is_lunch_enabled: true },
-                { store_name: 'Rancho Cucamonga', company_id: defaultFdcCompanyId, location: 'California', timezone: 'America/Los_Angeles', is_lunch_enabled: true },
-                { store_name: 'Columbus', company_id: defaultFdcCompanyId, location: 'Ohio', timezone: 'America/New_York', is_lunch_enabled: true },
-                { store_name: 'Charlotte', company_id: defaultFdcCompanyId, location: 'North Carolina', timezone: 'America/New_York', is_lunch_enabled: true },
-                { store_name: 'Katy', company_id: defaultFdcCompanyId, location: 'Texas', timezone: 'America/Chicago', is_lunch_enabled: true },
-                { store_name: 'Tualatin', company_id: defaultFdcCompanyId, location: 'Oregon', timezone: 'America/Los_Angeles', is_lunch_enabled: true },
-                { store_name: 'Daly City', company_id: defaultFdcCompanyId, location: 'California', timezone: 'America/Los_Angeles', is_lunch_enabled: true },
-                { store_name: 'Princeton', company_id: defaultFdcCompanyId, location: 'New Jersey', timezone: 'America/New_York', is_lunch_enabled: true },
-                { store_name: 'Peoria', company_id: defaultFdcCompanyId, location: 'Arizona', timezone: 'America/Phoenix', is_lunch_enabled: true }
+                { store_name: 'Santa Monica', company_id: tdbCompanyId, location: 'California', timezone: 'America/Los_Angeles', is_lunch_enabled: true },
+                { store_name: 'Rancho Cucamonga', company_id: tdbCompanyId, location: 'California', timezone: 'America/Los_Angeles', is_lunch_enabled: true },
+                { store_name: 'Columbus', company_id: tdbCompanyId, location: 'Ohio', timezone: 'America/New_York', is_lunch_enabled: true },
+                { store_name: 'Charlotte', company_id: tdbCompanyId, location: 'North Carolina', timezone: 'America/New_York', is_lunch_enabled: true },
+                { store_name: 'Katy', company_id: tdbCompanyId, location: 'Texas', timezone: 'America/Chicago', is_lunch_enabled: true },
+                { store_name: 'Tualatin', company_id: tdbCompanyId, location: 'Oregon', timezone: 'America/Los_Angeles', is_lunch_enabled: true },
+                { store_name: 'Daly City', company_id: tdbCompanyId, location: 'California', timezone: 'America/Los_Angeles', is_lunch_enabled: true },
+                { store_name: 'Princeton', company_id: tdbCompanyId, location: 'New Jersey', timezone: 'America/New_York', is_lunch_enabled: true },
+                { store_name: 'Peoria', company_id: tdbCompanyId, location: 'Arizona', timezone: 'America/Phoenix', is_lunch_enabled: true }
             ];
             for (const s of newStores) {
                 const exist = await prisma.store.findFirst({ where: { store_name: s.store_name } });
@@ -216,8 +216,12 @@ export const DebugController = {
                 } else if (sName.includes('terra gaucha') && terraCompany && store.company_id !== terraCompany.id) {
                     correctCompanyId = terraCompany.id;
                     log(`[FIX] Terra Leak Detected: Moving ${store.store_name} from ${store.company?.name || 'Unknown'} to Terra Gaucha`);
-                // TDB is our primary default fallback if we absolutely know it's a legacy seeded store but not recognized as others. 
-                // However, doing simple strict assignment for known leaks first.
+                } else if (
+                    tdbCompany && store.company_id !== tdbCompany.id &&
+                    ['santa monica', 'rancho cucamonga', 'columbus', 'charlotte', 'katy', 'tualatin', 'daly city', 'princeton', 'peoria'].includes(sName)
+                ) {
+                    correctCompanyId = tdbCompany.id;
+                    log(`[FIX] TDB Expansion Leak Detected: Moving ${store.store_name} from ${store.company?.name || 'Unknown'} to Texas de Brazil!`);
                 }
 
                 if (correctCompanyId !== store.company_id) {
