@@ -65,8 +65,16 @@ import QuarantineInbox from './pages/executive/QuarantineInbox';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
-    const { user, selectedCompany } = useAuth();
+    const { user, selectedCompany, isLoading } = useAuth();
     const location = useLocation();
+
+    if (isLoading) {
+        return (
+            <div className="h-screen w-screen bg-[#0a0a0a] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-t-2 border-r-2 border-[#C5A059] animate-spin shadow-[0_0_15px_rgba(197,160,89,0.5)]"></div>
+            </div>
+        );
+    }
 
     if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
 
@@ -114,8 +122,16 @@ const ProtectedRoute = () => {
 
 // Extremely light guard just for Master/Executive Routes that shouldn't load DashboardLayout
 const MasterGuard = () => {
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
     const location = useLocation();
+
+    if (isLoading) {
+        return (
+            <div className="h-screen w-screen bg-[#0a0a0a] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-t-2 border-r-2 border-[#C5A059] animate-spin shadow-[0_0_15px_rgba(197,160,89,0.5)]"></div>
+            </div>
+        );
+    }
 
     if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
     
