@@ -131,7 +131,7 @@ export const WeeklyInventory = () => {
     }, [user, selectedCompany]);
 
 
-    const handleBarcodeScanned = useCallback((barcodeString: string) => {
+    const handleBarcodeScanned = useCallback(async (barcodeString: string) => {
         // Minimal anti-bounce / anti-duplication
         if (!window.sessionStorage.getItem('scannedBarcodes')) {
             window.sessionStorage.setItem('scannedBarcodes', JSON.stringify([]));
@@ -149,73 +149,85 @@ export const WeeklyInventory = () => {
             return;
         }
 
-        scannedList.push(barcodeString);
-        window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
-
-        // GS1-128 Parsing Logic for Brasa Meat Tracker
-        // Remove parens, spaces, and FNC1 invisible chars from raw scanner output
-        const cleanBarcode = barcodeString.replace(/[\(\)\s\u001D]/g, '');
-
         let parsedWeight = 0;
         let matchedProtein = null;
 
-        // Extract weight using GS1 Application Identifiers
-        // 310n (Net Weight in Kg) or 320n (Net Weight in Lbs)
-        // Group 1: 310 or 320 | Group 2: decimals (0-5) | Group 3: 6 digits raw weight
-        const weightMatch = cleanBarcode.match(/(310|320)(\d)(\d{6})/);
-        if (weightMatch) {
-            const isLbs = weightMatch[1] === '320';
-            const decimals = parseInt(weightMatch[2], 10);
-            const rawWeight = parseInt(weightMatch[3], 10);
+        // 1. ONLINE LAYER: Use unified BarcodeDecisionEngine via API
+        if (isOnline) {
+            try {
+                const resParse = await fetch('/api/v1/barcodes/parse', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${user?.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        raw_barcode: barcodeString,
+                        context: 'INVENTORY',
+                        session_id: 'inventory_flow',
+                        store_id: user?.storeId
+                    })
+                });
 
-            let weight = rawWeight / Math.pow(10, decimals);
-
-            if (!isLbs) {
-                // System runs entirely on Lbs -> dynamically convert Kg to Lbs
-                weight = weight * 2.20462;
-            }
-            // Round to 2 decimal places to match operational scale accuracy
-            parsedWeight = parseFloat(weight.toFixed(2));
-        } else {
-            // Fallback for pitch demo barcodes
-            const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
-            if (demoWeightMatch) {
-                parsedWeight = parseInt(demoWeightMatch[1], 10) / 100;
-            } else {
-                // New Zealand Lamb Rack (Taylor Preston) specific fixed-length pattern
-                const customSyscoMatch = cleanBarcode.match(/^(\d{8})(\d{4})(\d{10})(.+)$/);
-                const nzProprietaryMatch = cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})(\d{6})$/);
-                const weightMatchGroup = customSyscoMatch || nzProprietaryMatch;
-                
-                if (weightMatchGroup) {
-                    const rawKg = parseInt(weightMatchGroup[2], 10) / 100;
-                    const lbs = rawKg * 2.20462;
-                    parsedWeight = parseFloat(lbs.toFixed(2));
+                if (resParse.ok) {
+                    const parseData = await resParse.json();
+                    if (parseData.status === 'VALID' || parseData.status === 'LOW_CONFIDENCE_VALID' || parseData.status === 'UNKNOWN') {
+                        parsedWeight = parseData.normalized_object?.net_weight_lb || 0;
+                        
+                        // Try to find the mapped name in the backend response if it was resolved
+                        // We must match it with dynamicProteinList to allow insertion into the cart
+                        const resolvedName = parseData.normalized_object?.product_name;
+                        if (resolvedName) {
+                            matchedProtein = dynamicProteinList.find(p => p.name.includes(resolvedName) || resolvedName.includes(p.name)) || null;
+                        }
+                    }
                 }
+            } catch (err) {
+                console.warn('API Parse failed, falling back to OFFLINE parser', err);
             }
         }
 
-        // Map GTIN to Protein List (Simulating actual product DB lookup)
-        // Including real GTINs from actual US Foods/JBS boxes
-        if (cleanBarcode.includes('PICANHA') || cleanBarcode.includes('01900001') || cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477')) {
-            // JBS Top Sirloin Butt Cap => Picanha
-            matchedProtein = dynamicProteinList.find(p => p.name.includes('Picanha'));
-        } else if (cleanBarcode.includes('FRALDINHA') || cleanBarcode.includes('01900003') || cleanBarcode.includes('90076338888514') || cleanBarcode.includes('90627577091328')) {
-            matchedProtein = dynamicProteinList.find(p => p.name.includes('Fraldinha') || p.name.includes('Flap'));
-        } else if (cleanBarcode.includes('TRITIP') || cleanBarcode.includes('01900004')) {
-            matchedProtein = dynamicProteinList.find(p => p.name.includes('Tri-Tip'));
-        } else if (cleanBarcode.includes('90758188398912')) {
-            // US Foods Beef Tenderloin PSMO => Filet Mignon
-            matchedProtein = dynamicProteinList.find(p => p.name.includes('Filet Mignon') || p.name.includes('Tenderloin'));
-        } else if (cleanBarcode.includes('90627577078145')) {
-            // Clear River Farms Beef Rib Bone In => Beef Ribs
-            matchedProtein = dynamicProteinList.find(p => p.name.includes('Beef Ribs'));
-        } else if ((cleanBarcode.length === 22 || cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})/)) && parsedWeight > 0) {
-            // The Taylor Preston Lamb Racks (based on length and generic Lamb Chops grouping)
-            matchedProtein = dynamicProteinList.find(p => p.name.includes('Lamb')); // Lamb Chops
-        } else if (parsedWeight > 0) {
-            // Unmapped product scanned
-            matchedProtein = null;
+        // 2. OFFLINE / FALLBACK LAYER (If API failed or offline or still not matched)
+        const cleanBarcode = barcodeString.replace(/[\(\)\s\u001D]/g, '');
+        if (!matchedProtein || parsedWeight === 0) {
+            const weightMatch = cleanBarcode.match(/(310|320)(\d)(\d{6})/);
+            if (weightMatch) {
+                const isLbs = weightMatch[1] === '320';
+                const decimals = parseInt(weightMatch[2], 10);
+                const rawWeight = parseInt(weightMatch[3], 10);
+                let fallbackWeight = rawWeight / Math.pow(10, decimals);
+                if (!isLbs) fallbackWeight = fallbackWeight * 2.20462;
+                parsedWeight = parsedWeight > 0 ? parsedWeight : parseFloat(fallbackWeight.toFixed(2));
+            } else {
+                const demoWeightMatch = cleanBarcode.match(/W(\d{4})/);
+                if (demoWeightMatch) {
+                    parsedWeight = parsedWeight > 0 ? parsedWeight : (parseInt(demoWeightMatch[1], 10) / 100);
+                } else {
+                    const nzMatch = cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})(\d{6})$/);
+                    if (nzMatch) {
+                        const rawKg = parseInt(nzMatch[2], 10) / 100;
+                        parsedWeight = parsedWeight > 0 ? parsedWeight : parseFloat((rawKg * 2.20462).toFixed(2));
+                    }
+                }
+            }
+
+            if (!matchedProtein) {
+                if (cleanBarcode.includes('PICANHA') || cleanBarcode.includes('01900001') || cleanBarcode.includes('90079338217464') || cleanBarcode.includes('90076338888477') || cleanBarcode.includes('19007633887947')) {
+                    matchedProtein = dynamicProteinList.find(p => p.name.includes('Picanha'));
+                } else if (cleanBarcode.includes('FRALDINHA') || cleanBarcode.includes('01900003') || cleanBarcode.includes('90076338888514') || cleanBarcode.includes('90627577091328')) {
+                    matchedProtein = dynamicProteinList.find(p => p.name.includes('Fraldinha') || p.name.includes('Flap'));
+                } else if (cleanBarcode.includes('TRITIP') || cleanBarcode.includes('01900004')) {
+                    matchedProtein = dynamicProteinList.find(p => p.name.includes('Tri-Tip'));
+                } else if (cleanBarcode.includes('90758188398912')) {
+                    matchedProtein = dynamicProteinList.find(p => p.name.includes('Filet Mignon') || p.name.includes('Tenderloin'));
+                } else if (cleanBarcode.includes('90627577078145')) {
+                    matchedProtein = dynamicProteinList.find(p => p.name.includes('Beef Ribs'));
+                } else if (cleanBarcode.includes('MIGNON')) {
+                    matchedProtein = dynamicProteinList.find(p => p.name.includes('Filet Mignon'));
+                } else if ((cleanBarcode.length === 22 || cleanBarcode.match(/^(\d{8})(\d{4})(00\d{2})/)) && parsedWeight > 0) {
+                    matchedProtein = dynamicProteinList.find(p => p.name.includes('Lamb'));
+                }
+            }
         }
 
         if (!matchedProtein || parsedWeight === 0) {
@@ -225,6 +237,10 @@ export const WeeklyInventory = () => {
             setTimeout(() => setLastScanned(null), 3000);
             return;
         }
+
+        // 3. COMPLETE SUCCESS
+        scannedList.push(barcodeString);
+        window.sessionStorage.setItem('scannedBarcodes', JSON.stringify(scannedList));
 
         setLastScanned({ name: matchedProtein.name, weight: parsedWeight, status: 'success' });
 
@@ -239,7 +255,7 @@ export const WeeklyInventory = () => {
         playBeep('success');
 
         setTimeout(() => setLastScanned(null), 3000);
-    }, [lastScanned, dynamicProteinList]);
+    }, [lastScanned, dynamicProteinList, user, isOnline]);
 
     // Invisible Bluetooth HID Keyboard Listener
     // Maps physical hardware scanners acting as keyboards seamlessly into the App
