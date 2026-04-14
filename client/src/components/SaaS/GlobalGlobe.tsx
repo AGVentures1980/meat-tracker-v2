@@ -447,7 +447,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                                                     <img 
                                                         src={company.img} 
                                                         alt={company.name} 
-                                                        className={`h-[36px] md:h-[44px] w-auto max-w-[180px] object-contain object-left ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''}`} 
+                                                        className={`${company.name.includes('Adega') ? 'h-[60px] md:h-[75px]' : 'h-[36px] md:h-[44px]'} w-auto max-w-[180px] object-contain object-left ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''}`} 
                                                     />
                                                 ) : (
                                                     <h3 className="text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
