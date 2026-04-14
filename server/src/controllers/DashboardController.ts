@@ -181,6 +181,8 @@ export class DashboardController {
                 (stats.summary as any).scoreState = 'NORMAL';
             }
 
+            (stats.summary as any).deliveryIntegrityStatus = integrity.deliveryIntegrityStatus;
+
             return res.json(stats);
         } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {

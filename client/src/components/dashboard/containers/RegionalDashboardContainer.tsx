@@ -107,17 +107,37 @@ export const RegionalDashboardContainer = () => {
         <div className="regional-scope p-6 bg-[#121212] min-h-screen text-white isolation-boundary">
             <h1 className="text-3xl font-bold mb-8 text-[#00FF94]">Regional Performance Hub</h1>
 
-            {(payload as any).summary?.scoreState && (payload as any).summary?.scoreState !== 'NORMAL' && (
+            {(payload as any).summary?.scoreState === 'DEGRADED' && (
                 <div className="mb-8 p-6 bg-yellow-500/10 border-2 border-yellow-500 rounded-lg backdrop-blur-md">
                     <h2 className="text-xl font-bold text-yellow-500 mb-2 uppercase tracking-widest flex items-center gap-2">
-                        <span>⚠️</span> SCORE WITHHELD: OPERATION {(payload as any).summary.scoreState}
+                        <span>⚠️</span> DATA INTEGRITY DEGRADED
                     </h2>
                     <p className="text-yellow-200/80 font-mono text-sm leading-relaxed">
-                        {(payload as any).summary.lockReason}
+                        {(payload as any).summary.lockReason} to prevent distortion
                     </p>
                     <p className="mt-4 text-xs text-yellow-500/60 uppercase tracking-widest">
                         Executive scoring and efficiency metrics are blocked until data integrity is restored.
                     </p>
+                </div>
+            )}
+
+            {(payload as any).summary?.scoreState === 'RESTRICTED' && (
+                <div className="mb-8 p-6 bg-orange-500/10 border-2 border-orange-500 rounded-lg backdrop-blur-md">
+                    <h2 className="text-xl font-bold text-orange-500 mb-2 uppercase tracking-widest flex items-center gap-2">
+                        <span>⚠️</span> OPERATION RESTRICTED
+                    </h2>
+                    <p className="text-orange-200/80 font-mono text-sm leading-relaxed">
+                        {(payload as any).summary.lockReason}
+                    </p>
+                    <p className="mt-4 text-xs text-orange-500/60 uppercase tracking-widest">
+                        Executive scoring and efficiency metrics are blocked until data integrity is restored.
+                    </p>
+                </div>
+            )}
+
+            {(payload as any).summary?.scoreState === 'NORMAL' && (payload as any).summary?.deliveryIntegrityStatus === 'ZERO_CONFIRMED' && (
+                <div className="mb-8 p-3 bg-green-500/10 border border-green-500/30 rounded inline-block">
+                    <p className="text-xs text-green-400 font-mono">No delivery orders confirmed for selected period</p>
                 </div>
             )}
 

@@ -14,19 +14,49 @@ export class DataIntegrityWatchdog {
         
         let state: 'NORMAL' | 'DEGRADED' | 'RESTRICTED' | 'HARDLOCK' = 'NORMAL';
         let lockReason = '';
+        let deliveryIntegrityStatus: 'NOT_APPLICABLE' | 'ZERO_CONFIRMED' | 'CONFIRMED' | 'UNAVAILABLE' = 'UNAVAILABLE';
 
         // 1. DELIVERY FIREWALL ABSOLUTE (FASE 6)
-        // If delivery API is down or no sales logged, we CANNOT assume 0. We downgrade to DEGRADED.
-        const deliverySalesCount = await prisma.deliverySale.count({
+        // Determine explicit flags based on data shape. For now assume channel enabled unless explicit store flag exists later.
+        const delivery_channel_enabled = true; // Placeholder for Store configuration
+        
+        // Check if there's any sync audit log that affirms the system polled delivery on this day.
+        const syncLogs = await prisma.auditLog.count({
+            where: {
+                action: 'DELIVERY_SYNC',
+                company_id: String(storeId), // Adapting as per current schema structure
+                created_at: { gte: start, lte: end }
+            }
+        });
+
+        const deliverySales = await prisma.deliverySale.findMany({
             where: {
                 store_id: storeId,
                 created_at: { gte: start, lte: end }
             }
         });
 
-        if (deliverySalesCount === 0) {
+        const delivery_feed_received = syncLogs > 0 || deliverySales.length > 0;
+        const delivery_data_fresh = true; // Assuming True if feed received within timeframe
+        const delivery_orders_count = deliverySales.length;
+        const delivery_weight_total = deliverySales.reduce((acc, sale) => acc + sale.total_lbs, 0);
+
+        if (!delivery_channel_enabled) {
+            deliveryIntegrityStatus = 'NOT_APPLICABLE';
+            lockReason = 'DELIVERY_NOT_APPLICABLE';
+        } 
+        else if (delivery_feed_received && delivery_data_fresh && delivery_orders_count === 0 && delivery_weight_total === 0) {
+            deliveryIntegrityStatus = 'ZERO_CONFIRMED';
+            lockReason = 'DELIVERY_ZERO_CONFIRMED';
+        }
+        else if (delivery_feed_received && delivery_data_fresh && delivery_orders_count > 0 && delivery_weight_total > 0) {
+            deliveryIntegrityStatus = 'CONFIRMED';
+            lockReason = 'DELIVERY_CONFIRMED';
+        } 
+        else {
             state = 'DEGRADED';
-            lockReason += 'Delivery data unavailable — score withheld. ';
+            deliveryIntegrityStatus = 'UNAVAILABLE';
+            lockReason = 'DELIVERY_DATA_UNAVAILABLE';
         }
 
         // 2. UNACCOUNTED LOSS CALCULATION (FASE 3 & FASE 8)
@@ -70,7 +100,8 @@ export class DataIntegrityWatchdog {
         return {
             state,
             lockReason: lockReason.trim(),
-            totalLostLbs
+            totalLostLbs,
+            deliveryIntegrityStatus
         };
     }
 
