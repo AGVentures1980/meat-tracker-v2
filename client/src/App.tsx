@@ -24,6 +24,7 @@ import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
 import { StoreActionConsole } from './pages/StoreActionConsole';
+import { RegionalOverview } from './pages/RegionalOverview';
 import { ValidationCenter } from './pages/executive/ValidationCenter';
 import StoreSettings from './pages/StoreSettings';
 import { UsersPage } from './pages/UsersPage';
@@ -217,6 +218,7 @@ function AppContent() {
                     <Route path="/settings/store" element={<StoreSettings />} />
                     <Route path="/export" element={<PlaceholderPage title="Data Export" />} />
                     <Route path="/smart-prep" element={<GovernanceGuard><SmartPrepPage /></GovernanceGuard>} />
+                    <Route path="/regional-oversight" element={<RegionalOverview />} />
                     <Route path="/delivery" element={<DeliveryPage />} />
                     <Route path="/store-actions" element={<StoreActionConsole />} />
                     <Route path="/receiving" element={<ReceivingScanner />} />
