@@ -145,6 +145,7 @@ import deliveryRoutes from './routes/delivery.routes';
 import purchaseRoutes from './routes/purchase.routes';
 import barcodeRoutes from './routes/barcode.routes';
 import intelligenceRoutes from './routes/intelligence.routes';
+import executiveRoutes from './routes/executive.routes';
 import analystRoutes from './routes/analyst.routes';
 import negotiationRoutes from './routes/negotiation.routes';
 import reportRoutes from './routes/report.routes';
@@ -224,6 +225,7 @@ app.use('/api/v1/burger', burgerRoutes);
 app.use('/api/v1', leadRoutes);
 app.use('/api/v1/weather', weatherRoutes);
 app.use('/api/v1/sre', sreRoutes);
+app.use('/api/v1/executive', executiveRoutes);
 
 // Temporary Setup Route (Remove in production later)
 // Temporary Setup Route (Remove in production later)
@@ -235,6 +237,7 @@ app.get('/api/v1/setup/seed-targets', SetupController.seedTargets); // Emergency
 app.get('/api/v1/debug/migrate', DebugController.runMigration);
 app.get('/api/v1/debug/env', DebugController.checkEnv);
 app.get('/api/v1/debug/cleanup', DebugController.cleanupTdbMeats);
+app.get('/api/v1/debug/sweep', DebugController.cleanupTenantContamination);
 
 app.get('/api/v1/debug/raw-specs', async (req, res) => {
     try {

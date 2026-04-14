@@ -137,13 +137,16 @@ export class DashboardContractService {
             .filter(p => typeof p.impactYTD === 'number' && p.impactYTD > 0)
             .sort((a, b) => b.impactYTD - a.impactYTD)
             .slice(0, 5)
-            .map(p => ({
-                storeId: p.id,
-                storeName: p.name,
-                region: p.location || 'Unknown',
-                riskLevel: p.status === 'Critical' ? 'CRITICAL' : 'HIGH',
-                exposure: Number(p.impactYTD)
-            }));
+            .map(p => {
+                const riskLevel: 'CRITICAL' | 'HIGH' | 'WARNING' = p.status === 'Critical' ? 'CRITICAL' : (p.status === 'Warning' ? 'WARNING' : 'HIGH');
+                return {
+                    storeId: p.id,
+                    storeName: p.name,
+                    region: p.location || 'Unknown',
+                    riskLevel,
+                    exposure: Number(p.impactYTD)
+                };
+            });
 
         const response: ExecutiveSummaryResponse = {
             financialExposure: Number(sum.villain_impact) || 0,

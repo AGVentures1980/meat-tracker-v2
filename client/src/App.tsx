@@ -23,6 +23,7 @@ import { SaaSAdminDashboard } from './pages/SaaSAdminDashboard';
 import { OwnerTerminal } from './pages/OwnerTerminal';
 import { CommandCenter } from './pages/CommandCenter';
 import { CompanySettings } from './pages/CompanySettings';
+import { ValidationCenter } from './pages/executive/ValidationCenter';
 import StoreSettings from './pages/StoreSettings';
 import { UsersPage } from './pages/UsersPage';
 import CFOReport from './pages/CFOReport';
@@ -64,8 +65,16 @@ import QuarantineInbox from './pages/executive/QuarantineInbox';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
-    const { user, selectedCompany } = useAuth();
+    const { user, selectedCompany, isLoading } = useAuth();
     const location = useLocation();
+
+    if (isLoading) {
+        return (
+            <div className="h-screen w-screen bg-[#0a0a0a] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-t-2 border-r-2 border-[#C5A059] animate-spin shadow-[0_0_15px_rgba(197,160,89,0.5)]"></div>
+            </div>
+        );
+    }
 
     if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
 
@@ -113,8 +122,16 @@ const ProtectedRoute = () => {
 
 // Extremely light guard just for Master/Executive Routes that shouldn't load DashboardLayout
 const MasterGuard = () => {
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
     const location = useLocation();
+
+    if (isLoading) {
+        return (
+            <div className="h-screen w-screen bg-[#0a0a0a] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-t-2 border-r-2 border-[#C5A059] animate-spin shadow-[0_0_15px_rgba(197,160,89,0.5)]"></div>
+            </div>
+        );
+    }
 
     if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
     
@@ -211,6 +228,9 @@ function AppContent() {
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/jvp-dashboard" element={<GovernanceGuard><JVPDashboard /></GovernanceGuard>} />
                     <Route path="/executive/specs" element={<CorporateSpecs />} />
+                    <Route path="/executive/quarantine-inbox" element={<QuarantineInbox />} />
+                    <Route path="/executive/agv-fraud-audit" element={<FraudAuditReport />} />
+                    <Route path="/validation" element={<ValidationCenter />} />
                     <Route path="/executive-analyst" element={<ExecutiveAnalyst />} />
                     <Route path="/cfo-report" element={<CFOReport />} />
                     <Route path="/training" element={<TrainingPage />} />

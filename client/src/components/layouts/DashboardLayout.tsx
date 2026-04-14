@@ -119,10 +119,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             navItems.push({
                 section: t('nav.section_executive') || 'EXECUTIVE CONTROL', items: [
                     ...(isMaster ? [{ icon: Globe, label: t('nav.saasAdmin') || 'Brand Overview Center', path: '/saas-admin' }] : []),
-                    ...((isSystemAdmin || isMaster) ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/sourcing-ai' }] : []),
+                    ...(isMaster ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/procurement' }] : []),
+                    ...(isMaster ? [{ icon: DatabaseZap, label: 'Validation Center', path: '/validation' }] : []),
                     { icon: Users, label: t('nav.corporateSpecs') || 'Network Standard Specs', path: '/executive/specs' },
                     ...( (isDavid || isMaster) ? [{ icon: ShieldAlert, label: 'Supply Chain Inbox', path: '/quarantine-inbox' }] : []),
-                    ...(isMaster ? [{ icon: DatabaseZap, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
+                    ...(isMaster ? [{ icon: ShieldAlert, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
                 ]
             });
         }
@@ -514,7 +515,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         {selectedCompany && (
                             <div className="hidden lg:flex items-center gap-2 ml-4 px-3 py-1 bg-[#C5A059]/10 border border-[#C5A059]/30 rounded-full shadow-[0_0_10px_rgba(197,160,89,0.2)]">
                                 <Building2 className="w-3 h-3 text-[#C5A059]" />
-                                <span className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest">{companyName || selectedCompany}</span>
+                                <span className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest">{companyName || 'ORGANIZATION'}</span>
                             </div>
                         )}
                         {/* Ticker */}

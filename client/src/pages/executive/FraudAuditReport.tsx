@@ -6,7 +6,7 @@ import autoTable from 'jspdf-autotable';
 
 // Assuming dates in simplified format for the UI
 export const FraudAuditReport = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const [attempts, setAttempts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -27,7 +27,8 @@ export const FraudAuditReport = () => {
     const fetchAuditLogs = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/v1/compliance/master/fraud-audit?startDate=${startDate}&endDate=${endDate}`, {
+            const companyQuery = selectedCompany ? `&companyId=${selectedCompany}` : '';
+            const res = await fetch(`/api/v1/compliance/master/fraud-audit?startDate=${startDate}&endDate=${endDate}${companyQuery}`, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await res.json();
@@ -45,7 +46,7 @@ export const FraudAuditReport = () => {
         if (user?.token) {
             fetchAuditLogs();
         }
-    }, [user?.token, startDate, endDate]);
+    }, [user?.token, startDate, endDate, selectedCompany]);
 
     const filteredAttempts = attempts.filter(att => 
         (att.store?.company?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||

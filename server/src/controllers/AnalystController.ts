@@ -12,10 +12,14 @@ export class AnalystController {
             const user = (req as any).user;
 
             const whereClause: any = { is_pilot: true };
-            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
-            if (activeCompanyId) {
-                // Strict Isolation: Always scope to the active company
-                whereClause.company_id = activeCompanyId;
+            const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string);
+
+            // SRE HARDENING: Enforce strict company boundary
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                 whereClause.company_id = user.tenant_id || user.companyId;
+                 if (!whereClause.company_id) throw new Error("403: Multi-Tenant Zero-Trust boundary missing.");
+            } else if (effectiveCompanyId) {
+                 whereClause.company_id = effectiveCompanyId; // Explicit explicit targeting for Global roles
             }
 
             if (user.role !== 'admin' && user.role !== 'director') {
@@ -38,8 +42,10 @@ export class AnalystController {
             if (pilotStores.length === 0) {
                 const fallbackWhere: any = {};
                 // Strict Isolation
-                if (activeCompanyId) {
-                    fallbackWhere.company_id = activeCompanyId;
+                if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                     fallbackWhere.company_id = user.tenant_id || user.companyId;
+                } else if (effectiveCompanyId) {
+                     fallbackWhere.company_id = effectiveCompanyId;
                 }
 
                 if (user.role !== 'admin' && user.role !== 'director') {
@@ -229,10 +235,14 @@ export class AnalystController {
             const user = (req as any).user;
 
             const whereClause: any = {};
-            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
-            if (activeCompanyId) {
-                // Strict Isolation: Always scope to the active company
-                whereClause.company_id = activeCompanyId;
+            const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string);
+
+            // SRE HARDENING: Enforce strict company boundary
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                 whereClause.company_id = user.tenant_id || user.companyId;
+                 if (!whereClause.company_id) throw new Error("403: Multi-Tenant Zero-Trust boundary missing.");
+            } else if (effectiveCompanyId) {
+                 whereClause.company_id = effectiveCompanyId; // Explicit explicit targeting for Global roles
             }
 
             if (user.role !== 'admin' && user.role !== 'director') {

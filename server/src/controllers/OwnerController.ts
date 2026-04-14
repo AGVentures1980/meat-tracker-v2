@@ -135,8 +135,7 @@ export const OwnerController = {
 
             const companies = await prisma.company.findMany({
                 where: {
-                    ...whereClause,
-                    company_status: { not: 'Archived' }
+                    ...whereClause
                 },
                 include: {
                     _count: {

@@ -41,12 +41,12 @@ router.get('/executive-summary', requireAuth, async (req: Request, res: Response
         const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
 
         // Strict Execution Validation (FAIL-CLOSED)
-        if (!activeCompanyId && user.role !== Role.admin) {
+        if (!activeCompanyId && user.role !== 'admin') {
             return res.status(403).json({ error: 'Tenant Context (Company ID) missing.' });
         }
         
-        const validExecutiveRoles = [Role.admin, Role.director, Role.vp];
-        if (!validExecutiveRoles.includes(user.role)) {
+        const validExecutiveRoles: Role[] = ['admin', 'director']; // Note: 'vp' doesn't exist in Prisma schema natively, limiting to valid ones
+        if (!validExecutiveRoles.includes(user.role as Role)) {
             return res.status(403).json({ error: 'Role incompatible with Executive Summary payload.' });
         }
 
@@ -80,7 +80,7 @@ router.get('/regional-summary', requireAuth, async (req: Request, res: Response)
         if (!activeCompanyId) {
             return res.status(403).json({ error: 'Tenant Context missing.' });
         }
-        if (!regionId && user.role !== Role.admin) {
+        if (!regionId && user.role !== 'admin') {
             return res.status(403).json({ error: 'Region Scope (regionId) missing for tactical view.' });
         }
 
@@ -117,8 +117,8 @@ router.get('/store-summary', requireAuth, async (req: Request, res: Response) =>
             return res.status(403).json({ error: 'Store Scope (storeId) missing for operational view.' });
         }
 
-        const allowedOverrideRoles = [Role.admin, Role.director, Role.vp, 'area_manager' as Role];
-        if (!allowedOverrideRoles.includes(user.role) && user.storeId?.toString() !== storeId) {
+        const allowedOverrideRoles: Role[] = ['admin', 'director', 'area_manager'];
+        if (!allowedOverrideRoles.includes(user.role as Role) && user.storeId?.toString() !== storeId) {
             return res.status(403).json({ error: 'Access Denied: Attempting to fetch outer boundary Store context.' });
         }
 

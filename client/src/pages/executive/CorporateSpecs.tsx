@@ -19,8 +19,13 @@ export default function CorporateSpecs() {
 
   useEffect(() => {
       const isDavid = user?.email?.toLowerCase().includes('davidcastro');
-      const isMaster = user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') || user?.email?.toLowerCase().includes('admin');
-      if (user && !isDavid && !isMaster) {
+      const isMaster = user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
+      const isRodrigo = user?.email?.toLowerCase().includes('rodrigo');
+      const isExecutive = user?.role === 'admin' || user?.role === 'director';
+      
+      const isAllowed = isDavid || isMaster || isRodrigo || isExecutive;
+      
+      if (user && !isAllowed) {
           navigate('/dashboard', { replace: true });
       }
   }, [user, navigate]);

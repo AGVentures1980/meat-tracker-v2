@@ -10,7 +10,7 @@ export const CorpProcurement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
 
-    // Hard Lockout: ONLY the owner can see this page
+    // Hard Lockout: ONLY the master owner can see this page (Ace in the Hole)
     if (user?.email?.toLowerCase().trim() !== 'alexandre@alexgarciaventures.co') {
         return <Navigate to="/dashboard" replace />;
     }

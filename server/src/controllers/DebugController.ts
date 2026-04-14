@@ -180,6 +180,59 @@ export const DebugController = {
             }
             console.error(error);
             return res.status(500).json({ error: String(error) });
+    },
+
+    async cleanupTenantContamination(req: Request, res: Response) {
+        if (req.query.key !== 'fatality') return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            const logs: string[] = [];
+            const log = (msg: string) => { console.log(msg); logs.push(msg); };
+
+            log("Starting Enterprise Zero-Trust Data Cleanup Sweep...");
+
+            // Get standard companies
+            const fdcCompany = await prisma.company.findFirst({ where: { name: { contains: 'Fogo' } } });
+            const tdbCompany = await prisma.company.findFirst({ where: { name: { contains: 'Texas' } } });
+            const outbackCompany = await prisma.company.findFirst({ where: { name: { contains: 'Outback' } } });
+            const terraCompany = await prisma.company.findFirst({ where: { name: { contains: 'Terra Gaucha' } } });
+
+            const stores = await prisma.store.findMany({ include: { company: true }});
+            let fixedCount = 0;
+
+            for (const store of stores) {
+                const sName = store.store_name.toLowerCase();
+                let correctCompanyId = store.company_id;
+
+                if (sName.includes('outback') && outbackCompany && store.company_id !== outbackCompany.id) {
+                    correctCompanyId = outbackCompany.id;
+                    log(`[FIX] Outback Leak Detected: Moving ${store.store_name} from ${store.company?.name || 'Unknown'} to Outback`);
+                } else if (sName.includes('fogo') && fdcCompany && store.company_id !== fdcCompany.id) {
+                    correctCompanyId = fdcCompany.id;
+                    log(`[FIX] FDC Leak Detected: Moving ${store.store_name} from ${store.company?.name || 'Unknown'} to Fogo de Chão`);
+                } else if (sName.includes('terra gaucha') && terraCompany && store.company_id !== terraCompany.id) {
+                    correctCompanyId = terraCompany.id;
+                    log(`[FIX] Terra Leak Detected: Moving ${store.store_name} from ${store.company?.name || 'Unknown'} to Terra Gaucha`);
+                // TDB is our primary default fallback if we absolutely know it's a legacy seeded store but not recognized as others. 
+                // However, doing simple strict assignment for known leaks first.
+                }
+
+                if (correctCompanyId !== store.company_id) {
+                    await prisma.store.update({
+                        where: { id: store.id },
+                        data: { company_id: correctCompanyId }
+                    });
+                    fixedCount++;
+                }
+            }
+
+            log(`Enterprise Integrity Sweep Complete. Fixed ${fixedCount} corrupted store alignments.`);
+            return res.json({ success: true, fixedCount, logs });
+        } catch (error: any) {
+            console.error('Sweep Error:', error);
+            return res.status(500).json({ error: String(error) });
         }
     }
 };
