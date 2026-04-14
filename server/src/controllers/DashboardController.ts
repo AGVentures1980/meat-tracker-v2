@@ -58,7 +58,17 @@ export class DashboardController {
             const y = year ? parseInt(year as string) : undefined;
             const w = week ? parseInt(week as string) : undefined;
 
-            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+            let activeCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string) || (req.query.companyId as string);
+
+            // SRE HARDENING: Enforce strict company boundary array bypass for global admins
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                activeCompanyId = user.tenant_id || user.companyId;
+            }
+
+            // Absolutely NO fallback to global unstructured DB queries.
+            if (!activeCompanyId || activeCompanyId === 'undefined' || activeCompanyId.trim() === '') {
+                throw new Error("403: Multi-Tenant Zero-Trust boundary missing. Dashboard requires an active tenant context.");
+            }
 
             // Enforcement: Network stats must be filtered by companyId
             const stats = await MeatEngine.getNetworkBiStats(y, w, activeCompanyId, user);
@@ -82,7 +92,17 @@ export class DashboardController {
             const w = week ? parseInt(week as string) : 8; // Default to week 8 for demo
 
             const user = (req as any).user;
-            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+            let activeCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string) || (req.query.companyId as string);
+
+            // SRE HARDENING: Enforce strict company boundary
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                activeCompanyId = user.tenant_id || user.companyId;
+            }
+
+            // Absolutely NO fallback to global unstructured DB queries.
+            if (!activeCompanyId || activeCompanyId === 'undefined' || activeCompanyId.trim() === '') {
+                throw new Error("403: Multi-Tenant Zero-Trust boundary missing. Dashboard requires an active tenant context.");
+            }
 
             const stats = await MeatEngine.getNetworkReportCard(y, w, activeCompanyId);
             return res.json(stats);
@@ -116,6 +136,11 @@ export class DashboardController {
         try {
             const user = (req as any).user;
             const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
+
+            // Absolutely NO fallback to global unstructured DB queries.
+            if (!activeCompanyId || activeCompanyId === 'undefined' || activeCompanyId.trim() === '') {
+                throw new Error("403: Multi-Tenant Zero-Trust boundary missing. Dashboard requires an active tenant context.");
+            }
 
             // Override user's active company context for the query if provided
             if (activeCompanyId) {

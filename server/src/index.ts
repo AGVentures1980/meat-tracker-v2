@@ -237,6 +237,7 @@ app.get('/api/v1/setup/seed-targets', SetupController.seedTargets); // Emergency
 app.get('/api/v1/debug/migrate', DebugController.runMigration);
 app.get('/api/v1/debug/env', DebugController.checkEnv);
 app.get('/api/v1/debug/cleanup', DebugController.cleanupTdbMeats);
+app.get('/api/v1/debug/sweep', DebugController.cleanupTenantContamination);
 
 app.get('/api/v1/debug/raw-specs', async (req, res) => {
     try {
