@@ -1,0 +1,71 @@
+interface BaselineStats {
+    mean: number;
+    std_dev: number;
+    trend: number; // Slope
+}
+
+export interface BaselineContext {
+    lbs_guest_delta: BaselineStats;
+    invoice_variance: BaselineStats;
+    shrink_probability: BaselineStats;
+    valid_data_points: number;
+}
+
+export class BaselineEngine {
+    
+    // Core Mathematical Primitives (No External AI dependencies)
+    private static calculateMean(arr: number[]): number {
+        if (!arr || arr.length === 0) return 0;
+        return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    private static calculateStdDev(arr: number[], mean: number): number {
+        if (!arr || arr.length <= 1) return 0;
+        const variance = arr.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (arr.length - 1); // Sample Variance
+        return Math.sqrt(variance);
+    }
+
+    private static calculateSlope(arr: number[]): number {
+        if (!arr || arr.length <= 1) return 0;
+        let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+        const n = arr.length;
+        
+        for (let i = 0; i < n; i++) {
+            sumX += i;
+            sumY += arr[i];
+            sumXY += (i * arr[i]);
+            sumX2 += (i * i);
+        }
+        
+        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        return slope;
+    }
+
+    private static generateStats(arr: number[]): BaselineStats {
+        const mean = this.calculateMean(arr);
+        return {
+            mean,
+            std_dev: this.calculateStdDev(arr, mean),
+            trend: this.calculateSlope(arr)
+        };
+    }
+
+    // Accepts historical payloads and mathematically parses them
+    public static computeHistoricalBaseline(snapshots: any[]): BaselineContext | null {
+        // Enforce Fallback Rules (Requires minimum 10 valid days within the 30-day window to calculate a safe normal distribution)
+        if (!snapshots || snapshots.length < 10) {
+            return null; // Signals Fallback to Global Static Rules
+        }
+
+        const lbsGstDelta = snapshots.map(s => s.lbs_guest_delta_pct).filter(val => typeof val === 'number');
+        const invoiceVar = snapshots.map(s => s.invoice_variance_score || 0); // Assuming legacy handling
+        const shrinkProb = snapshots.map(s => s.shrink_probability_score || 0);
+
+        return {
+            lbs_guest_delta: this.generateStats(lbsGstDelta),
+            invoice_variance: this.generateStats(invoiceVar),
+            shrink_probability: this.generateStats(shrinkProb),
+            valid_data_points: snapshots.length
+        };
+    }
+}

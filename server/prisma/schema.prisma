@@ -1502,6 +1502,7 @@ model IntelligenceSnapshot {
   lbs_guest_delta_pct Float    @default(0)
   
   // Traceability & Lineage
+  local_baseline_context Json?
   source_inputs_used  Int      @default(0)
   ruleset_version     String
   confidence          Float    @default(1.0)

@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { ScoreCalculator } from '../services/intelligence/ScoreCalculator';
 import { AnomalyEngine, AnomalyInput } from '../services/intelligence/AnomalyEngine';
+import { BaselineEngine } from '../services/intelligence/BaselineEngine';
 
 const prisma = new PrismaClient();
 
@@ -19,27 +20,41 @@ export class IntelligenceController {
             const { store_id } = req.body;
             const tenant_id = req.user.tenant_id;
 
-            // 1. Gather Signals
+            // 1. Adaptive Calibrations: Fetch last 30 days of IntelligenceSnapshots
+            const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+            const historicalSnapshots = store_id ? await prisma.intelligenceSnapshot.findMany({
+                where: {
+                    tenant_id,
+                    store_id: parseInt(store_id, 10),
+                    period_start: { gte: thirtyDaysAgo }
+                },
+                orderBy: { period_end: 'asc' }
+            }) : [];
+
+            // 2. Compute the Local Adaptive Context via BaselineEngine
+            const baselineContext = BaselineEngine.computeHistoricalBaseline(historicalSnapshots);
+
+            // 3. Gather Signals
             const input: AnomalyInput = {
                 lbs_guest_delta_pct: 9.2, 
                 invoice_variance: 100, 
                 shrink_probability: 0.1,
                 ingestion_confidence: 0.95, 
-                missing_days: 1, // Testing the Hard Cap of missing days
-                store_trust_score: 95
+                missing_days: 1, 
+                store_trust_score: 95,
+                baselineContext // Newly dynamically hooked parameter
             };
             
-            // 2. Score Definitions
+            // 4. Score Definitions
             const risk_score = ScoreCalculator.calculateOpRiskScore(input.lbs_guest_delta_pct, input.shrink_probability, input.invoice_variance);
             const verified_trust = ScoreCalculator.calculateStoreTrustScore(input.ingestion_confidence, input.missing_days);
             
-            // Update input trust dynamically based on our mathematical rigour
             input.store_trust_score = verified_trust;
 
-            // 3. Run Anomaly Engine (Triggering actual Raw logic limits)
+            // 5. Run Anomaly Engine (Triggering Z-Score Overrides if Context exists)
             const anomalies = AnomalyEngine.evaluate(input);
 
-            // 4. TRANSACTIONAL PERSISTENCE (Ensuring Score -> Anomaly -> Audit atomicity)
+            // 6. TRANSACTIONAL PERSISTENCE (Complete Lineage trace including Z-Score config)
             const result = await prisma.$transaction(async (tx) => {
                 
                 const snapshot = await tx.intelligenceSnapshot.create({
@@ -51,8 +66,9 @@ export class IntelligenceController {
                         op_risk_score: risk_score,
                         store_trust_score: verified_trust,
                         lbs_guest_delta_pct: input.lbs_guest_delta_pct,
-                        ruleset_version: 'v1.1-brazil_piecewise',
+                        ruleset_version: 'v1.2-brazil_adaptive_zscore',
                         confidence: verified_trust / 100,
+                        local_baseline_context: baselineContext ? (baselineContext as any) : null
                     }
                 });
 
@@ -66,8 +82,8 @@ export class IntelligenceController {
                             severity: anom.severity,
                             confidence: verified_trust / 100,
                             message: anom.message,
-                            trigger_value: anom.trigger_value, // RAW out of bounds persistence intact
-                            baseline_value: 0
+                            trigger_value: anom.trigger_value,
+                            baseline_value: baselineContext ? baselineContext.lbs_guest_delta.mean : 0
                         }
                     });
 
@@ -89,7 +105,6 @@ export class IntelligenceController {
                     }
                 }
 
-                // Explicit Audit Hook
                 await tx.intakeAudit.create({
                      data: {
                           correlation_id: `INTELLIGENCE_SNAP_${snapshot.id}`,

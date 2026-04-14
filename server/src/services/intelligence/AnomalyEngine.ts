@@ -1,4 +1,5 @@
 import { ScoreCalculator } from "./ScoreCalculator";
+import { BaselineContext } from "./BaselineEngine";
 
 export type AnomalyInput = {
     lbs_guest_delta_pct: number;
@@ -7,12 +8,13 @@ export type AnomalyInput = {
     ingestion_confidence: number;
     missing_days: number;
     store_trust_score: number;
+    baselineContext: BaselineContext | null; // Adaptive Baseline Hook
 };
 
 export type AnomalyResult = {
     type: string;
     severity: string;  
-    trigger_value: number; // Stored purely raw from the Database (no clamps hidden)
+    trigger_value: number; 
     message: string;
     actions: RecommendationTemplate[];
 };
@@ -52,7 +54,7 @@ export class AnomalyEngine {
             anomalies.push({
                 type: 'SYSTEM_SUPPRESSION_LOW_TRUST',
                 severity: 'CRITICAL', 
-                trigger_value: input.store_trust_score, // Passing raw 
+                trigger_value: input.store_trust_score, 
                 message: 'All Operational Anomaly Engines SUPPRESSED. Math dictates Data Trust Score is annihilated.',
                 actions: [
                     {
@@ -92,24 +94,40 @@ export class AnomalyEngine {
              });
         }
         
-        // Single Feature Outlier check preserving pure un-normalized payload
+        // Single Feature Outlier: Evaluate if Adaptive Context exists for LBS Yield
+        let isLbsOutlier = false;
+        let anomalyReasonString = "Mathematical Yield bounds broken with Piecewise escalation.";
+        
         const absLbsDelta = Math.abs(input.lbs_guest_delta_pct);
         const dynamicYieldSeverityScore = ScoreCalculator.normalizeLbsVariance(input.lbs_guest_delta_pct);
         
-        if (absLbsDelta > 8.5 || dynamicYieldSeverityScore > 60) {
+        // ADAPTIVE CALIBRATION OVERRIDE: Z-Score
+        if (input.baselineContext && input.baselineContext.lbs_guest_delta.std_dev > 0) {
+            const zScore = Math.abs(input.lbs_guest_delta_pct - input.baselineContext.lbs_guest_delta.mean) / input.baselineContext.lbs_guest_delta.std_dev;
+            // A Z-Score > 2 means 95% certainty this is an organic outlier for THIS specific store
+            if (zScore > 2.0 && dynamicYieldSeverityScore > 40) { 
+                 isLbsOutlier = true;
+                 anomalyReasonString = `Store Z-Score hit ${zScore.toFixed(2)}, violating typical Standard Deviation of ${input.baselineContext.lbs_guest_delta.std_dev.toFixed(2)}.`;
+            }
+        } else {
+            // FALLBACK TO GLOBAL STATIC THRESHOLDS IF LESS THAN 10 DAYS DATA
+            if (absLbsDelta > 8.5 || dynamicYieldSeverityScore > 60) {
+                 isLbsOutlier = true;
+            }
+        }
+
+        if (isLbsOutlier) {
             anomalies.push({
                 type: input.lbs_guest_delta_pct > 0 ? 'CRITICAL_LBS_OVERYIELD' : 'CRITICAL_LBS_UNDERYIELD',
-                // Map the non-linear piecewise score to an exact English severity tag
                 severity: this.evaluateSeverity(dynamicYieldSeverityScore),
-                // Expose raw unmodified value to Database schema for Traceability (e.g. +950% if catastrophic limit blown)
                 trigger_value: input.lbs_guest_delta_pct,
-                message: `Meat Consumption delta decoupled from Standard Yield by a RAW amount of ${input.lbs_guest_delta_pct.toFixed(2)}%`,
+                message: `Meat Consumption delta decoupled from Target Yield by a RAW amount of ${input.lbs_guest_delta_pct.toFixed(2)}%`,
                 actions: [
                     {
                          action_code: input.lbs_guest_delta_pct > 0 ? 'CALIBRATE_MEAT_SERVERS' : 'REVIEW_YIELD_WASTE',
                          title: input.lbs_guest_delta_pct > 0 ? 'Recalibrate Portions' : 'Audit Prep Waste',
-                         description: 'Store is drifting out of Theoretical expectation bounds based on deterministic non-linear piece curve.',
-                         rationale: 'Mathematical Yield bounds broken with Piecewise escalation.',
+                         description: 'Store is drifting out of Theoretical expectation bounds based on deterministic logic.',
+                         rationale: anomalyReasonString,
                          owner_role: 'KITCHEN_MANAGER',
                          priority: 'URGENT'
                     }
