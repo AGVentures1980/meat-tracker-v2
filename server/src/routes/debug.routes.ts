@@ -1,7 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { DebugController } from '../controllers/DebugController';
+
 const prisma = new PrismaClient();
 const router = Router();
+
 router.get('/db-sweep', async (req: Request, res: Response) => {
     try {
         const stores = await prisma.store.findMany({ include: { company: true }});
@@ -16,4 +19,7 @@ router.get('/db-sweep', async (req: Request, res: Response) => {
         res.json({ totalStores: stores.length, leakedOutbackInFogo: count, leakages });
     } catch(e:any) { res.json({error:e.message}); }
 });
+
+router.get('/sweep', DebugController.cleanupTenantContamination);
+
 export default router;
