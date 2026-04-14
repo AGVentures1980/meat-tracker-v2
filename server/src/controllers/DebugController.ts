@@ -180,6 +180,7 @@ export const DebugController = {
             }
             console.error(error);
             return res.status(500).json({ error: String(error) });
+        }
     },
 
     async cleanupTenantContamination(req: Request, res: Response) {
