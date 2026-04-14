@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, ScanLine, FileText, Image as ImageIcon, DatabaseZap, X } from 'lucide-react';
+import { Upload, ScanLine, FileText, Image as ImageIcon, DatabaseZap, X, XCircle } from 'lucide-react';
 
 export const DataIntakeConsole = ({ tenant, storeId, onImportSuccess }: { tenant: string, storeId: string, onImportSuccess: () => void }) => {
     const [activeModal, setActiveModal] = useState<string | null>(null);
