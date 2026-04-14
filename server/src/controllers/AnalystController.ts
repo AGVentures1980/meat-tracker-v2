@@ -15,7 +15,7 @@ export class AnalystController {
             const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string);
 
             // SRE HARDENING: Enforce strict company boundary
-            if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
                  whereClause.company_id = user.tenant_id || user.companyId;
                  if (!whereClause.company_id) throw new Error("403: Multi-Tenant Zero-Trust boundary missing.");
             } else if (effectiveCompanyId) {
@@ -42,7 +42,7 @@ export class AnalystController {
             if (pilotStores.length === 0) {
                 const fallbackWhere: any = {};
                 // Strict Isolation
-                if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
                      fallbackWhere.company_id = user.tenant_id || user.companyId;
                 } else if (effectiveCompanyId) {
                      fallbackWhere.company_id = effectiveCompanyId;
@@ -238,7 +238,7 @@ export class AnalystController {
             const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string);
 
             // SRE HARDENING: Enforce strict company boundary
-            if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
                  whereClause.company_id = user.tenant_id || user.companyId;
                  if (!whereClause.company_id) throw new Error("403: Multi-Tenant Zero-Trust boundary missing.");
             } else if (effectiveCompanyId) {

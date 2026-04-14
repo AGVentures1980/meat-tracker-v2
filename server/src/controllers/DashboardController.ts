@@ -193,7 +193,7 @@ export class DashboardController {
             const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string) || (req.query.companyId as string);
 
             // SRE HARDENING: Enforce strict company boundary
-            if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
                  where.company_id = user.tenant_id || user.companyId;
                  if (!where.company_id) throw new Error("403: Multi-Tenant Zero-Trust boundary missing.");
             } else if (effectiveCompanyId) {
@@ -392,7 +392,7 @@ export class DashboardController {
             const whereStore: any = {};
 
             // SRE HARDENING: Enforce strict company boundary
-            if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
                  whereStore.company_id = user.tenant_id || user.companyId;
                  if (!whereStore.company_id) throw new Error("403: Multi-Tenant Zero-Trust boundary missing.");
             } else if (effectiveCompanyId) {
@@ -521,7 +521,7 @@ export class DashboardController {
             const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string);
             
             if (!effectiveCompanyId) {
-                 if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                 if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
                       throw new Error("403: Critical Multi-Tenant integrity violation. No tenant context provided.");
                  }
             }
@@ -541,7 +541,7 @@ export class DashboardController {
             const where: any = {};
             
             // MANDATORY SRE RULE: Never bypass company_id for non-global actors
-            if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
                 where.company_id = user.tenant_id || user.companyId; 
                 if (!where.company_id) throw new Error("403: Active Tenant Session Missing.");
             } else if (effectiveCompanyId) {
