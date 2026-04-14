@@ -150,18 +150,10 @@ export const Login = () => {
                                     : theme?.companyName?.toLowerCase().includes('outback')
                                         ? 'w-[240px] h-[80px] drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)]'
                                     : theme?.companyName === 'Terra Gaucha'
-                                        ? 'w-[260px] h-[90px] drop-shadow-[0_2px_15px_rgba(0,135,81,0.4)] animate-pulse-slow'
-                                    : 'w-[280px] h-[100px] drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
+                                        ? 'w-[300px] h-[110px] drop-shadow-[0_2px_15px_rgba(0,135,81,0.4)] animate-pulse-slow'
+                                    : 'w-[320px] h-[130px] drop-shadow-[0_0_15px_rgba(197,160,89,0.3)] animate-pulse-slow'
                                 }`}
                             />
-                            {theme?.companyName !== 'Fogo de Chão' && 
-                             !theme?.companyName?.toLowerCase().includes('outback') && 
-                             theme?.companyName !== 'Terra Gaucha' && (
-                                <div className="mt-2 w-full">
-                                    <div className="h-px w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto mb-1"></div>
-                                    <p className="text-brand-gold uppercase tracking-[0.2em] text-[9px] font-bold">{theme?.companyName || "Meat Intelligence"}</p>
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
