@@ -413,7 +413,7 @@ export const OwnerController = {
                 });
 
                 if (!store) {
-                    await prisma.store.create({
+                    store = await prisma.store.create({
                         data: {
                             company_id: adega.id,
                             store_name: storeName,
@@ -426,6 +426,25 @@ export const OwnerController = {
                             dinner_start_time: '16:00',
                             dinner_end_time: '22:00',
                             baseline_loss_rate: 6.5
+                        }
+                    });
+                }
+                
+                // Orlando Specific Executive GM Seeding
+                if (loja.name === 'Orlando') {
+                    const bcryptjs = require('bcryptjs');
+                    const hash = await bcryptjs.hash('Brasa2026@', 10);
+                    const gmEmail = 'gm.orlando@adegagaucha.com';
+                    await prisma.user.upsert({
+                        where: { email: gmEmail },
+                        update: { role: 'gm', store_id: store.id, password_hash: hash },
+                        create: {
+                            email: gmEmail,
+                            first_name: 'Orlando',
+                            last_name: 'Manager',
+                            password_hash: hash,
+                            role: 'gm',
+                            store_id: store.id
                         }
                     });
                 }
