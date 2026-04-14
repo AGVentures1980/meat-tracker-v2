@@ -1,7 +1,7 @@
 interface BaselineStats {
     mean: number;
     std_dev: number;
-    trend: number; // Slope
+    trend: number; 
 }
 
 export interface BaselineContext {
@@ -9,6 +9,7 @@ export interface BaselineContext {
     invoice_variance: BaselineStats;
     shrink_probability: BaselineStats;
     valid_data_points: number;
+    baseline_contaminated: boolean; // Flagged when std_dev scales catastrophically
 }
 
 export class BaselineEngine {
@@ -52,20 +53,35 @@ export class BaselineEngine {
 
     // Accepts historical payloads and mathematically parses them
     public static computeHistoricalBaseline(snapshots: any[]): BaselineContext | null {
-        // Enforce Fallback Rules (Requires minimum 10 valid days within the 30-day window to calculate a safe normal distribution)
-        if (!snapshots || snapshots.length < 10) {
+        // Enforce Fallback Rules (Requires minimum 14 valid days within the 30-day window per TEST 1)
+        if (!snapshots || snapshots.length < 14) {
             return null; // Signals Fallback to Global Static Rules
         }
 
         const lbsGstDelta = snapshots.map(s => s.lbs_guest_delta_pct).filter(val => typeof val === 'number');
-        const invoiceVar = snapshots.map(s => s.invoice_variance_score || 0); // Assuming legacy handling
+        const invoiceVar = snapshots.map(s => s.invoice_variance_score || 0); 
         const shrinkProb = snapshots.map(s => s.shrink_probability_score || 0);
+        
+        const lbsStats = this.generateStats(lbsGstDelta);
+
+        // TEST 2: Contaminated Baseline 
+        // A standard deviation over 15.0% proves continuous logistical meltdown, nullifying Adaptive Logic.
+        if (lbsStats.std_dev > 15.0 || lbsStats.trend < -2.0) {
+            return {
+                lbs_guest_delta: { mean: 0, std_dev: 0, trend: 0 },
+                invoice_variance: { mean: 0, std_dev: 0, trend: 0 },
+                shrink_probability: { mean: 0, std_dev: 0, trend: 0 },
+                valid_data_points: snapshots.length,
+                baseline_contaminated: true // Overrides adaptive logic completely
+            };
+        }
 
         return {
-            lbs_guest_delta: this.generateStats(lbsGstDelta),
+            lbs_guest_delta: lbsStats,
             invoice_variance: this.generateStats(invoiceVar),
             shrink_probability: this.generateStats(shrinkProb),
-            valid_data_points: snapshots.length
+            valid_data_points: snapshots.length,
+            baseline_contaminated: false
         };
     }
 }

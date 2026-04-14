@@ -82,6 +82,7 @@ export class IntelligenceController {
                             severity: anom.severity,
                             confidence: verified_trust / 100,
                             message: anom.message,
+                            is_capped: anom.is_capped || false,
                             trigger_value: anom.trigger_value,
                             baseline_value: baselineContext ? baselineContext.lbs_guest_delta.mean : 0
                         }

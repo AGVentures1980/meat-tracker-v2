@@ -1525,6 +1525,7 @@ model AnomalyEvent {
   severity        String   // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
   confidence      Float
   message         String   @db.Text
+  is_capped       Boolean  @default(false)
   trigger_value   Float
   baseline_value  Float
   created_at      DateTime @default(now())
