@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 
+export type PrimaryDriver =
+  | "YIELD_VARIANCE"
+  | "SHRINK_RISK"
+  | "INVOICE_DISCREPANCY"
+  | "SIGNAL_CONFLICT"
+  | "LOW_DATA_TRUST"
+  | "STABLE";
+
+const primaryDriverLabelMap: Record<PrimaryDriver, string> = {
+  YIELD_VARIANCE: "Yield Variance",
+  SHRINK_RISK: "Shrink Risk",
+  INVOICE_DISCREPANCY: "Invoice Discrepancy",
+  SIGNAL_CONFLICT: "Signal Conflict",
+  LOW_DATA_TRUST: "Low Data Trust",
+  STABLE: "Stable Baseline"
+};
+
 export interface StoreExecutiveSummary {
   store_id: number;
   store_name: string;
@@ -8,7 +25,7 @@ export interface StoreExecutiveSummary {
   trend_direction: "UP" | "DOWN" | "FLAT";
   confidence_score: number;
   critical_flags: number;
-  primary_driver: string;
+  primary_driver: PrimaryDriver;
 }
 
 export interface ExecutiveDashboardPayload {
@@ -20,8 +37,27 @@ export interface ExecutiveDashboardPayload {
 export const ExecutiveDashboardContainer = () => {
     const { user, selectedCompany } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [contractError, setContractError] = useState<string | null>(null);
     const [payload, setPayload] = useState<ExecutiveDashboardPayload | null>(null);
+
+    // Contract Validation (Fail-Closed)
+    const validateContract = (data: ExecutiveDashboardPayload) => {
+        if (data.global_trust_score < 0 || data.global_trust_score > 100) {
+            return "Contract Invalid: global_trust_score must be between 0 and 100.";
+        }
+        for (const store of data.top_risk_stores) {
+            if (store.confidence_score < 0 || store.confidence_score > 100) {
+                return `Contract Invalid: confidence_score (${store.confidence_score}) for store ${store.store_id} is out of bounds [0-100].`;
+            }
+            if (!Object.keys(primaryDriverLabelMap).includes(store.primary_driver)) {
+                return `Contract Invalid: Unknown primary_driver enumerator received (${store.primary_driver}).`;
+            }
+            if (!['UP', 'DOWN', 'FLAT'].includes(store.trend_direction)) {
+                return `Contract Invalid: Unknown trend_direction received (${store.trend_direction}).`;
+            }
+        }
+        return null;
+    };
 
     useEffect(() => {
         const abortController = new AbortController();
@@ -44,7 +80,12 @@ export const ExecutiveDashboardContainer = () => {
 
                 if (!signal.aborted) {
                     if (data.success && data.data) {
-                        setPayload(data.data);
+                        const validationError = validateContract(data.data as ExecutiveDashboardPayload);
+                        if (validationError) {
+                            setContractError(validationError);
+                        } else {
+                            setPayload(data.data);
+                        }
                     } else {
                         throw new Error('Invalid payload structure from API');
                     }
@@ -52,7 +93,7 @@ export const ExecutiveDashboardContainer = () => {
             } catch (err: any) {
                 if (err.name !== 'AbortError') {
                     console.error(err);
-                    setError(err.message);
+                    setContractError(`Transport/Network Error: ${err.message}`);
                 }
             } finally {
                 if (!signal.aborted) setLoading(false);
@@ -67,8 +108,17 @@ export const ExecutiveDashboardContainer = () => {
         return <div className="p-8 text-[#C5A059] font-mono animate-pulse">Loading Executive Matrix...</div>;
     }
 
-    if (error || !payload) {
-        return <div className="p-8 text-[#FF2A6D] font-mono">Failed to resolve data context: {error || 'No Payload'}</div>;
+    if (contractError || !payload) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-[#121212] flex-col gap-4">
+                <div className="text-[#FF2A6D] text-lg font-mono tracking-widest font-bold">CONTRACT BLOCKED</div>
+                <div className="text-gray-500 font-mono text-xs max-w-lg text-center uppercase tracking-widest p-4 border border-[#FF2A6D]/30 bg-[#FF2A6D]/10">
+                    Executive dashboard contract invalid — check backend payload integrity.
+                    <br/><br/>
+                    <span className="text-[#FF2A6D]">Reason: {contractError || 'Missing Payload'}</span>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -148,7 +198,7 @@ export const ExecutiveDashboardContainer = () => {
                                     
                                     <td className="p-3">
                                         <span className="text-[10px] text-gray-300 font-mono bg-[#333] px-2 py-1 rounded">
-                                            {s.primary_driver.replace(/_/g, ' ')}
+                                            {primaryDriverLabelMap[s.primary_driver] || s.primary_driver}
                                         </span>
                                     </td>
                                 </tr>

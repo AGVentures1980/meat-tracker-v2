@@ -2,6 +2,14 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+export type PrimaryDriver =
+  | "YIELD_VARIANCE"
+  | "SHRINK_RISK"
+  | "INVOICE_DISCREPANCY"
+  | "SIGNAL_CONFLICT"
+  | "LOW_DATA_TRUST"
+  | "STABLE";
+
 export interface StoreExecutiveSummary {
   store_id: number;
   store_name: string;
@@ -9,7 +17,7 @@ export interface StoreExecutiveSummary {
   trend_direction: "UP" | "DOWN" | "FLAT";
   confidence_score: number;
   critical_flags: number;
-  primary_driver: string;
+  primary_driver: PrimaryDriver;
 }
 
 export class ExecutiveController {
@@ -72,8 +80,8 @@ export class ExecutiveController {
                 const criticalCount = opAnomalies.filter((a: any) => ['HIGH', 'CRITICAL'].includes(a.severity)).length;
                 activeCriticalOpsAnomalies += criticalCount;
 
-                // Determinar o driver de risco principal
-                let primary_driver = "STABLE";
+                // Determinar o driver de risco principal usando ENUM ESTRITO PRO C-LEVEL
+                let primary_driver = "STABLE"; // Considerado baseline
                 if (opAnomalies.length > 0) {
                      const worstAnom = opAnomalies.sort((a: any, b: any) => {
                           const wA = a.severity === 'CRITICAL' ? 3 : a.severity === 'HIGH' ? 2 : 1;
@@ -81,19 +89,23 @@ export class ExecutiveController {
                           return wB - wA;
                      })[0];
                      
-                     // Formatador semântico focado em Executivo
-                     if (worstAnom.anomaly_type.includes('LBS_OVERYIELD')) primary_driver = "EXCESSIVE_PROTEIN_DISSIPATION";
-                     else if (worstAnom.anomaly_type.includes('LBS_UNDERYIELD')) primary_driver = "UNDERPORTION_GUEST_RISK";
-                     else if (worstAnom.anomaly_type === 'SIGNAL_CONFLICT_DETECTED') primary_driver = "FINANCIAL_INVENTORY_PARADOX";
-                     else primary_driver = worstAnom.anomaly_type;
+                     if (worstAnom.anomaly_type.includes('YIELD')) primary_driver = "YIELD_VARIANCE";
+                     else if (worstAnom.anomaly_type.includes('SHRINK') || worstAnom.anomaly_type.includes('LOSS')) primary_driver = "SHRINK_RISK";
+                     else if (worstAnom.anomaly_type.includes('INVOICE') || worstAnom.anomaly_type.includes('RECEIVING')) primary_driver = "INVOICE_DISCREPANCY";
+                     else if (worstAnom.anomaly_type.includes('CONFLICT') || worstAnom.anomaly_type === 'SIGNAL_CONFLICT_DETECTED') primary_driver = "SIGNAL_CONFLICT";
+                     else if (worstAnom.anomaly_type === 'SYSTEM_SUPPRESSION_LOW_TRUST') primary_driver = "LOW_DATA_TRUST";
+                     else primary_driver = "SIGNAL_CONFLICT"; // Fail-safe strictly clamped to Enum
                 }
+
+                // Garantir Confidence Score entre 0 e 100
+                const normalizedConfidence = Math.max(0, Math.min(100, Math.round(current.confidence)));
 
                 executiveSummaries.push({
                      store_id: storeId,
                      store_name: `Store #${storeId}`, // Placeholder until Store dict lookup
                      risk_score: current.op_risk_score,
                      trend_direction: trend,
-                     confidence_score: current.confidence, // OBRIGATORIEDADE DA FASE 7 (C-Level nunca cego)
+                     confidence_score: normalizedConfidence,
                      critical_flags: criticalCount,
                      primary_driver
                 });
