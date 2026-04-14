@@ -434,7 +434,7 @@ export const OwnerController = {
                 if (loja.name === 'Orlando') {
                     const bcryptjs = require('bcryptjs');
                     const hash = await bcryptjs.hash('Brasa2026@', 10);
-                    const gmEmail = 'gm.orlando@adegagaucha.com';
+                    const gmEmail = 'orlando@adegagaucha.com';
                     await prisma.user.upsert({
                         where: { email: gmEmail },
                         update: { role: 'manager', store_id: store.id, password_hash: hash },
