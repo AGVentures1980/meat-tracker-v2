@@ -246,7 +246,9 @@ export class InventoryController {
             return res.json({ 
                 success: true, 
                 message: 'Box validated, tracked, and pulled to Prep successfully.',
-                protein: targetBox.product_name
+                protein: targetBox.product_name,
+                weight: targetBox.available_weight_lb,
+                lot_number: targetBox.lot_code
             });
         } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {

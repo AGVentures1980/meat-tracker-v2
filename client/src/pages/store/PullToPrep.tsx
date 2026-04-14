@@ -134,8 +134,8 @@ export default function PullToPrep() {
       const newBox: PulledBox = {
         id: Math.random().toString(36).substr(2, 9),
         barcode: cleanBarcode,
-        weightLbs: parsedData.weightLbs,
-        lotNumber: parsedData.lotNumber,
+        weightLbs: responseData.weight || parsedData.weightLbs,
+        lotNumber: responseData.lot_number || parsedData.lotNumber,
         protein: responseData.protein || 'Generic / Manual Map Required',
         pulledAt: new Date().toISOString()
       };
