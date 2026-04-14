@@ -63,7 +63,7 @@ export class AuthController {
 
             // 5. Calculate Redirect and Default Company
             let redirectPath = '/dashboard';
-            let defaultCompanyId = null;
+            let defaultCompanyId = user.company_id || null;
 
             // Step 1: Infer company from explicit relations (store_id)
             if (user.store_id) {
