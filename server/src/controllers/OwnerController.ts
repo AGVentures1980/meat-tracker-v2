@@ -342,7 +342,7 @@ export const OwnerController = {
             if (!adega) {
                 adega = await prisma.company.create({
                     data: {
-                        name: 'Adega Gaucha (Pilot)',
+                        name: 'Adega Gaucha',
                         operationType: 'RODIZIO',
                         plan: 'enterprise',
                         subdomain: 'adega',
@@ -355,6 +355,7 @@ export const OwnerController = {
                 await prisma.company.update({
                     where: { id: adega.id },
                     data: { 
+                        name: 'Adega Gaucha',
                         operationType: 'RODIZIO',
                         subdomain: 'adega',
                         theme_primary_color: '#E17B1E',
