@@ -77,13 +77,14 @@ export class RegionalController {
                 }
             });
 
-            // Isolate Low Trust vs Actionable Logic out of the gate
-            const pureCurrentAnomalies = currentAnomalies.filter(a => a.confidence >= 65 && a.anomaly_type !== 'SYSTEM_SUPPRESSION_LOW_TRUST');
-            const purePrevAnomalies = prevAnomalies.filter(a => a.confidence >= 65 && a.anomaly_type !== 'SYSTEM_SUPPRESSION_LOW_TRUST');
+            // BLOC 1/2: Isolate Valid vs Low Trust logic OUT of Risk Calculus
+            const isTrustable = (a: AnomalyEvent) => a.confidence >= 65 && !a.anomaly_type.includes('LOW_TRUST') && !a.anomaly_type.includes('DATA_QUALITY');
+            const pureCurrentAnomalies = currentAnomalies.filter(isTrustable);
+            const purePrevAnomalies = prevAnomalies.filter(isTrustable);
 
             const currentActions = RecommendationEngine.generateActions(pureCurrentAnomalies);
             
-            // Build Maps
+            // Map Urgent Actions
             const urgentActionCounts = new Map<number, number>();
             currentActions.forEach(action => {
                 if (action.priority === 'URGENT') {
@@ -91,102 +92,128 @@ export class RegionalController {
                 }
             });
 
-            // Risk Scoring Engine per store ID
+            // BLOC 3: Deduplicate anomalies by store_id + anomaly_type + day
+            const deduplicateByDay = (anomalies: AnomalyEvent[]) => {
+                const map = new Map<string, AnomalyEvent>();
+                anomalies.forEach(a => {
+                    // Extract YYYY-MM-DD
+                    const day = a.created_at.toISOString().split('T')[0];
+                    const key = `${a.store_id}_${a.anomaly_type}_${day}`;
+                    // Keep first encountered for the day (or could keep highest severity, keeping first is fine for count base)
+                    if (!map.has(key)) map.set(key, a);
+                });
+                return Array.from(map.values());
+            };
+
+            // BLOC 2: Hardened Risk Scoring Engine per store ID
             const calcRisk = (anoms: AnomalyEvent[]) => {
-                 let score = 0;
-                 anoms.forEach(a => {
-                     if (a.severity === 'CRITICAL') score += 100;
-                     else if (a.severity === 'HIGH') score += 50;
-                     else if (a.severity === 'MEDIUM') score += 25;
-                     else score += 10;
+                 const deduped = deduplicateByDay(anoms);
+                 let critical = 0, high = 0, medium = 0, low = 0;
+                 deduped.forEach(a => {
+                     if (a.severity === 'CRITICAL') critical++;
+                     else if (a.severity === 'HIGH') high++;
+                     else if (a.severity === 'MEDIUM') medium++;
+                     else low++;
                  });
-                 // Clamp max score to 100 artificially if we want visual % display later, or leave as points.
-                 // We leave as bounded index to 100% logic:
-                 return Math.min(100, Math.floor(score / (anoms.length || 1))); // simplistic average density 
+                 const raw_score = (critical * 40) + (high * 20) + (medium * 8) + (low * 3);
+                 return Math.min(100, raw_score);
             };
 
             const storeRankings: StoreRankingItem[] = [];
             let stores_at_risk = 0;
             let stores_low_trust = 0;
-            let regional_risk_sum = 0;
+            let current_regional_risk_sum = 0;
             let prev_regional_risk_sum = 0;
-
-            const storeNames = new Map(stores.map(s => [s.id, s.store_name]));
+            let trusted_stores_count = 0;
 
             for (const store of stores) {
+                // System Trust Gate
+                const lowTrustAnoms = currentAnomalies.filter(a => a.store_id === store.id && a.confidence < 65);
+                const isStoreLowTrust = lowTrustAnoms.length > 0;
+                
+                if (isStoreLowTrust) {
+                    stores_low_trust++;
+                } else {
+                    trusted_stores_count++;
+                }
+
                 // Current Risk
                 const storeCurrentAnoms = pureCurrentAnomalies.filter(a => a.store_id === store.id);
-                // System Trust
-                const lowTrustAnoms = currentAnomalies.filter(a => a.store_id === store.id && a.confidence < 65);
-                if (lowTrustAnoms.length > 0) stores_low_trust++;
+                const currentRisk = calcRisk(storeCurrentAnoms);
 
                 // Previous Risk
                 const storePrevAnoms = purePrevAnomalies.filter(a => a.store_id === store.id);
-
-                const currentRisk = calcRisk(storeCurrentAnoms);
                 const prevRisk = calcRisk(storePrevAnoms);
-                regional_risk_sum += currentRisk;
-                prev_regional_risk_sum += prevRisk;
 
-                if (currentRisk > 30) stores_at_risk++; // Threshold heuristic
+                // Only trusted stores contribute to regional average risk
+                if (!isStoreLowTrust) {
+                    current_regional_risk_sum += currentRisk;
+                    prev_regional_risk_sum += prevRisk;
+                }
 
-                let trend: "UP" | "DOWN" | "FLAT" = "FLAT";
-                if (currentRisk > prevRisk) trend = "UP";
-                else if (currentRisk < prevRisk) trend = "DOWN";
+                if (currentRisk > 60) stores_at_risk++;
+
+                // Local trend for ranking table display
+                let storeTrend: "UP" | "DOWN" | "FLAT" = "FLAT";
+                const localDelta = currentRisk - prevRisk;
+                if (localDelta > 5) storeTrend = "UP";
+                else if (localDelta < -5) storeTrend = "DOWN";
 
                 // Average confidence for Store
-                const confSum = storeCurrentAnoms.reduce((acc, sum) => acc + sum.confidence, 0);
-                const avgConfidence = storeCurrentAnoms.length > 0 ? (confSum / storeCurrentAnoms.length) : 100;
+                const confSum = currentAnomalies.filter(a => a.store_id === store.id).reduce((acc, sum) => acc + sum.confidence, 0);
+                const totalStoreAnoms = currentAnomalies.filter(a => a.store_id === store.id).length;
+                const avgConfidence = totalStoreAnoms > 0 ? (confSum / totalStoreAnoms) : 100;
 
                 storeRankings.push({
                     store_id: store.id,
                     store_name: store.store_name,
                     risk_score: currentRisk,
-                    trend_direction: trend,
+                    trend_direction: storeTrend,
                     confidence_score: Math.round(avgConfidence),
                     urgent_actions_count: urgentActionCounts.get(store.id) || 0
                 });
             }
 
-            // BLOC 1: Strict Backend sort - Risk (DESC) -> Urgent (DESC) -> Confidence (ASC)
+            // BLOC 5: Strict Backend sort - Risk (DESC) -> Urgent (DESC) -> Confidence (ASC)
             storeRankings.sort((a, b) => {
                 if (a.risk_score !== b.risk_score) return b.risk_score - a.risk_score;
                 if (a.urgent_actions_count !== b.urgent_actions_count) return b.urgent_actions_count - a.urgent_actions_count;
-                return a.confidence_score - b.confidence_score;
+                return a.confidence_score - b.confidence_score; // Lower trust ranks higher when ties exist
             });
 
-            // BLOC 3: Anomaly Distribution (Valid only)
+            // BLOC 9: Anomaly Distribution (Valid only)
             const typeCounts: Record<string, number> = {};
-            pureCurrentAnomalies.forEach(a => {
+            const dedupedPure = deduplicateByDay(pureCurrentAnomalies);
+            dedupedPure.forEach(a => {
                 const rootCauseMap = this.evaluateRootCause(a.anomaly_type);
                 typeCounts[rootCauseMap] = (typeCounts[rootCauseMap] || 0) + 1;
             });
-            const totalPureAnomalies = pureCurrentAnomalies.length;
+            const totalPureAnomalies = dedupedPure.length;
             const anomaly_distribution: AnomalyDistributionItem[] = Object.entries(typeCounts).map(([type, count]) => ({
                 anomaly_type: type,
                 count,
                 percentage: totalPureAnomalies > 0 ? Math.round((count / totalPureAnomalies) * 100) : 0
-            })).sort((a, b) => b.count - a.count); // sort distribution heavily as well
+            })).sort((a, b) => b.count - a.count);
 
-            // BLOC 4: Regional Trend
-            const avgClusterRisk = regional_risk_sum / total_stores;
-            const prevAvgClusterRisk = prev_regional_risk_sum / total_stores;
+            // BLOC 7 & 8: Regional Trend
+            const avgClusterRisk = trusted_stores_count > 0 ? (current_regional_risk_sum / trusted_stores_count) : 0;
+            const prevAvgClusterRisk = trusted_stores_count > 0 ? (prev_regional_risk_sum / trusted_stores_count) : 0;
             
+            const delta = avgClusterRisk - prevAvgClusterRisk;
             let regTrend: "UP" | "DOWN" | "FLAT" = "FLAT";
             let change_pct = 0;
 
-            // Protection: minimum of 3 stores required to declare a systemic trend
-            if (total_stores >= 3) {
-                if (avgClusterRisk > prevAvgClusterRisk) regTrend = "UP";
-                else if (avgClusterRisk < prevAvgClusterRisk) regTrend = "DOWN";
+            if (trusted_stores_count >= 3) {
+                if (delta > 5) regTrend = "UP";
+                else if (delta < -5) regTrend = "DOWN";
 
-                if (prevAvgClusterRisk > 0) {
-                     change_pct = Math.round(Math.abs((avgClusterRisk - prevAvgClusterRisk) / prevAvgClusterRisk) * 100);
-                }
+                // Absolute clamp between -100 and +100 to prevent layout blowouts
+                change_pct = Math.round(Math.max(-100, Math.min(100, delta)));
             }
 
             const total_urgent_actions = Array.from(urgentActionCounts.values()).reduce((a,b) => a+b, 0);
 
+            // BLOC 10: Final DTO Construction
             const payload: RegionalOverviewPayload = {
                 regional_summary: {
                     total_stores,
