@@ -6,6 +6,7 @@ export const RegionalDashboardContainer = () => {
     const { user, selectedCompany } = useAuth();
     const [loading, setLoading] = useState(true);
     const [payload, setPayload] = useState<RawDashboardPayload | null>(null);
+    const [dataCompromised, setDataCompromised] = useState({ locked: false, reason: '', weightLost: 0 });
 
     // Hardened Fetch Process matching AbortController Pattern
     useEffect(() => {
@@ -23,6 +24,21 @@ export const RegionalDashboardContainer = () => {
                     fetch('/api/v1/dashboard/company-stats', { headers, signal }),
                     fetch('/api/v1/intelligence/anomalies', { headers, signal })
                 ]);
+
+                if (perfRes.status === 409) {
+                    const errorData = await perfRes.json();
+                    if (errorData.status === 'DATA_INTEGRITY_COMPROMISED') {
+                        if (!signal.aborted) {
+                            setDataCompromised({ 
+                                locked: true, 
+                                reason: errorData.lockReason,
+                                weightLost: errorData.totalLostLbs 
+                            });
+                            setLoading(false);
+                            return;
+                        }
+                    }
+                }
 
                 let perfData = { performance: [], summary: null };
                 let anomalyData = { anomalies: [] };
@@ -50,6 +66,30 @@ export const RegionalDashboardContainer = () => {
 
     if (loading) {
         return <div className="p-8 text-[#00FF94] font-mono animate-pulse">Loading Regional Framework...</div>;
+    }
+
+    // FASE 11 - FAIL-CLOSED FINAL UI HARDLOCK
+    if (dataCompromised.locked) {
+        return (
+            <div className="fixed inset-0 z-50 bg-[#FF0000] text-white flex flex-col items-center justify-center p-8">
+                <div className="text-8xl mb-6">⚠️</div>
+                <h1 className="text-5xl font-black mb-4 tracking-tighter uppercase text-center border-4 border-white p-6 bg-black">
+                    Data Integrity Compromised
+                </h1>
+                <h2 className="text-3xl font-bold mb-8 uppercase tracking-widest bg-black px-4 py-2">
+                    Score Withheld
+                </h2>
+                <div className="max-w-2xl text-center bg-black/50 p-8 border border-white/30 backdrop-blur-md">
+                    <p className="text-xl font-mono mb-4 text-[#FFBABA]">
+                        {dataCompromised.reason}
+                    </p>
+                    <p className="text-md text-white/80 uppercase tracking-widest mt-8 border-t border-white/20 pt-8">
+                        The BRASA Supply Chain Hardlock (Zero-Trust Protocol) has blocked all operational reporting for this tenant. 
+                        Reconcile missing inventory or execute an emergency cycle-count to unlock the dashboard.
+                    </p>
+                </div>
+            </div>
+        );
     }
 
     if (!payload) {

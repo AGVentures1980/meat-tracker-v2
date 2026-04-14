@@ -123,6 +123,18 @@ export const ReceivingController = {
                 
                 // BRASA PROTEIN BOX LIFECYCLE ENGINE - FASE 1: Instantiation
                 if (compliance.status !== 'REJECTED') {
+                    // FASE 3: Duplicate & Replay Protection (Receiving)
+                    const existingBox = await prisma.proteinBox.findFirst({
+                        where: {
+                            store_id: verifiedStoreId,
+                            barcode: barcode
+                        }
+                    });
+
+                    if (existingBox) {
+                        return res.status(409).json({ status: 'REJECTED', error: `Duplicate Scan Protection: Box ${barcode} has already been received into this store.` });
+                    }
+
                     try {
                         const todayDate = new Date();
                         todayDate.setUTCHours(0,0,0,0);

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { getISOWeek, getYear } from 'date-fns';
+import { ProteinLifecycleStrictEngine, HardFailError } from '../engine/ProteinLifecycleStrictEngine';
 
 const prisma = new PrismaClient();
 
@@ -223,6 +224,10 @@ export class InventoryController {
                 });
             }
 
+            // FASE 1 & 2: STRICT STATE MACHINE & UNIQUE PERMISSION CHECK
+            ProteinLifecycleStrictEngine.validateTransition(targetBox.status as any, 'PULLED_TO_PREP', targetBox.barcode);
+            await ProteinLifecycleStrictEngine.enforceUniqueOperation(targetBox.id, 'PULL_TO_PREP');
+
             // Execute the lifecycle mutation transaction
             await prisma.$transaction(async (tx) => {
                 await tx.proteinBox.update({
@@ -255,6 +260,9 @@ export class InventoryController {
                 return res.status(error.status).json({ error: error.message });
             }
             console.error('Pull to Prep Error:', error);
+            if (error instanceof HardFailError) {
+                return res.status(409).json({ error: error.message });
+            }
             return res.status(500).json({ error: 'Failed to process Prep Pull' });
         }
     }
@@ -283,9 +291,12 @@ export class InventoryController {
                 return res.status(409).json({ error: 'Conflict: Box is already in a terminal state (' + targetBox.status + ')' });
             }
 
-            if (targetBox.status !== 'PULLED_TO_PREP' && targetBox.status !== 'RECEIVED' && targetBox.status !== 'IN_COOLER') {
-                 return res.status(400).json({ error: 'Cannot consume box from state: ' + targetBox.status });
-            }
+            // FASE 1 & FASE 4: Validate Transition and Run Loss Tracking Engine
+            ProteinLifecycleStrictEngine.validateTransition(targetBox.status as any, 'CONSUMED', targetBox.barcode);
+            await ProteinLifecycleStrictEngine.enforceUniqueOperation(targetBox.id, 'CONSUME');
+            
+            const usedWeight = parseFloat(weight_used) || targetBox.available_weight_lb;
+            await ProteinLifecycleStrictEngine.trackInvisibleLoss(targetBox.id, usedWeight, userId);
 
             await prisma.$transaction(async (tx) => {
                 await tx.proteinBox.update({

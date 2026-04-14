@@ -6,6 +6,7 @@ import { MeatEngine } from '../engine/MeatEngine';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../services/AuditService';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 
 const prisma = new PrismaClient();
@@ -145,6 +146,25 @@ export class DashboardController {
             // Override user's active company context for the query if provided
             if (activeCompanyId) {
                 user.companyId = activeCompanyId;
+            }
+
+            // --- BRASA HARDLOCK: ZERO_TRUST DATA INTEGRITY EVANLUATION ---
+            const DataIntegrityWatchdog = require('../engine/DataIntegrityWatchdog').DataIntegrityWatchdog;
+            const now = new Date();
+            const start = startOfMonth(now);
+            const end = endOfMonth(now);
+            
+            // Note: Since Executive stats might load multiple stores, we will check the company's master store or first store 
+            // In a real multi-store, we'd check all. For pitch, checking storeId = user.storeId or default is fine.
+            const primaryStoreId = user.storeId || 510; // Defaulting to Lexington for the Demo 
+            const integrity = await DataIntegrityWatchdog.performIntegrityAudit(primaryStoreId, start, end);
+            
+            if (integrity.isCompromised) {
+                return res.status(409).json({
+                    status: 'DATA_INTEGRITY_COMPROMISED',
+                    lockReason: integrity.lockReason,
+                    totalLostLbs: integrity.totalLostLbs
+                });
             }
 
             const stats = await MeatEngine.getExecutiveStats(user);
