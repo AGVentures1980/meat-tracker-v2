@@ -191,6 +191,77 @@ export const ReceivingController = {
         }
     },
 
+    forceAcceptBarcode: async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            const { barcode, weight, store_id, original_protein } = req.body;
+            let companyId = requireTenant((req as any).user);
+            let storeId = store_id || user.storeId;
+            let verifiedStoreId: number | null = null;
+            if (storeId) verifiedStoreId = parseInt(storeId as string, 10);
+
+            let finalWeight = weight;
+            if (!finalWeight) {
+                // simple fallback if weight wasn't correctly passed
+                finalWeight = 0;
+            }
+
+            if (verifiedStoreId) {
+                // Send Critical Alert
+                await AlertEngine.trigger(
+                    verifiedStoreId, 
+                    'CRITICAL', 
+                    'COMPLIANCE', 
+                    'Emergency Force Receive (Garcia Rule Override Actuated)', 
+                    { barcode, weight: finalWeight, user: user.first_name }
+                );
+
+                const todayDate = new Date();
+                todayDate.setUTCHours(0,0,0,0);
+
+                await prisma.$transaction(async (tx) => {
+                    const newBox = await tx.proteinBox.create({
+                        data: {
+                            tenant_id: Number(companyId),
+                            store_id: verifiedStoreId,
+                            barcode: barcode,
+                            gtin: barcode.substring(0, 14), // fallback
+                            product_name: "UNMAPPED OVERRIDE - " + (original_protein || "Unknown"),
+                            vendor: "Unknown override",
+                            received_weight_lb: finalWeight,
+                            available_weight_lb: finalWeight,
+                            status: 'RECEIVED',
+                            received_by: String(user.id || getUserId(user) || "SYSTEM"),
+                            business_date: todayDate,
+                        }
+                    });
+
+                    await tx.boxLifecycleEvent.create({
+                        data: {
+                            box_id: newBox.id,
+                            store_id: verifiedStoreId,
+                            event_type: 'RECEIVE',
+                            previous_status: 'RECEIVED',
+                            new_status: 'RECEIVED',
+                            triggered_by: String(user.id || getUserId(user) || "SYSTEM"),
+                            reason: 'Manager Override - Forced Receive'
+                        }
+                    });
+                });
+            }
+
+            return res.json({ 
+                status: 'APPROVED', 
+                protein: "UNMAPPED OVERRIDE", 
+                weight: finalWeight
+            });
+
+        } catch (error: any) {
+            console.error('Force Accept Error:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+
     mapBarcode: async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;

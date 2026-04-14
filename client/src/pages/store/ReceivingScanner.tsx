@@ -443,6 +443,30 @@ export default function ReceivingScanner() {
           >
             Return to Delivery Log
           </button>
+          
+          <button 
+            disabled={isMapping}
+            onClick={async () => {
+                setIsMapping(true);
+                try {
+                    const res = await fetch('/api/v1/compliance/force-accept', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${user?.token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ barcode: barcode || scannedGtin || "UNKNOWN", weight: extractedWeight || 0, store_id: user?.storeId })
+                    });
+                    if (res.ok) {
+                        handleApproveSuccess('UNMAPPED OVERRIDE', extractedWeight || 0, barcode || scannedGtin || "UNKNOWN");
+                    }
+                } catch (e) {
+                    alert("Network error forcing accept. Alert not sent.");
+                } finally {
+                    setIsMapping(false);
+                }
+            }}
+            className="text-rose-200 mt-6 hover:text-white text-sm font-bold tracking-wider transition-colors uppercase underline decoration-rose-400/50 underline-offset-4 disabled:opacity-50"
+          >
+            {isMapping ? 'Overriding...' : 'Force Receive Anyway (Alert Supply Chain)'}
+          </button>
         </div>
       )}
 

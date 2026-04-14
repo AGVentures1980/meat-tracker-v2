@@ -16,6 +16,7 @@ router.delete('/specs/:id', requireAuth, controller.deleteCorporateSpec);
 // Receiving Scanner Routes
 router.post('/scan', requireAuth, ReceivingController.scanBarcode);
 router.post('/map-barcode', requireAuth, ReceivingController.mapBarcode);
+router.post('/force-accept', requireAuth, ReceivingController.forceAcceptBarcode);
 router.post('/submit-batch', requireAuth, ReceivingController.submitBatch);
 router.get('/purge-ai', requireAuth, ReceivingController.purgeAI);
 router.get('/raw-specs', ReceivingController.rawSpecs);
