@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { storeAdapters, RawDashboardPayload } from '../../../utils/dashboardAdapters';
 
 export const StoreDashboardContainer = () => {
+    const navigate = useNavigate();
     const { user, selectedCompany } = useAuth();
     const selectedStore = user?.storeId || null;
     const [loading, setLoading] = useState(true);
@@ -123,8 +125,8 @@ export const StoreDashboardContainer = () => {
             <div className="mb-8">
                  <h2 className="text-sm font-bold text-white mb-4 uppercase tracking-widest">Immediate Actions</h2>
                  <div className="flex gap-4">
-                     <button className="px-4 py-2 bg-[#FF2A6D] text-white text-xs font-bold uppercase tracking-widest rounded-sm hover:opacity-80">Recheck Receiving</button>
-                     <button className="px-4 py-2 bg-[#333] text-white text-xs font-bold uppercase tracking-widest rounded-sm border border-[#444] hover:border-white">Review Yield</button>
+                     <button onClick={() => navigate('/receiving')} className="px-4 py-2 bg-[#FF2A6D] text-white text-xs font-bold uppercase tracking-widest rounded-sm hover:opacity-80">Recheck Receiving</button>
+                     <button onClick={() => navigate('/yield-station')} className="px-4 py-2 bg-[#333] text-white text-xs font-bold uppercase tracking-widest rounded-sm border border-[#444] hover:border-white">Review Yield</button>
                  </div>
             </div>
 
