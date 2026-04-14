@@ -437,13 +437,13 @@ export const OwnerController = {
 
             await prisma.user.upsert({
                 where: { email: ceoEmail },
-                update: { role: 'admin', company_id: adega.id, password_hash: hash },
+                update: { role: 'director', company_id: adega.id, password_hash: hash },
                 create: {
                     email: ceoEmail,
                     first_name: 'Ricardo',
                     last_name: 'Oliveira',
                     password_hash: hash,
-                    role: 'admin',
+                    role: 'director',
                     company_id: adega.id
                 }
             });
