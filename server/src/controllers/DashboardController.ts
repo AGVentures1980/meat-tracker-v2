@@ -190,10 +190,14 @@ export class DashboardController {
             const { storeId } = req.query;
 
             const where: any = {};
-            // Strict Multi-Tenant Enforcement: Always scope to the user's active company
-            const activeCompanyId = (req.headers['x-company-id'] as string) || (req.query.companyId as string) || user.companyId;
-            if (activeCompanyId) {
-                where.company_id = activeCompanyId;
+            const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string) || (req.query.companyId as string);
+
+            // SRE HARDENING: Enforce strict company boundary
+            if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                 where.company_id = user.tenant_id || user.companyId;
+                 if (!where.company_id) throw new Error("403: Multi-Tenant Zero-Trust boundary missing.");
+            } else if (effectiveCompanyId) {
+                 where.company_id = effectiveCompanyId; // Explicit explicit targeting for Global roles
             }
 
             // Scoping: Managers only see their own store
@@ -219,7 +223,7 @@ export class DashboardController {
             });
 
             // Fallback rates if no reports exist
-            const companyIdReq = activeCompanyId;
+            const companyIdReq = effectiveCompanyId;
 
             let company: any = null;
             if (companyIdReq) {
@@ -384,10 +388,15 @@ export class DashboardController {
         try {
             const user = (req as any).user;
 
-            const activeCompanyId = (req.headers['x-company-id'] as string) || user.companyId;
+            const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string);
             const whereStore: any = {};
-            if (activeCompanyId) {
-                whereStore.company_id = activeCompanyId;
+
+            // SRE HARDENING: Enforce strict company boundary
+            if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                 whereStore.company_id = user.tenant_id || user.companyId;
+                 if (!whereStore.company_id) throw new Error("403: Multi-Tenant Zero-Trust boundary missing.");
+            } else if (effectiveCompanyId) {
+                 whereStore.company_id = effectiveCompanyId; // Explicit explicit targeting for Global roles
             }
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
@@ -508,13 +517,20 @@ export class DashboardController {
         try {
             const user = (req as any).user;
 
-            const companyIdReq = (req.headers['x-company-id'] as string) || user.companyId;
+            // SRE HARDENING (Phase 8): Deterministic Tenant Scope
+            const effectiveCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string);
+            
+            if (!effectiveCompanyId) {
+                 if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                      throw new Error("403: Critical Multi-Tenant integrity violation. No tenant context provided.");
+                 }
+            }
 
-            // 1. Get Company Baseline (Skip if no companyId provided)
+            // 1. Get Company Baseline
             let company = null;
-            if (companyIdReq) {
+            if (effectiveCompanyId) {
                 company = await prisma.company.findUnique({
-                    where: { id: companyIdReq }
+                    where: { id: effectiveCompanyId }
                 });
             }
 
@@ -523,9 +539,15 @@ export class DashboardController {
 
             // 2. Fetch Stores with relevant data
             const where: any = {};
-            if (companyIdReq) {
-                where.company_id = companyIdReq;
+            
+            // MANDATORY SRE RULE: Never bypass company_id for non-global actors
+            if (user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+                where.company_id = user.tenant_id || user.companyId; 
+                if (!where.company_id) throw new Error("403: Active Tenant Session Missing.");
+            } else if (effectiveCompanyId) {
+                where.company_id = effectiveCompanyId; // Explicit impersonation by GLOBAL
             }
+
             if (user.role !== 'admin' && user.role !== 'director') {
                 if (user.role === 'area_manager') {
                     where.area_manager_id = getUserId(user);
