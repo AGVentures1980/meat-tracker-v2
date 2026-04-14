@@ -171,6 +171,15 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             ];
         }
 
+        // If Adega Gaucha, return exact geographic points for the 3 actual stores
+        if (companyName.toLowerCase().includes('adega') && count === 3) {
+            return [
+                { lat: 28.4485, lng: -81.3963 }, // Orlando, FL (Crystal Clear Ln)
+                { lat: 28.3444, lng: -81.5975 }, // Kissimmee, FL (Irlo Bronson)
+                { lat: 26.3150, lng: -80.0910 }, // Deerfield Beach, FL (Federal Hwy)
+            ];
+        }
+
         // Determine which clusters to use
         let activeClusters: any[] = [];
         if (regionId && clusters[regionId as keyof typeof clusters]) {
