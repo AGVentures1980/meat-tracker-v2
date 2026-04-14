@@ -199,7 +199,7 @@ export default function ReceivingScanner() {
           setRoster(data.roster || []);
       } else {
           setScanResult('REJECTED');
-          setResultMessage(data.error || 'UNAUTHORIZED SUBSTITUTION! Reject this box. Alert sent to David Castro.');
+          setResultMessage(data.error || 'UNAUTHORIZED SUBSTITUTION! Reject this box. Alert sent to Corporate Supply Chain.');
       }
       
     } catch (error) {
