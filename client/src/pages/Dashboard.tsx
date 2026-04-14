@@ -7,7 +7,8 @@ import { RegionalDashboardContainer } from '../components/dashboard/containers/R
 import { StoreDashboardContainer } from '../components/dashboard/containers/StoreDashboardContainer';
 
 export const Dashboard = () => {
-    const { user, selectedCompany, selectedStore } = useAuth();
+    const { user, selectedCompany } = useAuth();
+    const selectedStore = user?.storeId || null;
 
     // 1. Resolve View and Cache Policy Exception
     const { view, isolationKey, errorMessage } = resolveDashboardView({
