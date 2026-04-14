@@ -348,7 +348,7 @@ export const OwnerController = {
                         subdomain: 'adegagaucha',
                         theme_primary_color: '#E17B1E',
                         theme_bg_url: null,
-                        theme_logo_url: null
+                        theme_logo_url: '/adega-logo.png'
                     }
                 });
             } else {
@@ -358,7 +358,7 @@ export const OwnerController = {
                         operationType: 'RODIZIO',
                         theme_primary_color: '#E17B1E',
                         theme_bg_url: null,
-                        theme_logo_url: null
+                        theme_logo_url: '/adega-logo.png'
                     }
                 });
             }
