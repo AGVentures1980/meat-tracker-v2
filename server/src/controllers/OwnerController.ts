@@ -345,7 +345,7 @@ export const OwnerController = {
                         name: 'Adega Gaucha (Pilot)',
                         operationType: 'RODIZIO',
                         plan: 'enterprise',
-                        subdomain: 'adegagaucha',
+                        subdomain: 'adega',
                         theme_primary_color: '#E17B1E',
                         theme_bg_url: null,
                         theme_logo_url: '/adega-logo.png'
@@ -356,6 +356,7 @@ export const OwnerController = {
                     where: { id: adega.id },
                     data: { 
                         operationType: 'RODIZIO',
+                        subdomain: 'adega',
                         theme_primary_color: '#E17B1E',
                         theme_bg_url: null,
                         theme_logo_url: '/adega-logo.png'
