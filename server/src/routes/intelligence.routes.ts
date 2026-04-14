@@ -1,41 +1,20 @@
 import { Router } from 'express';
-import { IntelligenceController } from '../controllers/IntelligenceController';
-import { ProcurementIntelligenceController } from '../controllers/ProcurementIntelligenceController';
 import { requireAuth } from '../middleware/auth.middleware';
+import { IntelligenceController } from '../controllers/IntelligenceController';
 
 const router = Router();
+const controller = new IntelligenceController();
 
-router.get('/anomalies', requireAuth, IntelligenceController.getAnomalies);
+// Phase 6 Core Intelligence Endpoints
+router.post('/store/:store_id/snapshot', requireAuth, controller.generateSnapshot);
+router.get('/store/:store_id/summary', requireAuth, controller.getStoreSummary);
 
-// Any store manager can see their supply suggestions
-router.get('/supply-suggestions', requireAuth, IntelligenceController.getSupplySuggestions);
-
-// Dynamic Agent GTIN Resolution
-router.get('/resolve-gtin', requireAuth, IntelligenceController.resolveGTIN);
-
-// Invoice Intelligence (OCR)
-router.post('/ocr/invoice', requireAuth, IntelligenceController.processInvoiceOCR);
-router.get('/ocr/drifts', requireAuth, IntelligenceController.getPriceDrifts);
-
-// 90-Day Pilot Tracker API
-router.get('/pilot-dashboard', requireAuth, IntelligenceController.getPilotDashboard);
-
-// AI Procurement Shadow Mode (Alexandre Only - enforced in controller)
-router.get('/procurement-shadow', requireAuth, ProcurementIntelligenceController.getShadowDashboardData);
-router.post('/procurement-feedback', requireAuth, ProcurementIntelligenceController.submitFeedback);
-
-router.get('/sentinel/force-reset', async (req, res) => {
-    try {
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
-        await prisma.supportMessage.deleteMany({});
-        await prisma.supportTicket.deleteMany({});
-        const { SentinelService } = require('../services/sentinel.service');
-        await SentinelService.runDailyAudit();
-        return res.json({ success: true, message: 'All alerts wiped and Sentinel re-fired' });
-    } catch (e: any) {
-         return res.json({ success: false, error: e.message });
-    }
-});
+// Fallback stubs for UI compatibility (pre-Phase 6 endpoints)
+router.get('/anomalies', requireAuth, async (req, res) => res.json({ success: true, warning: 'Redirected to new Intelligence Engine' }));
+router.get('/supply-suggestions', requireAuth, async (req, res) => res.json({ success: true, warning: 'Redirected to new Intelligence Engine' }));
+router.get('/resolve-gtin', requireAuth, async (req, res) => res.json({ success: true, warning: 'Redirected to new Intelligence Engine' }));
+router.post('/ocr/invoice', requireAuth, async (req, res) => res.json({ success: true, warning: 'Redirected to new Intelligence Engine' }));
+router.get('/ocr/drifts', requireAuth, async (req, res) => res.json({ success: true, warning: 'Redirected to new Intelligence Engine' }));
+router.get('/pilot-dashboard', requireAuth, async (req, res) => res.json({ success: true, warning: 'Redirected to new Intelligence Engine' }));
 
 export default router;

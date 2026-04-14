@@ -1465,3 +1465,95 @@ model FileObject {
 
   @@index([tenant_id, checksum])
 }
+
+// ==== PHASE 6: OPERATIONAL INTELLIGENCE LAYER ====
+
+model RulesetVersion {
+  id              String   @id @default(uuid())
+  version_tag     String   @unique // ex: "v1.0-brazil_yield"
+  thresholds      Json     // Matrix of thresholds and bands
+  created_at      DateTime @default(now())
+  created_by      String   @default("SYSTEM")
+}
+
+model ScoreDefinition {
+  id              String   @id @default(uuid())
+  score_name      String   @unique
+  formula_hash    String
+  active          Boolean  @default(true)
+  created_at      DateTime @default(now())
+}
+
+model IntelligenceSnapshot {
+  id                  String   @id @default(uuid())
+  tenant_id           String
+  store_id            Int?
+  period_start        DateTime
+  period_end          DateTime
+  
+  // Mathematical Scores (0-100)
+  op_risk_score       Float    @default(0)
+  store_trust_score   Float    @default(0)
+  ingestion_score     Float    @default(0)
+  
+  // Raw Data Signals
+  lbs_guest_real      Float    @default(0)
+  lbs_guest_theo      Float    @default(0)
+  lbs_guest_delta_pct Float    @default(0)
+  
+  // Traceability & Lineage
+  source_inputs_used  Int      @default(0)
+  ruleset_version     String
+  confidence          Float    @default(1.0)
+  generated_at        DateTime @default(now())
+
+  // Relationships to Events
+  anomalies           AnomalyEvent[]
+  recommendations     RecommendationEvent[]
+
+  @@unique([tenant_id, store_id, period_start, period_end])
+  @@index([tenant_id, generated_at])
+}
+
+model AnomalyEvent {
+  id              String   @id @default(uuid())
+  snapshot_id     String
+  tenant_id       String
+  store_id        Int?
+  anomaly_type    String   // 'CRITICAL_LBS_VARIANCE', 'GHOST_SHIFT'
+  severity        String   // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+  confidence      Float
+  message         String   @db.Text
+  trigger_value   Float
+  baseline_value  Float
+  created_at      DateTime @default(now())
+
+  snapshot        IntelligenceSnapshot @relation(fields: [snapshot_id], references: [id], onDelete: Cascade)
+  recommendations RecommendationEvent[]
+
+  @@index([tenant_id, severity])
+}
+
+model RecommendationEvent {
+  id              String   @id @default(uuid())
+  snapshot_id     String
+  anomaly_id      String?
+  tenant_id       String
+  store_id        Int?
+  
+  action_code     String
+  title           String
+  description     String   @db.Text
+  rationale       String   @db.Text
+  owner_role      String   // 'STORE_MANAGER', 'FINANCE'
+  priority        String   // 'LOW', 'MEDIUM', 'HIGH', 'URGENT'
+  status          String   @default("PENDING") // PENDING, DONE, IGNORED
+  deadline_at     DateTime?
+  
+  created_at      DateTime @default(now())
+  
+  snapshot        IntelligenceSnapshot @relation(fields: [snapshot_id], references: [id], onDelete: Cascade)
+  anomaly         AnomalyEvent?        @relation(fields: [anomaly_id], references: [id], onDelete: SetNull)
+
+  @@index([tenant_id, owner_role, status])
+}
