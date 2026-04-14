@@ -432,15 +432,17 @@ export const OwnerController = {
             }
 
             const ceoEmail = 'ricardo@adegagaucha.com';
+            const bcryptjs = require('bcryptjs');
+            const hash = await bcryptjs.hash('Brasa2026@', 10);
 
             await prisma.user.upsert({
                 where: { email: ceoEmail },
-                update: { role: 'admin', company_id: adega.id },
+                update: { role: 'admin', company_id: adega.id, password_hash: hash },
                 create: {
                     email: ceoEmail,
                     first_name: 'Ricardo',
                     last_name: 'Oliveira',
-                    password_hash: '$2b$10$xyz', // Dummy hash for now
+                    password_hash: hash,
                     role: 'admin',
                     company_id: adega.id
                 }
