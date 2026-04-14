@@ -68,17 +68,27 @@ async function runTests() {
             console.error(`❌ TEST 3 FAILED: Did not catch the missing weight. Checked: ${lossResult.unaccounted_loss}`);
         }
 
-        console.log("\n▶ TEST 4: WATCHDOG FAIL-CLOSED INTEGRATION");
-        // We simulate running the Watchdog for Store 999
+        console.log("\n▶ TEST 4: DELIVERY FIREWALL (DEGRADED STATE)");
+        // We simulate running the Watchdog for Store 999 where DeliverySales is naturally 0
         const now = new Date();
         const start = new Date(now); start.setDate(now.getDate() - 1);
         const end = new Date(now); end.setDate(now.getDate() + 1);
         
-        const integrity = await DataIntegrityWatchdog.performIntegrityAudit(999, start, end);
-        if (integrity.isCompromised) {
-             console.log(`✅ TEST 4 PASSED: Watchdog locked the system! Reason: ${integrity.lockReason}`);
+        let integrity = await DataIntegrityWatchdog.performIntegrityAudit(999, start, end);
+        if (integrity.state === 'DEGRADED' || integrity.state === 'RESTRICTED' || integrity.state === 'HARDLOCK') {
+             console.log(`✅ TEST 4 PASSED: Engine correctly shifted from NORMAL due to Delivery offline or Unaccounted Loss. State: ${integrity.state} | Reason: ${integrity.lockReason}`);
         } else {
-             console.error("❌ TEST 4 FAILED: Watchdog did not lock the system after Unaccounted Loss.");
+             console.error(`❌ TEST 4 FAILED: Watchdog allowed NORMAL state despite missing Delivery Data. State: ${integrity.state}`);
+        }
+
+        console.log("\n▶ TEST 5: ABSOLUTE HARDLOCK THRESHOLD (>10 lbs)");
+        // We simulate an additional 15 lbs loss to force HARDLOCK regardless of %
+        await ProteinLifecycleStrictEngine.trackInvisibleLoss(testBox.id, 5.0, 'TESTER'); // Adding another 15 loss
+        integrity = await DataIntegrityWatchdog.performIntegrityAudit(999, start, end);
+        if (integrity.state === 'HARDLOCK') {
+             console.log(`✅ TEST 5 PASSED: Watchdog engaged Absolute HARDLOCK. Reason: ${integrity.lockReason}`);
+        } else {
+             console.error(`❌ TEST 5 FAILED: Watchdog did not trigger HARDLOCK. State returned: ${integrity.state}`);
         }
 
         // Cleanup

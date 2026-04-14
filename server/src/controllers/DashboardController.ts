@@ -159,7 +159,7 @@ export class DashboardController {
             const primaryStoreId = user.storeId || 510; // Defaulting to Lexington for the Demo 
             const integrity = await DataIntegrityWatchdog.performIntegrityAudit(primaryStoreId, start, end);
             
-            if (integrity.isCompromised) {
+            if (integrity.state === 'HARDLOCK') {
                 return res.status(409).json({
                     status: 'DATA_INTEGRITY_COMPROMISED',
                     lockReason: integrity.lockReason,
@@ -168,6 +168,19 @@ export class DashboardController {
             }
 
             const stats = await MeatEngine.getExecutiveStats(user);
+
+            // Progressive Governance: Withhold Scores if DEGRADED or RESTRICTED
+            if (integrity.state === 'DEGRADED' || integrity.state === 'RESTRICTED') {
+                stats.summary.status = 'SCORE_WITHHELD';
+                stats.summary.net_impact_ytd = 0;
+                stats.summary.avg_lbs_variance = 0;
+                // We add a new property for frontend recognition
+                (stats.summary as any).scoreState = integrity.state;
+                (stats.summary as any).lockReason = integrity.lockReason;
+            } else {
+                (stats.summary as any).scoreState = 'NORMAL';
+            }
+
             return res.json(stats);
         } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {

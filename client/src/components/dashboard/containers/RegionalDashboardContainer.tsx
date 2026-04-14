@@ -107,6 +107,20 @@ export const RegionalDashboardContainer = () => {
         <div className="regional-scope p-6 bg-[#121212] min-h-screen text-white isolation-boundary">
             <h1 className="text-3xl font-bold mb-8 text-[#00FF94]">Regional Performance Hub</h1>
 
+            {(payload as any).summary?.scoreState && (payload as any).summary?.scoreState !== 'NORMAL' && (
+                <div className="mb-8 p-6 bg-yellow-500/10 border-2 border-yellow-500 rounded-lg backdrop-blur-md">
+                    <h2 className="text-xl font-bold text-yellow-500 mb-2 uppercase tracking-widest flex items-center gap-2">
+                        <span>⚠️</span> SCORE WITHHELD: OPERATION {(payload as any).summary.scoreState}
+                    </h2>
+                    <p className="text-yellow-200/80 font-mono text-sm leading-relaxed">
+                        {(payload as any).summary.lockReason}
+                    </p>
+                    <p className="mt-4 text-xs text-yellow-500/60 uppercase tracking-widest">
+                        Executive scoring and efficiency metrics are blocked until data integrity is restored.
+                    </p>
+                </div>
+            )}
+
             {/* BLOCO A — Regional Snapshot */}
             <div className="grid grid-cols-5 gap-4 mb-8">
                 {Object.entries(snapshot).map(([key, data]) => (
