@@ -1301,6 +1301,8 @@ enum QuarantineCause {
   NORMALIZATION_FAILURE
   RULESET_FAILURE
   MISSING_REQUIRED_FIELDS
+  MALWARE_DETECTED
+  CORRUPTED_FILE
 }
 
 model GoldenDatasetItem {
@@ -1428,4 +1430,38 @@ model ShadowModeCompare {
   drift_pct     Float    @default(0.0)
   status        String   @default("REVIEW_NEEDED") // MATCH, REVIEW_NEEDED
   created_at    DateTime @default(now())
+}
+
+model OutboxEvent {
+  id              String    @id @default(uuid())
+  idempotency_key String    @unique // Garante que a mesma intenção nunca seja registrada 2x
+  topic           String    // 'intake.queued'
+  payload         Json      // Must include itemId, tenant_id etc
+  status          String    @default("PENDING") // PENDING, PUBLISHED, FAILED
+  error           String?   @db.Text
+  tenant_id       String
+  
+  locked_at       DateTime?
+  locked_by       String?
+  
+  created_at      DateTime  @default(now())
+  published_at    DateTime?
+
+  @@index([status, locked_at, created_at])
+  @@index([idempotency_key])
+}
+
+model FileObject {
+  id                  String   @id @default(uuid())
+  tenant_id           String
+  storage_key         String   @unique
+  original_name       String
+  mime_type           String
+  size_bytes          Int
+  checksum            String   @unique
+  malware_scan_status String   @default("PENDING") // PENDING, CLEAN, INFECTED, ERROR
+  dataset_item_id     String?  @unique
+  created_at          DateTime @default(now())
+
+  @@index([tenant_id, checksum])
 }
