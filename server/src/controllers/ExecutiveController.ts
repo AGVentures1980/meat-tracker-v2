@@ -81,7 +81,7 @@ export class ExecutiveController {
                 activeCriticalOpsAnomalies += criticalCount;
 
                 // Determinar o driver de risco principal usando ENUM ESTRITO PRO C-LEVEL
-                let primary_driver = "STABLE"; // Considerado baseline
+                let primary_driver: PrimaryDriver = "STABLE"; // Considerado baseline
                 if (opAnomalies.length > 0) {
                      const worstAnom = opAnomalies.sort((a: any, b: any) => {
                           const wA = a.severity === 'CRITICAL' ? 3 : a.severity === 'HIGH' ? 2 : 1;
