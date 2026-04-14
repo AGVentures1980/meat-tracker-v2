@@ -345,13 +345,21 @@ export const OwnerController = {
                         name: 'Adega Gaucha (Pilot)',
                         operationType: 'RODIZIO',
                         plan: 'enterprise',
-                        subdomain: 'adegagaucha'
+                        subdomain: 'adegagaucha',
+                        theme_primary_color: '#E17B1E',
+                        theme_bg_url: null,
+                        theme_logo_url: null
                     }
                 });
             } else {
                 await prisma.company.update({
                     where: { id: adega.id },
-                    data: { operationType: 'RODIZIO' }
+                    data: { 
+                        operationType: 'RODIZIO',
+                        theme_primary_color: '#E17B1E',
+                        theme_bg_url: null,
+                        theme_logo_url: null
+                    }
                 });
             }
 
@@ -390,26 +398,35 @@ export const OwnerController = {
                 });
             }
 
-            let store = await prisma.store.findFirst({
-                where: { store_name: 'Adega Gaucha - Orlando Pilot', company_id: adega.id }
-            });
+            const lojasInfos = [
+                { name: 'Orlando', address: '8204 Crystal Clear Ln, Orlando, FL 32809', phone: '(407) 250 44 55', email: 'orlando@adegagaucha.com' },
+                { name: 'Kissimmee', address: '7804 W Irlo Bronson Memorial Hwy, Kissimmee, FL 34747', phone: '(321) 245 55 55', email: 'kissimmee@adegagaucha.com' },
+                { name: 'Deerfield Beach', address: '240 S Federal Hwy, Deerfield Beach, FL 33441', phone: '(754) 346-4455', email: 'deerfield@adegagaucha.com' }
+            ];
 
-            if (!store) {
-                store = await prisma.store.create({
-                    data: {
-                        company_id: adega.id,
-                        store_name: 'Adega Gaucha - Orlando Pilot',
-                        location: 'Orlando, FL',
-                        is_pilot: true,
-                        pilot_start_date: new Date(),
-                        is_lunch_enabled: true,
-                        lunch_start_time: '11:00',
-                        lunch_end_time: '16:00',
-                        dinner_start_time: '16:00',
-                        dinner_end_time: '22:00',
-                        baseline_loss_rate: 6.5
-                    }
+            for (const loja of lojasInfos) {
+                const storeName = `Adega Gaucha - ${loja.name}`;
+                let store = await prisma.store.findFirst({
+                    where: { store_name: storeName, company_id: adega.id }
                 });
+
+                if (!store) {
+                    await prisma.store.create({
+                        data: {
+                            company_id: adega.id,
+                            store_name: storeName,
+                            location: loja.address,
+                            is_pilot: true,
+                            pilot_start_date: new Date(),
+                            is_lunch_enabled: true,
+                            lunch_start_time: '11:30',
+                            lunch_end_time: '16:00',
+                            dinner_start_time: '16:00',
+                            dinner_end_time: '22:00',
+                            baseline_loss_rate: 6.5
+                        }
+                    });
+                }
             }
 
             const ceoEmail = 'ricardo@adegagaucha.com';
