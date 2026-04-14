@@ -11,14 +11,14 @@ const prisma = new PrismaClient();
 
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
-    if (probingDetector.isBlocked('unknown', ip)) {
-        return res.status(429).json({ error: 'Too many unauthorized attempts. IP Blocked.' });
-    }
-
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
         console.warn('Auth Error: No Authorization header provided');
+        probingDetector.trackAttempt('unknown', ip, req.originalUrl);
+        if (probingDetector.isBlocked('unknown', ip)) {
+            return res.status(429).json({ error: 'Too many unauthorized attempts. IP Blocked.' });
+        }
         return res.status(401).json({ error: 'No token provided' });
     }
 
@@ -26,6 +26,10 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
     if (!token) {
         console.warn('Auth Error: Token missing from header', authHeader);
+        probingDetector.trackAttempt('unknown', ip, req.originalUrl);
+        if (probingDetector.isBlocked('unknown', ip)) {
+            return res.status(429).json({ error: 'Too many unauthorized attempts. IP Blocked.' });
+        }
         return res.status(401).json({ error: 'Token format invalid' });
     }
 
@@ -68,12 +72,16 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
         } else {
             (req as any).scopedPrisma = prisma;
         }
+        // Clear rogue probing blocks once identity is confirmed
+        probingDetector.clearTracking('unknown', ip);
         
         next();
     } catch (error) {
         console.error('JWT Verify Error:', error);
-        const ip = req.ip || req.socket.remoteAddress || 'unknown';
         probingDetector.trackAttempt('unknown', ip, req.originalUrl);
+        if (probingDetector.isBlocked('unknown', ip)) {
+            return res.status(429).json({ error: 'Too many unauthorized attempts. IP Blocked.' });
+        }
         return res.status(401).json({ error: 'Invalid token', details: (error as any).message });
     }
 };

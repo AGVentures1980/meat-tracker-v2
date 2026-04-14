@@ -42,6 +42,11 @@ class ProbingDetector {
 
         return false;
     }
+
+    clearTracking(userId: string, ip: string) {
+        const key = `${userId}:${ip}`;
+        this.tracking.delete(key);
+    }
 }
 
 export const probingDetector = new ProbingDetector();
