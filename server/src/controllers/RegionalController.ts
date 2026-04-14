@@ -40,7 +40,7 @@ export class RegionalController {
 
     public getRegionalOverview = async (req: any, res: Response) => {
         try {
-            const tenant_id = req.user?.tenant_id;
+            const tenant_id = req.user?.companyId || req.user?.tenant_id;
             
             if (!tenant_id) {
                 return res.status(401).json({ error: "Context Error: Tenant Missing" });

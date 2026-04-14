@@ -10,9 +10,9 @@ export class StoreController {
 
     public getStoreActions = async (req: any, res: Response) => {
         try {
-            // Must have tenant contextualization from requireAuth middleware
-            const tenant_id = req.user?.tenant_id;
-            const storeIdContext = req.user?.store_id; // Narrowing scope
+            // Must have tenant contextualization from requireAuth middleware (companyId/storeId)
+            const tenant_id = req.user?.companyId || req.user?.tenant_id;
+            const storeIdContext = req.user?.storeId || req.user?.store_id; // Narrowing scope
 
             if (!tenant_id) {
                 return res.status(401).json({ error: "Context Error: Tenant Missing" });
