@@ -73,14 +73,14 @@ export class ProteinLifecycleStrictEngine {
     static async trackInvisibleLoss(boxId: string, consumedWeight: number, userId: string) {
         const box = await prisma.proteinBox.findUnique({
             where: { id: boxId },
-            include: { lifecycle_events: true }
+            include: { events: true }
         });
 
         if (!box) throw new HardFailError(`Box not found`, 'BOX_NOT_FOUND');
 
         // Sum explicit logged waste
-        const wasteEvents = box.lifecycle_events.filter(e => e.event_type === 'MARK_WASTE');
-        const totalExplicitWaste = wasteEvents.reduce((acc, ev) => acc + (ev.weight_variance || 0), 0);
+        const wasteEvents = box.events.filter((e: any) => e.event_type === 'MARK_WASTE');
+        const totalExplicitWaste = wasteEvents.reduce((acc: number, ev: any) => acc + (ev.weight_variance || 0), 0);
 
         const initialWeight = box.received_weight_lb;
         const totalAccounted = consumedWeight + totalExplicitWaste;

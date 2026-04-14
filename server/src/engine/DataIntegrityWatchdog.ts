@@ -90,7 +90,7 @@ export class DataIntegrityWatchdog {
                 state = 'HARDLOCK';
                 lockReason += `CRITICAL UNACCOUNTED LOSS: ${totalLostLbs.toFixed(2)} lbs (${lossPercent.toFixed(1)}%). Threshold Maximum Breached. `;
             } else if (lossPercent > 1.5) {
-                if (state !== 'HARDLOCK') state = 'RESTRICTED';
+                state = 'RESTRICTED';
                 lockReason += `RESTRICTED OPERATION: Unaccounted loss reached ${lossPercent.toFixed(1)}%. `;
             } else if (lossPercent > 0.75) {
                 lockReason += `WARNING: Unaccounted loss creeping to ${lossPercent.toFixed(1)}%. `;
