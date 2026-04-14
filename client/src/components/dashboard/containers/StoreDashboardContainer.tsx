@@ -3,7 +3,8 @@ import { useAuth } from '../../../context/AuthContext';
 import { storeAdapters, RawDashboardPayload } from '../../../utils/dashboardAdapters';
 
 export const StoreDashboardContainer = () => {
-    const { user, selectedCompany, selectedStore } = useAuth();
+    const { user, selectedCompany } = useAuth();
+    const selectedStore = user?.storeId || null;
     const [loading, setLoading] = useState(true);
     const [payload, setPayload] = useState<RawDashboardPayload | null>(null);
 
