@@ -347,7 +347,7 @@ export const OwnerController = {
                         plan: 'enterprise',
                         subdomain: 'adega',
                         theme_primary_color: '#E17B1E',
-                        theme_bg_url: null,
+                        theme_bg_url: '/adega-hero.mp4',
                         theme_logo_url: '/adega-logo.png'
                     }
                 });
@@ -358,7 +358,7 @@ export const OwnerController = {
                         operationType: 'RODIZIO',
                         subdomain: 'adega',
                         theme_primary_color: '#E17B1E',
-                        theme_bg_url: null,
+                        theme_bg_url: '/adega-hero.mp4',
                         theme_logo_url: '/adega-logo.png'
                     }
                 });
