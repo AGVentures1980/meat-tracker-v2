@@ -53,7 +53,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
             if (requestedCompanyId && typeof requestedCompanyId === 'string') {
                 if (decoded.scope && (decoded.scope.type === 'GLOBAL' || decoded.scope.type === 'PARTNER')) {
                     decoded.companyId = requestedCompanyId; // Authorized override
-                } else if (requestedCompanyId !== decoded.companyId) {
+                } else if (String(requestedCompanyId) !== String(decoded.companyId)) {
                     console.warn(`[SECURITY] Tenant spoofing blocked for user ${decoded.id}`);
                     return res.status(403).json({ error: 'Tenant spoofing detected and blocked.' });
                 }

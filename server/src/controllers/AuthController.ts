@@ -146,7 +146,7 @@ export class AuthController {
                     lastName: user.last_name
                 },
                 JWT_SECRET,
-                { expiresIn: '15m' } // HARDENED: Short-lived token
+                { expiresIn: '24h' } // HARDENED: Short-lived token extended for demo
             );
             
             // Generate Refresh Token
