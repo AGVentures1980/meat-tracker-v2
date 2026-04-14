@@ -11,6 +11,7 @@ const router = Router();
 // Global Setup (Developer/Admin only)
 router.get('/setup-owner', OwnerController.setupOwnerCompanies);
 router.get('/seed-outback', OwnerController.seedOutbackPilot);
+router.get('/seed-adega', OwnerController.seedAdegaGauchaPilot);
 
 // Multi-Company Retrieval & Management
 router.get('/my-companies', requireAuth, OwnerController.getMyCompanies);

@@ -329,5 +329,111 @@ export const OwnerController = {
             console.error('Seed outback error:', error);
             return res.status(500).json({ error: error.message });
         }
+    },
+
+    async seedAdegaGauchaPilot(req: Request, res: Response) {
+        try {
+            console.log('🚀 Starting Adega Gaucha Pilot Seeder (API Route)...');
+
+            let adega = await prisma.company.findFirst({
+                where: { name: { contains: 'Adega Gaucha', mode: 'insensitive' } }
+            });
+
+            if (!adega) {
+                adega = await prisma.company.create({
+                    data: {
+                        name: 'Adega Gaucha (Pilot)',
+                        operationType: 'RODIZIO',
+                        plan: 'enterprise',
+                        subdomain: 'adegagaucha'
+                    }
+                });
+            } else {
+                await prisma.company.update({
+                    where: { id: adega.id },
+                    data: { operationType: 'RODIZIO' }
+                });
+            }
+
+            const adegaProducts = [
+                { name: 'Picanha', protein_group: 'Picanha', is_villain: true, standard_target: 3.5 },
+                { name: 'Fraldinha', protein_group: 'Fraldinha', is_villain: true, standard_target: 2.8 },
+                { name: 'Alcatra', protein_group: 'Alcatra', is_villain: false, standard_target: 2.5 },
+                { name: 'Filet Mignon', protein_group: 'Filet', is_villain: true, standard_target: 1.5 },
+                { name: 'Ribeye', protein_group: 'Ribeye', is_villain: false, standard_target: 1.8 },
+                { name: 'Costela de Boi', protein_group: 'Beef Ribs', is_villain: true, standard_target: 5.0 },
+                { name: 'Cordeiro', protein_group: 'Lamb', is_villain: true, standard_target: 1.2 },
+                { name: 'Costela de Porco', protein_group: 'Pork Ribs', is_villain: false, standard_target: 2.0 },
+                { name: 'Frango com Bacon', protein_group: 'Chicken', is_villain: false, standard_target: 1.5 }
+            ];
+
+            for (const prod of adegaProducts) {
+                await prisma.companyProduct.upsert({
+                    where: {
+                        company_id_name: {
+                            company_id: adega.id,
+                            name: prod.name
+                        }
+                    },
+                    update: {
+                        protein_group: prod.protein_group,
+                        is_villain: prod.is_villain,
+                        standard_target: prod.standard_target
+                    },
+                    create: {
+                        company_id: adega.id,
+                        name: prod.name,
+                        protein_group: prod.protein_group,
+                        is_villain: prod.is_villain,
+                        standard_target: prod.standard_target
+                    }
+                });
+            }
+
+            let store = await prisma.store.findFirst({
+                where: { store_name: 'Adega Gaucha - Orlando Pilot', company_id: adega.id }
+            });
+
+            if (!store) {
+                store = await prisma.store.create({
+                    data: {
+                        company_id: adega.id,
+                        store_name: 'Adega Gaucha - Orlando Pilot',
+                        location: 'Orlando, FL',
+                        is_pilot: true,
+                        pilot_start_date: new Date(),
+                        is_lunch_enabled: true,
+                        lunch_start_time: '11:00',
+                        lunch_end_time: '16:00',
+                        dinner_start_time: '16:00',
+                        dinner_end_time: '22:00',
+                        baseline_loss_rate: 6.5
+                    }
+                });
+            }
+
+            const ceoEmail = 'ricardo@adegagaucha.com';
+
+            await prisma.user.upsert({
+                where: { email: ceoEmail },
+                update: { role: 'admin', company_id: adega.id },
+                create: {
+                    email: ceoEmail,
+                    first_name: 'Ricardo',
+                    last_name: 'Oliveira',
+                    password_hash: '$2b$10$xyz', // Dummy hash for now
+                    role: 'admin',
+                    company_id: adega.id
+                }
+            });
+
+            return res.json({ success: true, message: 'Adega Gaucha Pilot Seeding Complete via API!' });
+        } catch (error: any) {
+            if (error?.name === 'AuthContextMissingError') {
+                return res.status(error.status).json({ error: error.message });
+            }
+            console.error('Seed Adega Gaucha error:', error);
+            return res.status(500).json({ error: error.message });
+        }
     }
 };
