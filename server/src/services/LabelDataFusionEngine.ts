@@ -52,13 +52,14 @@ export class BarcodeParserRouter {
         };
     }
 
-    private static parseEANVariableWeight(raw: string): ParsedBarcodeData | null {
+    private static parseEANVariableWeight(raw: string): ParsedBarcodeData & { weightLb?: number } | null {
         if (raw.length === 13 && (raw.startsWith('20') || raw.startsWith('02'))) {
             const product_code = raw.substring(2, 7);
             const weightRaw = raw.substring(7, 12);
             return {
                 rawBarcodes: [raw],
                 product_code,
+                weightLb: parseInt(weightRaw, 10) / 100, // standard EAN logic assumes last 5 digits convey weight (e.g., 01500 = 15.00)
                 symbology: 'EAN13',
                 source_parser: 'EAN_VARIABLE'
             };
@@ -67,9 +68,12 @@ export class BarcodeParserRouter {
     }
 
     private static async parseSupplierSpecific(raw: string, companyId: string, supplierId?: string | null): Promise<ParsedBarcodeData | null> {
-        if (!supplierId) return null;
         const rules = await prisma.supplierBarcodeRule.findMany({
-            where: { companyId, supplierId, isActive: true }
+            where: { 
+                companyId, 
+                isActive: true,
+                ...(supplierId ? { supplierId } : {})
+            }
         });
 
         // Try prefix
@@ -131,8 +135,14 @@ export class LabelDataFusionEngine {
         }
 
         const eanData = barcodes.find(b => b.source_parser === 'EAN_VARIABLE');
-        if (eanData && fusedData.productCodeBase.confidence < 0.8) {
-            fusedData.productCodeBase = { value: eanData.product_code || null, source: 'SUPPLIER_RULE', confidence: 0.7 };
+        if (eanData) {
+            if (fusedData.productCodeBase.confidence < 0.8) {
+                fusedData.productCodeBase = { value: eanData.product_code || null, source: 'SUPPLIER_RULE', confidence: 0.7 };
+            }
+            // EAN weight overrides base confidence given the barcode provides absolute reading truth
+            if ((eanData as any).weightLb && fusedData.weightLb.confidence < 0.9) {
+                fusedData.weightLb = { value: (eanData as any).weightLb, source: 'SUPPLIER_RULE', confidence: 0.9 };
+            }
         }
 
         // Pass 3: Fuse OCR (Fallback to OCR if rules don't exist, log conflicts if rules disagree)

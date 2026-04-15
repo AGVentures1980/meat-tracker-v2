@@ -13,6 +13,43 @@ export class ComplianceController {
       
       const user = (req as any).user;
       
+      let baseCode = approved_item_code;
+      let ruleToCreate: any = null;
+
+      if (approved_item_code.length === 13 && (approved_item_code.startsWith('20') || approved_item_code.startsWith('02'))) {
+          baseCode = approved_item_code.substring(2, 7);
+          ruleToCreate = { matchType: 'PREFIX', rawBarcodePattern: approved_item_code.substring(0, 7), matchStrength: 'STRONG', minPrefixLength: 7 };
+      } else if (approved_item_code.includes('01') && approved_item_code.length >= 20) {
+          const match = approved_item_code.match(/01(\d{14})/);
+          if (match) {
+              baseCode = match[1];
+              ruleToCreate = { matchType: 'GTIN', gtin: match[1], matchStrength: 'STRONG' };
+          }
+      }
+
+      // Helper to establish Supplier Profile & Rule per company
+      const establishRule = async (companyId: string, specId: string) => {
+          if (!ruleToCreate || !supplier) return;
+          let supProfile = await prisma.supplierProfile.findFirst({ where: { companyId: companyId, name: supplier } });
+          if (!supProfile) {
+              supProfile = await prisma.supplierProfile.create({ data: { companyId: companyId, name: supplier } });
+          }
+          await prisma.supplierBarcodeRule.create({
+              data: {
+                  companyId: companyId,
+                  supplierId: supProfile.id,
+                  proteinSpecId: specId,
+                  matchType: ruleToCreate.matchType,
+                  rawBarcodePattern: ruleToCreate.rawBarcodePattern,
+                  gtin: ruleToCreate.gtin,
+                  normalizedProductCode: baseCode,
+                  matchStrength: ruleToCreate.matchStrength,
+                  minPrefixLength: ruleToCreate.minPrefixLength,
+                  createdBy: created_by
+              }
+          });
+      };
+
       // Multi-Tenant Shield: If an admin hits this endpoint trying to lock a spec for 'tdb-main',
       // we must split-brain it across ALL Texas companies because physical scanners exist in discrete silos.
       let finalCompanyId = company_id;
@@ -22,24 +59,26 @@ export class ComplianceController {
           });
           
           if (tdbCompanies.length > 0) {
-              const specPromises = tdbCompanies.map(comp => 
-                  prisma.corporateProteinSpec.create({
+              const specPromises = tdbCompanies.map(async comp => {
+                  const spec = await prisma.corporateProteinSpec.create({
                       data: {
                           company_id: comp.id,
                           protein_name,
                           approved_brand,
                           supplier: supplier || null,
-                          approved_item_code,
+                          approved_item_code: baseCode,
                           cost_per_lb: cost_per_lb ? parseFloat(cost_per_lb) : null,
                           created_by
                       }
-                  })
-              );
+                  });
+                  await establishRule(comp.id, spec.id);
+                  return spec;
+              });
               await Promise.all(specPromises);
               
               // Return the first one just to satisfy the frontend UI
               const dummySpec = await prisma.corporateProteinSpec.findFirst({
-                  where: { company_id: tdbCompanies[0].id, approved_item_code },
+                  where: { company_id: tdbCompanies[0].id, approved_item_code: baseCode },
                   orderBy: { created_at: 'desc' }
               });
               
@@ -54,12 +93,14 @@ export class ComplianceController {
           protein_name,
           approved_brand,
           supplier: supplier || null,
-          approved_item_code,
+          approved_item_code: baseCode,
           cost_per_lb: cost_per_lb ? parseFloat(cost_per_lb) : null,
           created_by
         }
       });
       
+      await establishRule(finalCompanyId, newSpec.id);
+
       res.status(201).json({ success: true, spec: newSpec });
     } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {
