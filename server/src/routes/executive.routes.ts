@@ -9,7 +9,7 @@ const executiveController = new ExecutiveController();
 // Ensures token must be valid and tenant extracted
 router.use(requireAuth); 
 
-// MODULE 1: Executive Dashboard
-router.get('/dashboard', executiveController.getExecutiveDashboard);
+// MODULE 1: V1 Executive Dashboard (Replaces V0 Legacy)
+router.get('/overview/cache', executiveController.getExecutiveOverview);
 
 export default router;

@@ -2015,3 +2015,67 @@ enum DestinationChannel {
   BAR
   DELIVERY
 }
+
+// =======================================================
+// BRASA EXECUTIVE DASHBOARD ENGINE (PROMPT 09)
+// =======================================================
+
+model ExecutiveSnapshotLedger {
+  id                    String   @id @default(cuid())
+  companyId             Int
+  storeId               Int?
+  snapshotType          SnapshotType // DAILY | WEEKLY
+  businessDate          DateTime
+  generatedAt           DateTime @default(now())
+
+  integrityScore        Float
+  executiveRiskLevel    String
+  weeklyVarianceUSD     Float
+  lbsPerGuestDiningRoom Float?
+
+  actionPanelPayload    Json
+  metricsVersion        String
+  isFinal               Boolean  @default(false)
+
+  @@unique([companyId, storeId, snapshotType, businessDate])
+}
+
+model ExecutiveActionDecision {
+  id                         String   @id @default(cuid())
+  companyId                  Int
+  storeId                    Int?
+  actionCode                 String
+  actionTitle                String
+  actionSeverity             String
+  financialImpactEstimateUSD Float
+
+  sourceSnapshotId           String?
+  sourceMetricVersion        String
+  
+  targetType                 String // STORE | CHANNEL | PRODUCT | SUPPLIER
+  targetId                   String // Ref associated to the target
+  
+  decisionStatus             DecisionStatus @default(OPEN)
+  
+  assignedToUserId           String?
+  createdBySystem            Boolean @default(true)
+  actedByUserId              String?
+  actedAt                    DateTime?
+  notes                      String?
+
+  @@index([companyId, decisionStatus])
+}
+
+enum SnapshotType {
+  DAILY
+  WEEKLY
+}
+
+enum DecisionStatus {
+  OPEN
+  ACKNOWLEDGED
+  FORWARDED
+  APPROVED
+  RESOLVED
+  DISMISSED
+}
