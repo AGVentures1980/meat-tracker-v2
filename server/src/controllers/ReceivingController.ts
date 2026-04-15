@@ -6,6 +6,7 @@ import { BarcodeDecisionEngine } from '../services/BarcodeDecisionEngine';
 import { BarcodeParserRouter, LabelDataFusionEngine, OCRExtractionEngine } from '../services/LabelDataFusionEngine';
 import { ComplianceEngine } from '../services/ComplianceEngine';
 import { AlertEngine } from '../services/AlertEngine';
+import { FraudIntelligenceEngine } from '../services/FraudIntelligenceEngine';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
 
 
@@ -84,6 +85,24 @@ export const ReceivingController = {
 
             // 5. Compliance Engine (Zero-Trust)
             const compliance = await ComplianceEngine.evaluate(fusedData, companyId, supplier_id, conflicts);
+
+            let fraudIntelligence = null;
+            if (verifiedStoreId) {
+                // 6. Risk Engine (Fraud Intelligence)
+                fraudIntelligence = await FraudIntelligenceEngine.execute(verifiedStoreId, companyId, fusedData, compliance, conflicts, false);
+
+                if (fraudIntelligence.anomalyFlag) {
+                    await prisma.auditEvent.create({
+                        data: {
+                            action: 'FRAUD_INTELLIGENCE_ANOMALY',
+                            actor: user.id || getUserId(user) || "SYSTEM",
+                            store_id: verifiedStoreId,
+                            payload: { ...fraudIntelligence, fusedData, barcode } as any
+                        }
+                    });
+                    await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'FRAUD_INTELLIGENCE', 'Alerta de Inteligência (Padrões ou Risco Elevado Detectado)', { barcode, patterns: fraudIntelligence.patterns });
+                }
+            }
 
             if (verifiedStoreId) {
                 const scanEvent = await prisma.barcodeScanEvent.create({
@@ -229,13 +248,43 @@ export const ReceivingController = {
             }
 
             if (verifiedStoreId) {
+                // Fraud Intelligence Check for Override
+                const stubFusedData = {
+                    rawBarcodes: [barcode],
+                    productCodeBase: { value: null, source: 'USER_CONFIRMED', confidence: 1 },
+                    gtin: { value: barcode.substring(0, 14), source: 'USER_CONFIRMED', confidence: 1 },
+                    weightLb: { value: finalWeight, source: 'USER_CONFIRMED', confidence: 1 },
+                    supplierId: null
+                } as any;
+                
+                const fraudIntelligence = await FraudIntelligenceEngine.execute(
+                    verifiedStoreId, 
+                    companyId, 
+                    stubFusedData, 
+                    { status: 'REJECTED', expectedWeightMin: null, expectedWeightMax: null } as any, 
+                    [], 
+                    true // isManualOverride
+                );
+
+                if (fraudIntelligence.anomalyFlag) {
+                    await prisma.auditEvent.create({
+                        data: {
+                            action: 'FRAUD_INTELLIGENCE_ANOMALY',
+                            actor: user.id || getUserId(user) || "SYSTEM",
+                            store_id: verifiedStoreId,
+                            payload: { ...fraudIntelligence, barcode, weight } as any
+                        }
+                    });
+                    await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'FRAUD_INTELLIGENCE', 'PADRÃO DE FRAUDE DETECTADO EM OVERRIDE', { barcode, patterns: fraudIntelligence.patterns });
+                }
+
                 // Send Critical Alert
                 await AlertEngine.trigger(
                     verifiedStoreId, 
                     'CRITICAL', 
                     'COMPLIANCE', 
                     'Emergency Force Receive (Garcia Rule Override Actuated)', 
-                    { barcode, weight: finalWeight, user: user.first_name }
+                    { barcode, weight: finalWeight, user: user.first_name, fraudRisk: fraudIntelligence.riskScore }
                 );
 
                 const todayDate = new Date();
