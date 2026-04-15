@@ -46,7 +46,7 @@ export class ExecutiveMetricsService {
                 description: `Weekly Variance is tracking at $${activeVariancesUSD}. Immediate audit on Doca and Transformation is required.`,
                 financialImpactEstimateUSD: activeVariancesUSD,
                 targetType: 'STORE',
-                targetId: storeId ? storeId.toString() : 'GLOBAL',
+                externalReferenceId: storeId ? `enc_${storeId.toString()}` : 'GLOBAL',
                 recommendation: 'Command GM to reconcile open VarianceCases before proceeding with next Purchase Order.'
             });
         }
@@ -59,7 +59,7 @@ export class ExecutiveMetricsService {
                 description: `Lbs Per Guest is tracking at ${lbsPerGuest.value} Lbs. Expected is ~1.8 Lbs. Ghost plates or heavy theft likely.`,
                 financialImpactEstimateUSD: (lbsPerGuest.value - 1.8) * totalGuests * 5.0, // Cost Estimate
                 targetType: 'CHANNEL',
-                targetId: 'DINING_ROOM', // Refined Channel
+                externalReferenceId: 'b64_ZGluaW5ncm9vbQ', // Mock opaque ID
                 recommendation: 'Initiate Floor Manager investigation on pass-through controls.'
             });
         }

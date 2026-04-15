@@ -25,7 +25,7 @@ export interface ExecutiveActionRecommendationDTO {
     description: string;
     financialImpactEstimateUSD: number;
     targetType: 'STORE' | 'SUPPLIER' | 'CHANNEL' | 'PRODUCT';
-    targetId: string;
+    externalReferenceId: string; // Opaque UI Ref
     recommendation: string;
 }
 
