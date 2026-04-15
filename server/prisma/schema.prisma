@@ -766,6 +766,7 @@ model CorporateProteinSpec {
   max_yield_loss_percent    Float?
 
   company Company @relation(fields: [company_id], references: [id])
+  receivingRules ReceivingRecognitionRule[]
 }
 
 model BarcodeScanEvent {
@@ -1558,4 +1559,35 @@ model RecommendationEvent {
   anomaly         AnomalyEvent?        @relation(fields: [anomaly_id], references: [id], onDelete: SetNull)
 
   @@index([tenant_id, owner_role, status])
+}
+
+// ==========================================
+// ASSISTED RECOGNITION (V2 HOTFIX)
+// ==========================================
+
+model ReceivingRecognitionRule {
+  id                      String   @id @default(uuid())
+  company_id              String
+  protein_spec_id         String
+  gtin                    String?
+  normalized_product_code String?
+  raw_barcode_pattern     String?
+  match_strength          String   // 'STRONG' | 'MEDIUM' | 'WEAK'
+  
+  created_by              String
+  created_at              DateTime @default(now())
+  is_active               Boolean  @default(true)
+  notes                   String?
+
+  spec CorporateProteinSpec @relation(fields: [protein_spec_id], references: [id])
+}
+
+model AuditEvent {
+  id           String   @id @default(uuid())
+  action       String
+  actor        String
+  store_id     Int?
+  target_id    String?
+  payload      Json?
+  timestamp    DateTime @default(now())
 }

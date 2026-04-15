@@ -181,10 +181,17 @@ export const ReceivingController = {
 
             if (compliance.status === 'REJECTED') {
                  if (user.role === 'admin' || user.role === 'director' || user.role === 'owner' || user.role === 'partner') {
-                    const roster = await prisma.companyProduct.findMany({ where: { company_id: companyId }, select: { name: true }});
-                    return res.json({ status: 'UNMAPPED_ALLOW_MAPPING', gtin: finalGtin, roster: roster.map(r => r.name) });
+                    const roster = await prisma.companyProduct.findMany({ where: { company_id: companyId }, select: { id: true, name: true }});
+                    return res.json({ 
+                        status: 'UNMAPPED_REVIEW_ALLOWED', 
+                        gtin: finalGtin, 
+                        product_code: normalized.product_code,
+                        raw_barcode: barcode,
+                        details: compliance.details,
+                        roster: roster
+                    });
                 }
-                return res.json({ status: 'REJECTED', details: compliance.details });
+                return res.json({ status: 'REVIEW_REQUIRED', details: compliance.details });
             }
             
             return res.json({ 
@@ -274,10 +281,10 @@ export const ReceivingController = {
         }
     },
 
-    mapBarcode: async (req: Request, res: Response) => {
+    reviewMap: async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
-            const { gtin, protein_name, barcode, weight, store_id } = req.body;
+            const { gtin, product_code, protein_name, raw_barcode, weight, store_id } = req.body;
             
             if (user.role !== 'admin' && user.role !== 'director' && user.role !== 'owner' && user.role !== 'partner') {
                 return res.status(403).json({ error: 'Unauthorized to map barcodes' });
@@ -293,60 +300,56 @@ export const ReceivingController = {
                 if (store) companyId = store.company_id;
             }
 
-            if (companyId === "tdb-main") {
-                const tdbCompanies = await prisma.company.findMany({
-                    where: { name: { contains: 'Texas', mode: 'insensitive' } }
-                });
-                
-                if (tdbCompanies.length > 0) {
-                    // Split-brain defense: Create a spec in ALL matching Texas companies just to be absolutely sure.
-                    for (const comp of tdbCompanies) {
-                        try {
-                            await prisma.corporateProteinSpec.create({
-                                data: {
-                                    company_id: comp.id,
-                                    protein_name,
-                                    approved_item_code: barcode || gtin,
-                                    approved_brand: "Scanned Manufacturer",
-                                    created_by: user.first_name + " " + user.last_name
-                                }
-                            });
-                        } catch (e: any) {
-            if (e?.name === 'AuthContextMissingError') {
-                return res.status(e.status).json({ error: e.message });
-            }
-                            // ignore duplicates if they exist
-                        }
-                    }
-                }
-            } else {
-                // Not split-brain admin, normal flow
-                await prisma.corporateProteinSpec.create({
-                    data: {
-                        company_id: companyId,
-                        protein_name,
-                        approved_item_code: barcode || gtin,
-                        approved_brand: "Scanned Manufacturer", 
-                        created_by: user.first_name + " " + user.last_name
-                    }
-                });
+            // Locate Master Spec (User selected this from Roster List)
+            const specToLink = await prisma.corporateProteinSpec.findFirst({
+                where: { protein_name, company_id: companyId }
+            });
+
+            if (!specToLink) {
+                 return res.status(400).json({ error: 'Selected Master Protein Spec not found for this tenant.' });
             }
 
-            // Process the scan now that it's mapped
+            const isWeak = !gtin && !product_code;
+
+            // 1. Create Interstitial Rule (Zero-Trust protection, leave Master Table alone)
+            await prisma.receivingRecognitionRule.create({
+                data: {
+                    company_id: companyId,
+                    protein_spec_id: specToLink.id,
+                    gtin: gtin || null,
+                    normalized_product_code: product_code || null,
+                    raw_barcode_pattern: isWeak ? raw_barcode : null,
+                    match_strength: isWeak ? 'WEAK' : 'STRONG',
+                    created_by: user.id
+                }
+            });
+
+            // 2. Audit Trail
+            await prisma.auditEvent.create({
+                data: {
+                    action: 'RECEIVING_MAPPING_CONFIRMED',
+                    actor: user.id,
+                    store_id: storeId ? parseInt(storeId.toString(), 10) : null,
+                    payload: { proteinSpecId: specToLink.id, gtin, product_code, raw_barcode, weight } as any
+                }
+            });
+
+            // Process the scan now that it's mapped (Reprocessing proxy)
             if (storeId) {
                  await prisma.barcodeScanEvent.create({
                         data: {
-                            store_id: parseInt(storeId, 10),
-                            scanned_barcode: barcode,
-                            is_approved: true
+                            store_id: parseInt(storeId.toString(), 10),
+                            scanned_barcode: raw_barcode,
+                            gtin: gtin || null,
+                            is_approved: true,
+                            protein_name: specToLink.protein_name,
+                            weight: weight || 0,
+                            metadata: { assistedMappingReprocessed: true } as any
                         }
                  });
-
-                 // We no longer automatically Add to Inventory here!
-                 // It will go into the frontend Cart and be submitted via /submit-batch.
             }
 
-            res.json({ success: true, status: 'APPROVED', protein: protein_name });
+            res.json({ success: true, status: 'APPROVED', protein: specToLink.protein_name });
 
         } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {

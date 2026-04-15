@@ -14,13 +14,33 @@ export interface ComplianceDecision {
 
 export class ComplianceEngine {
     public static async evaluate(barcodeResult: NormalizedBarcode, companyId: string): Promise<ComplianceDecision> {
-        const specs = await prisma.corporateProteinSpec.findMany({
-            where: { company_id: companyId }
+        // 1. Verificar Mapeadores Existentes (ReceivingRecognitionRule)
+        const rules = await prisma.receivingRecognitionRule.findMany({
+            where: { company_id: companyId, is_active: true },
+            include: { spec: true }
         });
 
-        let matchedSpec = specs.find(s => s.approved_item_code === barcodeResult.product_code);
-        if (!matchedSpec && barcodeResult.raw_barcode) {
-             matchedSpec = specs.find(s => s.approved_item_code === barcodeResult.raw_barcode);
+        let matchedSpec = null;
+
+        // V2 Hotfix - Tenta resolver por regra assistida:
+        const activeRule = rules.find(r => 
+            (r.gtin && r.gtin === barcodeResult.gtin) || 
+            (r.normalized_product_code && r.normalized_product_code === barcodeResult.product_code) ||
+            (r.raw_barcode_pattern && barcodeResult.raw_barcode?.includes(r.raw_barcode_pattern))
+        );
+
+        if (activeRule && activeRule.spec) {
+            matchedSpec = activeRule.spec;
+        } else {
+            // Fallback Legacy Flow: Hard match direto no master data
+            const specs = await prisma.corporateProteinSpec.findMany({
+                where: { company_id: companyId }
+            });
+
+            matchedSpec = specs.find(s => s.approved_item_code === barcodeResult.product_code);
+            if (!matchedSpec && barcodeResult.raw_barcode) {
+                matchedSpec = specs.find(s => s.approved_item_code === barcodeResult.raw_barcode);
+            }
         }
 
         if (!matchedSpec) {

@@ -192,14 +192,21 @@ export default function ReceivingScanner() {
 
       if (data.status === 'APPROVED') {
           handleApproveSuccess(data.protein, parsedWeight, barcodeResult.normalized_object.cleaned_barcode);
-      } else if (data.status === 'UNMAPPED_ALLOW_MAPPING') {
+      } else if (data.status === 'UNMAPPED_REVIEW_ALLOWED') {
           setScanResult('UNMAPPED');
-          setResultMessage('New Unknown Barcode Detected! You are an Admin. Please map this product.');
-          setScannedGtin(data.gtin || barcodeResult.normalized_object.gtin || barcodeResult.normalized_object.cleaned_barcode.substring(0, 14));
+          const finalMessage = data.details || data.error || 'Nenhum Padrão Corporativo Identificado.';
+          setResultMessage(`[AÇÃO REQUERIDA] ${finalMessage} Você tem o privilégio de Mapeamento Assistido para resolver isso agora.`);
+          setScannedGtin(data.gtin || barcodeResult.normalized_object?.gtin || barcodeResult.normalized_object?.cleaned_barcode?.substring(0, 14));
           setRoster(data.roster || []);
+      } else if (data.status === 'REVIEW_REQUIRED') {
+          setScanResult('REJECTED');
+          const finalMessage = data.details || data.error || 'Nenhum Padrão Corporativo Identificado. Acione a Diretoria para mapear essa caixa.';
+          setResultMessage(`[BLOQUEIO] ${finalMessage}`);
       } else {
           setScanResult('REJECTED');
-          setResultMessage(data.error || 'UNAUTHORIZED SUBSTITUTION! Reject this box. Alert sent to Corporate Supply Chain.');
+          const finalMessage = data.details || data.error || 'Não reconhecido pelo motor corporativo. Procure sua liderança.';
+          const isAuthFraude = data.error && (data.error.includes('UNAUTHORIZED') || data.error.includes('Safe Operating'));
+          setResultMessage(isAuthFraude ? data.error : finalMessage);
       }
       
     } catch (error) {
@@ -220,8 +227,9 @@ export default function ReceivingScanner() {
               },
               body: JSON.stringify({
                   gtin: scannedGtin,
+                  product_code: parseData.normalized_object?.product_code,
                   protein_name: selectedProtein,
-                  barcode: barcode || scannedGtin,
+                  raw_barcode: barcode || scannedGtin,
                   weight: extractedWeight,
                   store_id: user?.storeId
               })
