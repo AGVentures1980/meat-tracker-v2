@@ -41,7 +41,7 @@ export async function generatePilotReport() {
         let ttrStore = 0;
         let ttrStoreCount = 0;
         for (const action of actions) {
-             if (action.actedAt && action.generatedAt) { // Assume generatedAt comes from the Snapshot creation equivalent or creation Time. Wait, we don't have createdAt on ExecutiveActionDecision. We will track from viewedAt to actedAt in the real pipeline.
+             if (action.actedAt && action.createdAt) { // Track from viewedAt to actedAt in the real pipeline.
                  if (action.viewedAt) {
                      const ms = action.actedAt.getTime() - action.viewedAt.getTime();
                      ttrStore += ms;

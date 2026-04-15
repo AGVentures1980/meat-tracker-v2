@@ -97,7 +97,7 @@ export const ReceivingController = {
 
                 // 7. Risk Enforcement Engine (AntiFraud Blockade)
                 enforcementResult = RiskEnforcementEngine.enforce(user.role || 'operator', fraudIntelligence, currentStatus);
-                currentStatus = enforcementResult.finalStatus;
+                currentStatus = enforcementResult.finalStatus as any;
 
                 if ((fraudIntelligence.riskLevel === 'CRITICAL' || fraudIntelligence.riskLevel === 'HIGH') || enforcementResult.enforcementAction !== 'NONE') {
                     await prisma.auditEvent.create({
@@ -293,7 +293,7 @@ export const ReceivingController = {
 
                 const enforcementResult = RiskEnforcementEngine.enforce(user.role || 'operator', fraudIntelligence, 'ACCEPTED');
 
-                if (fraudIntelligence.anomalyFlag || enforcementResult.enforcementAction !== 'NONE') {
+                if ((fraudIntelligence.riskLevel === 'CRITICAL' || fraudIntelligence.riskLevel === 'HIGH') || enforcementResult.enforcementAction !== 'NONE') {
                     await prisma.auditEvent.create({
                         data: {
                             action: 'FRAUD_INTELLIGENCE_ENFORCEMENT',

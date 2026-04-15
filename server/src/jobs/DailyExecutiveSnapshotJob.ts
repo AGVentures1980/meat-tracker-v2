@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { ExecutiveMetricsService } from '../services/ExecutiveMetricsService';
 import { AuditService } from '../services/AuditService';
 import { startOfDay, format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
 
 const prisma = new PrismaClient();
 
@@ -78,8 +77,7 @@ export class DailyExecutiveSnapshotJob {
         } else {
             // "Today" in the store's timezone
             const now = new Date();
-            const zonedDate = toZonedTime(now, timeZone);
-            targetBusinessDate = startOfDay(zonedDate);
+            targetBusinessDate = startOfDay(now);
         }
 
         // Prevent destructive silent overwrites of Finalized weeks

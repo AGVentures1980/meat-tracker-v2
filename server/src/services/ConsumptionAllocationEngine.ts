@@ -62,7 +62,7 @@ export class ConsumptionAllocationEngine {
         return {
             success: true,
             unitsConsumed,
-            lbsAllocated,
+            lbsAllocated: lbsToAllocate,
             methodUsed: rule.allocationMethod
         };
     }
