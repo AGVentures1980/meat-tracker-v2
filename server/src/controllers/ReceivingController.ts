@@ -184,20 +184,24 @@ export const ReceivingController = {
                     return res.json({ 
                         status: 'UNMAPPED_REVIEW_ALLOWED', 
                         gtin: finalGtin, 
-                        product_code: normalized.product_code,
+                        product_code: fusedData.productCodeBase.value,
                         raw_barcode: barcode,
                         details: compliance.details,
-                        roster: roster
+                        roster: roster,
+                        fusedData,
+                        conflicts
                     });
                 }
-                return res.json({ status: 'REVIEW_REQUIRED', details: compliance.details });
+                return res.json({ status: 'REVIEW_REQUIRED', details: compliance.details, fusedData, conflicts });
             }
             
             return res.json({ 
                 status: compliance.status === 'ACCEPTED' ? 'APPROVED' : compliance.status, 
-                protein: compliance.specMatched?.protein_name || normalized.product_name, 
+                protein: compliance.specMatched?.protein_name || "Unknown", 
                 weight: finalWeight,
-                details: compliance.details 
+                details: compliance.details,
+                fusedData,
+                conflicts
             });
 
         } catch (error: any) {

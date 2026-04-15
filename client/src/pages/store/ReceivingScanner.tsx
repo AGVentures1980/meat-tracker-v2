@@ -2,13 +2,32 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Truck, ScanLine, CheckCircle2, XCircle, AlertTriangle, Play, Square, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
+// PROMPT 04 (UX EXPLAINABILITY) TYPES
+interface ProvenanceFieldData {
+    value: string | number | null;
+    source: 'UNKNOWN' | 'USER_CONFIRMED' | 'GS1_AI' | 'SUPPLIER_RULE' | 'OCR';
+    confidence: number;
+}
+interface FusedLabelData {
+    rawBarcodes: string[];
+    productCodeBase: ProvenanceFieldData;
+    gtin: ProvenanceFieldData;
+    weightLb: ProvenanceFieldData;
+    lot?: ProvenanceFieldData;
+    supplierId?: string | null;
+}
+
 export default function ReceivingScanner() {
   const { user, selectedCompany } = useAuth();
   const [barcode, setBarcode] = useState('');
-  const [scanResult, setScanResult] = useState<'IDLE' | 'LOADING' | 'APPROVED' | 'REJECTED' | 'UNMAPPED' | 'NEEDS_WEIGHT'>('IDLE');
+  const [scanResult, setScanResult] = useState<'IDLE' | 'LOADING' | 'APPROVED' | 'ACCEPTED_WITH_WARNING' | 'REVIEW_REQUIRED' | 'REJECTED' | 'UNMAPPED' | 'NEEDS_WEIGHT'>('IDLE');
   const [resultMessage, setResultMessage] = useState('');
   const [extractedWeight, setExtractedWeight] = useState<number | null>(null);
   const [manualWeight, setManualWeight] = useState('');
+
+  // Explainability States
+  const [fusedData, setFusedData] = useState<FusedLabelData | null>(null);
+  const [conflicts, setConflicts] = useState<string[]>([]);
   
   // States for Admin On-the-fly mapping
   const [scannedGtin, setScannedGtin] = useState('');
@@ -19,6 +38,53 @@ export default function ReceivingScanner() {
   // Batch Receiving States
   const [scannedItems, setScannedItems] = useState<{ id: string, barcode: string, protein: string, weight: number }[]>([]);
   const [isSubmittingBatch, setIsSubmittingBatch] = useState(false);
+
+  const ProvenanceField = ({ title, data }: { title: string, data?: ProvenanceFieldData }) => {
+      if (!data) return null;
+      let dotColor = 'bg-gray-400';
+      if (data.confidence >= 0.85) dotColor = 'bg-green-500';
+      else if (data.confidence >= 0.6) dotColor = 'bg-yellow-500';
+      else if (data.confidence > 0) dotColor = 'bg-red-500';
+
+      return (
+          <div className="bg-black/30 border border-white/10 rounded p-2 flex flex-col gap-1 items-start shadow-inner">
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest">{title}</span>
+              <div className="text-white font-mono text-sm leading-none flex items-center">
+                  {data.value || <span className="opacity-30">N/A</span>}
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                  <span className={`w-2 h-2 rounded-full ${dotColor}`}></span>
+                  <span className="text-[9px] uppercase tracking-wider font-bold text-gray-300">
+                      {data.source} ({data.confidence > 0 ? (data.confidence * 100).toFixed(0) + '%' : 'NONE'})
+                  </span>
+              </div>
+          </div>
+      );
+  };
+
+  // Explainability render helper
+  const renderExplainability = () => {
+      if (!fusedData) return null;
+      return (
+          <div className="mt-6 w-full max-w-md mx-auto text-left">
+              <p className="text-xs font-bold text-white/50 uppercase tracking-widest mb-2 px-1">Decoded Payload Telemetry</p>
+              <div className="grid grid-cols-2 gap-2">
+                  <ProvenanceField title="Product Identity" data={fusedData.productCodeBase} />
+                  <ProvenanceField title="Global GTIN" data={fusedData.gtin} />
+                  <ProvenanceField title="Weight (Lbs)" data={fusedData.weightLb} />
+                  {fusedData.lot && <ProvenanceField title="Batch / Lot" data={fusedData.lot} />}
+              </div>
+              {conflicts.length > 0 && (
+                  <div className="mt-3 bg-red-900/40 border border-red-500/50 rounded-lg p-3 text-red-200 text-xs font-mono">
+                      <p className="font-bold text-red-400 mb-1 uppercase tracking-widest text-[10px]">⚠️ Conflicting Sources Detected</p>
+                      <ul className="list-disc pl-4 opacity-90 space-y-1">
+                          {conflicts.map((c, i) => <li key={i}>{c}</li>)}
+                      </ul>
+                  </div>
+              )}
+          </div>
+      );
+  };
 
   const handleApproveSuccess = (protein: string, weight: number, code: string) => {
       setScannedItems(prev => [...prev, {
@@ -190,8 +256,14 @@ export default function ReceivingScanner() {
 
       const data = await res.json();
 
+      if (data.fusedData) setFusedData(data.fusedData);
+      if (data.conflicts) setConflicts(data.conflicts || []);
+
       if (data.status === 'APPROVED') {
-          handleApproveSuccess(data.protein, parsedWeight, barcodeResult.normalized_object.cleaned_barcode);
+          handleApproveSuccess(data.protein, parsedWeight, barcodeResult.normalized_object?.cleaned_barcode || inputBarcode);
+      } else if (data.status === 'ACCEPTED_WITH_WARNING') {
+          setScanResult('ACCEPTED_WITH_WARNING');
+          setResultMessage(data.details || 'Aprovado com ressalvas operacionais.');
       } else if (data.status === 'UNMAPPED_REVIEW_ALLOWED') {
           setScanResult('UNMAPPED');
           const finalMessage = data.details || data.error || 'Nenhum Padrão Corporativo Identificado.';
@@ -199,13 +271,13 @@ export default function ReceivingScanner() {
           setScannedGtin(data.gtin || barcodeResult.normalized_object?.gtin || barcodeResult.normalized_object?.cleaned_barcode?.substring(0, 14));
           setRoster(data.roster || []);
       } else if (data.status === 'REVIEW_REQUIRED') {
-          setScanResult('REJECTED');
+          setScanResult('REVIEW_REQUIRED'); // Using the robust state directly instead of masking it as REJECTED
           const finalMessage = data.details || data.error || 'Nenhum Padrão Corporativo Identificado. Acione a Diretoria para mapear essa caixa.';
           setResultMessage(`[BLOQUEIO] ${finalMessage}`);
       } else {
           setScanResult('REJECTED');
           const finalMessage = data.details || data.error || 'Não reconhecido pelo motor corporativo. Procure sua liderança.';
-          const isAuthFraude = data.error && (data.error.includes('UNAUTHORIZED') || data.error.includes('Safe Operating'));
+          const isAuthFraude = data.error && (data.error.includes('UNAUTHORIZED') || data.error.includes('Safe Operating Bounds'));
           setResultMessage(isAuthFraude ? data.error : finalMessage);
       }
       
@@ -489,19 +561,19 @@ export default function ReceivingScanner() {
             {resultMessage}
           </p>
 
-          <div className="bg-black/40 px-6 py-6 rounded-2xl border-2 border-yellow-300/50 mb-8 w-full max-w-md shadow-2xl backdrop-blur-xl text-left">
-              <p className="text-yellow-200 text-sm uppercase font-bold tracking-widest mb-4">MAP GTIN TO ROSTER</p>
+          <div className="bg-black/40 px-6 py-6 rounded-2xl border-2 border-yellow-300/50 mb-4 w-full max-w-md shadow-2xl backdrop-blur-xl text-left">
+              <p className="text-yellow-200 text-sm uppercase font-bold tracking-widest mb-4">MAP RULE CONFIGURATION</p>
               
               <div className="flex flex-col gap-2 mb-4">
-                  <label className="text-xs font-bold text-gray-400 uppercase">Item Code / GTIN (Edit if necessary)</label>
+                  <label className="text-xs font-bold text-gray-400 uppercase">Item Code / Pattern (Edit Caution)</label>
                   <input
                       type="text"
-                      title="Item Code / GTIN"
+                      title="Item Code / Pattern"
                       value={scannedGtin}
                       onChange={(e) => setScannedGtin(e.target.value)}
                       className="w-full bg-[#252525] text-white p-3 border-2 border-white/10 rounded-xl focus:outline-none focus:border-yellow-500 font-mono text-sm"
                   />
-                  {extractedWeight && <div className="mt-1"><span className="bg-white/10 text-white font-mono text-xs px-2 py-1 rounded border border-white/20">Weight: {extractedWeight.toFixed(2)} lbs</span></div>}
+                  {extractedWeight && <div className="mt-1"><span className="bg-white/10 text-white font-mono text-xs px-2 py-1 rounded border border-white/20">Weight Found: {extractedWeight.toFixed(2)} lbs</span></div>}
               </div>
               
               <div className="space-y-4">
@@ -520,13 +592,20 @@ export default function ReceivingScanner() {
                       </select>
                   </div>
 
+                  {(!fusedData?.gtin.value || fusedData?.gtin.confidence < 0.8) && (
+                      <div className="bg-red-900/30 border border-red-500/50 p-3 rounded-lg text-xs text-red-200 mt-2">
+                          <p className="font-bold text-red-400 mb-1">⚠️ WEAK RULE GENERATION</p>
+                          A leitura deste código não extraiu um GTIN/ID global de alta confiança. Essa regra será gerada com status <strong>WEAK</strong> e cairá em <em>REVIEW_REQUIRED</em> continuamente no estoque até intervenção técnica.
+                      </div>
+                  )}
+
                   <button
                       onClick={handleMapBarcode}
                       disabled={!selectedProtein || isMapping}
                       className="w-full bg-yellow-500 hover:bg-yellow-400 text-black p-4 rounded-xl font-black uppercase tracking-widest disabled:opacity-50 transition-colors flex items-center justify-center gap-2 shadow-xl"
                   >
                       {isMapping ? (
-                          <><Loader2 className="w-5 h-5 animate-spin" /> Saving Configuration...</>
+                          <><Loader2 className="w-5 h-5 animate-spin" /> Committing Governance State...</>
                       ) : (
                           'Save Mapping & Authorize Box'
                       )}
