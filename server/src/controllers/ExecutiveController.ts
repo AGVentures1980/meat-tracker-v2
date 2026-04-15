@@ -217,4 +217,50 @@ export class ExecutiveController {
              res.status(e.message.includes('403') ? 403 : 500).json({ error: e.message });
         }
     }
+
+    /**
+     * V1 Executive Action Telemetry (Pilot Tracing)
+     * POST /api/v1/executive/action/:id/resolve
+     */
+    public executeActionDecision = async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            this.requireExecutiveAccess(user);
+            
+            const { id } = req.params;
+            const { decisionStatus, resolutionOutcome, notes, viewedAt } = req.body;
+
+            if (!['ACKNOWLEDGED', 'FORWARDED', 'APPROVED', 'RESOLVED', 'DISMISSED'].includes(decisionStatus)) {
+                return res.status(400).json({ error: 'Invalid decision status.' });
+            }
+
+            const updatedDecision = await prisma.executiveActionDecision.update({
+                where: { id },
+                data: {
+                    decisionStatus,
+                    actedByUserId: user.id,
+                    actedAt: new Date(),
+                    resolvedAt: decisionStatus === 'RESOLVED' ? new Date() : undefined,
+                    forwardedAt: decisionStatus === 'FORWARDED' ? new Date() : undefined,
+                    viewedAt: viewedAt ? new Date(viewedAt) : undefined,
+                    resolutionOutcome,
+                    notes
+                }
+            });
+
+            // Audit Telemetry Event
+            await AuditService.logAction(
+                user.id,
+                `DECISION_${decisionStatus}`,
+                'ExecutiveMetrics',
+                { targetActionId: id, storeId: updatedDecision.storeId }
+            );
+
+            res.json({ success: true, data: updatedDecision });
+
+        } catch (e: any) {
+             res.status(e.message.includes('Record to update not found') ? 404 : 500).json({ error: e.message });
+        }
+    }
 }
+

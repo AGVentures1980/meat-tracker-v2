@@ -2063,11 +2063,17 @@ model ExecutiveActionDecision {
   targetId                   String // Ref associated to the target
   
   decisionStatus             DecisionStatus @default(OPEN)
+  resolutionOutcome          String? // SUCCESS | FALSE_POSITIVE | NO_ACTION_TAKEN
   
   assignedToUserId           String?
   createdBySystem            Boolean @default(true)
+  
+  viewedAt                   DateTime?
+  forwardedAt                DateTime?
   actedByUserId              String?
   actedAt                    DateTime?
+  resolvedAt                 DateTime?
+  
   notes                      String?
 
   @@index([companyId, decisionStatus])
@@ -2085,4 +2091,59 @@ enum DecisionStatus {
   APPROVED
   RESOLVED
   DISMISSED
+}
+
+// =======================================================
+// BRASA PILOT OPERATIONS COMMAND (PROMPT 11)
+// =======================================================
+
+model PilotConfiguration {
+  id                 String   @id @default(cuid())
+  companyId          Int
+  storeId            Int
+  status             PilotStatus @default(INACTIVE)
+  
+  pilotStartDate     DateTime
+  pilotEndDate       DateTime?
+  
+  enabledFeatures    String[] // ['ACTION_PANEL', 'BENTO_GRID_KPI']
+  allowedRoles       String[] // ['store_manager', 'director']
+  
+  successThresholds  Json? // For holding { "avgResolutionTimeSecs": 120 }
+  rollbackEnabled    Boolean @default(true)
+
+  @@unique([storeId])
+}
+
+model PilotFeedback {
+  id                 String   @id @default(cuid())
+  companyId          Int
+  storeId            Int
+  userId             String
+  actionDecisionId   String?  // If tied to a specific aborted card
+  
+  feedbackCategory   FeedbackCategory
+  severity           String   // MINOR | MAJOR | BLOCKER
+  affectedScreen     String
+  comments           String
+  
+  createdAt          DateTime @default(now())
+}
+
+enum PilotStatus {
+  ACTIVE
+  PAUSED
+  ROLLED_BACK
+  INACTIVE
+  COMPLETED
+}
+
+enum FeedbackCategory {
+  UX_CONFUSION
+  DATA_QUALITY_ISSUE
+  OPERATIONAL_PROCESS_GAP
+  BUG
+  PERFORMANCE_ISSUE
+  METRIC_CONFIDENCE_ISSUE
+  ADOPTION_BARRIER
 }
