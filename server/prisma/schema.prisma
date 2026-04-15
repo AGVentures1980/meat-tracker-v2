@@ -1880,3 +1880,82 @@ enum VarianceSeverity {
   HIGH
   CRITICAL
 }
+
+// =======================================================
+// BRASA TRANSFORMATION & CONSUMPTION ENGINE (PROMPT 07)
+// =======================================================
+
+model ProteinTransformationBatch {
+  id                String   @id @default(cuid())
+  storeId           Int
+  productType       String   // e.g. HAMBURGER, PRIME_RIB_PORTION
+  totalInputWeight  Float    @default(0.0)
+  totalOutputUnits  Int      @default(0)
+  totalOutputWeight Float    @default(0.0)
+  yieldPercentage   Float    @default(0.0)
+  status            BatchStatus @default(OPEN)
+
+  createdBy         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  inputs            TransformationInput[]
+  outputs           TransformationOutput[]
+  consumptionLinks  ConsumptionLink[]
+
+  @@index([storeId, status])
+}
+
+model TransformationInput {
+  id                 String   @id @default(cuid())
+  batchId            String
+  sourceProteinBoxId String
+  sourceType         InputSourceType // e.g. PRIME_CUT, SCRAP
+  weightUsed         Float
+  timestamp          DateTime @default(now())
+
+  batch              ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+  box                ProteinBox @relation(fields: [sourceProteinBoxId], references: [id])
+
+  @@index([batchId])
+  @@index([sourceProteinBoxId])
+}
+
+model TransformationOutput {
+  id             String   @id @default(cuid())
+  batchId        String
+  productCode    String   // e.g. HAMBURGER
+  unitsProduced  Int
+  weightProduced Float
+  timestamp      DateTime @default(now())
+
+  batch          ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+
+  @@index([batchId])
+}
+
+model ConsumptionLink {
+  id             String   @id @default(cuid())
+  batchId        String
+  posSalesLineId String
+  sourceSystem   String   @default("POS") // E.g. POS, OLO
+  unitsConsumed  Int
+  timestamp      DateTime @default(now())
+
+  batch          ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+  salesLine      PosSalesLine @relation(fields: [posSalesLineId], references: [id])
+
+  @@index([batchId])
+  @@index([posSalesLineId])
+}
+
+enum BatchStatus {
+  OPEN
+  CLOSED
+  RECONCILED
+}
+
+enum InputSourceType {
+  PRIME_CUT
+  SCRAP
+}
