@@ -12,6 +12,10 @@ RUN npm run build
 
 # Stage 2: Build Server
 FROM node:18-alpine AS server-build
+
+# Install OpenSSL required by Prisma generate
+RUN apk add --no-cache openssl
+
 WORKDIR /app/server
 # Increase memory limit for build
 ENV NODE_OPTIONS="--max-old-space-size=2048"
