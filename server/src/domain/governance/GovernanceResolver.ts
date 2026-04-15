@@ -59,7 +59,7 @@ export class GovernanceResolver {
       domainStatuses.PROTEIN_LIFECYCLE.trustLevel = 'COMPROMISED';
       domainStatuses.PROTEIN_LIFECYCLE.evidence.push({ code: GovernanceReasonCode.CRITICAL_UNACCOUNTED_LOSS, severity: 'CRITICAL', metadata: { lbs: watchDogStats.totalLostLbs }, timestamp: new Date(), requiresManualResolution: true });
     } else if (watchDogStats.state === 'RESTRICTED') {
-      if (globalState !== 'HARDLOCK') globalState = 'RESTRICTED';
+      globalState = 'RESTRICTED';
       domainStatuses.PROTEIN_LIFECYCLE.governanceState = 'RESTRICTED';
       domainStatuses.PROTEIN_LIFECYCLE.trustLevel = 'SUSPECT';
       domainStatuses.PROTEIN_LIFECYCLE.evidence.push({ code: GovernanceReasonCode.YIELD_LOSS_RESTRICTED, severity: 'WARNING', metadata: { lbs: watchDogStats.totalLostLbs }, timestamp: new Date(), requiresManualResolution: true });

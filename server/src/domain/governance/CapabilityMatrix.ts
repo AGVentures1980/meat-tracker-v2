@@ -1,6 +1,7 @@
 // server/src/domain/governance/CapabilityMatrix.ts
 
-import { GovernanceState, DomainStatus, DomainType } from './ReasonCodes';
+import { GovernanceState, DomainType } from './ReasonCodes';
+import { DomainStatus } from './DomainIntegrityModel';
 
 export type Capability = 
   | 'VIEW_EXECUTIVE_LBS_PAX'
