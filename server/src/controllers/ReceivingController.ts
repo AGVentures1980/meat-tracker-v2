@@ -334,22 +334,52 @@ export const ReceivingController = {
                 }
             });
 
+            const mockNormalizedBarcode: any = {
+                gtin: gtin || null,
+                product_code: product_code || null,
+                raw_barcode: raw_barcode,
+                net_weight_lb: weight || 0
+            };
+
+            // ZERO-TRUST RE-EVALUATION
+            const engineResult = await ComplianceEngine.evaluate(mockNormalizedBarcode, companyId);
+
+            // Trilha de Segurança Pós-Reprocessamento
+            await prisma.auditEvent.create({
+                data: {
+                    action: 'REPROCESS_EXECUTED',
+                    actor: user.id,
+                    store_id: storeId ? parseInt(storeId.toString(), 10) : null,
+                    payload: { 
+                        engineStatus: engineResult.status, 
+                        gtin,
+                        reason_code: engineResult.reason_code 
+                    } as any
+                }
+            });
+
             // Process the scan now that it's mapped (Reprocessing proxy)
-            if (storeId) {
+            if (storeId && (engineResult.status === 'ACCEPTED' || engineResult.status === 'ACCEPTED_WITH_WARNING')) {
                  await prisma.barcodeScanEvent.create({
                         data: {
                             store_id: parseInt(storeId.toString(), 10),
                             scanned_barcode: raw_barcode,
                             gtin: gtin || null,
                             is_approved: true,
-                            protein_name: specToLink.protein_name,
+                            protein_name: engineResult.specMatched?.protein_name || specToLink.protein_name,
                             weight: weight || 0,
-                            metadata: { assistedMappingReprocessed: true } as any
+                            metadata: { assistedMappingReprocessed: true, engineStatus: engineResult.status } as any
                         }
                  });
             }
 
-            res.json({ success: true, status: 'APPROVED', protein: specToLink.protein_name });
+            // Em caso de erro na reavaliação de peso, propaga o status real (ex: ACCEPTED_WITH_WARNING)
+            res.json({ 
+                success: true, 
+                status: engineResult.status, 
+                protein: engineResult.specMatched?.protein_name || specToLink.protein_name,
+                details: engineResult.details
+            });
 
         } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {
