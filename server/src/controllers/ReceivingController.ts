@@ -334,11 +334,24 @@ export const ReceivingController = {
                 }
             });
 
-            const mockNormalizedBarcode: any = {
+            const mockNormalizedBarcode = {
+                raw_barcode: raw_barcode || '',
+                barcode_family: 'MANUAL_ASSISTED',
+                barcode_type: 'INTERNAL_PROXY',
+                confidence_score: 1.0,
+                product_code: product_code || '',
+                product_name: protein_name || '',
                 gtin: gtin || null,
-                product_code: product_code || null,
-                raw_barcode: raw_barcode,
-                net_weight_lb: weight || 0
+                net_weight_lb: weight || null,
+                net_weight_kg: weight ? weight * 0.453592 : null,
+                unit: 'LB',
+                lot: null,
+                pack_date: null,
+                expiry_date: null,
+                serial: null,
+                status: 'valid' as const,
+                warnings: [],
+                source_parser: 'ASSISTED_MAP'
             };
 
             // ZERO-TRUST RE-EVALUATION
