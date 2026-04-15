@@ -1174,6 +1174,9 @@ model ProteinBox {
   updated_at DateTime @updatedAt
 
   events BoxLifecycleEvent[]
+  
+  transformationInputs TransformationInput[]
+  allocations          ProteinConsumptionAllocation[]
 
   @@unique([store_id, barcode, business_date])
   @@index([store_id, status])
@@ -1958,4 +1961,56 @@ enum BatchStatus {
 enum InputSourceType {
   PRIME_CUT
   SCRAP
+}
+
+// =======================================================
+// BRASA CONSUMPTION ALLOCATION ENGINE (SUPER PROMPT E2E)
+// =======================================================
+
+model ConsumptionAllocationRule {
+  id                    String   @id @default(cuid())
+  storeId               Int
+  productCode           String   // e.g. LAMB_CHOP, BEEF_RIB
+  allocationMethod      AllocationMethod
+  unitName              String   // e.g. BONE, PORTION
+  unitsPerSale          Int      @default(1)
+  unitsPerCase          Int      @default(10) // default fallback
+  usesLotLevelWeight    Boolean  @default(true)
+  fixedPortionWeightLbs Float?   // Nullable, used if FIXED_WEIGHT
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([storeId, productCode])
+}
+
+model ProteinConsumptionAllocation {
+  id                 String   @id @default(cuid())
+  sourceProteinBoxId String?
+  sourceScanEventId  String?
+  productCode        String
+  unitsConsumed      Float
+  lbsAllocated       Float
+  sourceSystem       String   // POS | OLO
+  destinationType    DestinationChannel // SALAO | BAR | DELIVERY
+  posSalesLineId     String?
+
+  timestamp          DateTime @default(now())
+
+  box                ProteinBox? @relation(fields: [sourceProteinBoxId], references: [id])
+  salesLine          PosSalesLine? @relation(fields: [posSalesLineId], references: [id])
+
+  @@index([sourceProteinBoxId])
+  @@index([posSalesLineId])
+}
+
+enum AllocationMethod {
+  UNIT_BASED
+  FIXED_WEIGHT
+}
+
+enum DestinationChannel {
+  SALAO
+  BAR
+  DELIVERY
 }
