@@ -768,6 +768,7 @@ model CorporateProteinSpec {
   company Company @relation(fields: [company_id], references: [id])
   receivingRules ReceivingRecognitionRule[]
   supplierBarcodeRules SupplierBarcodeRule[]
+  catalogItems SupplierCatalogItem[]
 }
 
 model BarcodeScanEvent {
@@ -1611,6 +1612,7 @@ model SupplierProfile {
   updatedAt        DateTime @updatedAt
 
   rules            SupplierBarcodeRule[]
+  catalogItems     SupplierCatalogItem[]
   @@index([companyId])
 }
 
@@ -1791,6 +1793,8 @@ model PosSalesLine {
   channel          String   @default("DINE_IN")
 
   feed             PosSalesFeed @relation(fields: [feedId], references: [id])
+  consumptionLinks ConsumptionLink[]
+  allocations      ProteinConsumptionAllocation[]
 }
 
 model ReconciliationEvent {
