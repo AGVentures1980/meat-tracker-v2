@@ -22,6 +22,29 @@ export interface NormalizedBarcode {
     source_parser: string;
 }
 
+export interface ParsedBarcodeData {
+    rawBarcodes: string[];
+    gtin?: string;
+    product_code?: string;
+    symbology?: 'EAN13' | 'GS1_128' | 'CODE128' | 'UNKNOWN';
+    source_parser?: string;
+}
+
+export interface FieldProvenance<T> {
+    value: T | null;
+    source: 'GS1_AI' | 'SUPPLIER_RULE' | 'OCR' | 'USER_CONFIRMED' | 'UNKNOWN';
+    confidence: number;
+}
+
+export interface FusedLabelData {
+    productCodeBase: FieldProvenance<string>;
+    gtin: FieldProvenance<string>;
+    weightLb: FieldProvenance<number>;
+    lot?: FieldProvenance<string>;
+    serial?: FieldProvenance<string>;
+    supplierId?: string | null;
+}
+
 export class BarcodeDecisionEngine {
     
     public static async parse(barcode: string, storeId: number): Promise<NormalizedBarcode> {

@@ -767,6 +767,7 @@ model CorporateProteinSpec {
 
   company Company @relation(fields: [company_id], references: [id])
   receivingRules ReceivingRecognitionRule[]
+  supplierBarcodeRules SupplierBarcodeRule[]
 }
 
 model BarcodeScanEvent {
@@ -1590,4 +1591,56 @@ model AuditEvent {
   target_id    String?
   payload      Json?
   timestamp    DateTime @default(now())
+}
+
+// ==========================================
+// SUPPLIER-AWARE CONTEXT (V3 EXTENSION)
+// ==========================================
+
+model SupplierProfile {
+  id               String   @id @default(cuid())
+  companyId        String
+  name             String
+  code             String?  // ex: SYSCO, USF
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  rules            SupplierBarcodeRule[]
+  @@index([companyId])
+}
+
+model SupplierBarcodeRule {
+  id                    String   @id @default(cuid())
+  companyId             String
+  supplierId            String
+  matchType             RuleMatchType  
+  gtin                  String?
+  normalizedProductCode String?
+  rawBarcodePattern     String?
+  regex                 String?
+  matchStrength         RuleStrength   
+  minPrefixLength       Int?           
+  isActive              Boolean @default(true)
+  createdBy             String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  supplier            SupplierProfile @relation(fields: [supplierId], references: [id])
+  proteinSpecId       String
+  spec                CorporateProteinSpec @relation(fields: [proteinSpecId], references: [id])
+  @@index([companyId, supplierId])
+}
+
+enum RuleMatchType {
+  GTIN
+  PRODUCT_CODE
+  PREFIX
+  REGEX
+}
+
+enum RuleStrength {
+  STRONG
+  MEDIUM
+  WEAK
 }

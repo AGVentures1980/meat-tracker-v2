@@ -83,8 +83,11 @@ export const ReceivingController = {
                 return res.status(400).json({ error: 'No GTIN detected in strictly mapped normalizer.' });
             }
             
+            // 2.5 Extract Optional Supplier Context
+            const { supplier_id } = req.body;
+
             // 3. Compliance Engine
-            const compliance = await ComplianceEngine.evaluate(normalized, companyId);
+            const compliance = await ComplianceEngine.evaluate(normalized, companyId, supplier_id);
 
             if (verifiedStoreId) {
                 const scanEvent = await prisma.barcodeScanEvent.create({
@@ -309,20 +312,37 @@ export const ReceivingController = {
                  return res.status(400).json({ error: 'Selected Master Protein Spec not found for this tenant.' });
             }
 
+            const { supplier_id } = req.body;
             const isWeak = !gtin && !product_code;
 
-            // 1. Create Interstitial Rule (Zero-Trust protection, leave Master Table alone)
-            await prisma.receivingRecognitionRule.create({
-                data: {
-                    company_id: companyId,
-                    protein_spec_id: specToLink.id,
-                    gtin: gtin || null,
-                    normalized_product_code: product_code || null,
-                    raw_barcode_pattern: isWeak ? raw_barcode : null,
-                    match_strength: isWeak ? 'WEAK' : 'STRONG',
-                    created_by: user.id
-                }
-            });
+            // 1. Create Interstitial Rule (Zero-Trust protection)
+            if (supplier_id) {
+                await prisma.supplierBarcodeRule.create({
+                    data: {
+                        companyId: companyId,
+                        supplierId: supplier_id,
+                        proteinSpecId: specToLink.id, // now matched in schema
+                        matchType: isWeak ? 'PREFIX' : (gtin ? 'GTIN' : 'PRODUCT_CODE'),
+                        gtin: gtin || null,
+                        normalizedProductCode: product_code || null,
+                        rawBarcodePattern: isWeak ? raw_barcode : null,
+                        matchStrength: isWeak ? 'WEAK' : 'STRONG',
+                        createdBy: user.id
+                    }
+                });
+            } else {
+                await prisma.receivingRecognitionRule.create({
+                    data: {
+                        company_id: companyId,
+                        protein_spec_id: specToLink.id,
+                        gtin: gtin || null,
+                        normalized_product_code: product_code || null,
+                        raw_barcode_pattern: isWeak ? raw_barcode : null,
+                        match_strength: isWeak ? 'WEAK' : 'STRONG',
+                        created_by: user.id
+                    }
+                });
+            }
 
             // 2. Audit Trail
             await prisma.auditEvent.create({
@@ -330,7 +350,7 @@ export const ReceivingController = {
                     action: 'RECEIVING_MAPPING_CONFIRMED',
                     actor: user.id,
                     store_id: storeId ? parseInt(storeId.toString(), 10) : null,
-                    payload: { proteinSpecId: specToLink.id, gtin, product_code, raw_barcode, weight } as any
+                    payload: { proteinSpecId: specToLink.id, supplierId: supplier_id, gtin, product_code, raw_barcode, weight } as any
                 }
             });
 
@@ -355,7 +375,7 @@ export const ReceivingController = {
             };
 
             // ZERO-TRUST RE-EVALUATION
-            const engineResult = await ComplianceEngine.evaluate(mockNormalizedBarcode, companyId);
+            const engineResult = await ComplianceEngine.evaluate(mockNormalizedBarcode, companyId, supplier_id);
 
             // Trilha de Segurança Pós-Reprocessamento
             await prisma.auditEvent.create({
