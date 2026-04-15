@@ -37,6 +37,7 @@ export interface FieldProvenance<T> {
 }
 
 export interface FusedLabelData {
+    rawBarcodes: string[];
     productCodeBase: FieldProvenance<string>;
     gtin: FieldProvenance<string>;
     weightLb: FieldProvenance<number>;

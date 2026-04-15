@@ -1,11 +1,11 @@
 import { PrismaClient, CorporateProteinSpec } from '@prisma/client';
-import { NormalizedBarcode } from './BarcodeDecisionEngine';
+import { FusedLabelData } from './BarcodeDecisionEngine';
 
 const prisma = new PrismaClient();
 
 export interface ComplianceDecision {
   status: 'ACCEPTED' | 'ACCEPTED_WITH_WARNING' | 'REJECTED' | 'REVIEW_REQUIRED';
-  reason_code: 'WEIGHT_BELOW_SPEC' | 'WEIGHT_ABOVE_SPEC' | 'YIELD_CRITICAL' | 'UNMAPPED_GTIN' | 'WEAK_RULE_MATCH' | 'NONE';
+  reason_code: 'WEIGHT_BELOW_SPEC' | 'WEIGHT_ABOVE_SPEC' | 'YIELD_CRITICAL' | 'UNMAPPED_GTIN' | 'WEAK_RULE_MATCH' | 'DATA_CONFLICT' | 'NONE';
   reference: 'supplier_spec' | 'benchmark' | 'baseline';
   details: string;
   severity: 'INFO' | 'WARNING' | 'CRITICAL';
@@ -17,7 +17,7 @@ export interface ComplianceDecision {
 }
 
 export class ComplianceEngine {
-    public static async evaluate(barcodeResult: NormalizedBarcode, companyId: string, supplierId?: string | null): Promise<ComplianceDecision> {
+    public static async evaluate(fusedData: FusedLabelData, companyId: string, supplierId?: string | null, conflicts?: string[]): Promise<ComplianceDecision> {
         let matchedSpec = null;
         let activeRule = null;
         let activeRuleType: 'SupplierRule' | 'LegacyRule' | null = null;
@@ -27,6 +27,21 @@ export class ComplianceEngine {
             'MEDIUM': 2,
             'WEAK': 1
         };
+
+        // 0. Pre-Flight Conflict Shield
+        if (conflicts && conflicts.length > 0) {
+            console.warn(`[SECURITY] DATA_CONFLICT detected: ${conflicts.join(' | ')}`);
+            return {
+                 status: 'REVIEW_REQUIRED',
+                 reason_code: 'DATA_CONFLICT',
+                 reference: 'supplier_spec',
+                 severity: 'WARNING',
+                 details: `Conflito de Extração Múltipla. Intervenção Operacional Necessária. (Conflicts: ${conflicts.join(', ')})`,
+                 specMatched: null
+            };
+        }
+
+        const fallbackRawBarcode = fusedData.rawBarcodes.length > 0 ? fusedData.rawBarcodes[0] : null;
 
         // 1. Supplier-Aware Rules (V3 Extension)
         let supplierRules = await prisma.supplierBarcodeRule.findMany({
@@ -42,16 +57,12 @@ export class ComplianceEngine {
             supplierRules.sort((a, b) => priorityMap[b.matchStrength || 'WEAK'] - priorityMap[a.matchStrength || 'WEAK']);
 
             const foundSupplierRule = supplierRules.find(r => 
-                (r.matchType === 'GTIN' && r.gtin === barcodeResult.gtin) ||
-                (r.matchType === 'PRODUCT_CODE' && r.normalizedProductCode === barcodeResult.product_code) ||
-                (r.matchType === 'PREFIX' && r.rawBarcodePattern && barcodeResult.raw_barcode?.startsWith(r.rawBarcodePattern) && barcodeResult.raw_barcode.length >= (r.minPrefixLength || 6))
+                (r.matchType === 'GTIN' && r.gtin === fusedData.gtin.value) ||
+                (r.matchType === 'PRODUCT_CODE' && r.normalizedProductCode === fusedData.productCodeBase.value) ||
+                (r.matchType === 'PREFIX' && r.rawBarcodePattern && fallbackRawBarcode?.startsWith(r.rawBarcodePattern) && fallbackRawBarcode.length >= (r.minPrefixLength || 6))
             );
 
             if (foundSupplierRule) {
-                // To fetch spec, Supplier Rules need to be linked to CorporateProteinSpec.
-                // Wait! The prisma schema doesn't link SupplierBarcodeRule to CorporateProteinSpec?
-                // The implementation plan missed `proteinSpecId String` in `SupplierBarcodeRule`.
-                // Let me gracefully fetch it or rely on Legacy Fallback while I fix schema later.
                 activeRule = foundSupplierRule;
                 activeRuleType = 'SupplierRule';
             }
@@ -67,9 +78,9 @@ export class ComplianceEngine {
             if (rules.length > 0) {
                 rules.sort((a, b) => priorityMap[b.match_strength || 'WEAK'] - priorityMap[a.match_strength || 'WEAK']);
                 activeRule = rules.find(r => 
-                    (r.gtin && r.gtin === barcodeResult.gtin) || 
-                    (r.normalized_product_code && r.normalized_product_code === barcodeResult.product_code) ||
-                    (r.raw_barcode_pattern && r.raw_barcode_pattern.length > 0 && barcodeResult.raw_barcode?.startsWith(r.raw_barcode_pattern))
+                    (r.gtin && r.gtin === fusedData.gtin.value) || 
+                    (r.normalized_product_code && r.normalized_product_code === fusedData.productCodeBase.value) ||
+                    (r.raw_barcode_pattern && r.raw_barcode_pattern.length > 0 && fallbackRawBarcode?.startsWith(r.raw_barcode_pattern))
                 );
                 if (activeRule) activeRuleType = 'LegacyRule';
             }
@@ -109,9 +120,9 @@ export class ComplianceEngine {
                 where: { company_id: companyId }
             });
 
-            matchedSpec = specs.find(s => s.approved_item_code === barcodeResult.product_code);
-            if (!matchedSpec && barcodeResult.raw_barcode) {
-                matchedSpec = specs.find(s => s.approved_item_code === barcodeResult.raw_barcode);
+            matchedSpec = specs.find(s => s.approved_item_code === fusedData.productCodeBase.value);
+            if (!matchedSpec && fallbackRawBarcode) {
+                matchedSpec = specs.find(s => s.approved_item_code === fallbackRawBarcode);
             }
         }
 
@@ -131,14 +142,14 @@ export class ComplianceEngine {
         const activeRuleMatchType = activeRule ? (activeRuleType === 'SupplierRule' ? activeRule.matchType : 'PREFIX') : null;
         const resolvedSupplierId = activeRuleType === 'SupplierRule' ? activeRule.supplierId : null;
 
-        if (matchedSpec.expected_weight_min !== null && barcodeResult.net_weight_lb !== null) {
-            if (barcodeResult.net_weight_lb < matchedSpec.expected_weight_min) {
+        if (matchedSpec.expected_weight_min !== null && fusedData.weightLb.value !== null) {
+            if (fusedData.weightLb.value < matchedSpec.expected_weight_min) {
                  return {
                     status: 'ACCEPTED_WITH_WARNING',
                     reason_code: 'WEIGHT_BELOW_SPEC',
                     reference: 'supplier_spec',
                     severity: 'WARNING',
-                    details: `Weight (${barcodeResult.net_weight_lb} lb) < MIN (${matchedSpec.expected_weight_min} lb)`,
+                    details: `Weight (${fusedData.weightLb.value} lb) < MIN (${matchedSpec.expected_weight_min} lb)`,
                     specMatched: matchedSpec,
                     matched_rule_id: activeRuleId,
                     matched_rule_strength: activeRuleMatchStrength as any,
@@ -148,14 +159,14 @@ export class ComplianceEngine {
             }
         }
         
-        if (matchedSpec.expected_weight_max !== null && barcodeResult.net_weight_lb !== null) {
-            if (barcodeResult.net_weight_lb > matchedSpec.expected_weight_max) {
+        if (matchedSpec.expected_weight_max !== null && fusedData.weightLb.value !== null) {
+            if (fusedData.weightLb.value > matchedSpec.expected_weight_max) {
                  return {
                     status: matchedSpec.allow_exception_receiving ? 'ACCEPTED_WITH_WARNING' : 'REJECTED',
                     reason_code: 'WEIGHT_ABOVE_SPEC',
                     reference: 'supplier_spec',
                     severity: matchedSpec.allow_exception_receiving ? 'WARNING' : 'CRITICAL',
-                    details: `Weight (${barcodeResult.net_weight_lb} lb) > MAX (${matchedSpec.expected_weight_max} lb)`,
+                    details: `Weight (${fusedData.weightLb.value} lb) > MAX (${matchedSpec.expected_weight_max} lb)`,
                     specMatched: matchedSpec,
                     matched_rule_id: activeRuleId,
                     matched_rule_strength: activeRuleMatchStrength as any,
@@ -163,6 +174,22 @@ export class ComplianceEngine {
                     supplierId: resolvedSupplierId
                  };
             }
+        }
+
+        // New condition: Weight is valid but comes from a WEAK source (e.g. OCR only)
+        if (fusedData.weightLb.value !== null && fusedData.weightLb.confidence < 0.8) {
+            return {
+                status: 'ACCEPTED_WITH_WARNING',
+                reason_code: 'NONE', // Or could be LOW_CONFIDENCE_WEIGHT
+                reference: 'supplier_spec',
+                severity: 'WARNING',
+                details: `Weight is within bounds, but extracted with low confidence (Score: ${fusedData.weightLb.confidence}). Visual review recommended.`,
+                specMatched: matchedSpec,
+                matched_rule_id: activeRuleId,
+                matched_rule_strength: activeRuleMatchStrength as any,
+                match_type: activeRuleMatchType as any,
+                supplierId: resolvedSupplierId
+            };
         }
 
         return {

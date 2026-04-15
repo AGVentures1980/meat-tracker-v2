@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { EmailService } from '../services/EmailService';
 import OpenAI from 'openai';
 import { BarcodeDecisionEngine } from '../services/BarcodeDecisionEngine';
+import { BarcodeParserRouter, LabelDataFusionEngine, OCRExtractionEngine } from '../services/LabelDataFusionEngine';
 import { ComplianceEngine } from '../services/ComplianceEngine';
 import { AlertEngine } from '../services/AlertEngine';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
@@ -48,46 +49,41 @@ export const ReceivingController = {
                 }
             }
 
-            const { barcodeResult } = req.body;
-            let normalized: any = null;
+            const { supplier_id, ocrData } = req.body;
 
-            if (process.env.BARCODE_ENGINE_V2_ENABLED === 'true') {
-                if (!barcodeResult || barcodeResult.status !== 'VALID') {
-                    
-                    // Sprint 5 Enhancement - Allowed Custom Mapping Flow 
-                    if (barcodeResult?.status === 'UNKNOWN' && ['admin', 'director', 'owner', 'partner'].includes(user.role)) {
-                        const roster = await prisma.companyProduct.findMany({ where: { company_id: companyId }, select: { name: true }});
-                        return res.json({ status: 'UNMAPPED_ALLOW_MAPPING', gtin: barcodeResult.normalized_object?.raw_barcode, roster: roster.map((r: any) => r.name) });
+            // 1. Route Barcodes through Multi-Parser Engine
+            const rawBarcodesArray = barcode ? [barcode] : [];
+            const parsedDataArray = await BarcodeParserRouter.parse(rawBarcodesArray, companyId, supplier_id);
+
+            // 2. Fetch active Supplier Rules for fusion context
+            const supplierRules = supplier_id ? await prisma.supplierBarcodeRule.findMany({
+                where: { companyId, supplierId: supplier_id, isActive: true }
+            }) : [];
+
+            // 3. FUSE DATA (Zero-Trust Aggregation)
+            const { fusedData, conflicts } = LabelDataFusionEngine.fuse(parsedDataArray, ocrData || null, supplierRules);
+
+            // 4. Verification Check
+            const finalGtin = fusedData.gtin.value || gtin;
+            const finalWeight = fusedData.weightLb.value || weight; 
+
+            if (!finalGtin && fusedData.productCodeBase.value === null) {
+                return res.status(400).json({ error: 'No Product Identifier detected in Fusion Engine.' });
+            }
+
+            if (conflicts.length > 0) {
+                await prisma.auditEvent.create({
+                    data: {
+                        action: 'FUSION_CONFLICT_DETECTED',
+                        actor: user.id || getUserId(user) || "SYSTEM",
+                        store_id: verifiedStoreId,
+                        payload: { conflicts, fusedData, rawBarcodes: rawBarcodesArray } as any
                     }
-
-                    return res.status(400).json({ 
-                        error: 'Safe Operating Bounds Violated. Cannot accept un-normalized or un-safe generic barcodes.',
-                        status: barcodeResult?.status || 'INVALID',
-                        reason_code: barcodeResult?.reason_code || 'NO_PRE_FLIGHT_PARSE_FOUND'
-                    });
-                }
-                normalized = barcodeResult.normalized_object;
-            } else {
-                // V1 Fallback - Legacy Mode
-                normalized = await BarcodeDecisionEngine.parse(barcode, verifiedStoreId || 1);
-                if (normalized.status === 'unknown') {
-                    if (verifiedStoreId) await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'BARCODE_ENGINE', 'Unknown Barcode Format Detected', { barcode });
-                    return res.status(400).json({ error: 'Unknown barcode format.' });
-                }
+                });
             }
 
-            const finalGtin = normalized.gtin || gtin;
-            const finalWeight = normalized.net_weight_lb || weight; // Fallback to body weight if explicitly serial/mapped
-
-            if (!finalGtin && normalized.barcode_type !== 'PROPRIETARY' && normalized.barcode_type !== 'INTERNAL' && normalized.barcode_type !== 'SERIAL') {
-                return res.status(400).json({ error: 'No GTIN detected in strictly mapped normalizer.' });
-            }
-            
-            // 2.5 Extract Optional Supplier Context
-            const { supplier_id } = req.body;
-
-            // 3. Compliance Engine
-            const compliance = await ComplianceEngine.evaluate(normalized, companyId, supplier_id);
+            // 5. Compliance Engine (Zero-Trust)
+            const compliance = await ComplianceEngine.evaluate(fusedData, companyId, supplier_id, conflicts);
 
             if (verifiedStoreId) {
                 const scanEvent = await prisma.barcodeScanEvent.create({
@@ -95,13 +91,13 @@ export const ReceivingController = {
                         store_id: verifiedStoreId,
                         scanned_barcode: barcode,
                         gtin: finalGtin,
-                        usda_grade: normalized.usda_grade,
+                        usda_grade: null, // Removed legacy map temporarily pending AI parser mapping
                         is_approved: compliance.status === 'ACCEPTED',
                         is_override: false,
-                        protein_name: compliance.specMatched?.protein_name || normalized.product_name || "Unknown Reject",
-                        supplier: compliance.specMatched?.supplier || normalized.packer || "Unknown",
+                        protein_name: compliance.specMatched?.protein_name || "Unknown Reject",
+                        supplier: compliance.specMatched?.supplier || "Unknown",
                         weight: finalWeight,
-                        metadata: normalized
+                        metadata: fusedData as any
                     }
                 });
 
@@ -110,7 +106,7 @@ export const ReceivingController = {
                         store_id: verifiedStoreId,
                         scanned_barcode: barcode,
                         gtin: finalGtin,
-                        product_code: normalized.product_code,
+                        product_code: fusedData.productCodeBase.value,
                         weight: finalWeight,
                         supplier: compliance.specMatched?.supplier || "Unknown",
                         status: compliance.status,
@@ -149,9 +145,9 @@ export const ReceivingController = {
                                     store_id: verifiedStoreId,
                                     barcode: barcode,
                                     gtin: finalGtin,
-                                    lot_code: normalized.batch_number || null,
-                                    product_name: compliance.specMatched?.protein_name || normalized.product_name || "Unknown",
-                                    vendor: compliance.specMatched?.supplier || normalized.packer || "Unknown",
+                                    lot_code: fusedData.lot?.value || null,
+                                    product_name: compliance.specMatched?.protein_name || "Unknown",
+                                    vendor: compliance.specMatched?.supplier || "Unknown",
                                     received_weight_lb: finalWeight,
                                     available_weight_lb: finalWeight,
                                     status: 'RECEIVED',
@@ -354,28 +350,16 @@ export const ReceivingController = {
                 }
             });
 
-            const mockNormalizedBarcode = {
-                raw_barcode: raw_barcode || '',
-                barcode_family: 'MANUAL_ASSISTED',
-                barcode_type: 'INTERNAL_PROXY',
-                confidence_score: 1.0,
-                product_code: product_code || '',
-                product_name: protein_name || '',
-                gtin: gtin || null,
-                net_weight_lb: weight || null,
-                net_weight_kg: weight ? weight * 0.453592 : null,
-                unit: 'LB',
-                lot: null,
-                pack_date: null,
-                expiry_date: null,
-                serial: null,
-                status: 'valid' as const,
-                warnings: [],
-                source_parser: 'ASSISTED_MAP'
+            const mockFusedLabelData: any = {
+                rawBarcodes: [raw_barcode || ''],
+                productCodeBase: { value: product_code || null, source: 'USER_CONFIRMED', confidence: 1.0 },
+                gtin: { value: gtin || null, source: 'USER_CONFIRMED', confidence: 1.0 },
+                weightLb: { value: weight || null, source: 'USER_CONFIRMED', confidence: 1.0 },
+                supplierId: supplier_id || null,
             };
 
             // ZERO-TRUST RE-EVALUATION
-            const engineResult = await ComplianceEngine.evaluate(mockNormalizedBarcode, companyId, supplier_id);
+            const engineResult = await ComplianceEngine.evaluate(mockFusedLabelData, companyId, supplier_id);
 
             // Trilha de Segurança Pós-Reprocessamento
             await prisma.auditEvent.create({
