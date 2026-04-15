@@ -148,40 +148,53 @@ export class DashboardController {
                 user.companyId = activeCompanyId;
             }
 
-            // --- BRASA HARDLOCK: ZERO_TRUST DATA INTEGRITY EVANLUATION ---
-            const DataIntegrityWatchdog = require('../engine/DataIntegrityWatchdog').DataIntegrityWatchdog;
+            // --- BRASA HARDLOCK: ZERO_TRUST DATA INTEGRITY EVALUATION (V2) ---
+            const { GovernanceResolver } = require('../domain/governance/GovernanceResolver');
+            const { PrismaDeliveryRepository, WatchdogAdapter } = require('../domain/governance/Adapters');
+            
             const now = new Date();
             const start = startOfMonth(now);
             const end = endOfMonth(now);
             
-            // Note: Since Executive stats might load multiple stores, we will check the company's master store or first store 
-            // In a real multi-store, we'd check all. For pitch, checking storeId = user.storeId or default is fine.
-            const primaryStoreId = user.storeId || 510; // Defaulting to Lexington for the Demo 
-            const integrity = await DataIntegrityWatchdog.performIntegrityAudit(primaryStoreId, start, end);
+            const primaryStoreId = user.storeId || 510;
             
-            if (integrity.state === 'HARDLOCK') {
+            const integrityModel = await GovernanceResolver.resolveGovernance(
+                new PrismaDeliveryRepository(),
+                new WatchdogAdapter(),
+                primaryStoreId, 
+                start, 
+                end
+            );
+            
+            if (integrityModel.globalState === 'HARDLOCK') {
                 return res.status(409).json({
                     status: 'DATA_INTEGRITY_COMPROMISED',
-                    lockReason: integrity.lockReason,
-                    totalLostLbs: integrity.totalLostLbs
+                    lockReason: integrityModel.domainStatuses?.PROTEIN_LIFECYCLE?.evidence?.[0]?.metadata?.lbs 
+                                ? `CRITICAL UNACCOUNTED LOSS: ${integrityModel.domainStatuses.PROTEIN_LIFECYCLE.evidence[0].metadata.lbs.toFixed(2)} lbs`
+                                : 'HARDLOCK ENGAGED',
+                    totalLostLbs: integrityModel.domainStatuses?.PROTEIN_LIFECYCLE?.evidence?.[0]?.metadata?.lbs || 0
                 });
             }
 
             const stats = await MeatEngine.getExecutiveStats(user);
 
-            // Progressive Governance: Withhold Scores if DEGRADED or RESTRICTED
-            if (integrity.state === 'DEGRADED' || integrity.state === 'RESTRICTED') {
+            // Progressive Governance: Withhold Scores if Restricted by Capability Matrix
+            if (!integrityModel.allowedCapabilities.includes('VIEW_EXECUTIVE_LBS_PAX')) {
                 stats.summary.status = 'SCORE_WITHHELD';
                 stats.summary.net_impact_ytd = 0;
                 stats.summary.avg_lbs_variance = 0;
-                // We add a new property for frontend recognition
-                (stats.summary as any).scoreState = integrity.state;
-                (stats.summary as any).lockReason = integrity.lockReason;
-            } else {
-                (stats.summary as any).scoreState = 'NORMAL';
             }
 
-            (stats.summary as any).deliveryIntegrityStatus = integrity.deliveryIntegrityStatus;
+            // Attach governance payload for the frontend
+            (stats.summary as any).scoreState = integrityModel.globalState;
+            
+            // Extract the most severe lockReason from the evidence chain for UI display
+            const allEvidence = Object.values(integrityModel.domainStatuses).flatMap((d: any) => d.evidence);
+            const highestEvidence = allEvidence.find((e: any) => e.severity === 'CRITICAL' || e.severity === 'WARNING');
+            (stats.summary as any).lockReason = highestEvidence?.code || 'OPERATION DEGRADED';
+
+            (stats.summary as any).deliveryIntegrityStatus = integrityModel.domainStatuses.DELIVERY.trustLevel;
+            (stats.summary as any).governance = integrityModel; // Supply full context
 
             return res.json(stats);
         } catch (error: any) {
