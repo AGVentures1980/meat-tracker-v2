@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,12 +36,19 @@ export const ExecutiveDashboard = () => {
     useEffect(() => {
         const fetchOverview = async () => {
             try {
-                const response = await axios.get('/api/v1/executive/overview/cache', {
+                const response = await fetch('/api/v1/executive/overview/cache', {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 });
-                setData(response.data.data);
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                setData(result.data);
             } catch (err: any) {
-                setError(err.response?.data?.error || err.message);
+                setError(err.message || "Failed to establish secure executive connection");
             } finally {
                 setLoading(false);
             }
