@@ -1161,6 +1161,7 @@ model ProteinBox {
 
   received_weight_lb  Float
   available_weight_lb Float
+  available_units     Int?
 
   status BoxStatus @default(RECEIVED)
 
