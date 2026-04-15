@@ -85,6 +85,8 @@ export const ReceivingController = {
             }
 
             // 5. Compliance Engine (Zero-Trust)
+            const compliance = await ComplianceEngine.evaluate(fusedData, companyId, supplier_id, conflicts);
+
             let currentStatus = compliance.status;
             let enforcementResult = null;
             let fraudIntelligence = null;
@@ -97,7 +99,7 @@ export const ReceivingController = {
                 enforcementResult = RiskEnforcementEngine.enforce(user.role || 'operator', fraudIntelligence, currentStatus);
                 currentStatus = enforcementResult.finalStatus;
 
-                if (fraudIntelligence.anomalyFlag || enforcementResult.enforcementAction !== 'NONE') {
+                if ((fraudIntelligence.riskLevel === 'CRITICAL' || fraudIntelligence.riskLevel === 'HIGH') || enforcementResult.enforcementAction !== 'NONE') {
                     await prisma.auditEvent.create({
                         data: {
                             action: 'FRAUD_INTELLIGENCE_ENFORCEMENT',
@@ -113,7 +115,7 @@ export const ReceivingController = {
                                     level: fraudIntelligence.riskLevel,
                                     factors: fraudIntelligence.factors
                                 },
-                                matchedPatterns: fraudIntelligence.patterns.map(p => p.patternCode),
+                                matchedPatterns: fraudIntelligence.matchedPatterns.map((p: any) => p.patternCode),
                                 enforcementAction: enforcementResult.enforcementAction,
                                 decisionOverrideReason: enforcementResult.enforcementReason,
                                 rawBarcode: barcode 
@@ -307,7 +309,7 @@ export const ReceivingController = {
                                     level: fraudIntelligence.riskLevel,
                                     factors: fraudIntelligence.factors
                                 },
-                                matchedPatterns: fraudIntelligence.patterns.map(p => p.patternCode),
+                                matchedPatterns: fraudIntelligence.matchedPatterns.map((p: any) => p.patternCode),
                                 enforcementAction: enforcementResult.enforcementAction,
                                 decisionOverrideReason: enforcementResult.enforcementReason,
                                 original_action: 'FORCE_ACCEPT_OVERRIDE',

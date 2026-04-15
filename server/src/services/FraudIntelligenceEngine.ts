@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { ComplianceDecision } from './ComplianceEngine';
-import { FusedLabelData } from './LabelDataFusionEngine';
+import { FusedLabelData } from './BarcodeDecisionEngine';
 
 const prisma = new PrismaClient();
 
@@ -152,9 +152,9 @@ export class FraudIntelligenceEngine {
     // SECTION 4: SUPPLIER BEHAVIOR MODEL (TAREFA 4)
     public static async calculateSupplierBehaviorProfile(supplierId: string, companyId: string): Promise<SupplierBehaviorProfile> {
         const events = await prisma.receivingEvent.findMany({
-            where: { company: { id: companyId } },
+            where: { company_id: companyId },
             take: 200,
-            orderBy: { received_at: 'desc' }
+            orderBy: { created_at: 'desc' }
         });
 
         if (events.length === 0) {
@@ -242,7 +242,7 @@ export class FraudIntelligenceEngine {
             storeId,
             fusedData.rawBarcodes[0] || "",
             fusedData.weightLb.value || 0,
-            fusedData.gtin?.value || decision.specMatched?.gtin || null,
+            fusedData.gtin?.value || null,
             isManualOverride
         );
 

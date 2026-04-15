@@ -87,7 +87,7 @@ export class ComplianceEngine {
         }
 
         if (activeRule) {
-            let activeRuleStrength = activeRuleType === 'SupplierRule' ? activeRule.matchStrength : activeRule.match_strength;
+            let activeRuleStrength = activeRuleType === 'SupplierRule' ? (activeRule as any).matchStrength : (activeRule as any).match_strength;
             
             if (activeRuleStrength === 'WEAK') {
                  console.warn(`[SECURITY] WEAK_RULE_TRIGGERED applied for rule ${activeRule.id}`);
@@ -100,18 +100,18 @@ export class ComplianceEngine {
                      specMatched: null,
                      matched_rule_id: activeRule.id,
                      matched_rule_strength: 'WEAK',
-                     match_type: activeRuleType === 'SupplierRule' ? activeRule.matchType : 'PREFIX', // Simplified for legacy
-                     supplierId: activeRuleType === 'SupplierRule' ? activeRule.supplierId : null
+                     match_type: activeRuleType === 'SupplierRule' ? (activeRule as any).matchType : 'PREFIX', // Simplified for legacy
+                     supplierId: activeRuleType === 'SupplierRule' ? (activeRule as any).supplierId : null
                  };
             }
 
             // At this point, the rule is STRONG or MEDIUM
             if (activeRuleType === 'LegacyRule') {
-                matchedSpec = activeRule.spec;
+                matchedSpec = (activeRule as any).spec;
             } else {
                 // Fetch the spec for the SupplierRule
                 matchedSpec = await prisma.corporateProteinSpec.findUnique({
-                    where: { id: activeRule.proteinSpecId }
+                    where: { id: (activeRule as any).proteinSpecId }
                 });
             }
         } else {
@@ -138,9 +138,9 @@ export class ComplianceEngine {
         }
 
         const activeRuleId = activeRule?.id || null;
-        const activeRuleMatchStrength = activeRule ? (activeRuleType === 'SupplierRule' ? activeRule.matchStrength : activeRule.match_strength) : null;
-        const activeRuleMatchType = activeRule ? (activeRuleType === 'SupplierRule' ? activeRule.matchType : 'PREFIX') : null;
-        const resolvedSupplierId = activeRuleType === 'SupplierRule' ? activeRule.supplierId : null;
+        const activeRuleMatchStrength = activeRule ? (activeRuleType === 'SupplierRule' ? (activeRule as any).matchStrength : (activeRule as any).match_strength) : null;
+        const activeRuleMatchType = activeRule ? (activeRuleType === 'SupplierRule' ? (activeRule as any).matchType : 'PREFIX') : null;
+        const resolvedSupplierId = activeRuleType === 'SupplierRule' ? (activeRule as any).supplierId : null;
 
         if (matchedSpec.expected_weight_min !== null && fusedData.weightLb.value !== null) {
             if (fusedData.weightLb.value < matchedSpec.expected_weight_min) {
