@@ -13,6 +13,6 @@ router.use(requireAuth);
 router.get('/overview/cache', executiveController.getExecutiveOverview);
 
 // V0 Legacy Dashboard (DEPRECATED - Kept for fallback rollout)
-router.get('/dashboard', executiveController.getLegacyDashboard);
+router.get('/dashboard', executiveController.getExecutiveDashboard);
 
 export default router;
