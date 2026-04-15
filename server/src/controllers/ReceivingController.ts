@@ -7,6 +7,7 @@ import { BarcodeParserRouter, LabelDataFusionEngine, OCRExtractionEngine } from 
 import { ComplianceEngine } from '../services/ComplianceEngine';
 import { AlertEngine } from '../services/AlertEngine';
 import { FraudIntelligenceEngine } from '../services/FraudIntelligenceEngine';
+import { RiskEnforcementEngine } from '../services/RiskEnforcementEngine';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
 
 
@@ -84,23 +85,41 @@ export const ReceivingController = {
             }
 
             // 5. Compliance Engine (Zero-Trust)
-            const compliance = await ComplianceEngine.evaluate(fusedData, companyId, supplier_id, conflicts);
-
+            let currentStatus = compliance.status;
+            let enforcementResult = null;
             let fraudIntelligence = null;
+            
             if (verifiedStoreId) {
                 // 6. Risk Engine (Fraud Intelligence)
                 fraudIntelligence = await FraudIntelligenceEngine.execute(verifiedStoreId, companyId, fusedData, compliance, conflicts, false);
 
-                if (fraudIntelligence.anomalyFlag) {
+                // 7. Risk Enforcement Engine (AntiFraud Blockade)
+                enforcementResult = RiskEnforcementEngine.enforce(user.role || 'operator', fraudIntelligence, currentStatus);
+                currentStatus = enforcementResult.finalStatus;
+
+                if (fraudIntelligence.anomalyFlag || enforcementResult.enforcementAction !== 'NONE') {
                     await prisma.auditEvent.create({
                         data: {
-                            action: 'FRAUD_INTELLIGENCE_ANOMALY',
+                            action: 'FRAUD_INTELLIGENCE_ENFORCEMENT',
                             actor: user.id || getUserId(user) || "SYSTEM",
                             store_id: verifiedStoreId,
-                            payload: { ...fraudIntelligence, fusedData, barcode } as any
+                            payload: { 
+                                riskProfile: {
+                                    score: fraudIntelligence.riskScore,
+                                    level: fraudIntelligence.riskLevel,
+                                    factors: fraudIntelligence.factors
+                                },
+                                matchedPatterns: fraudIntelligence.patterns.map(p => p.patternCode),
+                                enforcementAction: enforcementResult.enforcementAction,
+                                decisionOverrideReason: enforcementResult.enforcementReason,
+                                rawBarcode: barcode 
+                            } as any
                         }
                     });
-                    await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'FRAUD_INTELLIGENCE', 'Alerta de Inteligência (Padrões ou Risco Elevado Detectado)', { barcode, patterns: fraudIntelligence.patterns });
+
+                    if (fraudIntelligence.riskLevel === 'CRITICAL' || fraudIntelligence.riskLevel === 'HIGH') {
+                        await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'FRAUD_INTELLIGENCE', 'Enforcement Antifraude Acionado', { barcode, actionableRison: enforcementResult.enforcementReason });
+                    }
                 }
             }
 
@@ -110,8 +129,8 @@ export const ReceivingController = {
                         store_id: verifiedStoreId,
                         scanned_barcode: barcode,
                         gtin: finalGtin,
-                        usda_grade: null, // Removed legacy map temporarily pending AI parser mapping
-                        is_approved: compliance.status === 'ACCEPTED',
+                        usda_grade: null, 
+                        is_approved: currentStatus === 'ACCEPTED',
                         is_override: false,
                         protein_name: compliance.specMatched?.protein_name || "Unknown Reject",
                         supplier: compliance.specMatched?.supplier || "Unknown",
@@ -128,19 +147,19 @@ export const ReceivingController = {
                         product_code: fusedData.productCodeBase.value,
                         weight: finalWeight,
                         supplier: compliance.specMatched?.supplier || "Unknown",
-                        status: compliance.status,
-                        alert_severity: compliance.status === 'REJECTED' ? 'CRITICAL' : (compliance.status === 'ACCEPTED_WITH_WARNING' ? 'WARNING' : 'INFO')
+                        status: currentStatus,
+                        alert_severity: currentStatus === 'REJECTED' ? 'CRITICAL' : (currentStatus === 'ACCEPTED_WITH_WARNING' ? 'WARNING' : 'INFO')
                     }
                 });
 
-                if (compliance.status === 'REJECTED') {
+                if (currentStatus === 'REJECTED') {
                     await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'COMPLIANCE', 'Receiving Scanner Rejection', { barcode, details: compliance.details });
-                } else if (compliance.status === 'ACCEPTED_WITH_WARNING') {
+                } else if (currentStatus === 'ACCEPTED_WITH_WARNING') {
                     await AlertEngine.trigger(verifiedStoreId, 'WARNING', 'COMPLIANCE', 'Receiving Tracker Exception', { barcode, details: compliance.details });
                 }
                 
                 // BRASA PROTEIN BOX LIFECYCLE ENGINE - FASE 1: Instantiation
-                if (compliance.status !== 'REJECTED') {
+                if (currentStatus !== 'REJECTED') {
                     // FASE 3: Duplicate & Replay Protection (Receiving)
                     const existingBox = await prisma.proteinBox.findFirst({
                         where: {
@@ -266,16 +285,36 @@ export const ReceivingController = {
                     true // isManualOverride
                 );
 
-                if (fraudIntelligence.anomalyFlag) {
+                const enforcementResult = RiskEnforcementEngine.enforce(user.role || 'operator', fraudIntelligence, 'ACCEPTED');
+
+                if (fraudIntelligence.anomalyFlag || enforcementResult.enforcementAction !== 'NONE') {
                     await prisma.auditEvent.create({
                         data: {
-                            action: 'FRAUD_INTELLIGENCE_ANOMALY',
+                            action: 'FRAUD_INTELLIGENCE_ENFORCEMENT',
                             actor: user.id || getUserId(user) || "SYSTEM",
                             store_id: verifiedStoreId,
-                            payload: { ...fraudIntelligence, barcode, weight } as any
+                            payload: { 
+                                riskProfile: {
+                                    score: fraudIntelligence.riskScore,
+                                    level: fraudIntelligence.riskLevel,
+                                    factors: fraudIntelligence.factors
+                                },
+                                matchedPatterns: fraudIntelligence.patterns.map(p => p.patternCode),
+                                enforcementAction: enforcementResult.enforcementAction,
+                                decisionOverrideReason: enforcementResult.enforcementReason,
+                                original_action: 'FORCE_ACCEPT_OVERRIDE',
+                                barcode, weight 
+                            } as any
                         }
                     });
-                    await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'FRAUD_INTELLIGENCE', 'PADRÃO DE FRAUDE DETECTADO EM OVERRIDE', { barcode, patterns: fraudIntelligence.patterns });
+                    
+                    if (fraudIntelligence.riskLevel === 'CRITICAL' || fraudIntelligence.riskLevel === 'HIGH') {
+                         await AlertEngine.trigger(verifiedStoreId, 'CRITICAL', 'FRAUD_INTELLIGENCE', 'PADRÃO DE FRAUDE DETECTADO EM OVERRIDE', { barcode, actionableRison: enforcementResult.enforcementReason });
+                    }
+                }
+
+                if (enforcementResult.enforcementAction === 'FORCED_REJECTED') {
+                    return res.status(403).json({ error: 'System Blockade: Este produto disparou os mais altos limiares do Motor Antifraude Brasa. O Override manual foi temporariamente desabilitado para essa combinação de fornecedor/peso.' });
                 }
 
                 // Send Critical Alert
