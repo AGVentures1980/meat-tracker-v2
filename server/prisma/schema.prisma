@@ -2035,7 +2035,13 @@ model ExecutiveSnapshotLedger {
 
   actionPanelPayload    Json
   metricsVersion        String
+  scoreVersion          String?
+  policyVersion         String?
+  
   isFinal               Boolean  @default(false)
+  completenessStatus    String   @default("COMPLETE") // COMPLETE | PARTIAL | INCOMPLETE
+  missingSources        String[] // Array of system modules that failed to report
+  reasonIfPartial       String?
 
   @@unique([companyId, storeId, snapshotType, businessDate])
 }
@@ -2051,6 +2057,7 @@ model ExecutiveActionDecision {
 
   sourceSnapshotId           String?
   sourceMetricVersion        String
+  sourceBusinessDate         DateTime?
   
   targetType                 String // STORE | CHANNEL | PRODUCT | SUPPLIER
   targetId                   String // Ref associated to the target
