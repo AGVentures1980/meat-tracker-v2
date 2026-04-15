@@ -104,6 +104,10 @@ export const ReceivingController = {
                             actor: user.id || getUserId(user) || "SYSTEM",
                             store_id: verifiedStoreId,
                             payload: { 
+                                complianceStatusOriginal: compliance.status,
+                                finalOperationalStatus: enforcementResult.finalStatus,
+                                enforcementPolicyVersion: 'RiskPolicy_v1.0',
+                                originalComplianceDecision: compliance,
                                 riskProfile: {
                                     score: fraudIntelligence.riskScore,
                                     level: fraudIntelligence.riskLevel,
@@ -293,7 +297,11 @@ export const ReceivingController = {
                             action: 'FRAUD_INTELLIGENCE_ENFORCEMENT',
                             actor: user.id || getUserId(user) || "SYSTEM",
                             store_id: verifiedStoreId,
-                            payload: { 
+                            payload: {
+                                complianceStatusOriginal: 'ACCEPTED', // Original bypass attempt
+                                finalOperationalStatus: enforcementResult.finalStatus,
+                                enforcementPolicyVersion: 'RiskPolicy_v1.0',
+                                originalComplianceDecision: 'OVERRIDE_ACTUATED',
                                 riskProfile: {
                                     score: fraudIntelligence.riskScore,
                                     level: fraudIntelligence.riskLevel,
