@@ -2069,14 +2069,16 @@ model ExecutiveActionDecision {
   createdBySystem            Boolean @default(true)
   
   viewedAt                   DateTime?
+  acknowledgedAt             DateTime?
   forwardedAt                DateTime?
   actedByUserId              String?
   actedAt                    DateTime?
   resolvedAt                 DateTime?
   
   notes                      String?
+  createdAt                  DateTime @default(now())
 
-  @@index([companyId, decisionStatus])
+  @@index([storeId, decisionStatus, createdAt])
 }
 
 enum SnapshotType {
