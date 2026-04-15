@@ -7,30 +7,15 @@ export interface ExecMetric<T> {
     reasonIfNull?: string;
 }
 
+// ------------------------------------------------------------------
+// LEVEL 1: EXECUTIVE DASHBOARD (Top-5 KPIs + Action Panel)
+// ------------------------------------------------------------------
 export interface ExecutiveHealthHeaderDTO {
-    integrityScore: ExecMetric<number>;
+    operatingIntegrityScore: ExecMetric<number>; // Global Truth score
     executiveRiskLevel: ExecMetric<'STABLE' | 'ELEVATED' | 'HIGH' | 'CRITICAL'>;
-    weeklyVarianceUSD: ExecMetric<number>;
-    trend4WeeksStatus: 'IMPROVING' | 'DEGRADING' | 'FLAT';
-}
-
-export interface ChannelBreakdownDTO {
-    diningRoom: {
-        guests: ExecMetric<number>;
-        lbsConsumed: ExecMetric<number>;
-        lbsPerGuest: ExecMetric<number>;
-        lossPerGuest: ExecMetric<number>;
-    };
-    barALaCarte: {
-        lbsConsumed: ExecMetric<number>;
-        proteinCostAllocated: ExecMetric<number>;
-        topItemImpact: string;
-    };
-    deliveryOLO: {
-        lbsConsumed: ExecMetric<number>;
-        proteinCostAllocated: ExecMetric<number>;
-        deliveryFoodCostPercent: ExecMetric<number>;
-    };
+    weeklyVarianceUSD: ExecMetric<number>;       // The $ Evaporated
+    lbsPerGuestDiningRoom: ExecMetric<number>;   // The Operational Compass
+    storeIntegrityDegradation: ExecMetric<string>;
 }
 
 export interface ExecutiveActionRecommendationDTO {
@@ -38,14 +23,37 @@ export interface ExecutiveActionRecommendationDTO {
     severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
     title: string;
     description: string;
-    financialImpactEstimate: number;
+    financialImpactEstimateUSD: number;
     targetType: 'STORE' | 'SUPPLIER' | 'CHANNEL' | 'PRODUCT';
     targetId: string;
     recommendation: string;
 }
 
-export interface ExecutiveOverviewDTO {
+export interface ExecutiveLevel1OverviewDTO {
     health: ExecutiveHealthHeaderDTO;
-    channels: ChannelBreakdownDTO;
-    recommendedActions: ExecutiveActionRecommendationDTO[];
+    actionPanel: ExecutiveActionRecommendationDTO[]; // Max 5 items filtered by backend
+}
+
+// ------------------------------------------------------------------
+// LEVEL 2: ANALYTICAL DRILL-DOWN (Revealed upon expansion)
+// ------------------------------------------------------------------
+export interface ChannelBreakdownDTO {
+    channelCode: 'DINING_ROOM' | 'BAR' | 'OLO';
+    lbsConsumedTotal: ExecMetric<number>;
+    proteinCostAllocatedUSD: ExecMetric<number>;
+    lossPerGuestOrOrder: ExecMetric<number>;
+}
+
+export interface AnalyticalLevel2DTO {
+    channelBreakdown: ChannelBreakdownDTO[];
+    topRiskSuppliers: any[]; // Extended supplier degradation details
+    proteinFlowSankeyData: any; // Input -> Output -> Consumed diagram mapping
+}
+
+// ------------------------------------------------------------------
+// LEVEL 3: DIAGNOSTIC (Granular truth)
+// ------------------------------------------------------------------
+export interface DiagnosticLevel3DTO {
+    openVarianceCases: any[]; 
+    criticalFraudEvents: any[];
 }

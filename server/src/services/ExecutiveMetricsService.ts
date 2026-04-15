@@ -1,10 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { 
-    ExecutiveHealthHeaderDTO, 
-    ChannelBreakdownDTO, 
+    ExecutiveLevel1OverviewDTO, 
     ExecMetric,
-    ExecutiveActionRecommendationDTO,
-    ExecutiveOverviewDTO 
+    ExecutiveActionRecommendationDTO
 } from '../contracts/ExecutiveDTOs';
 
 const prisma = new PrismaClient();
@@ -12,17 +10,18 @@ const prisma = new PrismaClient();
 export class ExecutiveMetricsService {
 
     /**
-     * Calculates the overarching health for the C-Level Dashboard
-     * respecting Fallback constraints (Fail-Closed divisions).
+     * Extracts the pristine Level 1 Overview for the C-Level Dashboard Landing.
+     * Hard-cuts all analytical bloat focusing exclusively on:
+     * Integrity, Financial Loss, Governance Risk, Base Menu Compass, Worst Offender.
      */
-    public static async getExecutiveOverview(companyId: string, storeId?: number): Promise<ExecutiveOverviewDTO> {
+    public static async getLevel1Overview(companyId: string, storeId?: number): Promise<ExecutiveLevel1OverviewDTO> {
         
         // --- 1. MOCK / SCAFFOLD DATA PULLS FOR THE ALGORITHMS ---
         const totalGuests = await this.getPosGuestsMock(storeId);
         const diningRoomLbs = await this.getDiningRoomLbsMock(storeId);
         const activeVariancesUSD = await this.getOpenVariancesUsdMock(storeId);
 
-        // --- 2. CALCULATE KPIs SECURELY ---
+        // --- 2. FAIL-CLOSED CALCULATIONS ---
         const lbsPerGuest: ExecMetric<number> = {
             value: null,
             confidence: 'LOW',
@@ -36,21 +35,8 @@ export class ExecutiveMetricsService {
             lbsPerGuest.confidence = 'HIGH';
         }
 
-        const lossPerGuest: ExecMetric<number> = {
-            value: null,
-            confidence: 'LOW',
-            sources: ['VarianceCase', 'POS']
-        };
-
-        if (totalGuests === 0 || totalGuests === null) {
-            lossPerGuest.reasonIfNull = 'POS_GUEST_DATA_MISSING_OR_ZERO';
-        } else {
-            lossPerGuest.value = parseFloat((activeVariancesUSD / totalGuests).toFixed(2));
-            lossPerGuest.confidence = 'HIGH';
-        }
-
-        // --- 3. EXECUTIVE ACTIONS GENERATION ---
-        const recommendedActions: ExecutiveActionRecommendationDTO[] = [];
+        // --- 3. EXECUTIVE ACTIONS GENERATION (Max 5, Descending Priority Impact) ---
+        let recommendedActions: ExecutiveActionRecommendationDTO[] = [];
         
         if (activeVariancesUSD > 1000) {
             recommendedActions.push({
@@ -58,7 +44,7 @@ export class ExecutiveMetricsService {
                 severity: 'HIGH',
                 title: 'High Variance Bleed in Allocations',
                 description: `Weekly Variance is tracking at $${activeVariancesUSD}. Immediate audit on Doca and Transformation is required.`,
-                financialImpactEstimate: activeVariancesUSD,
+                financialImpactEstimateUSD: activeVariancesUSD,
                 targetType: 'STORE',
                 targetId: storeId ? storeId.toString() : 'GLOBAL',
                 recommendation: 'Command GM to reconcile open VarianceCases before proceeding with next Purchase Order.'
@@ -71,45 +57,33 @@ export class ExecutiveMetricsService {
                 severity: 'CRITICAL',
                 title: 'Abnormal Paxs Consumption Rate',
                 description: `Lbs Per Guest is tracking at ${lbsPerGuest.value} Lbs. Expected is ~1.8 Lbs. Ghost plates or heavy theft likely.`,
-                financialImpactEstimate: (lbsPerGuest.value - 1.8) * totalGuests * 5.0, // Rough estimate calculation
+                financialImpactEstimateUSD: (lbsPerGuest.value - 1.8) * totalGuests * 5.0, // Cost Estimate
                 targetType: 'CHANNEL',
-                targetId: 'SALAO',
+                targetId: 'DINING_ROOM', // Refined Channel
                 recommendation: 'Initiate Floor Manager investigation on pass-through controls.'
             });
         }
 
-        // --- 4. COMPOSE PAYLOAD ---
+        // Enforce Panel UX Discipline: Only top 5 actions by Impact
+        recommendedActions = recommendedActions
+            .sort((a, b) => b.financialImpactEstimateUSD - a.financialImpactEstimateUSD)
+            .slice(0, 5);
+
+        // --- 4. COMPOSE PRISTINE LEVEL 1 PAYLOAD ---
         return {
             health: {
-                integrityScore: { value: 85, confidence: 'MEDIUM', sources: ['AuditLog', 'VarianceCase'] },
-                executiveRiskLevel: { value: recommendedActions.some(a => a.severity === 'CRITICAL') ? 'CRITICAL' : 'STABLE', confidence: 'HIGH', sources: ['ExecutiveMetricsService'] },
+                operatingIntegrityScore: { value: 85, confidence: 'MEDIUM', sources: ['AuditLog', 'VarianceCase'] },
+                executiveRiskLevel: { value: recommendedActions.some(a => a.severity === 'CRITICAL') ? 'CRITICAL' : 'STABLE', confidence: 'HIGH', sources: ['ExecutiveActionEngine'] },
                 weeklyVarianceUSD: { value: activeVariancesUSD, confidence: 'HIGH', sources: ['VarianceCase'] },
-                trend4WeeksStatus: 'DEGRADING'
+                lbsPerGuestDiningRoom: lbsPerGuest,
+                storeIntegrityDegradation: { value: 'STORE_CHICAGO ( -12% Degradation )', confidence: 'HIGH', sources: ['StoreIntegritySnapshot'] }
             },
-            channels: {
-                diningRoom: {
-                    guests: { value: totalGuests, confidence: totalGuests ? 'HIGH' : 'LOW', sources: ['POS'] },
-                    lbsConsumed: { value: diningRoomLbs, confidence: 'HIGH', sources: ['ProteinConsumptionAllocation'] },
-                    lbsPerGuest: lbsPerGuest,
-                    lossPerGuest: lossPerGuest
-                },
-                barALaCarte: {
-                    lbsConsumed: { value: 120, confidence: 'HIGH', sources: ['ProteinConsumptionAllocation'] },
-                    proteinCostAllocated: { value: 1400, confidence: 'MEDIUM', sources: ['ProteinConsumptionAllocation', 'AverageCostMetrics'] },
-                    topItemImpact: 'BEEF_RIBS'
-                },
-                deliveryOLO: {
-                    lbsConsumed: { value: 45, confidence: 'HIGH', sources: ['ProteinConsumptionAllocation'] },
-                    proteinCostAllocated: { value: 650, confidence: 'MEDIUM', sources: ['ProteinConsumptionAllocation', 'AverageCostMetrics'] },
-                    deliveryFoodCostPercent: { value: null, confidence: 'LOW', sources: ['POS_REVENUE'], reasonIfNull: 'OLO_REVENUE_FEED_DELAYED' }
-                }
-            },
-            recommendedActions
+            actionPanel: recommendedActions
         };
     }
 
     // -- Private Mocks for Demonstration --
-    private static async getPosGuestsMock(storeId?: number) { return 450; } // Will be retrieved from PosSalesFeed aggregated
+    private static async getPosGuestsMock(storeId?: number) { return 450; } 
     private static async getDiningRoomLbsMock(storeId?: number) { return 1100; }
     private static async getOpenVariancesUsdMock(storeId?: number) { return 1200; }
 }
