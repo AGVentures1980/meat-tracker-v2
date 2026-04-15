@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { PilotModeInterceptor } from './components/PilotModeInterceptor';
 import { ExecutiveDashboard } from './pages/ExecutiveDashboard';
 import { ProjectionsDashboard } from './pages/ProjectionsDashboard';
 import { SettingsPage } from './pages/SettingsPage';
@@ -117,7 +118,9 @@ const ProtectedRoute = () => {
 
     return (
         <DashboardLayout>
-            <Outlet />
+            <PilotModeInterceptor>
+                <Outlet />
+            </PilotModeInterceptor>
         </DashboardLayout>
     );
 };
