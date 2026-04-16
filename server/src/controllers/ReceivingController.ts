@@ -56,8 +56,9 @@ export const ReceivingController = {
             const { supplier_id, ocrData } = req.body;
             
             const diagnosticTraceId = `DIAG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            const TRACE_VERSION = "v1.1";
             if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
-                 console.log(JSON.stringify({ diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'RAW_SCAN_RECEIVED', timestamp: new Date().toISOString(), rawBarcode: barcode, companyId, supplierId: supplier_id, storeId: verifiedStoreId, requestWeight: weight, requestGtin: gtin }));
+                 console.log(JSON.stringify({ diagnosticTrace: true, traceVersion: TRACE_VERSION, traceId: diagnosticTraceId, stage: 'RAW_SCAN_RECEIVED', timestamp: new Date().toISOString(), rawBarcode: barcode, companyId, supplierId: supplier_id, storeId: verifiedStoreId, requestWeight: weight, requestGtin: gtin }));
             }
 
             // 1. Route Barcodes through Multi-Parser Engine
@@ -65,12 +66,12 @@ export const ReceivingController = {
             const parsedDataArray = await BarcodeParserRouter.parse(rawBarcodesArray, companyId, supplier_id);
 
             if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
-                const parseResults = parsedDataArray.map(p => ({
-                    diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'PARSER_RESULT', timestamp: new Date().toISOString(),
-                    parseSucceeded: p.source_parser !== 'FALLBACK', parserSource: p.source_parser, symbology: p.symbology,
-                    gtin: p.gtin, product_code: p.product_code, weightLb: p.weightLb, productionDate: p.productionDate, serial: p.serial
+                const parsedCandidates = parsedDataArray.map(p => ({ source: p.source_parser, symbology: p.symbology, gtin: p.gtin, code: p.product_code }));
+                console.log(JSON.stringify({
+                    diagnosticTrace: true, traceVersion: TRACE_VERSION, traceId: diagnosticTraceId, stage: 'PARSER_RESULT', timestamp: new Date().toISOString(),
+                    parsedCount: parsedDataArray.length,
+                    parsedCandidates: parsedCandidates
                 }));
-                parseResults.forEach(r => console.log(JSON.stringify(r)));
             }
 
         // 2. Fetch active Supplier Rules for fusion context
@@ -100,10 +101,17 @@ export const ReceivingController = {
 
             if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
                  console.log(JSON.stringify({
-                     diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'FUSION_RESULT', timestamp: new Date().toISOString(),
+                     diagnosticTrace: true, traceVersion: TRACE_VERSION, traceId: diagnosticTraceId, stage: 'FUSION_RESULT', timestamp: new Date().toISOString(),
                      fusionSucceeded: Object.keys(fusedData).length > 0,
-                     fused_gtin: fusedData.gtin?.value || null, fused_productCodeBase: fusedData.productCodeBase?.value || null,
-                     fused_weightLb: fusedData.weightLb?.value || null, fused_weightSource: fusedData.weightLb?.source || null,
+                     fused_gtin: fusedData.gtin?.value || null, 
+                     fused_gtin_source: fusedData.gtin?.source || null,
+                     fused_gtin_confidence: fusedData.gtin?.confidence || 0,
+                     fused_productCodeBase: fusedData.productCodeBase?.value || null,
+                     fused_productCodeBase_source: fusedData.productCodeBase?.source || null,
+                     fused_productCodeBase_confidence: fusedData.productCodeBase?.confidence || 0,
+                     fused_weightLb: fusedData.weightLb?.value || null, 
+                     fused_weightSource: fusedData.weightLb?.source || null,
+                     fused_weightConfidence: fusedData.weightLb?.confidence || 0,
                      conflicts: conflicts
                  }));
             }
@@ -182,7 +190,7 @@ export const ReceivingController = {
                      complianceStatus: compliance.status, reason_code: compliance.reason_code || null, severity: compliance.severity || null,
                      specMatchedId: compliance.specMatched?.id || null, matched_rule_id: compliance.matched_rule_id || null,
                      matched_rule_strength: compliance.matched_rule_strength || null, match_type: compliance.match_type || null,
-                     complianceDetails: compliance.details
+                     complianceDetails: compliance.details, decisionPath: compliance.decisionPath || 'UNKNOWN'
                  }));
             }
 

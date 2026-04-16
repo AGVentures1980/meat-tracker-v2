@@ -14,6 +14,7 @@ export interface ComplianceDecision {
   matched_rule_strength?: 'STRONG' | 'MEDIUM' | 'WEAK' | null;
   match_type?: 'GTIN' | 'PRODUCT_CODE' | 'PREFIX' | 'REGEX' | null;
   supplierId?: string | null;
+  decisionPath?: string;
 }
 
 export class ComplianceEngine {
@@ -37,7 +38,8 @@ export class ComplianceEngine {
                  reference: 'supplier_spec',
                  severity: 'WARNING',
                  details: `Conflito de Extração Múltipla. Intervenção Operacional Necessária. (Conflicts: ${conflicts.join(', ')})`,
-                 specMatched: null
+                 specMatched: null,
+                 decisionPath: 'PRE_FLIGHT_CONFLICT'
             };
         }
 
@@ -101,7 +103,8 @@ export class ComplianceEngine {
                      matched_rule_id: activeRule.id,
                      matched_rule_strength: 'WEAK',
                      match_type: activeRuleType === 'SupplierRule' ? (activeRule as any).matchType : 'PREFIX', // Simplified for legacy
-                     supplierId: activeRuleType === 'SupplierRule' ? (activeRule as any).supplierId : null
+                     supplierId: activeRuleType === 'SupplierRule' ? (activeRule as any).supplierId : null,
+                     decisionPath: 'WEAK_RULE_TRIGGERED'
                  };
             }
 
@@ -133,10 +136,10 @@ export class ComplianceEngine {
             }
         }
 
+        let traceMethod = 'CORPORATE_SPEC';
+        let traceField = 'N/A';
+
         if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
-            let traceMethod = 'CORPORATE_SPEC';
-            let traceField = 'N/A';
-            
             if (activeRule) {
                  traceMethod = activeRuleType === 'SupplierRule' ? 'SUPPLIER_RULE' : 
                                activeRuleType === 'LegacyRule' ? 'RECEIVING_RULE' : 'UNKNOWN';
@@ -172,7 +175,8 @@ export class ComplianceEngine {
                 reference: 'supplier_spec',
                 severity: 'CRITICAL',
                 details: 'No matching CorporateProteinSpec found.',
-                specMatched: null
+                specMatched: null,
+                decisionPath: 'UNMAPPED_NO_SPEC'
             };
         }
 
@@ -193,7 +197,8 @@ export class ComplianceEngine {
                     matched_rule_id: activeRuleId,
                     matched_rule_strength: activeRuleMatchStrength as any,
                     match_type: activeRuleMatchType as any,
-                    supplierId: resolvedSupplierId
+                    supplierId: resolvedSupplierId,
+                    decisionPath: `${traceMethod} -> ${traceField}`
                  };
             }
         }
@@ -210,7 +215,8 @@ export class ComplianceEngine {
                     matched_rule_id: activeRuleId,
                     matched_rule_strength: activeRuleMatchStrength as any,
                     match_type: activeRuleMatchType as any,
-                    supplierId: resolvedSupplierId
+                    supplierId: resolvedSupplierId,
+                    decisionPath: `${traceMethod} -> ${traceField}`
                  };
             }
         }
@@ -227,7 +233,8 @@ export class ComplianceEngine {
                 matched_rule_id: activeRuleId,
                 matched_rule_strength: activeRuleMatchStrength as any,
                 match_type: activeRuleMatchType as any,
-                supplierId: resolvedSupplierId
+                supplierId: resolvedSupplierId,
+                decisionPath: `${traceMethod} -> ${traceField}`
             };
         }
 
