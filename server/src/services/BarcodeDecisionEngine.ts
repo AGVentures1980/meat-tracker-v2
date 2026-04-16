@@ -28,6 +28,9 @@ export interface ParsedBarcodeData {
     product_code?: string;
     symbology?: 'EAN13' | 'GS1_128' | 'CODE128' | 'UNKNOWN';
     source_parser?: string;
+    weightLb?: number;
+    productionDate?: string;
+    serial?: string;
 }
 
 export interface FieldProvenance<T> {
