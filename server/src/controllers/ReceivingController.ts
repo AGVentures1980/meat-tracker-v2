@@ -17,6 +17,7 @@ const prisma = new PrismaClient();
 export const ReceivingController = {
     scanBarcode: async (req: Request, res: Response) => {
         try {
+            console.log("🔥 STAGING RECEIVING CONTROLLER HIT");
             const user = (req as any).user;
             const { barcode, weight, gtin, store_id } = req.body;
             
