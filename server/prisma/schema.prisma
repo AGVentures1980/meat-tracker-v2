@@ -1587,7 +1587,7 @@ model ReceivingRecognitionRule {
   is_active               Boolean  @default(true)
   notes                   String?
 
-  spec CorporateProteinSpec @relation(fields: [protein_spec_id], references: [id])
+  spec CorporateProteinSpec @relation(fields: [protein_spec_id], references: [id], onDelete: Cascade)
 }
 
 model AuditEvent {
@@ -1636,7 +1636,7 @@ model SupplierBarcodeRule {
 
   supplier            SupplierProfile @relation(fields: [supplierId], references: [id])
   proteinSpecId       String
-  spec                CorporateProteinSpec @relation(fields: [proteinSpecId], references: [id])
+  spec                CorporateProteinSpec @relation(fields: [proteinSpecId], references: [id], onDelete: Cascade)
   @@index([companyId, supplierId])
 }
 
@@ -1674,7 +1674,7 @@ model SupplierCatalogItem {
   updatedAt            DateTime @updatedAt
 
   supplier             SupplierProfile @relation(fields: [supplierId], references: [id])
-  spec                 CorporateProteinSpec? @relation(fields: [linkedProteinSpecId], references: [id])
+  spec                 CorporateProteinSpec? @relation(fields: [linkedProteinSpecId], references: [id], onDelete: SetNull)
 
   @@index([supplierId, supplierItemCode])
 }
