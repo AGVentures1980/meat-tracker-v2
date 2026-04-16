@@ -85,10 +85,27 @@ export const ReceivingController = {
 
             // --- CANONICAL IDENTITY GENERATION (Shadow Mode / Non-Blocking) ---
             const canonicalCandidates = parsedDataArray.map(p => CanonicalIdentityGenerator.generate(p, supplier_id?.toString() || 'NO_SUPPLIER'));
-            const strongCandidate = canonicalCandidates.find(c => c?.sourceIntegrity === 'STRONG');
+            const c = canonicalCandidates.find(cand => cand?.sourceIntegrity === 'STRONG') || canonicalCandidates[0] || null;
             
-            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
-                 console.log(`[BARCODE TRACE] CANONICAL IDENTITY CANDIDATE:`, JSON.stringify(strongCandidate || canonicalCandidates[0] || null, null, 2));
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true' && c) {
+                 const tracePayload = {
+                     traceId: `${companyId}-${Date.now()}`,
+                     timestamp: new Date().toISOString(),
+                     rawBarcode: barcode,
+                     symbology: parsedDataArray.find(p => p.rawBarcodes.includes(barcode))?.symbology || 'UNKNOWN',
+                     gtin: fusedData.gtin.value || null,
+                     product_code: fusedData.productCodeBase.value || null,
+                     canonicalIdentityHash: c.identityHash,
+                     sourceIntegrity: c.sourceIntegrity,
+                     identityBasis: c.identityBasis,
+                     identityInputType: c.identityInputType,
+                     identityInputValue: c.identityInputValue,
+                     supplierContextUsed: c.supplierContextUsed,
+                     fallbackUsed: c.fallbackUsed,
+                     productionDate: (fusedData as any).productionDate?.value || null,
+                     serial: (fusedData as any).serial?.value || null
+                 };
+                 console.log(`[BARCODE TRACE] CANONICAL IDENTITY CANDIDATE:`, JSON.stringify(tracePayload));
             }
             // ------------------------------------------------------------------
 
