@@ -112,7 +112,8 @@ export default function ReceivingScanner() {
       if (scannedItems.length === 0) return;
       setIsSubmittingBatch(true);
       try {
-          const res = await fetch('/api/v1/compliance/submit-batch', {
+          const apiUrl = import.meta.env.VITE_API_URL || '';
+          const res = await fetch(`${apiUrl}/api/v1/compliance/submit-batch`, {
               method: 'POST',
               headers: {
                   'Authorization': `Bearer ${user?.token}`,
@@ -184,9 +185,15 @@ export default function ReceivingScanner() {
     }
     
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      console.log("🚨 SENDING SCAN TO BACKEND", {
+          barcode: inputBarcode,
+          apiUrl: `${apiUrl}/api/v1/barcodes/parse`
+      });
+
       // Sprint 5 Barcode Engine V2 Integration
       // We delegate ALL extraction (GTIN, Weight, Logic) to the unified /parse layer.
-      const resParse = await fetch('/api/v1/barcodes/parse', {
+      const resParse = await fetch(`${apiUrl}/api/v1/barcodes/parse`, {
           method: 'POST',
           headers: {
               'Authorization': `Bearer ${user?.token}`,
@@ -239,7 +246,7 @@ export default function ReceivingScanner() {
           barcodeResult.status = 'VALID';
       }
       
-      const res = await fetch('/api/v1/compliance/scan', {
+      const res = await fetch(`${apiUrl}/api/v1/compliance/scan`, {
           method: 'POST',
           headers: {
               'Authorization': `Bearer ${user?.token}`,
@@ -291,7 +298,8 @@ export default function ReceivingScanner() {
       if (!selectedProtein) return;
       setIsMapping(true);
       try {
-          const res = await fetch('/api/v1/compliance/map-barcode', {
+          const apiUrl = import.meta.env.VITE_API_URL || '';
+          const res = await fetch(`${apiUrl}/api/v1/compliance/map-barcode`, {
               method: 'POST',
               headers: {
                   'Authorization': `Bearer ${user?.token}`,
@@ -529,7 +537,8 @@ export default function ReceivingScanner() {
             onClick={async () => {
                 setIsMapping(true);
                 try {
-                    const res = await fetch('/api/v1/compliance/force-accept', {
+                    const apiUrl = import.meta.env.VITE_API_URL || '';
+                    const res = await fetch(`${apiUrl}/api/v1/compliance/force-accept`, {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${user?.token}`, 'Content-Type': 'application/json' },
                         body: JSON.stringify({ barcode: barcode || scannedGtin || "UNKNOWN", weight: extractedWeight || 0, store_id: user?.storeId })
