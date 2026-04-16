@@ -90,7 +90,13 @@ export const ReceivingController = {
                 if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
                      console.log('[BARCODE TRACE] FUSION REJECTED -> No Identifier:', JSON.stringify(fusedData, null, 2));
                 }
-                return res.status(400).json({ error: 'No Product Identifier detected in Fusion Engine.' });
+                return res.status(400).json({ 
+                    error: 'No Product Identifier detected in Fusion Engine.',
+                    fusedData,
+                    rawBarcode: barcode,
+                    conflicts,
+                    traceId: `${companyId}-${Date.now()}`
+                });
             }
 
             if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {

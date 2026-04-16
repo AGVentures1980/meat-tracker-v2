@@ -56,15 +56,52 @@ export class BarcodeParserRouter {
 
     private static parseGS1(raw: string): ParsedBarcodeData | null {
         if (!raw.includes('01') || raw.length < 20) return null;
-        
-        let gtinMatch = raw.match(/01(\d{14})/);
-        // Sometimes raw GS1 data won't perfectly match weight without deeper AI parsing, but let's keep it rigorous
+
+        const gtinMatch = raw.match(/01(\d{14})/);
+        if (!gtinMatch) return null;
+
+        const gtin = gtinMatch[1];
+        let weightLb: number | undefined;
+        let productionDate: string | undefined;
+        let serial: string | undefined;
+
+        const weightLbMatch = raw.match(/3201(\d{6})|3202(\d{6})/);
+        if (weightLbMatch) {
+            const raw6 = weightLbMatch[1] || weightLbMatch[2];
+            const decimals = weightLbMatch[1] ? 1 : 2;
+            weightLb = parseFloat((parseInt(raw6, 10) / Math.pow(10, decimals)).toFixed(2));
+        }
+
+        if (weightLb === undefined) {
+            const weightKgMatch = raw.match(/3101(\d{6})|3102(\d{6})/);
+            if (weightKgMatch) {
+                const raw6 = weightKgMatch[1] || weightKgMatch[2];
+                const decimals = weightKgMatch[1] ? 1 : 2;
+                const weightKg = parseInt(raw6, 10) / Math.pow(10, decimals);
+                weightLb = parseFloat((weightKg * 2.20462).toFixed(2));
+            }
+        }
+
+        const prodDateMatch = raw.match(/11(\d{6})/);
+        if (prodDateMatch) {
+            productionDate = `20${prodDateMatch[1].substring(0,2)}-${prodDateMatch[1].substring(2,4)}-${prodDateMatch[1].substring(4,6)}`;
+        }
+
+        const serialMatch = raw.match(/21([A-Za-z0-9]{1,20})(?:\x1D|$)/);
+        if (serialMatch) {
+            serial = serialMatch[1];
+        }
+
         return {
             rawBarcodes: [raw],
-            gtin: gtinMatch ? gtinMatch[1] : undefined,
+            gtin,
+            // NÃO definir product_code artificialmente ainda
+            weightLb,
+            productionDate,
+            serial,
             symbology: 'GS1_128',
             source_parser: 'GS1_AI'
-        };
+        } as any;
     }
 
     private static parseEANVariableWeight(raw: string): ParsedBarcodeData & { weightLb?: number } | null {
@@ -138,9 +175,37 @@ export class LabelDataFusionEngine {
         // Pass 1: Parse GS1 High-Confidence Truth
         const gs1Data = barcodes.find(b => b.source_parser === 'GS1_AI');
         if (gs1Data && gs1Data.gtin) {
-            fusedData.gtin = { value: gs1Data.gtin, source: 'GS1_AI', confidence: 1.0 };
-            fusedData.productCodeBase = { value: gs1Data.gtin, source: 'GS1_AI', confidence: 1.0 };
-            // Simulate AI weight extraction from GS1 AI 3102 etc. handled in the GS1 parser
+            fusedData.gtin = { value: gs1Data.gtin || null, source: 'GS1_AI', confidence: 1.0 };
+            
+            fusedData.productCodeBase = {
+                value: (gs1Data as any).product_code || gs1Data.gtin || null,
+                source: 'GS1_AI',
+                confidence: 1.0
+            };
+            
+            if ((gs1Data as any).weightLb !== undefined) {
+                fusedData.weightLb = {
+                    value: (gs1Data as any).weightLb,
+                    source: 'GS1_AI',
+                    confidence: 1.0
+                };
+            }
+            
+            if ((gs1Data as any).serial) {
+                (fusedData as any).serial = {
+                    value: (gs1Data as any).serial,
+                    source: 'GS1_AI',
+                    confidence: 1.0
+                };
+            }
+            
+            if ((gs1Data as any).productionDate) {
+                (fusedData as any).productionDate = {
+                    value: (gs1Data as any).productionDate,
+                    source: 'GS1_AI',
+                    confidence: 1.0
+                };
+            }
         }
 
         // Pass 2: Merge Barcodes (Supplier Rule or EAN Variable)
