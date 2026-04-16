@@ -497,7 +497,7 @@ export default function ReceivingScanner() {
       {/* GREEN APPROVED SCREEN - REMOVED (Replaced by seamless Cart Appending) */}
 
       {/* RED REJECTED SCREEN (THE GARCIA RULE) - O "NÃO" */}
-      {scanResult === 'REJECTED' && (
+      {(scanResult === 'REJECTED' || scanResult === 'REVIEW_REQUIRED') && (
         <div className="fixed inset-0 bg-rose-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-start sm:justify-center animate-in zoom-in-95 text-center px-6 overflow-y-auto py-12 sm:py-6">
           <div className="w-32 h-32 shrink-0 bg-white rounded-full flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse mt-8 sm:mt-0">
             <XCircle className="w-24 h-24 text-rose-600" />
@@ -592,7 +592,7 @@ export default function ReceivingScanner() {
                       </select>
                   </div>
 
-                  {(!fusedData?.gtin.value || fusedData?.gtin.confidence < 0.8) && (
+                  {(!fusedData?.gtin?.value || fusedData?.gtin?.confidence < 0.8) && (
                       <div className="bg-red-900/30 border border-red-500/50 p-3 rounded-lg text-xs text-red-200 mt-2">
                           <p className="font-bold text-red-400 mb-1">⚠️ WEAK RULE GENERATION</p>
                           A leitura deste código não extraiu um GTIN/ID global de alta confiança. Essa regra será gerada com status <strong>WEAK</strong> e cairá em <em>REVIEW_REQUIRED</em> continuamente no estoque até intervenção técnica.
@@ -618,6 +618,25 @@ export default function ReceivingScanner() {
             className="text-white hover:text-yellow-200 text-sm font-bold tracking-wider transition-colors uppercase mt-4 underline decoration-yellow-400/50 underline-offset-4"
           >
             Cancel and Reject Box
+          </button>
+        </div>
+      )}
+
+      {/* ORANGE ACCEPTED WITH WARNING SCREEN */}
+      {scanResult === 'ACCEPTED_WITH_WARNING' && (
+        <div className="fixed inset-0 bg-orange-600/95 backdrop-blur-md z-50 flex flex-col items-center justify-start sm:justify-center animate-in slide-in-from-bottom text-center px-6 overflow-y-auto py-12 sm:py-6">
+          <div className="w-24 h-24 shrink-0 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-pulse mt-8 sm:mt-0">
+            <AlertTriangle className="w-16 h-16 text-orange-600" />
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-2 uppercase tracking-tighter">ACCEPTED WITH WARNING</h2>
+          <p className="text-lg text-orange-100 font-medium mb-6 max-w-md leading-relaxed">
+            {resultMessage}
+          </p>
+          <button 
+            onClick={resetScanner}
+            className="bg-black text-white hover:bg-slate-900 border border-slate-800 px-12 py-5 rounded-xl font-black text-xl tracking-wider transition-all shadow-2xl uppercase w-full max-w-md"
+          >
+            Return to Delivery Log
           </button>
         </div>
       )}
