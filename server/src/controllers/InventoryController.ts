@@ -2,8 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { getISOWeek, getYear } from 'date-fns';
 import { ProteinLifecycleStrictEngine, HardFailError } from '../engine/ProteinLifecycleStrictEngine';
-import { BarcodeParserRouter } from '../services/BarcodeParserRouter';
-import { LabelDataFusionEngine } from '../services/LabelDataFusionEngine';
+import { BarcodeParserRouter, LabelDataFusionEngine } from '../services/LabelDataFusionEngine';
 import { ComplianceEngine } from '../services/ComplianceEngine';
 
 const prisma = new PrismaClient();
@@ -234,13 +233,13 @@ export class InventoryController {
                     const { fusedData } = LabelDataFusionEngine.fuse(parsedDataArray, null, supplierRules);
                     
                     if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] CHAMOU COMPLIANCE? SIM`);
-                    const { product } = await ComplianceEngine.evaluate(fusedData, companyId);
+                    const { specMatched } = await ComplianceEngine.evaluate(fusedData, companyId);
                     
-                    if (product) {
+                    if (specMatched) {
                         return res.status(404).json({ 
-                            error: `REVIEW_REQUIRED: Produto validado como [${product.protein_name}], mas a CAIXA específica nunca entrou no inventário local via Dock. Bloqueado contra phantom receipts.`,
+                            error: `REVIEW_REQUIRED: Produto validado como [${specMatched.protein_name}], mas a CAIXA específica nunca entrou no inventário local via Dock. Bloqueado contra phantom receipts.`,
                             requires_review: true,
-                            protein: product.protein_name
+                            protein: specMatched.protein_name
                         });
                     }
                 }

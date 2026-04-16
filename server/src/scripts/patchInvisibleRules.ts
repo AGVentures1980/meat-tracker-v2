@@ -6,14 +6,14 @@ async function patchRules() {
     console.log('[PATCH] Iniciando ativação de regras invisíveis...');
     
     const supplierUpdate = await prisma.supplierBarcodeRule.updateMany({
-        where: { OR: [ { isActive: null }, { isActive: false } ] },
+        where: { isActive: false },
         data: { isActive: true }
     });
     
     console.log(`[PATCH] SupplierBarcodeRule: ${supplierUpdate.count} linhas ativadas.`);
 
     const receivingUpdate = await prisma.receivingRecognitionRule.updateMany({
-        where: { OR: [ { is_active: null }, { is_active: false } ] },
+        where: { is_active: false },
         data: { is_active: true }
     });
 

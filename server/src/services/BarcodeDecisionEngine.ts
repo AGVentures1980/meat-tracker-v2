@@ -32,7 +32,7 @@ export interface ParsedBarcodeData {
 
 export interface FieldProvenance<T> {
     value: T | null;
-    source: 'GS1_AI' | 'SUPPLIER_RULE' | 'OCR' | 'USER_CONFIRMED' | 'UNKNOWN';
+    source: 'GS1_AI' | 'SUPPLIER_RULE' | 'EAN_VARIABLE' | 'OCR' | 'USER_CONFIRMED' | 'UNKNOWN';
     confidence: number;
 }
 
