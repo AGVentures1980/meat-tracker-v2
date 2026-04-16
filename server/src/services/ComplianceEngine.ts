@@ -133,6 +133,38 @@ export class ComplianceEngine {
             }
         }
 
+        if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+            let traceMethod = 'CORPORATE_SPEC';
+            let traceField = 'N/A';
+            
+            if (activeRule) {
+                 traceMethod = activeRuleType === 'SupplierRule' ? 'SUPPLIER_RULE' : 
+                               activeRuleType === 'LegacyRule' ? 'RECEIVING_RULE' : 'UNKNOWN';
+                 if (activeRuleType === 'SupplierRule') {
+                     if ((activeRule as any).matchType === 'GTIN') traceField = 'gtin';
+                     else if ((activeRule as any).matchType === 'PRODUCT_CODE') traceField = 'productCodeBase';
+                     else traceField = 'rawBarcode';
+                 } else {
+                     traceField = (activeRule as any).match_strength === 'WEAK' ? 'rawBarcode' : ((activeRule as any).gtin ? 'gtin' : 'productCodeBase');
+                 }
+            } else if (matchedSpec) {
+                 if (matchedSpec.approved_item_code === fusedData.productCodeBase.value) {
+                      traceField = 'productCodeBase';
+                      traceMethod = 'CORPORATE_SPEC';
+                 } else {
+                      traceField = 'rawBarcode';
+                      traceMethod = 'LEGACY_FALLBACK';
+                 }
+            }
+            
+            console.log('[BARCODE TRACE] ================== COMPLIANCE ENGINE ==================');
+            console.log(`[BARCODE TRACE] METODO VENCEDOR: ${traceMethod}`);
+            console.log(`[BARCODE TRACE] CAMPO QUE BATEU: ${traceField}`);
+            if (traceMethod === 'LEGACY_FALLBACK') {
+                 console.log(`[BARCODE TRACE] [WARNING] LEGACY FALLBACK ACTIVATED`);
+            }
+        }
+
         if (!matchedSpec) {
             return {
                 status: 'REJECTED',

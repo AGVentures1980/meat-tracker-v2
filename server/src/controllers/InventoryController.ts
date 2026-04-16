@@ -203,7 +203,10 @@ export class InventoryController {
             const user = (req as any).user;
             const userId = user?.id || user?.sub || "SYSTEM";
 
-            // BRASA PROTEIN BOX LIFECYCLE ENGINE: Pull to Prep
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log('[BARCODE TRACE] ================== PRODUÇÃO (PULL TO PREP) ==================');
+                 console.log(`[BARCODE TRACE] TENTOU PROTEIN BOX? SIM`);
+            }
             const targetBox = await prisma.proteinBox.findFirst({
                 where: {
                     store_id: Number(store_id),
@@ -211,15 +214,26 @@ export class InventoryController {
                 }
             });
 
+            if (targetBox && process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log(`[BARCODE TRACE] ENCONTROU PROTEIN BOX? SIM`);
+                 console.log(`[BARCODE TRACE] boxId: ${targetBox.id} | product: ${targetBox.product_name}`);
+            }
+
             if (!targetBox) {
+                if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                     console.log(`[BARCODE TRACE] ENCONTROU PROTEIN BOX? NAO`);
+                }
                 // BOX MEMORY LAYER: Ghost Receive Identification Fallback
                 const store = await prisma.store.findUnique({ where: { id: Number(store_id) } });
                 const companyId = store?.company_id;
                 
                 if (companyId) {
+                    if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] CHAMOU PARSER? SIM`);
                     const parsedDataArray = await BarcodeParserRouter.parse([barcode], companyId);
                     const supplierRules = await prisma.supplierBarcodeRule.findMany({ where: { companyId, isActive: true } });
                     const { fusedData } = LabelDataFusionEngine.fuse(parsedDataArray, null, supplierRules);
+                    
+                    if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] CHAMOU COMPLIANCE? SIM`);
                     const { product } = await ComplianceEngine.evaluate(fusedData, companyId);
                     
                     if (product) {

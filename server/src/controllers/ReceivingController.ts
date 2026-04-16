@@ -57,7 +57,7 @@ export const ReceivingController = {
             const rawBarcodesArray = barcode ? [barcode] : [];
             const parsedDataArray = await BarcodeParserRouter.parse(rawBarcodesArray, companyId, supplier_id);
 
-            // 2. Fetch active Supplier Rules for fusion context
+        // 2. Fetch active Supplier Rules for fusion context
             const supplierRules = await prisma.supplierBarcodeRule.findMany({
                 where: { 
                     companyId, 
@@ -65,6 +65,19 @@ export const ReceivingController = {
                     ...(supplier_id ? { supplierId: supplier_id } : {})
                 }
             });
+
+            const receivingRecognitionRulesCount = await prisma.receivingRecognitionRule.count({
+                where: { company_id: companyId, is_active: true }
+            });
+
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log('[BARCODE TRACE] ==================================================');
+                 console.log(`[BARCODE TRACE] RECEIVING SCAN INITIATED`);
+                 console.log(`[BARCODE TRACE] rawBarcode: ${barcode}`);
+                 console.log(`[BARCODE TRACE] supplier_id: ${supplier_id}`);
+                 console.log(`[BARCODE TRACE] supplierRules encontradas: ${supplierRules.length}`);
+                 console.log(`[BARCODE TRACE] receivingRecognitionRules ativas (company-wide): ${receivingRecognitionRulesCount}`);
+            }
 
             // 3. FUSE DATA (Zero-Trust Aggregation)
             const { fusedData, conflicts } = LabelDataFusionEngine.fuse(parsedDataArray, ocrData || null, supplierRules);

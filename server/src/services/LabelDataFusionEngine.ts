@@ -27,14 +27,29 @@ export class BarcodeParserRouter {
     public static async parse(rawBarcodes: string[], companyId: string, supplierId?: string | null): Promise<ParsedBarcodeData[]> {
         const results: ParsedBarcodeData[] = [];
         for (const raw of rawBarcodes) {
-            let parsed = this.parseGS1(raw) || 
-                         this.parseEANVariableWeight(raw) || 
-                         await this.parseSupplierSpecific(raw, companyId, supplierId);
-                         
-            if (!parsed) {
-                parsed = this.parseFallback(raw);
+            let parsed = this.parseGS1(raw);
+            if (parsed) {
+                if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] Parser: GS1_AI | Status: SUCCESS | GTIN: ${parsed.gtin}`);
+            } else {
+                if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] Parser: GS1_AI | Status: FAILED`);
+                parsed = this.parseEANVariableWeight(raw);
+                
+                if (parsed) {
+                    if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] Parser: EAN_VARIABLE | Status: SUCCESS | Product: ${parsed.product_code} | Weight: ${(parsed as any).weightLb}`);
+                } else {
+                    if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] Parser: EAN_VARIABLE | Status: FAILED`);
+                    parsed = await this.parseSupplierSpecific(raw, companyId, supplierId);
+                    
+                    if (parsed) {
+                        if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] Parser: SUPPLIER_RULE | Status: SUCCESS | GTIN: ${parsed.gtin || 'N/A'} | Product: ${parsed.product_code || 'N/A'}`);
+                    } else {
+                        if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] Parser: SUPPLIER_RULE | Status: FAILED`);
+                        parsed = this.parseFallback(raw);
+                        if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(`[BARCODE TRACE] Parser: FALLBACK | Status: SUCCESS`);
+                    }
+                }
             }
-            results.push(parsed);
+            if (parsed) results.push(parsed);
         }
         return results;
     }
@@ -178,6 +193,16 @@ export class LabelDataFusionEngine {
             if (fusedData.productCodeBase.confidence > 0.8 && fusedData.gtin.confidence > 0.8) {
                 conflicts.push(`Product Base Conflict: GTIN (${fusedData.gtin.value}) vs LocalCode (${fusedData.productCodeBase.value})`);
             }
+        }
+
+        if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+            console.log('[BARCODE TRACE] ================== FUSION ENGINE ==================');
+            console.log(`[BARCODE TRACE] FUSED DATA COMPLETO:`, JSON.stringify(fusedData, null, 2));
+            console.log(`[BARCODE TRACE] DOMINANT PARSER: GTIN[${fusedData.gtin.source}] | BASE[${fusedData.productCodeBase.source}] | WEIGHT[${fusedData.weightLb.source}]`);
+            console.log(`[BARCODE TRACE] FINAL PRODUCT CODE BASE: ${fusedData.productCodeBase.value}`);
+            console.log(`[BARCODE TRACE] CONFIDENCE: ${fusedData.productCodeBase.confidence}`);
+            const isFallback = fusedData.gtin.source === 'UNKNOWN' && fusedData.productCodeBase.source === 'UNKNOWN' ? 'SIM' : 'NAO';
+            console.log(`[BARCODE TRACE] CAIU EM FALLBACK/OCR: ${isFallback}`);
         }
 
         return { fusedData, conflicts };    
