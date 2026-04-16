@@ -58,13 +58,9 @@ export const ReceivingController = {
             const parsedDataArray = await BarcodeParserRouter.parse(rawBarcodesArray, companyId, supplier_id);
 
             // 2. Fetch active Supplier Rules for fusion context
-            const supplierRules = await prisma.supplierBarcodeRule.findMany({
-                where: { 
-                    companyId, 
-                    isActive: true,
-                    ...(supplier_id ? { supplierId: supplier_id } : {})
-                }
-            });
+            const supplierRules = supplier_id ? await prisma.supplierBarcodeRule.findMany({
+                where: { companyId, supplierId: supplier_id, isActive: true }
+            }) : [];
 
             // 3. FUSE DATA (Zero-Trust Aggregation)
             const { fusedData, conflicts } = LabelDataFusionEngine.fuse(parsedDataArray, ocrData || null, supplierRules);
@@ -74,15 +70,7 @@ export const ReceivingController = {
             const finalWeight = fusedData.weightLb.value || weight; 
 
             if (!finalGtin && fusedData.productCodeBase.value === null) {
-                if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
-                     console.log('[BARCODE TRACE] FUSION REJECTED -> No Identifier:', JSON.stringify(fusedData, null, 2));
-                }
                 return res.status(400).json({ error: 'No Product Identifier detected in Fusion Engine.' });
-            }
-
-            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
-                 console.log('[BARCODE TRACE] FUSION DATA:', JSON.stringify(fusedData, null, 2));
-                 console.log('[BARCODE TRACE] SUPPLIER RULES LOADED:', supplierRules.length);
             }
 
             if (conflicts.length > 0) {
@@ -437,7 +425,6 @@ export const ReceivingController = {
                         normalizedProductCode: product_code || null,
                         rawBarcodePattern: isWeak ? raw_barcode : null,
                         matchStrength: isWeak ? 'WEAK' : 'STRONG',
-                        isActive: true,
                         createdBy: user.id
                     }
                 });
@@ -450,7 +437,6 @@ export const ReceivingController = {
                         normalized_product_code: product_code || null,
                         raw_barcode_pattern: isWeak ? raw_barcode : null,
                         match_strength: isWeak ? 'WEAK' : 'STRONG',
-                        is_active: true,
                         created_by: user.id
                     }
                 });

@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { getISOWeek, getYear } from 'date-fns';
 import { ProteinLifecycleStrictEngine, HardFailError } from '../engine/ProteinLifecycleStrictEngine';
+import { BarcodeParserRouter } from '../services/BarcodeParserRouter';
+import { LabelDataFusionEngine } from '../services/LabelDataFusionEngine';
+import { ComplianceEngine } from '../services/ComplianceEngine';
 
 const prisma = new PrismaClient();
 
@@ -209,6 +212,25 @@ export class InventoryController {
             });
 
             if (!targetBox) {
+                // BOX MEMORY LAYER: Ghost Receive Identification Fallback
+                const store = await prisma.store.findUnique({ where: { id: Number(store_id) } });
+                const companyId = store?.company_id;
+                
+                if (companyId) {
+                    const parsedDataArray = await BarcodeParserRouter.parse([barcode], companyId);
+                    const supplierRules = await prisma.supplierBarcodeRule.findMany({ where: { companyId, isActive: true } });
+                    const { fusedData } = LabelDataFusionEngine.fuse(parsedDataArray, null, supplierRules);
+                    const { product } = await ComplianceEngine.evaluate(fusedData, companyId);
+                    
+                    if (product) {
+                        return res.status(404).json({ 
+                            error: `REVIEW_REQUIRED: Produto validado como [${product.protein_name}], mas a CAIXA específica nunca entrou no inventário local via Dock. Bloqueado contra phantom receipts.`,
+                            requires_review: true,
+                            protein: product.protein_name
+                        });
+                    }
+                }
+
                 return res.status(404).json({ error: 'Security Warning: This barcode was NEVER received into the store inventory! It must pass the Receiving Dock QC first.' });
             }
 

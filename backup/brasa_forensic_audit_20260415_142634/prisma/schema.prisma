@@ -1,0 +1,2155 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["tracing"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                          String         @id @default(uuid())
+  name                        String
+  plan                        String         @default("enterprise")
+  created_at                  DateTime       @default(now())
+  owner_id                    String?
+  annual_growth_rate          Float          @default(5.0)
+  baseline_loss_pct           Float          @default(15.0)
+  baseline_yield              Float          @default(65.0)
+  baseline_overproduction_pct Float          @default(8.0)
+  baseline_ruptura_pct        Float          @default(5.0)
+  contract_savings_fee_pct    Float          @default(5.0)
+  subdomain                   String?        @unique
+  theme_bg_url                String?
+  theme_logo_url              String?
+  theme_primary_color         String?
+  billing_type                String         @default("STRIPE_AUTO")
+  operationType               OperationType  @default(RODIZIO)
+  company_status              String         @default("Pending")
+  stripe_customer_id          String?        @unique
+  stripe_subscription_id      String?        @unique
+  billing_status              String         @default("trialing")
+  stores_licensed             Int            @default(1)
+  api_key                     String?        @unique
+  // SRE & Enterprise Billing Extensions
+  current_tier                TierLevel      @default(TIER_1)
+  contract_status             DocuSignStatus @default(PENDING)
+  contract_id                 String?        @unique
+  contract_signed_at          DateTime?
+  contract_version            String         @default("v1.0")
+  onboarding_started_at       DateTime?
+  polling_attempts            Int            @default(0)
+  last_polled_at              DateTime?
+  polling_expires_at          DateTime?
+  grace_period_until          DateTime?
+  subscriptions               Subscription[]
+
+  products             CompanyProduct[]
+  vault_messages       OwnerVaultMessage[]
+  PartnerClient        PartnerClient[]
+  stores               Store[]
+  templates            StoreTemplate[]
+  invoices             SysInvoice[]
+  CorporateProteinSpec CorporateProteinSpec[]
+  vaultFiles           VaultFile[]
+  AuditLog             AuditLog[]
+}
+
+model CompanyProduct {
+  id                  String          @id @default(uuid())
+  company_id          String
+  name                String
+  protein_group       String?
+  category            String?
+  is_villain          Boolean         @default(false)
+  is_dinner_only      Boolean         @default(false)
+  include_in_delivery Boolean         @default(false)
+  required_usda_grade UsdaGrade?
+  standard_target     Float?
+  created_at          DateTime        @default(now())
+  lbs_per_skewer      Float?
+  company             Company         @relation(fields: [company_id], references: [id])
+  inventory_items     InventoryItem[]
+
+  @@unique([company_id, name])
+}
+
+model Store {
+  id                         Int       @id @default(autoincrement())
+  company_id                 String
+  store_name                 String
+  location                   String
+  country                    String    @default("USA")
+  city                       String?
+  timezone                   String    @default("America/Chicago")
+  created_at                 DateTime  @default(now())
+  is_pilot                   Boolean   @default(false)
+  pilot_start_date           DateTime?
+  baseline_loss_rate         Float     @default(20.0)
+  baseline_yield_ribs        Float     @default(74.0)
+  baseline_overproduction    Float     @default(18.0)
+  baseline_forecast_accuracy Float     @default(62.0)
+  baseline_consumption_pax   Float     @default(1.72)
+  baseline_cost_per_lb       Float     @default(9.50)
+  annual_volume_lbs          Int       @default(180000)
+  baseline_yoy_pax           Float     @default(1.88)
+  baseline_trailing_pax      Float     @default(1.85)
+  target_cost_guest          Float     @default(9.94)
+  target_lbs_guest           Float     @default(1.76)
+  olo_target_lbs_order       Float     @default(0.50)
+  target_patty_oz            Float     @default(8.0)
+  lunch_target_lbs_guest     Float?
+  lunch_excluded_proteins    String[]  @default([])
+  dinner_price               Float     @default(58.90)
+  serves_lamb_chops_rodizio  Boolean   @default(false)
+  is_lunch_enabled           Boolean   @default(false)
+  lunch_start_time           String?   @default("11:00")
+  lunch_end_time             String?   @default("15:00")
+  dinner_start_time          String?   @default("15:00")
+  dinner_end_time            String?   @default("22:00")
+  lunch_price                Float     @default(29.90)
+  olo_sales_target           Float     @default(0)
+  active_template_id         String?
+  area_manager_id            String?
+  region                     String?   @default("Global")
+
+  // Delivery & Billing State
+  status         String    @default("INACTIVE")
+  activated_at   DateTime?
+  billing_active Boolean   @default(false)
+
+  delivery_sales        DeliverySale[]
+  inventory_cycles      InventoryCycle[]
+  inventory_records     InventoryRecord[]
+  invoices              InvoiceRecord[]
+  meat_usage            MeatUsage[]
+  orders                Order[]
+  pilot_audits          PilotDailyAudit[]
+  prep_logs             PrepLog[]
+  ProcurementAIFeedback ProcurementAIFeedback[]
+  product_aliases       ProductAlias[]
+  purchase_records      PurchaseRecord[]
+  reports               Report[]
+  sales_forecasts       SalesForecast[]
+  active_template       StoreTemplate?          @relation("ActiveTemplate", fields: [active_template_id], references: [id])
+  area_manager          User?                   @relation("AreaManager", fields: [area_manager_id], references: [id])
+  company               Company                 @relation(fields: [company_id], references: [id])
+  meat_targets          StoreMeatTarget[]
+  support_tickets       SupportTicket[]
+  uploads               Upload[]
+  users                 User[]
+  waste_compliance      WasteCompliance[]
+  waste_logs            WasteLog[]
+  BarcodeScanEvent      BarcodeScanEvent[]
+  BurgerInventoryPool   BurgerInventoryPool[]
+  UnknownBarcodeLog     UnknownBarcodeLog[]
+  ReceivingEvent        ReceivingEvent[]
+  PullToPrepEvent       PullToPrepEvent[]
+  TrimRecordEvent       TrimRecordEvent[]
+  FinancialLeakageEvent FinancialLeakageEvent[]
+  AiYieldInsight        AiYieldInsight[]
+  SystemAlert           SystemAlert[]
+  BarcodeDecisionLog    BarcodeDecisionLog[]
+  vaultFiles            VaultFile[]
+  OcrQuarantineQueue    OcrQuarantineQueue[]
+
+  @@unique([company_id, store_name])
+}
+
+model StoreTemplate {
+  id          String   @id @default(cuid())
+  company_id  String
+  name        String
+  description String?
+  config      Json
+  is_system   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  stores      Store[]  @relation("ActiveTemplate")
+  company     Company  @relation(fields: [company_id], references: [id])
+
+  @@unique([company_id, name])
+}
+
+model StoreMeatTarget {
+  id          String @id @default(uuid())
+  store_id    Int
+  protein     String
+  target      Float
+  cost_target Float?
+  store       Store  @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, protein])
+}
+
+model User {
+  id                   String               @id @default(uuid())
+  company_id           String?
+  store_id             Int?
+  first_name           String?
+  last_name            String?
+  email                String               @unique
+  password_hash        String
+  role                 Role                 @default(viewer)
+  is_primary           Boolean              @default(false)
+  created_at           DateTime             @default(now())
+  force_change         Boolean              @default(false)
+  last_password_change DateTime             @default(now())
+  is_trial             Boolean              @default(false)
+  trial_expires_at     DateTime?
+  eula_accepted_at     DateTime?
+  position             String?
+  director_region      String?
+  partner              Partner?             @relation("PartnerUser")
+  area_stores          Store[]              @relation("AreaManager")
+  support_tickets      SupportTicket[]
+  training_progress    TrainingProgress[]
+  store                Store?               @relation(fields: [store_id], references: [id])
+  token_version        Int                  @default(1)
+  reset_tokens         PasswordResetToken[]
+  password_history     PasswordHistory[]
+  vaultFiles           VaultFile[]
+  fileAccessLogs       FileAccessLog[]
+  // AuditLog             AuditLog[]
+}
+
+model OwnerVaultMessage {
+  id         String   @id @default(uuid())
+  text       String?
+  file_url   String?
+  file_name  String?
+  file_type  String?
+  sender     String   @default("OWNER")
+  created_at DateTime @default(now())
+  is_read    Boolean  @default(false)
+  company_id String   @default("tdb-main")
+  company    Company  @relation(fields: [company_id], references: [id])
+}
+
+model TrainingProgress {
+  id           String   @id @default(uuid())
+  user_id      String
+  module_id    String
+  score        Int
+  attempts     Int      @default(1)
+  completed_at DateTime @default(now())
+  user         User     @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, module_id])
+}
+
+model Order {
+  id                String      @id @default(uuid())
+  store_id          Int
+  order_external_id String?
+  source            OrderSource
+  order_date        DateTime
+  raw_payload       Json?
+  store             Store       @relation(fields: [store_id], references: [id])
+  items             OrderItem[]
+
+  @@index([store_id, order_date])
+}
+
+model OrderItem {
+  id           String @id @default(uuid())
+  order_id     String
+  item_name    String
+  protein_type String
+  lbs          Float
+  order        Order  @relation(fields: [order_id], references: [id])
+}
+
+model MeatUsage {
+  id        String   @id @default(uuid())
+  store_id  Int
+  protein   String
+  lbs_total Float
+  date      DateTime @db.Date
+  store     Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, protein, date])
+}
+
+model Upload {
+  id         String   @id @default(uuid())
+  store_id   Int
+  file_type  FileType
+  file_url   String
+  processed  Boolean  @default(false)
+  created_at DateTime @default(now())
+  store      Store    @relation(fields: [store_id], references: [id])
+}
+
+model Report {
+  id                   String   @id @default(uuid())
+  store_id             Int
+  month                String
+  total_lbs            Float
+  extra_customers      Int      @default(0)
+  generated_at         DateTime @default(now())
+  delivery_guests      Int      @default(0)
+  dine_in_guests       Int      @default(0)
+  dinner_guests_micros Int      @default(0)
+  lunch_guests_micros  Int      @default(0)
+  store                Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, month])
+}
+
+model InventoryRecord {
+  id              String   @id @default(uuid())
+  company_id      String?
+  client_event_id String?
+  store_id        Int
+  date            DateTime @db.Date
+  item_name       String
+  quantity        Float
+  store           Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([company_id, client_event_id])
+  @@index([store_id, date])
+}
+
+model PurchaseRecord {
+  id         String   @id @default(uuid())
+  store_id   Int
+  date       DateTime @db.Date
+  item_name  String
+  quantity   Float
+  cost_total Float
+  store      Store    @relation(fields: [store_id], references: [id])
+
+  @@index([store_id, date])
+}
+
+model InvoiceRecord {
+  id             String   @id @default(uuid())
+  store_id       Int
+  date           DateTime @default(now())
+  invoice_number String?
+  item_name      String
+  quantity       Float
+  price_per_lb   Float
+  cost_total     Float
+  source         String   @default("Manual")
+  store          Store    @relation(fields: [store_id], references: [id])
+
+  @@index([store_id, date])
+}
+
+model SystemSettings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  type      String
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id               String   @id @default(uuid())
+  company_id       String?
+  user_id          String?
+  action           String
+  resource         String
+  reason           String?
+  details          Json?
+  created_at       DateTime @default(now())
+  ip_address       String?
+  location         String   @default("SYSTEM")
+  target_lbs_guest Float    @default(1.76)
+
+  company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  // user    User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id, created_at])
+}
+
+model WasteLog {
+  id         String   @id @default(uuid())
+  store_id   Int
+  date       DateTime @db.Date
+  shift      String
+  input_by   String
+  user_id    String
+  items      Json
+  created_at DateTime @default(now())
+  store      Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, date, shift])
+}
+
+model WasteCompliance {
+  id           String   @id @default(uuid())
+  store_id     Int
+  week_start   DateTime @db.Date
+  lunch_count  Int      @default(0)
+  dinner_count Int      @default(0)
+  is_locked    Boolean  @default(false)
+  unlocked_by  String?
+  store        Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, week_start])
+}
+
+model PrepLog {
+  id         String   @id @default(uuid())
+  store_id   Int
+  date       DateTime @db.Date
+  forecast   Int
+  data       Json
+  user_id    String
+  created_at DateTime @default(now())
+  store      Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, date])
+}
+
+model DeliverySale {
+  id                String      @id @default(uuid())
+  store_id          Int
+  date              DateTime    @default(now())
+  source            OrderSource
+  order_external_id String?
+  total_lbs         Float
+  guests            Int
+  protein_breakdown Json
+  created_at        DateTime    @default(now())
+  amount            Float       @default(0)
+  store             Store       @relation(fields: [store_id], references: [id])
+
+  @@index([store_id, date])
+}
+
+model ProductAlias {
+  id         String   @id @default(uuid())
+  store_id   Int
+  alias      String
+  protein    String
+  confidence Float    @default(1.0)
+  created_at DateTime @default(now())
+  store      Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, alias])
+}
+
+model SalesForecast {
+  id              String    @id @default(uuid())
+  store_id        Int
+  week_start      DateTime  @db.Date
+  forecast_lunch  Int       @default(0)
+  forecast_dinner Int       @default(0)
+  forecast_olo    Int       @default(0)
+  is_locked       Boolean   @default(false)
+  locked_at       DateTime?
+  locked_by       String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  store           Store     @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, week_start])
+}
+
+model Prospect {
+  id               String   @id @default(uuid())
+  company_name     String
+  industry         String
+  size             String
+  potential_fit    Float
+  research_summary String
+  justification    String
+  contact_info     Json?
+  status           String   @default("lead")
+  agent_id         String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+}
+
+model SysInvoice {
+  id           String   @id @default(uuid())
+  company_id   String
+  amount       Float
+  billing_date DateTime @default(now())
+  due_date     DateTime
+  status       String   @default("unpaid")
+  description  String?
+  usage_stats  Json?
+  created_at   DateTime @default(now())
+  company      Company  @relation(fields: [company_id], references: [id])
+}
+
+model SystemMetric {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Float
+  category    String
+  description String?
+  timestamp   DateTime @default(now())
+}
+
+model Lead {
+  id          String     @id @default(uuid())
+  name        String
+  email       String
+  company     String?
+  store_count Int?       @default(1)
+  message     String?
+  status      LeadStatus @default(NEW)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+}
+
+model InventoryCycle {
+  id           String          @id @default(uuid())
+  store_id     Int
+  cycle_type   CycleType
+  start_date   DateTime        @db.Date
+  end_date     DateTime        @db.Date
+  status       CycleStatus     @default(PENDING)
+  submitted_by String?
+  submitted_at DateTime?
+  store        Store           @relation(fields: [store_id], references: [id])
+  items        InventoryItem[]
+
+  @@unique([store_id, cycle_type, start_date])
+}
+
+model InventoryItem {
+  id            String         @id @default(uuid())
+  cycle_id      String
+  protein_id    String
+  expected_lbs  Float          @default(0)
+  actual_lbs    Float          @default(0)
+  variance_lbs  Float          @default(0)
+  variance_cost Float          @default(0)
+  notes         String?
+  cycle         InventoryCycle @relation(fields: [cycle_id], references: [id])
+  product       CompanyProduct @relation(fields: [protein_id], references: [id])
+
+  @@unique([cycle_id, protein_id])
+}
+
+model FAQ {
+  id              String   @id @default(uuid())
+  question        String
+  answer          String
+  frequency_count Int      @default(0)
+  category        String   @default("General")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model SupportTicket {
+  id              String           @id @default(uuid())
+  company_id      String?
+  store_id        Int
+  user_id         String
+  title           String
+  status          TicketStatus     @default(OPEN)
+  is_escalated    Boolean          @default(false)
+  rating          Int?
+  rating_feedback String?
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+  messages        SupportMessage[]
+  store           Store            @relation(fields: [store_id], references: [id])
+  user            User             @relation(fields: [user_id], references: [id])
+
+  @@index([store_id, status])
+}
+
+model SupportMessage {
+  id          String        @id @default(uuid())
+  ticket_id   String
+  sender_type SenderType    @default(USER)
+  content     String
+  created_at  DateTime      @default(now())
+  ticket      SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+}
+
+model ProcurementAIFeedback {
+  id                           String   @id @default(uuid())
+  store_id                     Int
+  date                         DateTime @db.Date
+  protein                      String
+  manager_prep_lbs             Float
+  ai_predicted_lbs             Float
+  chosen_winner                String
+  custom_correct_lbs           Float?
+  notes                        String?
+  created_at                   DateTime @default(now())
+  ai_predicted_skewers         Float?
+  custom_correct_skewers       Float?
+  manager_prep_skewers         Float?
+  target_trim_yield_percent    Float?
+  target_cooking_yield_percent Float?
+  max_yield_loss_percent       Float?   @default(20.0)
+  store                        Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, date, protein])
+}
+
+model Partner {
+  id                    String          @id @default(uuid())
+  user_id               String          @unique
+  legal_entity_type     String          @default("Individual")
+  tax_id                String?
+  country               String          @default("USA")
+  paypal_email          String?
+  status                String          @default("Active")
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @updatedAt
+  agreement_ip          String?
+  agreement_signed_at   DateTime?
+  training_completed_at DateTime?
+  user                  User            @relation("PartnerUser", fields: [user_id], references: [id])
+  clients               PartnerClient[]
+  payouts               Payout[]
+  proposals             Proposal[]
+}
+
+model PartnerClient {
+  id              String   @id @default(uuid())
+  partner_id      String
+  company_id      String
+  commission_rate Float    @default(25.0)
+  setup_fee_share Float    @default(70.0)
+  status          String   @default("Active")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  company         Company  @relation(fields: [company_id], references: [id])
+  partner         Partner  @relation(fields: [partner_id], references: [id])
+
+  @@unique([partner_id, company_id])
+}
+
+model Proposal {
+  id               String    @id @default(uuid())
+  partner_id       String
+  client_name      String
+  contact_email    String
+  contact_phone    String?
+  country          String    @default("USA")
+  language         String    @default("English")
+  store_count      Int       @default(1)
+  setup_fee        Float     @default(0.0)
+  monthly_fee      Float     @default(0.0)
+  status           String    @default("Draft")
+  agv_review_notes String?
+  signed_at        DateTime?
+  signer_ip        String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  partner          Partner   @relation(fields: [partner_id], references: [id])
+}
+
+model Payout {
+  id                    String    @id @default(uuid())
+  partner_id            String
+  amount                Float
+  currency              String    @default("USD")
+  type                  String    @default("SetupFee")
+  status                String    @default("Pending")
+  reference_month       DateTime? @db.Date
+  paid_at               DateTime?
+  paypal_transaction_id String?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  partner               Partner   @relation(fields: [partner_id], references: [id])
+}
+
+model ContractDocument {
+  id                 String   @id @default(uuid())
+  company_name       String
+  signer_name        String
+  signer_email       String
+  contract_type      String   @default("pilot")
+  implementation_fee Float    @default(0)
+  monthly_saas       Float    @default(0)
+  performance_share  Float    @default(0)
+  locations_count    Int
+  status             String   @default("DRAFT")
+  api_envelope_id    String?
+  contract_url       String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
+model PilotDailyAudit {
+  id                    String   @id @default(uuid())
+  store_id              Int
+  audit_date            DateTime @db.Date
+  day_number            Int
+  daily_score           Float
+  yield_savings_usd     Float
+  meat_rotation_insight String
+  ai_executive_summary  String
+  created_at            DateTime @default(now())
+  store                 Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, audit_date])
+}
+
+enum CycleType {
+  WEEKLY
+  MONTHLY
+}
+
+enum CycleStatus {
+  PENDING
+  SUBMITTED
+  LOCKED
+}
+
+enum OperationType {
+  RODIZIO
+  ALACARTE
+}
+
+enum Role {
+  admin
+  manager
+  viewer
+  director
+  area_manager
+  partner
+}
+
+enum OrderSource {
+  OLO
+  UberEats
+  DoorDash
+  Manual
+  OCR
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  PROPOSAL_SENT
+  ARCHIVED
+}
+
+enum FileType {
+  CSV
+  Image
+}
+
+enum TicketStatus {
+  OPEN
+  RESOLVED
+  CLOSED
+}
+
+enum SenderType {
+  USER
+  AI
+  ADMIN
+}
+
+model CorporateProteinSpec {
+  id                        String   @id @default(uuid())
+  company_id                String
+  protein_name              String
+  approved_brand            String
+  supplier                  String? // The distributor/vendor (e.g. Sysco, US Foods)
+  approved_item_code        String
+  created_by                String
+  created_at                DateTime @default(now())
+  expected_weight_min       Float?
+  expected_weight_max       Float?
+  expected_yield_pct        Float?
+  expected_trim_loss_pct    Float?
+  cost_per_lb               Float?
+  allow_exception_receiving Boolean  @default(false)
+  max_yield_loss_percent    Float?
+
+  company Company @relation(fields: [company_id], references: [id])
+  receivingRules ReceivingRecognitionRule[]
+  supplierBarcodeRules SupplierBarcodeRule[]
+  catalogItems SupplierCatalogItem[]
+}
+
+model BarcodeScanEvent {
+  id              String     @id @default(uuid())
+  store_id        Int
+  scanned_barcode String
+  gtin            String?
+  usda_grade      UsdaGrade?
+  is_approved     Boolean
+  is_override     Boolean    @default(false)
+  scanned_at      DateTime   @default(now())
+
+  // Sprint 5 Enhancement - Bait & Switch Payload Analytics
+  protein_name String?
+  supplier     String?
+  weight       Float?
+  metadata     Json?
+
+  store Store @relation(fields: [store_id], references: [id])
+}
+
+model BurgerInventoryPool {
+  id                       String   @id @default(uuid())
+  store_id                 Int
+  date                     DateTime @db.Date
+  total_lean_lbs           Float    @default(0)
+  total_fat_waste          Float    @default(0)
+  theoretical_patties      Int      @default(0)
+  pos_patties_sold         Int      @default(0)
+  manager_declared_on_hand Int      @default(0)
+  fraud_alert_qty          Int      @default(0)
+  is_fraud_flagged         Boolean  @default(false)
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  store Store @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, date])
+}
+
+enum UsdaGrade {
+  PRIME
+  CHOICE
+  SELECT
+  CAB
+  WAGYU
+  STANDARD
+  UNGRADED
+}
+
+model BarcodeFamily {
+  id                   String   @id @default(uuid())
+  family_code          String   @unique
+  family_name          String
+  symbology            String
+  barcode_type         String   @default("GS1")
+  prefix_patterns      String[]
+  parsing_strategy     String   @default("generic")
+  unit_default         String   @default("LB")
+  confidence_threshold Float    @default(0.85)
+  regex_pattern        String?
+  length_min           Int?
+  length_max           Int?
+  is_active            Boolean  @default(true)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  @@index([family_code, is_active])
+}
+
+model UnknownBarcodeLog {
+  id          String   @id @default(uuid())
+  store_id    Int
+  raw_barcode String
+  context     String?
+  reason      String?
+  created_at  DateTime @default(now())
+  store       Store    @relation(fields: [store_id], references: [id])
+}
+
+model ReceivingEvent {
+  id                    String   @id @default(uuid())
+  company_id            String?
+  client_event_id       String?
+  store_id              Int
+  scanned_barcode       String
+  gtin                  String?
+  product_code          String?
+  weight                Float?
+  supplier              String?
+  status                String
+  alert_severity        String?
+  invoice_id            String?
+  invoiced_price_per_lb Float?
+  created_at            DateTime @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
+
+  @@unique([company_id, client_event_id])
+}
+
+model PullToPrepEvent {
+  id              String   @id @default(uuid())
+  company_id      String?
+  client_event_id String?
+  store_id        Int
+  scanned_barcode String
+  gtin            String?
+  weight          Float?
+  intended_use    String   @default("RODIZIO") // RODIZIO or BURGER_POOL
+  created_at      DateTime @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
+
+  @@unique([company_id, client_event_id])
+}
+
+model TrimRecordEvent {
+  id                String   @id @default(uuid())
+  company_id        String?
+  client_event_id   String?
+  store_id          Int
+  protein_name      String?
+  input_weight      Float
+  trim_weight       Float
+  yield_pct         Float
+  created_at        DateTime @default(now())
+  status            String   @default("APPROVED")
+  sent_to           String   @default("WASTE_BIN") // WASTE_BIN or BURGER_POOL
+  quarantine_reason String?
+  reviewed_by       String?
+
+  store Store @relation(fields: [store_id], references: [id])
+
+  @@unique([company_id, client_event_id])
+}
+
+model FinancialLeakageEvent {
+  id                 String   @id @default(uuid())
+  store_id           Int
+  date               DateTime @default(now())
+  cut_name           String
+  supplier           String?
+  lost_lbs           Float
+  cost_per_lb        Float
+  estimated_loss_usd Float
+  source_of_loss     String?
+  baseline_reference String?
+  classification     String?
+  confidence_score   Float?
+  created_at         DateTime @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
+}
+
+model AiYieldInsight {
+  id                 String   @id @default(uuid())
+  store_id           Int
+  date               DateTime @default(now())
+  classification     String
+  confidence         Float
+  explanation        String
+  recommended_action String?
+  created_at         DateTime @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
+}
+
+model SystemAlert {
+  id          String   @id @default(uuid())
+  store_id    Int
+  severity    String
+  source      String
+  description String
+  raw_data    Json?
+  is_resolved Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
+}
+
+model IndustryBenchmark {
+  id            String   @id @default(uuid())
+  cut           String
+  yield_min     Float
+  yield_max     Float
+  trim_loss_min Float
+  trim_loss_max Float
+  source        String
+  version       String
+  active_flag   Boolean  @default(true)
+  created_at    DateTime @default(now())
+}
+
+model BarcodeDecisionLog {
+  id                String   @id @default(uuid())
+  store_id          Int
+  raw_barcode       String
+  cleaned_barcode   String   @default("")
+  context           String   @default("RECEIVING")
+  status            String   @default("UNKNOWN")
+  reason_code       String?
+  attempted_parsers String[]
+  scores            Float[]
+  selected_parser   String
+  runner_up_parser  String   @default("NONE")
+  confidence_gap    Float
+  created_at        DateTime @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
+
+  @@index([store_id, context, status])
+}
+
+model PasswordResetToken {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  token_hash String   @unique // SHA-256 hashed string
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model PasswordHistory {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  hash       String // bcrypt
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model VaultFile {
+  id         String @id @default(uuid())
+  company_id String
+  store_id   Int
+
+  document_type String // e.g., 'INVOICE', 'CONTRACT', 'TRAINING_CERT'
+  bucket_name   String
+  storage_key   String
+
+  original_filename String
+  mime_type         String
+  size_bytes        Int
+  checksum          String?
+
+  is_active     Boolean @default(false)
+  upload_status String  @default("PENDING") // PENDING, COMPLETED, QUARANTINED
+
+  uploaded_by_user_id String
+  created_at          DateTime  @default(now())
+  deleted_at          DateTime?
+
+  company Company @relation(fields: [company_id], references: [id])
+  store   Store   @relation(fields: [store_id], references: [id])
+  user    User    @relation(fields: [uploaded_by_user_id], references: [id])
+
+  access_logs FileAccessLog[]
+
+  @@index([company_id, store_id])
+  @@index([document_type])
+  @@index([storage_key])
+}
+
+model FileAccessLog {
+  id         String @id @default(uuid())
+  file_id    String
+  user_id    String
+  company_id String
+  store_id   Int
+
+  action        String // UPLOAD_REQUEST, UPLOAD_COMPLETED, DOWNLOAD_REQUEST, GLOBAL_AUDIT_VIEW
+  ip            String
+  justification String? // Mandatory for GLOBAL role views
+
+  created_at DateTime @default(now())
+
+  file VaultFile @relation(fields: [file_id], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [user_id], references: [id])
+
+  @@index([file_id])
+  @@index([user_id])
+  @@index([company_id, store_id])
+}
+
+model OcrQuarantineQueue {
+  id                    String    @id @default(uuid())
+  company_id            String?
+  store_id              Int
+  invoice_number        String?
+  invoice_date          DateTime?
+  supplier_id           String?
+  raw_line_text         String
+  normalized_cut_name   String?
+  contract_price_per_lb Float?
+  invoiced_price_per_lb Float?
+  variance_abs          Float?
+  variance_pct          Float?
+  ocr_confidence        Float
+  alert_status          String    @default("PENDING_REVIEW")
+  reviewed_by           String?
+  reviewed_at           DateTime?
+  resolution_notes      String?
+  created_at            DateTime  @default(now())
+
+  store Store @relation(fields: [store_id], references: [id])
+}
+
+enum DeletionJobStatus {
+  ANALYZED
+  EXECUTED
+  FAILED_HASH_MISMATCH
+  FAILED_EXECUTION
+  REJECTED
+}
+
+model TenantDeletionJob {
+  id              String            @id @default(uuid())
+  company_id      String
+  actor_id        String
+  actor_email     String
+  status          DeletionJobStatus @default(ANALYZED)
+  dry_run_payload Json
+  dry_run_hash    String
+  environment     String
+  created_at      DateTime          @default(now())
+  executed_at     DateTime?
+
+  @@index([company_id])
+  @@index([status])
+}
+
+model RawIntegrationPayload {
+  id              String   @id @default(uuid())
+  idempotency_key String   @unique
+  trace_id        String?  @default(uuid()) // For SRE Observability Tracking
+  source_id       String // "ALOHA_WEBHOOK"
+  store_id        String? // Might be nested in JSON, but good to index if known
+  raw_json        Json
+  status          String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  created_at      DateTime @default(now())
+
+  @@index([source_id, status])
+  @@index([trace_id])
+}
+
+model CanonicalEvent {
+  id              String    @id @default(uuid())
+  payload_id      String    @unique
+  store_id        String
+  event_type      String // "SalesSummaryReceived"
+  normalized_data Json
+  processed_at    DateTime? @default(now())
+}
+
+enum BoxStatus {
+  RECEIVED
+  IN_COOLER
+  PULLED_TO_PREP
+  CONSUMED
+  WASTE
+  QUARANTINED
+  ADJUSTED
+}
+
+enum BoxEvent {
+  RECEIVE
+  PUT_AWAY
+  PULL_TO_PREP
+  PREP_FINISHED
+  CONSUME
+  MARK_WASTE
+  ADMIN_ADJUST
+  QUARANTINE_LOCKED
+}
+
+model ProteinBox {
+  id           String  @id @default(uuid())
+  tenant_id    Int
+  store_id     Int
+  barcode      String
+  gtin         String?
+  lot_code     String?
+  product_name String
+  vendor       String?
+
+  received_weight_lb  Float
+  available_weight_lb Float
+  available_units     Int?
+
+  status BoxStatus @default(RECEIVED)
+
+  received_at DateTime @default(now())
+  received_by String
+
+  source_receiving_event String?
+  business_date          DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  events BoxLifecycleEvent[]
+  
+  transformationInputs TransformationInput[]
+  allocations          ProteinConsumptionAllocation[]
+
+  @@unique([store_id, barcode, business_date])
+  @@index([store_id, status])
+  @@index([gtin, lot_code])
+}
+
+model BoxLifecycleEvent {
+  id              String    @id @default(uuid())
+  box_id          String
+  store_id        Int
+  event_type      BoxEvent
+  previous_status BoxStatus
+  new_status      BoxStatus
+
+  triggered_by String
+  timestamp    DateTime @default(now())
+
+  weight_variance Float?
+  reason          String?
+
+  box ProteinBox @relation(fields: [box_id], references: [id])
+}
+
+model WeeklyReconciliationSnapshot {
+  id                String   @id @default(uuid())
+  store_id          Int
+  business_date     DateTime
+  scanned_boxes     String[]
+  missing_boxes     String[]
+  total_variance_lb Float
+
+  submitted_by String
+  created_at   DateTime @default(now())
+}
+
+model MigrationGuardAuditLog {
+  id             String    @id @default(uuid())
+  created_at     DateTime  @default(now())
+  guard_version  String
+  boot_id        String
+  environment    String
+  migration_name String?
+  event          String
+  state_detected String?
+  decision       String?
+  checksum_db    String?
+  checksum_local String?
+  finished_at    DateTime?
+  rolled_back_at DateTime?
+  reason         String?
+  details        Json?
+}
+
+// Enterprise SRE & Billing Enums and Models
+enum TierLevel {
+  TIER_1
+  TIER_2
+  TIER_3
+}
+
+enum DocuSignStatus {
+  PENDING
+  SENT
+  DELIVERED
+  SIGNED
+  DECLINED
+  VOIDED
+}
+
+model Subscription {
+  id                     String    @id @default(uuid())
+  organization_id        String
+  stripe_subscription_id String    @unique
+  tier                   TierLevel
+  price_per_store        Float
+  platform_fee           Float
+  store_count            Int       @default(0)
+  billing_cycle          String    @default("monthly")
+  status                 String    @default("active")
+
+  company Company @relation(fields: [organization_id], references: [id])
+}
+
+model BillingPlan {
+  id                   String    @id @default(uuid())
+  tier                 TierLevel @unique
+  price_per_store      Float
+  platform_fee         Float
+  min_store_commitment Int       @default(1)
+  annual_discount_pct  Float     @default(0.0)
+  created_at           DateTime  @default(now())
+}
+
+// ==========================================
+// VALIDATION CENTER (SRE & QA)
+// ==========================================
+
+/// ENUM MACHINE STATE
+enum IntakeStatus {
+  RECEIVED
+  CANONICALIZED
+  QUEUED
+  PROCESSING
+  NORMALIZED
+  VALIDATED
+  QUARANTINED
+  REJECTED
+  COMPLETED
+}
+
+enum ScopeLevel {
+  GLOBAL
+  TENANT
+  STORE
+}
+
+enum QuarantineCause {
+  INVALID_SCOPE
+  PARSER_FAILURE
+  LOW_CONFIDENCE
+  DUPLICATE_INPUT
+  UNSUPPORTED_FORMAT
+  INVALID_PAYLOAD
+  INVALID_MIME
+  FILE_TOO_LARGE
+  OCR_FAILURE
+  NORMALIZATION_FAILURE
+  RULESET_FAILURE
+  MISSING_REQUIRED_FIELDS
+  MALWARE_DETECTED
+  CORRUPTED_FILE
+}
+
+model GoldenDatasetItem {
+  id          String @id @default(uuid())
+  source_type String // barcode, olo, invoice, image, bulk
+
+  // IMMUTABLE ORIGIN
+  raw_input       String @db.Text
+  canonical_input String @db.Text // Basis for fingerprint
+  fingerprint     String @unique
+
+  // EXPLICIT SCOPING
+  tenant_id   String // [NOT NULL]
+  store_id    Int?
+  scope_level ScopeLevel // Declares level constraint explicitly
+
+  // STATE MACHINE & QUARANTINE
+  status             IntakeStatus     @default(RECEIVED)
+  quarantine_cause   QuarantineCause?
+  quarantine_details Json?
+
+  // PIPELINE VERSIONING
+  canonicalizer_version String @default("v1.0.0")
+  parser_version        String @default("v1.0.0")
+  normalizer_version    String @default("v1.0.0")
+  ruleset_version       String @default("v1.0.0")
+
+  // ASYNC ENGINE HOOKS
+  parsed_output     Json?
+  normalized_output Json?
+  validation_output Json?
+  expected_output   Json?
+  validation_notes  String?
+  priority          String  @default("NORMAL")
+
+  batch_id       String?
+  job_id         String? @unique
+  correlation_id String // Track initial hit to final conclusion
+  retry_count    Int     @default(0)
+
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  processed_at DateTime?
+  is_active    Boolean   @default(true)
+
+  @@index([tenant_id, status, created_at])
+  @@index([correlation_id])
+}
+
+model IntakeBatch {
+  id              String   @id @default(uuid())
+  tenant_id       String
+  total_items     Int
+  processed_items Int      @default(0)
+  failed_items    Int      @default(0)
+  created_at      DateTime @default(now())
+
+  @@index([tenant_id])
+}
+
+model IntakeJob {
+  id              String   @id @default(uuid())
+  dataset_item_id String   @unique
+  attempts        Int      @default(0)
+  error_message   String?  @db.Text
+  worker_id       String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([dataset_item_id])
+}
+
+model IntakeAudit {
+  id              String   @id @default(uuid())
+  correlation_id  String   @unique
+  actor_user_id   String
+  actor_role      String
+  action          String
+  target_resource String
+  effective_scope String
+  fingerprint     String
+  result_status   String
+  timestamp       DateTime @default(now())
+
+  @@index([effective_scope, action])
+}
+
+model ValidationRun {
+  id                        String    @id @default(uuid())
+  executed_by               String
+  tenant_id                 String?
+  store_id                  Int?
+  source_type               String? // nullable if ALL
+  total_cases_run           Int
+  failed_cases              Int
+  score_barcode_accuracy    Float
+  score_parsing_accuracy    Float
+  score_reconciliation      Float
+  score_leak_breaches       Int
+  score_duplicate_detection Float
+  health_status             String // PASS, WARNING, CRITICAL
+  started_at                DateTime  @default(now())
+  completed_at              DateTime?
+  audit_trail               Json?
+}
+
+model ValidationQuarantine {
+  id          String   @id @default(uuid())
+  source_type String
+  reason      String
+  tenant_id   String?
+  store_id    Int?
+  raw_payload Json
+  status      String   @default("PENDING") // PENDING, RESOLVED, ESCALATED
+  created_at  DateTime @default(now())
+  assigned_to String?
+}
+
+model ShadowModeCompare {
+  id            String   @id @default(uuid())
+  store_id      Int?
+  event_type    String
+  v1_result     Json?
+  shadow_result Json?
+  drift_pct     Float    @default(0.0)
+  status        String   @default("REVIEW_NEEDED") // MATCH, REVIEW_NEEDED
+  created_at    DateTime @default(now())
+}
+
+model OutboxEvent {
+  id              String    @id @default(uuid())
+  idempotency_key String    @unique // Garante que a mesma intenção nunca seja registrada 2x
+  topic           String    // 'intake.queued'
+  payload         Json      // Must include itemId, tenant_id etc
+  status          String    @default("PENDING") // PENDING, PUBLISHED, FAILED
+  error           String?   @db.Text
+  tenant_id       String
+  
+  locked_at       DateTime?
+  locked_by       String?
+  
+  created_at      DateTime  @default(now())
+  published_at    DateTime?
+
+  @@index([status, locked_at, created_at])
+  @@index([idempotency_key])
+}
+
+model FileObject {
+  id                  String   @id @default(uuid())
+  tenant_id           String
+  storage_key         String   @unique
+  original_name       String
+  mime_type           String
+  size_bytes          Int
+  checksum            String   @unique
+  malware_scan_status String   @default("PENDING") // PENDING, CLEAN, INFECTED, ERROR
+  dataset_item_id     String?  @unique
+  created_at          DateTime @default(now())
+
+  @@index([tenant_id, checksum])
+}
+
+// ==== PHASE 6: OPERATIONAL INTELLIGENCE LAYER ====
+
+model RulesetVersion {
+  id              String   @id @default(uuid())
+  version_tag     String   @unique // ex: "v1.0-brazil_yield"
+  thresholds      Json     // Matrix of thresholds and bands
+  created_at      DateTime @default(now())
+  created_by      String   @default("SYSTEM")
+}
+
+model ScoreDefinition {
+  id              String   @id @default(uuid())
+  score_name      String   @unique
+  formula_hash    String
+  active          Boolean  @default(true)
+  created_at      DateTime @default(now())
+}
+
+model IntelligenceSnapshot {
+  id                  String   @id @default(uuid())
+  tenant_id           String
+  store_id            Int?
+  period_start        DateTime
+  period_end          DateTime
+  
+  // Mathematical Scores (0-100)
+  op_risk_score       Float    @default(0)
+  store_trust_score   Float    @default(0)
+  ingestion_score     Float    @default(0)
+  
+  // Raw Data Signals
+  lbs_guest_real      Float    @default(0)
+  lbs_guest_theo      Float    @default(0)
+  lbs_guest_delta_pct Float    @default(0)
+  
+  // Traceability & Lineage
+  local_baseline_context Json?
+  source_inputs_used  Int      @default(0)
+  ruleset_version     String
+  confidence          Float    @default(1.0)
+  generated_at        DateTime @default(now())
+
+  // Relationships to Events
+  anomalies           AnomalyEvent[]
+  recommendations     RecommendationEvent[]
+
+  @@unique([tenant_id, store_id, period_start, period_end])
+  @@index([tenant_id, generated_at])
+}
+
+model AnomalyEvent {
+  id              String   @id @default(uuid())
+  snapshot_id     String
+  tenant_id       String
+  store_id        Int?
+  anomaly_type    String   // 'CRITICAL_LBS_VARIANCE', 'GHOST_SHIFT'
+  severity        String   // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+  confidence      Float
+  message         String   @db.Text
+  is_capped       Boolean  @default(false)
+  trigger_value   Float
+  baseline_value  Float
+  created_at      DateTime @default(now())
+
+  snapshot        IntelligenceSnapshot @relation(fields: [snapshot_id], references: [id], onDelete: Cascade)
+  recommendations RecommendationEvent[]
+
+  @@index([tenant_id, severity])
+}
+
+model RecommendationEvent {
+  id              String   @id @default(uuid())
+  snapshot_id     String
+  anomaly_id      String?
+  tenant_id       String
+  store_id        Int?
+  
+  action_code     String
+  title           String
+  description     String   @db.Text
+  rationale       String   @db.Text
+  owner_role      String   // 'STORE_MANAGER', 'FINANCE'
+  priority        String   // 'LOW', 'MEDIUM', 'HIGH', 'URGENT'
+  status          String   @default("PENDING") // PENDING, DONE, IGNORED
+  deadline_at     DateTime?
+  
+  created_at      DateTime @default(now())
+  
+  snapshot        IntelligenceSnapshot @relation(fields: [snapshot_id], references: [id], onDelete: Cascade)
+  anomaly         AnomalyEvent?        @relation(fields: [anomaly_id], references: [id], onDelete: SetNull)
+
+  @@index([tenant_id, owner_role, status])
+}
+
+// ==========================================
+// ASSISTED RECOGNITION (V2 HOTFIX)
+// ==========================================
+
+model ReceivingRecognitionRule {
+  id                      String   @id @default(uuid())
+  company_id              String
+  protein_spec_id         String
+  gtin                    String?
+  normalized_product_code String?
+  raw_barcode_pattern     String?
+  match_strength          String   // 'STRONG' | 'MEDIUM' | 'WEAK'
+  
+  created_by              String
+  created_at              DateTime @default(now())
+  is_active               Boolean  @default(true)
+  notes                   String?
+
+  spec CorporateProteinSpec @relation(fields: [protein_spec_id], references: [id])
+}
+
+model AuditEvent {
+  id           String   @id @default(uuid())
+  action       String
+  actor        String
+  store_id     Int?
+  target_id    String?
+  payload      Json?
+  timestamp    DateTime @default(now())
+}
+
+// ==========================================
+// SUPPLIER-AWARE CONTEXT (V3 EXTENSION)
+// ==========================================
+
+model SupplierProfile {
+  id               String   @id @default(cuid())
+  companyId        String
+  name             String
+  code             String?  // ex: SYSCO, USF
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  rules            SupplierBarcodeRule[]
+  catalogItems     SupplierCatalogItem[]
+  @@index([companyId])
+}
+
+model SupplierBarcodeRule {
+  id                    String   @id @default(cuid())
+  companyId             String
+  supplierId            String
+  matchType             RuleMatchType  
+  gtin                  String?
+  normalizedProductCode String?
+  rawBarcodePattern     String?
+  regex                 String?
+  matchStrength         RuleStrength   
+  minPrefixLength       Int?           
+  isActive              Boolean @default(true)
+  createdBy             String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  supplier            SupplierProfile @relation(fields: [supplierId], references: [id])
+  proteinSpecId       String
+  spec                CorporateProteinSpec @relation(fields: [proteinSpecId], references: [id])
+  @@index([companyId, supplierId])
+}
+
+enum RuleMatchType {
+  GTIN
+  PRODUCT_CODE
+  PREFIX
+  REGEX
+}
+
+enum RuleStrength {
+  STRONG
+  MEDIUM
+  WEAK
+}
+
+// =======================================================
+// BRASA ENTERPRISE INTEGRATION MESH (PROMPT 06)
+// =======================================================
+
+model SupplierCatalogItem {
+  id                   String  @id @default(cuid())
+  supplierId           String
+  supplierItemCode     String
+  gtin                 String?
+  supplierDescription  String?
+  supplierPackType     String?
+  expectedWeightRange  String?
+  expectedUom          String? @default("lb")
+  isActive             Boolean @default(true)
+  linkedProteinSpecId  String?
+  confidence           Float   @default(0.0)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  supplier             SupplierProfile @relation(fields: [supplierId], references: [id])
+  spec                 CorporateProteinSpec? @relation(fields: [linkedProteinSpecId], references: [id])
+
+  @@index([supplierId, supplierItemCode])
+}
+
+model PurchaseOrder {
+  id               String   @id @default(cuid())
+  companyId        String
+  storeId          Int
+  supplierId       String?
+  poNumber         String
+  status           PoStatus @default(DRAFT)
+  plannedDelivery  DateTime?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  lines            PurchaseOrderLine[]
+
+  @@index([companyId, storeId])
+  @@index([poNumber])
+}
+
+model PurchaseOrderLine {
+  id               String   @id @default(cuid())
+  purchaseOrderId  String
+  supplierItemCode String?
+  productRefId     String?
+  qtyExpected      Int
+  weightExpected   Float?
+  packCount        Int?
+  status           String   @default("OPEN")
+  
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+
+  @@index([purchaseOrderId])
+}
+
+model ExpectedDelivery {
+  id               String   @id @default(cuid())
+  companyId        String
+  storeId          Int
+  supplierId       String?
+  asnNumber        String?
+  status           DeliveryStatus @default(PLANNED)
+  plannedDelivery  DateTime?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  lines            ExpectedDeliveryLine[]
+
+  @@index([companyId, storeId])
+  @@index([asnNumber])
+}
+
+model ExpectedDeliveryLine {
+  id                 String   @id @default(cuid())
+  expectedDeliveryId String
+  supplierItemCode   String?
+  qtyExpected        Int
+  weightExpected     Float?
+
+  expectedDelivery   ExpectedDelivery @relation(fields: [expectedDeliveryId], references: [id])
+}
+
+model SupplierDocument {
+  id                     String   @id @default(cuid())
+  companyId              String
+  storeId                Int
+  supplierId             String?
+  documentType           SupplierDocType
+  externalDocumentNumber String?
+  issueDate              DateTime?
+  sourceChannel          String   @default("UPLOAD")
+  rawPayload             Json?
+  parsedStatus           DocParsedStatus @default(CAPTURED)
+  confidence             Float    @default(0.0)
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  lines                  SupplierDocumentLine[]
+
+  @@index([storeId])
+  @@index([externalDocumentNumber])
+}
+
+model SupplierDocumentLine {
+  id                 String   @id @default(cuid())
+  documentId         String
+  supplierItemCode   String?
+  qty                Int?
+  weight             Float?
+  price              Float?
+
+  document           SupplierDocument @relation(fields: [documentId], references: [id])
+}
+
+model PosSalesFeed {
+  id               String   @id @default(cuid())
+  storeId          Int
+  businessDate     DateTime
+  sourceSystem     String   @default("TOAST")
+  transactionRef   String?
+  importedAt       DateTime @default(now())
+
+  lines            PosSalesLine[]
+
+  @@index([storeId, businessDate])
+}
+
+model PosSalesLine {
+  id               String   @id @default(cuid())
+  feedId           String
+  itemSold         String
+  quantity         Float
+  modifiers        Json?
+  channel          String   @default("DINE_IN")
+
+  feed             PosSalesFeed @relation(fields: [feedId], references: [id])
+  consumptionLinks ConsumptionLink[]
+  allocations      ProteinConsumptionAllocation[]
+}
+
+model ReconciliationEvent {
+  id               String   @id @default(cuid())
+  storeId          Int
+  businessDate     DateTime
+  status           String   @default("OPEN")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  varianceCases    VarianceCase[]
+
+  @@index([storeId, businessDate])
+}
+
+model VarianceCase {
+  id                      String   @id @default(cuid())
+  reconciliationEventId   String
+  type                    String
+  severity                VarianceSeverity @default(LOW)
+  sourceEntities          Json?
+  financialEstimate       Float?
+  status                  String   @default("OPEN")
+  requiredAction          String?
+  assignedRole            String?
+  auditTrail              Json?
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  reconciliationEvent     ReconciliationEvent @relation(fields: [reconciliationEventId], references: [id])
+}
+
+model SupplierIntegritySnapshot {
+  id                       String   @id @default(cuid())
+  companyId                String
+  supplierId               String
+  periodStart              DateTime
+  periodEnd                DateTime
+  weakRuleRate             Float    @default(0.0)
+  reviewRate               Float    @default(0.0)
+  rejectRate               Float    @default(0.0)
+  documentMismatchRate     Float    @default(0.0)
+  expectedVsReceivedVariance Float  @default(0.0)
+  averageRiskScore         Float    @default(0.0)
+  confidenceIndex          Float    @default(1.0)
+  degradationTrend         String?
+
+  createdAt                DateTime @default(now())
+
+  @@index([companyId, supplierId, periodEnd])
+}
+
+enum PoStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  DISPUTED
+  CLOSED
+}
+
+enum DeliveryStatus {
+  PLANNED
+  IN_TRANSIT
+  ARRIVED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  EXCEPTION
+}
+
+enum SupplierDocType {
+  INVOICE
+  PACKING_LIST
+  BILL_OF_LADING
+  ASN
+  DELIVERY_NOTE
+}
+
+enum DocParsedStatus {
+  CAPTURED
+  PARSED
+  VERIFIED
+  LINKED
+  DISPUTED
+}
+
+enum VarianceSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// =======================================================
+// BRASA TRANSFORMATION & CONSUMPTION ENGINE (PROMPT 07)
+// =======================================================
+
+model ProteinTransformationBatch {
+  id                String   @id @default(cuid())
+  storeId           Int
+  productType       String   // e.g. HAMBURGER, PRIME_RIB_PORTION
+  totalInputWeight  Float    @default(0.0)
+  totalOutputUnits  Int      @default(0)
+  totalOutputWeight Float    @default(0.0)
+  yieldPercentage   Float    @default(0.0)
+  status            BatchStatus @default(OPEN)
+
+  createdBy         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  inputs            TransformationInput[]
+  outputs           TransformationOutput[]
+  consumptionLinks  ConsumptionLink[]
+
+  @@index([storeId, status])
+}
+
+model TransformationInput {
+  id                 String   @id @default(cuid())
+  batchId            String
+  sourceProteinBoxId String
+  sourceType         InputSourceType // e.g. PRIME_CUT, SCRAP
+  weightUsed         Float
+  timestamp          DateTime @default(now())
+
+  batch              ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+  box                ProteinBox @relation(fields: [sourceProteinBoxId], references: [id])
+
+  @@index([batchId])
+  @@index([sourceProteinBoxId])
+}
+
+model TransformationOutput {
+  id             String   @id @default(cuid())
+  batchId        String
+  productCode    String   // e.g. HAMBURGER
+  unitsProduced  Int
+  weightProduced Float
+  timestamp      DateTime @default(now())
+
+  batch          ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+
+  @@index([batchId])
+}
+
+model ConsumptionLink {
+  id             String   @id @default(cuid())
+  batchId        String
+  posSalesLineId String
+  sourceSystem   String   @default("POS") // E.g. POS, OLO
+  unitsConsumed  Int
+  timestamp      DateTime @default(now())
+
+  batch          ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+  salesLine      PosSalesLine @relation(fields: [posSalesLineId], references: [id])
+
+  @@index([batchId])
+  @@index([posSalesLineId])
+}
+
+enum BatchStatus {
+  OPEN
+  CLOSED
+  RECONCILED
+}
+
+enum InputSourceType {
+  PRIME_CUT
+  SCRAP
+}
+
+// =======================================================
+// BRASA CONSUMPTION ALLOCATION ENGINE (SUPER PROMPT E2E)
+// =======================================================
+
+model ConsumptionAllocationRule {
+  id                    String   @id @default(cuid())
+  storeId               Int
+  productCode           String   // e.g. LAMB_CHOP, BEEF_RIB
+  allocationMethod      AllocationMethod
+  unitName              String   // e.g. BONE, PORTION
+  unitsPerSale          Int      @default(1)
+  unitsPerCase          Int      @default(10) // default fallback
+  usesLotLevelWeight    Boolean  @default(true)
+  fixedPortionWeightLbs Float?   // Nullable, used if FIXED_WEIGHT
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([storeId, productCode])
+}
+
+model ProteinConsumptionAllocation {
+  id                 String   @id @default(cuid())
+  sourceProteinBoxId String?
+  sourceScanEventId  String?
+  productCode        String
+  unitsConsumed      Float
+  lbsAllocated       Float
+  sourceSystem       String   // POS | OLO
+  destinationType    DestinationChannel // SALAO | BAR | DELIVERY
+  posSalesLineId     String?
+
+  timestamp          DateTime @default(now())
+
+  box                ProteinBox? @relation(fields: [sourceProteinBoxId], references: [id])
+  salesLine          PosSalesLine? @relation(fields: [posSalesLineId], references: [id])
+
+  @@index([sourceProteinBoxId])
+  @@index([posSalesLineId])
+}
+
+enum AllocationMethod {
+  UNIT_BASED
+  FIXED_WEIGHT
+}
+
+enum DestinationChannel {
+  SALAO
+  BAR
+  DELIVERY
+}
+
+// =======================================================
+// BRASA EXECUTIVE DASHBOARD ENGINE (PROMPT 09)
+// =======================================================
+
+model ExecutiveSnapshotLedger {
+  id                    String   @id @default(cuid())
+  companyId             Int
+  storeId               Int?
+  snapshotType          SnapshotType // DAILY | WEEKLY
+  businessDate          DateTime
+  generatedAt           DateTime @default(now())
+
+  integrityScore        Float
+  executiveRiskLevel    String
+  weeklyVarianceUSD     Float
+  lbsPerGuestDiningRoom Float?
+
+  actionPanelPayload    Json
+  metricsVersion        String
+  scoreVersion          String?
+  policyVersion         String?
+  
+  isFinal               Boolean  @default(false)
+  completenessStatus    String   @default("COMPLETE") // COMPLETE | PARTIAL | INCOMPLETE
+  missingSources        String[] // Array of system modules that failed to report
+  reasonIfPartial       String?
+
+  @@unique([companyId, storeId, snapshotType, businessDate])
+}
+
+model ExecutiveActionDecision {
+  id                         String   @id @default(cuid())
+  companyId                  Int
+  storeId                    Int?
+  actionCode                 String
+  actionTitle                String
+  actionSeverity             String
+  financialImpactEstimateUSD Float
+
+  sourceSnapshotId           String?
+  sourceMetricVersion        String
+  sourceBusinessDate         DateTime?
+  
+  targetType                 String // STORE | CHANNEL | PRODUCT | SUPPLIER
+  targetId                   String // Ref associated to the target
+  
+  decisionStatus             DecisionStatus @default(OPEN)
+  resolutionOutcome          String? // SUCCESS | FALSE_POSITIVE | NO_ACTION_TAKEN
+  
+  assignedToUserId           String?
+  createdBySystem            Boolean @default(true)
+  
+  viewedAt                   DateTime?
+  acknowledgedAt             DateTime?
+  forwardedAt                DateTime?
+  actedByUserId              String?
+  actedAt                    DateTime?
+  resolvedAt                 DateTime?
+  
+  notes                      String?
+  createdAt                  DateTime @default(now())
+
+  @@index([storeId, decisionStatus, createdAt])
+}
+
+enum SnapshotType {
+  DAILY
+  WEEKLY
+}
+
+enum DecisionStatus {
+  OPEN
+  ACKNOWLEDGED
+  FORWARDED
+  APPROVED
+  RESOLVED
+  DISMISSED
+}
+
+// =======================================================
+// BRASA PILOT OPERATIONS COMMAND (PROMPT 11)
+// =======================================================
+
+model PilotConfiguration {
+  id                 String   @id @default(cuid())
+  companyId          Int
+  storeId            Int
+  status             PilotStatus @default(INACTIVE)
+  
+  pilotStartDate     DateTime
+  pilotEndDate       DateTime?
+  
+  enabledFeatures    String[] // ['ACTION_PANEL', 'BENTO_GRID_KPI']
+  allowedRoles       String[] // ['store_manager', 'director']
+  
+  successThresholds  Json? // For holding { "avgResolutionTimeSecs": 120 }
+  rollbackEnabled    Boolean @default(true)
+
+  @@unique([storeId])
+}
+
+model PilotFeedback {
+  id                 String   @id @default(cuid())
+  companyId          Int
+  storeId            Int
+  userId             String
+  actionDecisionId   String?  // If tied to a specific aborted card
+  
+  feedbackCategory   FeedbackCategory
+  severity           String   // MINOR | MAJOR | BLOCKER
+  affectedScreen     String
+  comments           String
+  
+  createdAt          DateTime @default(now())
+}
+
+enum PilotStatus {
+  ACTIVE
+  PAUSED
+  ROLLED_BACK
+  INACTIVE
+  COMPLETED
+}
+
+enum FeedbackCategory {
+  UX_CONFUSION
+  DATA_QUALITY_ISSUE
+  OPERATIONAL_PROCESS_GAP
+  BUG
+  PERFORMANCE_ISSUE
+  METRIC_CONFIDENCE_ISSUE
+  ADOPTION_BARRIER
+}

@@ -130,26 +130,18 @@ export class LabelDataFusionEngine {
 
         // Pass 2: Merge Barcodes (Supplier Rule or EAN Variable)
         const supplierData = barcodes.find(b => b.source_parser === 'SUPPLIER_RULE');
-        if (supplierData) {
-            if (fusedData.gtin.confidence < 0.8 && supplierData.gtin) {
-                fusedData.gtin = { value: supplierData.gtin, source: 'SUPPLIER_RULE', confidence: 0.9 }; 
-            }
-            if (fusedData.productCodeBase.confidence < 0.8 && supplierData.product_code) {
-                fusedData.productCodeBase = { value: supplierData.product_code, source: 'SUPPLIER_RULE', confidence: 0.9 };
-            }
-            if (!supplierData.product_code && !supplierData.gtin) {
-                 conflicts.push("SUPPLIER_RULE triggered but yielded no GTIN or ProductCode (Blind rule).");
-            }
+        if (supplierData && fusedData.gtin.confidence < 0.8) {
+            fusedData.gtin = { value: supplierData.gtin || null, source: 'SUPPLIER_RULE', confidence: 0.9 }; // Strong rule assumption
         }
 
         const eanData = barcodes.find(b => b.source_parser === 'EAN_VARIABLE');
         if (eanData) {
-            if (fusedData.productCodeBase.confidence < 0.9) {
-                fusedData.productCodeBase = { value: eanData.product_code || null, source: 'EAN_VARIABLE', confidence: 0.8 };
+            if (fusedData.productCodeBase.confidence < 0.8) {
+                fusedData.productCodeBase = { value: eanData.product_code || null, source: 'SUPPLIER_RULE', confidence: 0.7 };
             }
             // EAN weight overrides base confidence given the barcode provides absolute reading truth
             if ((eanData as any).weightLb && fusedData.weightLb.confidence < 0.9) {
-                fusedData.weightLb = { value: (eanData as any).weightLb, source: 'EAN_VARIABLE', confidence: 0.95 };
+                fusedData.weightLb = { value: (eanData as any).weightLb, source: 'SUPPLIER_RULE', confidence: 0.9 };
             }
         }
 

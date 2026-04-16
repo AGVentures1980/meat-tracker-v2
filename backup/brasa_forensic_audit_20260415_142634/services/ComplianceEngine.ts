@@ -115,21 +115,14 @@ export class ComplianceEngine {
                 });
             }
         } else {
-            // Fallback Legacy Flow: Match contra productCodeBase primeiro
+            // Fallback Legacy Flow: Hard match direto no master data
             const specs = await prisma.corporateProteinSpec.findMany({
                 where: { company_id: companyId }
             });
 
-            if (fusedData.productCodeBase.value) {
-                matchedSpec = specs.find(s => s.approved_item_code === fusedData.productCodeBase.value);
-            }
-            
-            // Ultra Low Priority: Fallback para Exact Match Cru via fallbackRawBarcode
+            matchedSpec = specs.find(s => s.approved_item_code === fusedData.productCodeBase.value);
             if (!matchedSpec && fallbackRawBarcode) {
                 matchedSpec = specs.find(s => s.approved_item_code === fallbackRawBarcode);
-                if (matchedSpec && process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
-                    console.warn(`[BARCODE TRACE] CRÈDITO EXPERIMENTAL (LOW-PRIORITY): Exact Match Legacy Fallback Triggered via barcode cru para ${matchedSpec.protein_name}`);
-                }
             }
         }
 
