@@ -45,6 +45,7 @@ model Company {
   polling_expires_at          DateTime?
   grace_period_until          DateTime?
   subscriptions               Subscription[]
+  supplierAliasMappings       SupplierAliasMapping[]
 
   products             CompanyProduct[]
   vault_messages       OwnerVaultMessage[]
@@ -769,6 +770,7 @@ model CorporateProteinSpec {
   receivingRules ReceivingRecognitionRule[]
   supplierBarcodeRules SupplierBarcodeRule[]
   catalogItems SupplierCatalogItem[]
+  aliasMappings SupplierAliasMapping[]
 }
 
 model BarcodeScanEvent {
@@ -2152,4 +2154,42 @@ enum FeedbackCategory {
   PERFORMANCE_ISSUE
   METRIC_CONFIDENCE_ISSUE
   ADOPTION_BARRIER
+}
+
+model BarcodeCanonicalIdentity {
+  id               String   @id @default(uuid())
+  company_id       String
+  identity_hash    String   @unique
+  base_gtin        String?
+  supplier_prefix  String?
+  source_integrity String   @default("WEAK") // WEAK / STRONG
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  created_by       String?
+
+  @@index([company_id])
+  @@index([identity_hash])
+  @@index([base_gtin])
+}
+
+model SupplierAliasMapping {
+  id              String   @id @default(uuid())
+  company_id      String
+  canonical_hash  String
+  protein_spec_id String
+  supplier_id     String?
+  confidence      Float    @default(1.0)
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  created_by      String
+
+  protein_spec CorporateProteinSpec @relation(fields: [protein_spec_id], references: [id], onDelete: Cascade)
+  company      Company              @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_id, canonical_hash, protein_spec_id])
+  @@index([company_id])
+  @@index([canonical_hash])
+  @@index([protein_spec_id])
 }

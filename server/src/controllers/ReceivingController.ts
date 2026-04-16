@@ -9,6 +9,7 @@ import { AlertEngine } from '../services/AlertEngine';
 import { FraudIntelligenceEngine } from '../services/FraudIntelligenceEngine';
 import { RiskEnforcementEngine } from '../services/RiskEnforcementEngine';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+import { CanonicalIdentityGenerator } from '../services/CanonicalIdentityGenerator';
 
 
 const prisma = new PrismaClient();
@@ -81,6 +82,15 @@ export const ReceivingController = {
 
             // 3. FUSE DATA (Zero-Trust Aggregation)
             const { fusedData, conflicts } = LabelDataFusionEngine.fuse(parsedDataArray, ocrData || null, supplierRules);
+
+            // --- CANONICAL IDENTITY GENERATION (Shadow Mode / Non-Blocking) ---
+            const canonicalCandidates = parsedDataArray.map(p => CanonicalIdentityGenerator.generate(p, supplier_id?.toString() || 'NO_SUPPLIER'));
+            const strongCandidate = canonicalCandidates.find(c => c?.sourceIntegrity === 'STRONG');
+            
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log(`[BARCODE TRACE] CANONICAL IDENTITY CANDIDATE:`, JSON.stringify(strongCandidate || canonicalCandidates[0] || null, null, 2));
+            }
+            // ------------------------------------------------------------------
 
             // 4. Verification Check
             const finalGtin = fusedData.gtin.value || gtin;
