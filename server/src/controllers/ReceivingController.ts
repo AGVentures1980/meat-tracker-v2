@@ -48,15 +48,30 @@ export const ReceivingController = {
             for (const [key, protein] of Object.entries(DEMO_PATTERNS)) {
                 if (upperBarcode.includes(key)) {
                     if (verifiedStoreId) await prisma.receivingEvent.create({ data: { store_id: verifiedStoreId, scanned_barcode: barcode, status: 'ACCEPTED', gtin: "DEMO" } });
+                    if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(JSON.stringify({ diagnosticTrace: true, traceId: 'DEMO', stage: 'FINAL_RESPONSE', httpStatus: 200, responseStatus: 'APPROVED' }));
                     return res.json({ status: 'APPROVED', protein, weight });
                 }
             }
 
             const { supplier_id, ocrData } = req.body;
+            
+            const diagnosticTraceId = `DIAG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log(JSON.stringify({ diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'RAW_SCAN_RECEIVED', timestamp: new Date().toISOString(), rawBarcode: barcode, companyId, supplierId: supplier_id, storeId: verifiedStoreId, requestWeight: weight, requestGtin: gtin }));
+            }
 
             // 1. Route Barcodes through Multi-Parser Engine
             const rawBarcodesArray = barcode ? [barcode] : [];
             const parsedDataArray = await BarcodeParserRouter.parse(rawBarcodesArray, companyId, supplier_id);
+
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                const parseResults = parsedDataArray.map(p => ({
+                    diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'PARSER_RESULT', timestamp: new Date().toISOString(),
+                    parseSucceeded: p.source_parser !== 'FALLBACK', parserSource: p.source_parser, symbology: p.symbology,
+                    gtin: p.gtin, product_code: p.product_code, weightLb: p.weightLb, productionDate: p.productionDate, serial: p.serial
+                }));
+                parseResults.forEach(r => console.log(JSON.stringify(r)));
+            }
 
         // 2. Fetch active Supplier Rules for fusion context
             const supplierRules = await prisma.supplierBarcodeRule.findMany({
@@ -82,6 +97,16 @@ export const ReceivingController = {
 
             // 3. FUSE DATA (Zero-Trust Aggregation)
             const { fusedData, conflicts } = LabelDataFusionEngine.fuse(parsedDataArray, ocrData || null, supplierRules);
+
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log(JSON.stringify({
+                     diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'FUSION_RESULT', timestamp: new Date().toISOString(),
+                     fusionSucceeded: Object.keys(fusedData).length > 0,
+                     fused_gtin: fusedData.gtin?.value || null, fused_productCodeBase: fusedData.productCodeBase?.value || null,
+                     fused_weightLb: fusedData.weightLb?.value || null, fused_weightSource: fusedData.weightLb?.source || null,
+                     conflicts: conflicts
+                 }));
+            }
 
             // --- CANONICAL IDENTITY GENERATION (Shadow Mode / Non-Blocking) ---
             const canonicalCandidates = parsedDataArray.map(p => CanonicalIdentityGenerator.generate(p, supplier_id?.toString() || 'NO_SUPPLIER'));
@@ -116,6 +141,7 @@ export const ReceivingController = {
             if (!finalGtin && fusedData.productCodeBase.value === null) {
                 if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
                      console.log('[BARCODE TRACE] FUSION REJECTED -> No Identifier:', JSON.stringify(fusedData, null, 2));
+                     console.log(JSON.stringify({ diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'FINAL_RESPONSE', httpStatus: 400, responseStatus: 'REJECTED', responseError: 'No Product Identifier detected in Fusion Engine.', responseProtein: null, responseWeight: 0 }));
                 }
                 return res.status(400).json({ 
                     error: 'No Product Identifier detected in Fusion Engine.',
@@ -143,7 +169,22 @@ export const ReceivingController = {
             }
 
             // 5. Compliance Engine (Zero-Trust)
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log(JSON.stringify({
+                     diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'PRE_COMPLIANCE', timestamp: new Date().toISOString(),
+                     finalGtin, finalWeight, productCodeBase: fusedData.productCodeBase?.value || null, conflictCount: conflicts.length
+                 }));
+            }
             const compliance = await ComplianceEngine.evaluate(fusedData, companyId, supplier_id, conflicts);
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log(JSON.stringify({
+                     diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'COMPLIANCE_DECISION', timestamp: new Date().toISOString(),
+                     complianceStatus: compliance.status, reason_code: compliance.reason_code || null, severity: compliance.severity || null,
+                     specMatchedId: compliance.specMatched?.id || null, matched_rule_id: compliance.matched_rule_id || null,
+                     matched_rule_strength: compliance.matched_rule_strength || null, match_type: compliance.match_type || null,
+                     complianceDetails: compliance.details
+                 }));
+            }
 
             let currentStatus = compliance.status;
             let enforcementResult = null;
@@ -233,6 +274,7 @@ export const ReceivingController = {
                     });
 
                     if (existingBox) {
+                        if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(JSON.stringify({ diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'FINAL_RESPONSE', httpStatus: 409, responseStatus: 'REJECTED', responseError: 'Duplicate Scan Protection', responseProtein: null, responseWeight: 0 }));
                         return res.status(409).json({ status: 'REJECTED', error: `Duplicate Scan Protection: Box ${barcode} has already been received into this store.` });
                     }
 
@@ -283,6 +325,7 @@ export const ReceivingController = {
             if (compliance.status === 'REJECTED') {
                  if (user.role === 'admin' || user.role === 'director' || user.role === 'owner' || user.role === 'partner') {
                     const roster = await prisma.companyProduct.findMany({ where: { company_id: companyId }, select: { id: true, name: true }});
+                    if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(JSON.stringify({ diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'FINAL_RESPONSE', httpStatus: 200, responseStatus: 'UNMAPPED_REVIEW_ALLOWED', responseError: compliance.details, responseProtein: null, responseWeight: finalWeight }));
                     return res.json({ 
                         status: 'UNMAPPED_REVIEW_ALLOWED', 
                         gtin: finalGtin, 
@@ -294,11 +337,15 @@ export const ReceivingController = {
                         conflicts
                     });
                 }
+                if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(JSON.stringify({ diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'FINAL_RESPONSE', httpStatus: 200, responseStatus: 'REVIEW_REQUIRED', responseError: compliance.details, responseProtein: null, responseWeight: finalWeight }));
                 return res.json({ status: 'REVIEW_REQUIRED', details: compliance.details, fusedData, conflicts });
             }
             
+            const finalSt = compliance.status === 'ACCEPTED' ? 'APPROVED' : compliance.status;
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(JSON.stringify({ diagnosticTrace: true, traceId: diagnosticTraceId, stage: 'FINAL_RESPONSE', httpStatus: 200, responseStatus: finalSt, responseError: null, responseProtein: compliance.specMatched?.protein_name, responseWeight: finalWeight }));
+            
             return res.json({ 
-                status: compliance.status === 'ACCEPTED' ? 'APPROVED' : compliance.status, 
+                status: finalSt, 
                 protein: compliance.specMatched?.protein_name || "Unknown", 
                 weight: finalWeight,
                 details: compliance.details,
@@ -308,9 +355,11 @@ export const ReceivingController = {
 
         } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {
+                if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(JSON.stringify({ diagnosticTrace: true, traceId: 'CRASH', stage: 'FINAL_RESPONSE', httpStatus: error.status, responseError: error.message }));
                 return res.status(error.status).json({ error: error.message });
             }
             console.error('Scan Barcode Error:', error);
+            if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') console.log(JSON.stringify({ diagnosticTrace: true, traceId: 'CRASH', stage: 'FINAL_RESPONSE', httpStatus: 500, responseError: error.message }));
             res.status(500).json({ error: error.message ? `CRASH TRACE: ${error.message.substring(0, 150)}` : 'Internal Server Error' });
         }
     },
