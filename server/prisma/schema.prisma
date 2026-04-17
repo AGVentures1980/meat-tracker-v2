@@ -877,6 +877,7 @@ model ReceivingEvent {
   created_at            DateTime @default(now())
 
   store Store @relation(fields: [store_id], references: [id])
+  inbound_line_units InboundLineUnit[]
 
   @@unique([company_id, client_event_id])
 }
