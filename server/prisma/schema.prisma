@@ -148,6 +148,7 @@ model Store {
   UnknownBarcodeLog     UnknownBarcodeLog[]
   ReceivingEvent        ReceivingEvent[]
   PullToPrepEvent       PullToPrepEvent[]
+  InboundShipments      InboundShipment[]
   TrimRecordEvent       TrimRecordEvent[]
   FinancialLeakageEvent FinancialLeakageEvent[]
   AiYieldInsight        AiYieldInsight[]
@@ -521,10 +522,13 @@ model InventoryItem {
   cycle_id      String
   protein_id    String
   expected_lbs  Float          @default(0)
-  actual_lbs    Float          @default(0)
-  variance_lbs  Float          @default(0)
-  variance_cost Float          @default(0)
-  notes         String?
+  actual_lbs     Float          @default(0)
+  variance_lbs   Float          @default(0)
+  variance_cost  Float          @default(0)
+  systemWeightLb Float          @default(0)
+  delta          Float          @default(0)
+  deltaPct       Float          @default(0)
+  notes          String?
   cycle         InventoryCycle @relation(fields: [cycle_id], references: [id])
   product       CompanyProduct @relation(fields: [protein_id], references: [id])
 
@@ -771,6 +775,8 @@ model CorporateProteinSpec {
   supplierBarcodeRules SupplierBarcodeRule[]
   catalogItems SupplierCatalogItem[]
   aliasMappings SupplierAliasMapping[]
+
+  familyBindings FamilySpecBinding[]
 }
 
 model BarcodeScanEvent {
@@ -865,6 +871,9 @@ model ReceivingEvent {
   alert_severity        String?
   invoice_id            String?
   invoiced_price_per_lb Float?
+  financialStatus       String?
+  weightType            String   @default("FIXED")
+  matchStatus           String?
   created_at            DateTime @default(now())
 
   store Store @relation(fields: [store_id], references: [id])
@@ -2192,4 +2201,192 @@ model SupplierAliasMapping {
   @@index([company_id])
   @@index([canonical_hash])
   @@index([protein_spec_id])
+}
+
+// ---------------------------------------------------------
+// V1.1 HARDENED CANONICAL ARCHITECTURE (ZERO-TRUST)
+// ---------------------------------------------------------
+
+model RawBarcodeEvent {
+  id                 String   @id @default(uuid())
+  scanned_barcode    String
+  store_id           Int
+  company_id         String?
+  source             String   @default("UNKNOWN")
+  detected_symbology String?
+  metadata           Json?
+  created_at         DateTime @default(now())
+
+  parsed_facts       ParsedBarcodeFacts?
+}
+
+model ParsedBarcodeFacts {
+  id                    String   @id @default(uuid())
+  raw_barcode_event_id  String   @unique
+  gtin                  String?
+  item_reference        String?
+  product_code          String?
+  weight_lb             Float?
+  lot                   String?
+  serial                String?
+  production_date       String?
+  parser_source         String
+  parser_confidence     Float
+  normalized_json       Json?
+  created_at            DateTime @default(now())
+
+  raw_event             RawBarcodeEvent @relation(fields: [raw_barcode_event_id], references: [id], onDelete: Cascade)
+}
+
+model CanonicalBarcodeIdentity {
+  id                  String   @id @default(uuid())
+  company_id          String
+  identity_hash       String   @unique
+  identity_basis      String   // e.g. "GTIN", "PRODUCT_CODE", "OCR_SIGNATURE"
+  identity_input_type String   // e.g. "GS1-128", "CUSTOM_LABEL"
+  stable_signature    String
+  supplier_context_id String?
+  source_integrity    String   @default("WEAK")
+  status              String   @default("ACTIVE")
+  operational_family_id String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  operational_family  OperationalFamily? @relation(fields: [operational_family_id], references: [id], onDelete: SetNull)
+  aliases             SupplierProductAlias[]
+  resolutions         IdentityResolutionAudit[]
+
+  @@index([company_id])
+  @@index([identity_hash])
+  @@index([stable_signature])
+  @@index([operational_family_id])
+}
+
+model SupplierProductAlias {
+  id                      String   @id @default(uuid())
+  canonical_identity_id   String
+  supplier_id             String?
+  alias_type              String   // e.g. "VENDOR_SKU", "GTIN_VARIANT"
+  alias_value             String
+  confidence              Float    @default(1.0)
+  status                  String   @default("ACTIVE")
+  created_by              String?
+  reviewed_by             String?
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+
+  canonical_identity      CanonicalBarcodeIdentity @relation(fields: [canonical_identity_id], references: [id], onDelete: Cascade)
+
+  @@index([canonical_identity_id])
+}
+
+model OperationalFamily {
+  id            String   @id @default(uuid())
+  company_id    String
+  family_code   String
+  family_name   String
+  protein_group String?
+  active        Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  bindings      FamilySpecBinding[]
+  identities    CanonicalBarcodeIdentity[]
+
+  @@unique([company_id, family_code])
+}
+
+model FamilySpecBinding {
+  id                        String   @id @default(uuid())
+  operational_family_id     String
+  corporate_protein_spec_id String
+  binding_status            String   @default("ACTIVE")
+  created_by                String?
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+
+  operational_family        OperationalFamily @relation(fields: [operational_family_id], references: [id], onDelete: Cascade)
+  protein_spec              CorporateProteinSpec @relation(fields: [corporate_protein_spec_id], references: [id], onDelete: Cascade)
+
+  @@unique([operational_family_id, corporate_protein_spec_id])
+  @@index([operational_family_id])
+  @@index([corporate_protein_spec_id])
+}
+
+model MappingReviewQueue {
+  id                              String   @id @default(uuid())
+  raw_barcode                     String
+  parsed_facts_id                 String?
+  canonical_identity_candidate_id String?
+  suggested_family_id             String?
+  suggested_spec_id               String?
+  reason_code                     String
+  review_status                   String   @default("PENDING")
+  resolution_notes                String?
+  resolved_by                     String?
+  created_at                      DateTime @default(now())
+  updated_at                      DateTime @updatedAt
+  store_id                        Int?
+  company_id                      String?
+
+  @@index([company_id])
+  @@index([review_status])
+}
+
+model IdentityResolutionAudit {
+  id                      String   @id @default(uuid())
+  raw_barcode             String
+  parsed_facts_id         String?
+  canonical_identity_id   String?
+  alias_match_id          String?
+  operational_family_id   String?
+  corporate_spec_id       String?
+  decision_path           String
+  confidence_level        Float
+  governance_status       String
+  trace_payload_json      Json?
+  created_at              DateTime @default(now())
+
+  canonical_identity      CanonicalBarcodeIdentity? @relation(fields: [canonical_identity_id], references: [id], onDelete: SetNull)
+
+  @@index([raw_barcode])
+  @@index([canonical_identity_id])
+}
+
+// =======================================================
+// BRASA INBOUND HARDENING ARCHITECTURE
+// =======================================================
+
+model InboundShipment {
+  id             String   @id @default(uuid())
+  company_id     String?
+  store_id       Int
+  supplier_id    String?
+  invoice_number String
+  status         String   @default("IMPORTED") // IMPORTED, PARTIALLY_RECEIVED, COMPLETED
+  total_boxes    Int      @default(0)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  units          InboundLineUnit[]
+  store          Store    @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, invoice_number])
+  @@index([store_id, supplier_id, status])
+}
+
+model InboundLineUnit {
+  id                String   @id @default(uuid())
+  shipment_id       String
+  item_name         String
+  expectedWeightLb  Float
+  weightType        String   @default("FIXED") // FIXED | VARIABLE
+  status            String   @default("AVAILABLE") // AVAILABLE, MATCHED
+  matched_event_id  String?  @unique
+  created_at        DateTime @default(now())
+
+  shipment          InboundShipment @relation(fields: [shipment_id], references: [id], onDelete: Cascade)
+  receiving_event   ReceivingEvent? @relation(fields: [matched_event_id], references: [id])
+
+  @@index([shipment_id, status])
 }

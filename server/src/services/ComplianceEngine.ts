@@ -45,6 +45,49 @@ export class ComplianceEngine {
 
         const fallbackRawBarcode = fusedData.rawBarcodes.length > 0 ? fusedData.rawBarcodes[0] : null;
 
+        let traceMethod = 'CORPORATE_SPEC';
+        let traceField = 'N/A';
+
+        // --- PHASE 1: CANONICAL ECOSYSTEM RESOLUTION (V1 ZERO-TRUST + V2 IDENTITY LEVELS) ---
+        const { CanonicalIdentityGenerator } = await import('./CanonicalIdentityGenerator');
+        const { BarcodeIdentityResolver } = await import('./identities/BarcodeIdentityResolver');
+
+        const parsedMock = {
+            rawBarcodes: fusedData.rawBarcodes,
+            gtin: fusedData.gtin.value || undefined,
+            product_code: (fusedData.productCodeBase.source === 'GS1_AI' ? undefined : fusedData.productCodeBase.value) || undefined,
+            serial: fusedData.serial?.value || undefined,
+            symbology: 'UNKNOWN',
+            source_parser: fusedData.gtin.source === 'GS1_AI' ? 'GS1_AI' : 'EAN_VARIABLE'
+        };
+
+        const canonicalCandidate = CanonicalIdentityGenerator.generate(parsedMock as any, supplierId);
+        const resolvedCanonical = await BarcodeIdentityResolver.resolve(canonicalCandidate, companyId);
+        
+        if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+            console.log(`[EXECUTION DEBUG - ComplianceEngine (Phase 1)]`);
+            console.log(` -> Identity Level: ${canonicalCandidate.identityLevel}`);
+            console.log(` -> Tentou Alias (Family)? ${resolvedCanonical.matchType === 'ALIAS_MAPPED' ? 'Sim (Encontrado)' : 'Sim (Não Encontrado)'}`);
+            console.log(` -> CorporateSpec vinculado? ${resolvedCanonical.corporateSpec ? 'Sim (ID: ' + resolvedCanonical.corporateSpec.id + ')' : 'Não'}`);
+            if (!resolvedCanonical.corporateSpec) {
+                console.log(` -> Caiu no Fallback Legado? Sim, pois o ecossistema canônico não amarrou o Spec.`);
+            }
+            console.log('\n');
+        }
+
+        let canonicalIdentityId = resolvedCanonical.canonicalIdentity?.id;
+
+        if (resolvedCanonical.corporateSpec) {
+             matchedSpec = resolvedCanonical.corporateSpec;
+             activeRuleType = 'LegacyRule'; // Emulated to bypass below block cleanly
+             if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                 console.log(`[BARCODE TRACE] CANONICAL RESOLUTION HIT! Type: ${resolvedCanonical.matchType} -> Family: ${resolvedCanonical.operationalFamily?.family_name}`);
+             }
+        }
+
+        // --- PHASE 2: LEGACY FALLBACK (Only if Canonical failed) ---
+        if (!matchedSpec) {
+
         // 1. Supplier-Aware Rules (V3 Extension)
         let supplierRules = await prisma.supplierBarcodeRule.findMany({
             where: { 
@@ -136,8 +179,7 @@ export class ComplianceEngine {
             }
         }
 
-        let traceMethod = 'CORPORATE_SPEC';
-        let traceField = 'N/A';
+
 
         if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
             if (activeRule) {
@@ -167,14 +209,41 @@ export class ComplianceEngine {
                  console.log(`[BARCODE TRACE] [WARNING] LEGACY FALLBACK ACTIVATED`);
             }
         }
+        } // End of Legacy Fallback Wrapper
 
         if (!matchedSpec) {
+            // Write to Mapping Review Queue internally
+            if (canonicalCandidate) {
+                try {
+                    await prisma.mappingReviewQueue.create({
+                        data: {
+                            raw_barcode: fallbackRawBarcode || 'UNKNOWN',
+                            canonical_identity_candidate_id: canonicalIdentityId || null,
+                            reason_code: 'UNMAPPED_GTIN',
+                            review_status: 'PENDING',
+                            company_id: companyId
+                        }
+                    });
+
+                    if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+                        console.log(`[EXECUTION DEBUG - MappingReviewQueue]`);
+                        console.log(` -> Barcode Bloqueado: ${fallbackRawBarcode}`);
+                        console.log(` -> Family Signature: ${canonicalCandidate.familyStableSignature || 'NULL'}`);
+                        console.log(` -> Item Signature: ${canonicalCandidate.itemStableSignature}`);
+                        console.log(` -> Motivo do bloqueio: UNMAPPED_GTIN (Fila de Revisão)\n`);
+                    }
+
+                } catch (e) {
+                    console.error('[BARCODE TRACE] Failed to write into MappingReviewQueue', e);
+                }
+            }
+
             return {
                 status: 'REJECTED',
                 reason_code: 'UNMAPPED_GTIN',
                 reference: 'supplier_spec',
                 severity: 'CRITICAL',
-                details: 'No matching CorporateProteinSpec found.',
+                details: 'No matching CorporateProteinSpec found in system. Queued for Review.',
                 specMatched: null,
                 decisionPath: 'UNMAPPED_NO_SPEC'
             };

@@ -117,10 +117,37 @@ export const ReceivingController = {
                  }));
             }
 
-            // --- CANONICAL IDENTITY GENERATION (Shadow Mode / Non-Blocking) ---
+            // --- CANONICAL IDENTITY GENERATION & PERSISTENCE ---
             const canonicalCandidates = parsedDataArray.map(p => CanonicalIdentityGenerator.generate(p, supplier_id?.toString() || 'NO_SUPPLIER'));
             const c = canonicalCandidates.find(cand => cand?.sourceIntegrity === 'STRONG') || canonicalCandidates[0] || null;
             
+            // Persist the Raw Event
+            let rawEventId = null;
+            try {
+                 const rawEvent = await prisma.rawBarcodeEvent.create({
+                      data: {
+                           scanned_barcode: barcode || 'UNKNOWN',
+                           store_id: verifiedStoreId || 0,
+                           company_id: companyId,
+                           source: 'RECEIVING_SCANNER',
+                           detected_symbology: parsedDataArray[0]?.symbology || 'UNKNOWN',
+                           parsed_facts: {
+                               create: {
+                                   gtin: fusedData.gtin.value || null,
+                                   product_code: fusedData.productCodeBase.value || null,
+                                   weight_lb: fusedData.weightLb.value || null,
+                                   parser_source: 'FusionEngine',
+                                   parser_confidence: 1.0,
+                                   normalized_json: JSON.stringify(fusedData)
+                               }
+                           }
+                      }
+                 });
+                 rawEventId = rawEvent.id;
+            } catch (e) {
+                 console.error('[BARCODE TRACE] Erro ao persistir RawBarcodeEvent', e);
+            }
+
             if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true' && c) {
                  const tracePayload = {
                      traceId: `${companyId}-${Date.now()}`,
@@ -133,7 +160,7 @@ export const ReceivingController = {
                      sourceIntegrity: c.sourceIntegrity,
                      identityBasis: c.identityBasis,
                      identityInputType: c.identityInputType,
-                     identityInputValue: c.identityInputValue,
+                     stableSignature: c.itemStableSignature,
                      supplierContextUsed: c.supplierContextUsed,
                      fallbackUsed: c.fallbackUsed,
                      productionDate: (fusedData as any).productionDate?.value || null,
@@ -559,6 +586,68 @@ export const ReceivingController = {
                     }
                 });
             }
+
+            // --- V1 CANONICAL ECOSYSTEM INJECTION ---
+            try {
+                 const { CanonicalIdentityGenerator } = await import('../services/CanonicalIdentityGenerator');
+                 const { SupplierAliasResolver } = await import('../services/identities/SupplierAliasResolver');
+                 const { OperationalFamilyResolver } = await import('../services/identities/OperationalFamilyResolver');
+                 
+                 const parsedMock = {
+                     rawBarcodes: [raw_barcode],
+                     gtin: gtin || undefined,
+                     product_code: (product_code === gtin) ? undefined : (product_code || undefined),
+                     source_parser: gtin ? 'GS1_AI' : (product_code ? 'EAN_VARIABLE' : 'FALLBACK'),
+                     serial: req.body.serial || undefined,
+                     symbology: 'UNKNOWN'
+                 };
+                 const candidate = CanonicalIdentityGenerator.generate(parsedMock as any, supplier_id);
+                 
+                 // 1. Ensure Identity (ITEM LEVEL)
+                 let identity = await prisma.canonicalBarcodeIdentity.findUnique({ where: { identity_hash: candidate.identityHash } });
+                 if (!identity) {
+                      identity = await prisma.canonicalBarcodeIdentity.create({
+                          data: {
+                              company_id: companyId,
+                              identity_hash: candidate.identityHash,
+                              identity_basis: candidate.identityBasis,
+                              identity_input_type: candidate.identityInputType,
+                              stable_signature: candidate.itemStableSignature,
+                              supplier_context_id: candidate.supplierContextUsed ? (supplier_id || 'UNKNOWN') : 'NO_SUPPLIER_CONTEXT',
+                              source_integrity: candidate.sourceIntegrity,
+                              status: 'ACTIVE'
+                          }
+                      });
+                 }
+                 
+                 // 2. Ensure Operational Family exists
+                 // Let's create a placeholder Family based on the protein code or just generic
+                 const familyCode = `F-${specToLink.approved_item_code || 'GENERIC'}`;
+                 const family = await OperationalFamilyResolver.findOrCreateFamily(companyId, familyCode, `Family - ${specToLink.protein_name}`);
+                 
+                 // 3. Link Identity -> Family
+                 if (identity.operational_family_id !== family.id) {
+                      await prisma.canonicalBarcodeIdentity.update({
+                           where: { id: identity.id },
+                           data: { operational_family_id: family.id }
+                      });
+                 }
+                 
+                 // 4. Create Aliases
+                 // Item-level alias (always)
+                 await SupplierAliasResolver.createAlias(identity.id, candidate.itemStableSignature, candidate.identityBasis, isWeak ? 0.5 : 1.0, user.id, supplier_id);
+                 // Family-level alias (if generated)
+                 if (candidate.familyStableSignature) {
+                     await SupplierAliasResolver.createAlias(identity.id, candidate.familyStableSignature, candidate.identityBasis, isWeak ? 0.5 : 1.0, user.id, supplier_id);
+                 }
+                 
+                 // 5. Bind Family -> Spec 
+                 await OperationalFamilyResolver.bindSpecToFamily(family.id, specToLink.id, user.id);
+                 
+            } catch(e) {
+                 console.error("[BARCODE TRACE] Erro ao injetar ecossistema canonico", e);
+            }
+            // ----------------------------------------
 
             // 2. Audit Trail
             await prisma.auditEvent.create({

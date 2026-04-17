@@ -1,15 +1,19 @@
-import { ParsedBarcodeData } from './BarcodeDecisionEngine';
 import * as crypto from 'crypto';
+import { ParsedBarcodeData } from './BarcodeDecisionEngine';
 
 export interface CanonicalIdentityCandidate {
-    identityHash: string | null;
+    identityLevel: 'FAMILY_LEVEL' | 'ITEM_LEVEL' | 'RAW_FALLBACK';
+    familyStableSignature: string | null;
+    itemStableSignature: string;
+    identityHash: string;
+    familyHash: string | null;
+    
     canonicalGtin: string | null;
     supplierPrefix: string | null;
     sourceIntegrity: 'STRONG' | 'MEDIUM' | 'WEAK' | 'INVALID';
-    identityBasis: 'EXACT_GTIN_14' | 'PRODUCT_CODE' | 'RAW_FALLBACK' | 'NONE';
+    identityBasis: 'EXACT_GTIN_14' | 'PRODUCT_CODE' | 'SERIAL_PREFIX_HEURISTIC' | 'RAW_FALLBACK' | 'NONE';
     identityInputType: 'GS1_AI' | 'SUPPLIER_RULE' | 'EAN_VARIABLE' | 'FALLBACK';
-    identityInputValue: string;
-    supplierContextUsed: string | 'NO_SUPPLIER_CONTEXT';
+    supplierContextUsed: boolean;
     fallbackUsed: boolean;
 }
 
@@ -20,53 +24,100 @@ export class CanonicalIdentityGenerator {
         supplierDomain?: string | null
     ): CanonicalIdentityCandidate {
         
-        let hash: string | null = null;
+        let identityHash: string;
+        let familyHash: string | null = null;
         let integrity: 'STRONG' | 'MEDIUM' | 'WEAK' | 'INVALID' = 'INVALID';
-        let basis: 'EXACT_GTIN_14' | 'PRODUCT_CODE' | 'RAW_FALLBACK' | 'NONE' = 'NONE';
+        let basis: 'EXACT_GTIN_14' | 'PRODUCT_CODE' | 'SERIAL_PREFIX_HEURISTIC' | 'RAW_FALLBACK' | 'NONE' = 'NONE';
         
         const supplierContext = supplierDomain || 'NO_SUPPLIER_CONTEXT';
-        let inputValue = parsedData.rawBarcodes[0] || 'UNKNOWN_RAW';
+        const supplierContextUsed = supplierDomain ? true : false;
+        
+        let familyStableSignature: string | null = null;
+        let itemStableSignature: string = parsedData.rawBarcodes?.[0] || 'UNKNOWN_RAW';
 
         const inputType = (parsedData.source_parser || 'FALLBACK') as 'GS1_AI' | 'SUPPLIER_RULE' | 'EAN_VARIABLE' | 'FALLBACK';
 
-        if (inputType === 'GS1_AI' && parsedData.gtin) {
-            basis = 'EXACT_GTIN_14';
-            inputValue = parsedData.gtin;
-            integrity = supplierContext !== 'NO_SUPPLIER_CONTEXT' ? 'STRONG' : 'MEDIUM';
-        } else if (inputType === 'EAN_VARIABLE' && parsedData.product_code) {
+        // 1. Establish ITEM LEVEL (Traceability)
+        const itemParts = [parsedData.gtin, parsedData.serial, parsedData.productionDate].filter(Boolean);
+        if (itemParts.length > 0) {
+            itemStableSignature = itemParts.join('::');
+        }
+
+        // 2. Establish FAMILY LEVEL (Grouping)
+        if (parsedData.product_code) {
+            familyStableSignature = parsedData.product_code;
             basis = 'PRODUCT_CODE';
-            inputValue = parsedData.product_code;
-            integrity = 'MEDIUM'; 
-        } else if (inputType === 'SUPPLIER_RULE' && (parsedData.gtin || parsedData.product_code)) {
-            basis = parsedData.product_code ? 'PRODUCT_CODE' : 'EXACT_GTIN_14';
-            inputValue = parsedData.product_code || parsedData.gtin || '';
-            integrity = supplierContext !== 'NO_SUPPLIER_CONTEXT' ? 'STRONG' : 'MEDIUM';
-        } else if (inputType === 'FALLBACK' && parsedData.gtin) {
-            basis = 'EXACT_GTIN_14';
-            inputValue = parsedData.gtin;
+            integrity = 'STRONG';
+        } else if (inputType === 'GS1_AI' && parsedData.gtin) {
+            // Check if variable measure GTIN (USA standards usually start with 9)
+            if (!parsedData.gtin.startsWith('9')) {
+                familyStableSignature = parsedData.gtin;
+                basis = 'EXACT_GTIN_14';
+                integrity = supplierContextUsed ? 'STRONG' : 'MEDIUM';
+            } else {
+                // Variable Measure GTIN. Do not use GTIN as family. Try heuristic on SERIAL.
+                if (parsedData.serial && parsedData.serial.length >= 6) {
+                    const companyPrefix = parsedData.gtin.substring(0, 8);
+                    const serialPrefix = parsedData.serial.substring(0, 6);
+                    familyStableSignature = `${companyPrefix}-${serialPrefix}`;
+                    basis = 'SERIAL_PREFIX_HEURISTIC';
+                    integrity = 'MEDIUM';
+                } else {
+                    familyStableSignature = null;
+                    basis = 'NONE';
+                    integrity = 'WEAK';
+                }
+            }
+        } else if (inputType === 'EAN_VARIABLE' && parsedData.gtin) {
+            // Usually no product_code returned, just gtin in old parsers... wait, EAN_VARIABLE returns product_code
+            familyStableSignature = null;
+            basis = 'NONE';
             integrity = 'WEAK';
         } else if (inputType === 'FALLBACK') {
+            familyStableSignature = null;
             basis = 'RAW_FALLBACK';
-            inputValue = parsedData.rawBarcodes[0];
             integrity = 'WEAK';
         } else {
             integrity = 'INVALID';
         }
 
-        if (integrity !== 'INVALID') {
-            const rawString = `${supplierContext}::${basis}::${inputValue}`;
-            hash = crypto.createHash('sha256').update(rawString).digest('hex');
+        // 3. Hash Generation
+        const itemRawString = `${supplierContext}::ITEM::${itemStableSignature}::${parsedData.symbology || 'UNKNOWN'}`;
+        identityHash = crypto.createHash('sha256').update(itemRawString).digest('hex');
+
+        if (familyStableSignature) {
+            const familyRawString = `${supplierContext}::FAMILY::${basis}::${familyStableSignature}::${parsedData.symbology || 'UNKNOWN'}`;
+            familyHash = crypto.createHash('sha256').update(familyRawString).digest('hex');
+        }
+
+        let identityLevel: 'FAMILY_LEVEL' | 'ITEM_LEVEL' | 'RAW_FALLBACK' = 'ITEM_LEVEL';
+        if (familyStableSignature) identityLevel = 'FAMILY_LEVEL';
+        if (inputType === 'FALLBACK') identityLevel = 'RAW_FALLBACK';
+
+        if (process.env.ENABLE_BARCODE_RUNTIME_TRACE === 'true') {
+            console.log(`[EXECUTION DEBUG - CanonicalIdentityGenerator V2]`);
+            console.log(` -> Barcode: ${parsedData.rawBarcodes[0]}`);
+            console.log(` -> Identity Level: ${identityLevel}`);
+            console.log(` -> Family Signature: ${familyStableSignature || 'NULL'} (Basis: ${basis})`);
+            console.log(` -> Item Signature: ${itemStableSignature}`);
+            console.log(` -> Identity Hash (ITEM): ${identityHash}`);
+            console.log(` -> Family Hash: ${familyHash || 'NULL'}`);
+            console.log(` -> Supplier Context Used: ${supplierContextUsed}`);
+            console.log(` -> Source Integrity: ${integrity}\n`);
         }
 
         return {
-            identityHash: hash,
+            identityLevel,
+            familyStableSignature,
+            itemStableSignature,
+            identityHash,
+            familyHash,
             canonicalGtin: parsedData.gtin || null,
             supplierPrefix: supplierDomain || null,
             sourceIntegrity: integrity,
             identityBasis: basis,
             identityInputType: inputType,
-            identityInputValue: inputValue,
-            supplierContextUsed: supplierContext,
+            supplierContextUsed,
             fallbackUsed: inputType === 'FALLBACK' || integrity === 'WEAK'
         };
     }
