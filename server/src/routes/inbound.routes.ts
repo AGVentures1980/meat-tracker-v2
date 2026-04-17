@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { InboundController } from '../controllers/InboundController';
-import { authenticate } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
-router.use(authenticate);
+router.use(requireAuth);
 
 router.get('/available', InboundController.getAvailableShipments);
 router.post('/create-from-invoice', InboundController.createFromInvoice);

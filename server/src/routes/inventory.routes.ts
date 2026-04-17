@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { InventoryController } from '../controllers/InventoryController';
 import { InventoryEngineController } from '../controllers/InventoryEngineController';
-import { authenticate } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
-router.use(authenticate);
+router.use(requireAuth);
 
 router.post('/weekly-close', InventoryController.submitWeeklyClose);
 router.post('/pull-to-prep', InventoryController.pullToPrep);

@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { ReceivingEngineController } from '../controllers/ReceivingEngineController';
-import { authenticate } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
-router.use(authenticate);
+router.use(requireAuth);
 
 router.post('/scan', ReceivingEngineController.scanWithConcurrencyLock);
 router.post('/confirm', ReceivingEngineController.confirmReview);
