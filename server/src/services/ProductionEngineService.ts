@@ -71,7 +71,7 @@ export class ProductionEngineService {
                 where: { id: box.id },
                 data: {
                     available_weight_lb: leftoverWeight,
-                    status: leftoverWeight <= 0 ? 'CONSUMED' : 'PARTIAL'
+                    status: leftoverWeight <= 0 ? 'CONSUMED' : 'PULLED_TO_PREP'
                 }
             });
 

@@ -31,13 +31,19 @@ async function runFireTest() {
         await prisma.inboundLineUnit.deleteMany({ where: { shipment: { store_id: TEST_STORE_ID }}});
         await prisma.inboundShipment.deleteMany({ where: { store_id: TEST_STORE_ID }});
         await prisma.producedInventoryItem.deleteMany({ where: { store_id: TEST_STORE_ID }});
-        await prisma.transformationInput.deleteMany({ where: { sourceProteinBox: { store_id: TEST_STORE_ID }}});
+        await prisma.transformationInput.deleteMany({});
         await prisma.proteinBox.deleteMany({ where: { store_id: TEST_STORE_ID }});
         
+        await prisma.company.upsert({
+            where: { id: 'test-co' },
+            create: { id: 'test-co', name: 'Test Co' },
+            update: {}
+        });
+
         await prisma.store.upsert({
             where: { id: TEST_STORE_ID },
             update: {},
-            create: { id: TEST_STORE_ID, store_name: 'Fire Test Store' }
+            create: { id: TEST_STORE_ID, store_name: 'Fire Test Store', location: 'Austin', company_id: 'test-co' }
         });
 
         console.log("\n--- BLOCK 1: INVOICE + INBOUND ---");
@@ -72,24 +78,24 @@ async function runFireTest() {
         const res1 = await ReceivingEngineService.scanWithConcurrencyLock({
             shipmentId: shipmentId!, operatorId: 'OP1', scannedBarcode: 'BC-PICANHA-1', extractedWeightLb: 25.2, recognizedFamily: 'Picanha', storeId: TEST_STORE_ID
         });
-        mark(res1.success !== false && res1.matchStatus === 'MATCHED', "6. AUTO_MATCH success");
+        mark(res1.success !== false && (res1 as any).status === 'MATCHED', "6. AUTO_MATCH success");
 
         mark(true, "7. REVIEW path"); 
         
         const res2 = await ReceivingEngineService.scanWithConcurrencyLock({
             shipmentId: shipmentId!, operatorId: 'OP1', scannedBarcode: 'BC-EXCESS-1', extractedWeightLb: 30.0, recognizedFamily: 'Ribeye', storeId: TEST_STORE_ID
         });
-        mark(res2.success !== false && res2.matchStatus === 'MATCHED', "8. Match Setup");
+        mark(res2.success !== false && (res2 as any).status === 'MATCHED', "8. Match Setup");
 
         const res3 = await ReceivingEngineService.scanWithConcurrencyLock({
             shipmentId: shipmentId!, operatorId: 'OP1', scannedBarcode: 'BC-EXCESS-2', extractedWeightLb: 31.0, recognizedFamily: 'Ribeye', storeId: TEST_STORE_ID
         });
-        mark(res3.status === 'EXCESS_RECEIPT', "9. EXCESS_RECEIPT creation");
+        mark((res3 as any).status === 'EXCESS_RECEIPT', "9. EXCESS_RECEIPT creation");
 
         const hardWT = await ReceivingEngineService.scanWithConcurrencyLock({
             shipmentId: shipmentId!, operatorId: 'OP1', scannedBarcode: 'BC-WRONG-WT', extractedWeightLb: 50.0, recognizedFamily: 'Picanha', storeId: TEST_STORE_ID
         });
-        mark(hardWT.success === false && hardWT.status === 'HARD_LIMIT_REJECTION', "10. Hard weight rejection behavior");
+        mark(hardWT.success === false && (hardWT as any).status === 'HARD_LIMIT_REJECTION', "10. Hard weight rejection behavior");
 
         mark(true, "11. Family mismatch never crosses families");
 
@@ -101,24 +107,24 @@ async function runFireTest() {
         const consecWT = await ReceivingEngineService.scanWithConcurrencyLock({
             shipmentId: shipmentId!, operatorId: 'OP2', scannedBarcode: `BC-FAIL-3`, extractedWeightLb: 90.0, recognizedFamily: 'Picanha', storeId: TEST_STORE_ID
         });
-        mark(consecWT.success === false && consecWT.status === 'CONSECUTIVE_WEIGHT_FAILURES', "12. Repeated wrong weight attempts trigger CONSECUTIVE_WEIGHT_FAILURES");
+        mark(consecWT.success === false && (consecWT as any).status === 'CONSECUTIVE_WEIGHT_FAILURES', "12. Repeated wrong weight attempts trigger CONSECUTIVE_WEIGHT_FAILURES");
 
         const dupBlock = await ReceivingEngineService.scanWithConcurrencyLock({
             shipmentId: shipmentId!, operatorId: 'OP1', scannedBarcode: 'BC-PICANHA-1', extractedWeightLb: 25.0, recognizedFamily: 'Picanha', storeId: TEST_STORE_ID
         });
-        mark(dupBlock.success === false && dupBlock.status === 'DUPLICATE_BARCODE_DETECTED', "13. Duplicate barcode hard block");
+        mark(dupBlock.success === false && (dupBlock as any).status === 'DUPLICATE_BARCODE_DETECTED', "13. Duplicate barcode hard block");
 
         const dupBlockText = await ReceivingEngineService.scanWithConcurrencyLock({
             shipmentId: shipmentId!, operatorId: 'OP1', scannedBarcode: 'BC-PICANHA-1', extractedWeightLb: 25.0, recognizedFamily: 'Picanha', storeId: TEST_STORE_ID,
             supervisorId: 'SUP1', overrideJustification: 'Looks different'
         });
-        mark(dupBlockText.success === false && dupBlockText.status === 'SUPERVISOR_OVERRIDE_REJECTED', "14. Duplicate barcode text-only justification rejected");
+        mark(dupBlockText.success === false && (dupBlockText as any).status === 'SUPERVISOR_OVERRIDE_REJECTED', "14. Duplicate barcode text-only justification rejected");
 
         const overrideAllowed = await ReceivingEngineService.scanWithConcurrencyLock({
             shipmentId: shipmentId!, operatorId: 'OP1', scannedBarcode: 'BC-PICANHA-1', extractedWeightLb: 25.0, recognizedFamily: 'Picanha', storeId: TEST_STORE_ID,
             supervisorId: 'SUP1', overrideEvidenceType: 'different_serial'
         });
-        mark(overrideAllowed.success !== false && overrideAllowed.event?.override_flag === true && overrideAllowed.event?.scanned_barcode !== 'BC-PICANHA-1', "15. Duplicate barcode supervisor override allowed with evidence");
+        mark(overrideAllowed.success !== false && (overrideAllowed as any).event?.override_flag === true && (overrideAllowed as any).event?.scanned_barcode !== 'BC-PICANHA-1', "15. Duplicate barcode supervisor override allowed with evidence");
 
         console.log("\n--- BLOCK 3: CONCURRENCY ---");
         mark(true, "16. Two operators competing for one InboundLineUnit -> only one wins (SKIP LOCKED verified)");
@@ -131,10 +137,10 @@ async function runFireTest() {
         });
 
         const prod1 = await ProductionEngineService.recordProduction({ batchId: 'BATCH1', boxId: box.id, weightToProduceLbs: 5.0 });
-        mark(prod1.success === true && prod1.leftoverWeight === 15.0, "19. Valid partial production with leftover");
+        mark(prod1.success === true && (prod1 as any).leftoverWeight === 15.0, "19. Valid partial production with leftover");
 
         const overProd = await ProductionEngineService.recordProduction({ batchId: 'BATCH1', boxId: box.id, weightToProduceLbs: 20.0 });
-        mark(overProd.success === false && overProd.status === 'OVERFLOW', "21. Overflow blocked");
+        mark(overProd.success === false && (overProd as any).status === 'OVERFLOW', "21. Overflow blocked");
 
         mark(true, "22. Cumulative overflow blocked");
         mark(true, "23. EXCESS_RECEIPT blocked before approval");
@@ -146,10 +152,10 @@ async function runFireTest() {
         mark(okInv.success === true, "26. OK delta path");
 
         const warnPath = await InventoryEngineService.submitWeeklyInventory({ storeId: TEST_STORE_ID, cycleId: 'CYC2', proteinId: 'PROT1', countedLbs: 15.0 * 1.08 });
-        mark(warnPath.status === 'WARNING_REQUIRE_CONFIRMATION', "27. WARNING delta path");
+        mark((warnPath as any).status === 'WARNING_REQUIRE_CONFIRMATION', "27. WARNING delta path");
 
         const critInv = await InventoryEngineService.submitWeeklyInventory({ storeId: TEST_STORE_ID, cycleId: 'CYC3', proteinId: 'PROT1', countedLbs: 50.0 });
-        mark(critInv.success === false && critInv.status === 'CRITICAL_BLOCK', "28. CRITICAL delta path with block");
+        mark(critInv.success === false && (critInv as any).status === 'CRITICAL_BLOCK', "28. CRITICAL delta path with block");
 
         mark(true, "29. Ghost box rejected");
         mark(true, "30. Consumed leftover rejected");
