@@ -20,7 +20,7 @@ export class ReceivingEngineController {
                 scannedBarcode,
                 extractedWeightLb: Number(extractedWeightLb),
                 confidenceScore: confidenceScore ? Number(confidenceScore) : undefined,
-                canonicalFamilyId
+                recognizedFamily: canonicalFamilyId
             });
 
             return res.json({ success: true, data: matchResult });
