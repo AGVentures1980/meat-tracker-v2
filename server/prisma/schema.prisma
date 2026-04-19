@@ -876,10 +876,23 @@ model ReceivingEvent {
   matchStatus           String?
   created_at            DateTime @default(now())
 
+  shipment_id                  String?
+  supervisor_id                String?
+  override_flag                Boolean  @default(false)
+  alternative_box_identifier   String?
+  requires_supply_chain_review Boolean  @default(false)
+
+  // Mapped Patches
+  barcode_source_type          String   @default("REAL") // REAL | OVERRIDE
+  original_barcode             String?
+  excess_receipt_reason        String?
+
   store Store @relation(fields: [store_id], references: [id])
   inbound_line_units InboundLineUnit[]
 
   @@unique([company_id, client_event_id])
+  // DUPLICATE BARCODE SAFETY RULE
+  @@unique([scanned_barcode, shipment_id], name: "uq_receiving_barcode_shipment")
 }
 
 model PullToPrepEvent {
@@ -2380,9 +2393,12 @@ model InboundLineUnit {
   id                String   @id @default(uuid())
   shipment_id       String
   item_name         String
+  canonical_family_id       String?
+  supply_chain_approved_id  String?
   expectedWeightLb  Float
   weightType        String   @default("FIXED") // FIXED | VARIABLE
-  status            String   @default("AVAILABLE") // AVAILABLE, MATCHED
+  status            String   @default("AVAILABLE") // AVAILABLE, MATCHED, REVIEW_REQUIRED
+  reviewReason      String?
   matched_event_id  String?  @unique
   created_at        DateTime @default(now())
 
@@ -2390,4 +2406,19 @@ model InboundLineUnit {
   receiving_event   ReceivingEvent? @relation(fields: [matched_event_id], references: [id])
 
   @@index([shipment_id, status])
+}
+
+model ProducedInventoryItem {
+  id               String   @id @default(uuid())
+  store_id         Int
+  source_batch_id  String
+  source_box_id    String?
+  product_name     String
+  weight_lb        Float
+  status           String   @default("AVAILABLE") // AVAILABLE, PARTIAL, CONSUMED, DISCARDED
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@index([store_id, status])
+  @@index([source_batch_id])
 }

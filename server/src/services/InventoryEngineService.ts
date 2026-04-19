@@ -37,26 +37,26 @@ export class InventoryEngineService {
             coolerBoxesWeight += (box.available_weight_lb || 0);
         }
 
-        const producedItems = await prisma.transformationOutput.aggregate({
+        const producedItems = await prisma.producedInventoryItem.aggregate({
             _sum: {
-                weightProduced: true
+                weight_lb: true
             },
             where: {
-                batch: { storeId: storeId, status: 'OPEN' }
+                store_id: storeId,
+                status: { in: ['AVAILABLE', 'PARTIAL'] }
             }
         });
 
-        const systemWeightLb = coolerBoxesWeight + (producedItems._sum.weightProduced || 0);
+        const systemWeightLb = coolerBoxesWeight + (producedItems._sum.weight_lb || 0);
 
         const delta = countedLbs - systemWeightLb;
         const deltaPct = systemWeightLb > 0 ? (Math.abs(delta) / systemWeightLb) * 100 : 0;
 
-        // Enforcement Rules
         if (deltaPct > 15.0) {
             await prisma.auditEvent.create({
                 data: { action: 'INVENTORY_SUBMITTED_CRITICAL_BLOCK', actor: 'OPERATOR', store_id: storeId, payload: { expected: systemWeightLb, actual: countedLbs, deltaPct: deltaPct } }
             });
-            throw new Error(`CRITICAL INVENTORY BLOCK: Variance of ${deltaPct.toFixed(2)}% exceeds absolute limit of 15%. Inventory counting rejected.`);
+            return { success: false, status: 'CRITICAL_BLOCK', error: `CRITICAL INVENTORY BLOCK: Variance of ${deltaPct.toFixed(2)}% exceeds absolute limit of 15%. Inventory counting rejected.` };
         }
 
         if (deltaPct >= 5.0 && deltaPct <= 15.0 && !forceWarningOverride) {

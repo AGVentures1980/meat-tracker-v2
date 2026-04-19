@@ -43,7 +43,9 @@ export class ProductionEngineService {
                 await tx.auditEvent.create({
                     data: { action: 'PRODUCTION_HARD_BLOCK_TRIGGERED', actor: 'OPERATOR', target_id: box.id, payload: { actualAvailableLbs, attemptedWeight: weightToProduceLbs } }
                 });
-                throw new Error(`HARD BLOCK: Overflow detected. Box only has ${actualAvailableLbs} lbs available. Attempted to produce ${weightToProduceLbs} lbs.`);
+                // We return failure instead of throwing so the AuditEvent correctly persists 
+                // while the box mutation is bypassed. The controller handles this explicitly.
+                return { success: false, status: 'OVERFLOW', error: `HARD BLOCK: Overflow detected. Box only has ${actualAvailableLbs} lbs available. Attempted to produce ${weightToProduceLbs} lbs.` };
             }
 
             // Warn if capacity exceeds 95% threshold of remainder
@@ -62,12 +64,29 @@ export class ProductionEngineService {
                 }
             });
 
+            // If actualAvailableLbs > weightToProduceLbs, we have a leftover!
+            const leftoverWeight = actualAvailableLbs - weightToProduceLbs;
+            
             await tx.proteinBox.update({
                 where: { id: box.id },
                 data: {
-                    available_weight_lb: actualAvailableLbs - weightToProduceLbs
+                    available_weight_lb: leftoverWeight,
+                    status: leftoverWeight <= 0 ? 'CONSUMED' : 'PARTIAL'
                 }
             });
+
+            if (leftoverWeight > 0) {
+                await tx.producedInventoryItem.create({
+                    data: {
+                        store_id: box.store_id,
+                        source_batch_id: batchId,
+                        source_box_id: box.id,
+                        product_name: `Leftover from ${box.product_name}`,
+                        weight_lb: leftoverWeight,
+                        status: 'AVAILABLE'
+                    }
+                });
+            }
 
             await tx.transformationOutput.create({
                 data: {
@@ -79,10 +98,10 @@ export class ProductionEngineService {
             });
 
             await tx.auditEvent.create({
-                data: { action: 'PRODUCTION_YIELD_RECORDED', actor: 'OPERATOR', target_id: batchId, payload: { sourceBoxId: box.id, weightProduced: weightToProduceLbs, isWarning: !!warningMessage } }
+                data: { action: 'PRODUCTION_YIELD_RECORDED', actor: 'OPERATOR', target_id: batchId, payload: { sourceBoxId: box.id, weightProduced: weightToProduceLbs, leftoverWeight, isWarning: !!warningMessage } }
             });
 
-            return { success: true, input: transformationInput, warning: warningMessage };
+            return { success: true, input: transformationInput, warning: warningMessage, leftoverWeight };
         });
     }
 }

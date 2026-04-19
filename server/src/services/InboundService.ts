@@ -56,14 +56,17 @@ export class InboundService {
             let totalBoxesCounter = 0;
 
             for (const item of items) {
-                const caseQuantity = Number(item.caseQuantity || 1);
+                const hasCaseQuantity = item.caseQuantity != null && !isNaN(Number(item.caseQuantity)) && Number(item.caseQuantity) > 0;
+                const caseQuantity = hasCaseQuantity ? Number(item.caseQuantity) : 1;
                 const totalWeightLb = Number(item.totalWeightLb || 0);
 
-                const unitExpectedWeight = caseQuantity > 0 && totalWeightLb > 0 
+                const unitExpectedWeight = hasCaseQuantity && totalWeightLb > 0 
                     ? totalWeightLb / caseQuantity 
                     : totalWeightLb;
 
-                const weightType = caseQuantity > 1 ? 'VARIABLE' : 'FIXED';
+                const weightType = hasCaseQuantity && caseQuantity > 1 ? 'VARIABLE' : 'FIXED';
+                const statusStr = hasCaseQuantity ? 'AVAILABLE' : 'REVIEW_REQUIRED';
+                const reasonStr = hasCaseQuantity ? null : 'NO_CASE_COUNT';
 
                 const lineUnitsToCreate = [];
                 for (let i = 0; i < caseQuantity; i++) {
@@ -72,7 +75,8 @@ export class InboundService {
                         item_name: item.itemName || 'Unknown Item',
                         expectedWeightLb: unitExpectedWeight,
                         weightType: weightType,
-                        status: 'AVAILABLE'
+                        status: statusStr,
+                        reviewReason: reasonStr
                     });
                     totalBoxesCounter++;
                 }
