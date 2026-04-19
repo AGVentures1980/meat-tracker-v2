@@ -13,10 +13,12 @@ export class ReceivingEngineController {
             if (!shipmentId) {
                 return res.status(400).json({ success: false, error: 'Shipment ID is missing. Explicit shipment resolution is LOCKED and mandatory.' });
             }
+            const operatorId = user.id || 'OPERATOR';
 
             const matchResult = await ReceivingEngineService.scanWithConcurrencyLock({
                 storeId,
                 shipmentId,
+                operatorId,
                 scannedBarcode,
                 extractedWeightLb: Number(extractedWeightLb),
                 confidenceScore: confidenceScore ? Number(confidenceScore) : undefined,
