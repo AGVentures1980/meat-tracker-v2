@@ -231,7 +231,7 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
         
         if (!adegaCompany) {
             // For Demo overrides, we found earlier that '26e29999-5e6e-4022-bd85-17aec722655e' is the demo company ID
-            let admin = await prisma.user.findFirst({ where: { role: { in: ['admin', 'master'] } } });
+            let admin = await prisma.user.findFirst({ where: { role: 'admin' } });
             if (admin) {
                 await prisma.company.create({
                     data: {
