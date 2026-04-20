@@ -159,11 +159,7 @@ export class StoreController {
                         store_id: store.id,
                         period_start: now,
                         period_end: now,
-                        is_demo: true,
-                        // Provide required empty payloads to bypass constraints safely
-                        confidence_map: {},
-                        insights: [],
-                        recommendations: []
+                        ruleset_version: "DEMO_OVERRIDE"
                     }
                 });
             }
