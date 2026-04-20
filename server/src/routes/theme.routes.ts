@@ -226,7 +226,40 @@ router.get('/setup/tenants', async (req: Request, res: Response): Promise<void> 
                 theme_bg_url: '/background_fdc.jpg'
             }
         });
-        res.json({ message: 'Tenants configured', tdbCount: tdbUpdate.count, fogoCount: fogoUpdate.count });
+        let adegaCount = 0;
+        let adegaCompany = await prisma.company.findFirst({ where: { name: { contains: 'Adega', mode: 'insensitive' } } });
+        
+        if (!adegaCompany) {
+            // For Demo overrides, we found earlier that '26e29999-5e6e-4022-bd85-17aec722655e' is the demo company ID
+            let admin = await prisma.user.findFirst({ where: { role: { in: ['admin', 'master'] } } });
+            if (admin) {
+                await prisma.company.create({
+                    data: {
+                        id: '26e29999-5e6e-4022-bd85-17aec722655e',
+                        name: 'Adega Gaucha',
+                        owner_id: admin.id,
+                        subdomain: 'adega',
+                        theme_primary_color: '#B0182D', 
+                        theme_logo_url: '/adega-logo.png',
+                        theme_bg_url: '/adega-hero.mp4'
+                    }
+                });
+                adegaCount = 1;
+            }
+        } else {
+            const adegaUpdate = await prisma.company.updateMany({
+                where: { name: { contains: 'Adega', mode: 'insensitive' } },
+                data: {
+                    subdomain: 'adega',
+                    theme_primary_color: '#B0182D',
+                    theme_logo_url: '/adega-logo.png',
+                    theme_bg_url: '/adega-hero.mp4'
+                }
+            });
+            adegaCount = adegaUpdate.count;
+        }
+
+        res.json({ message: 'Tenants configured', tdbCount: tdbUpdate.count, fogoCount: fogoUpdate.count, adegaCount });
     } catch (e: any) {
         res.status(500).send(e.message);
     }
