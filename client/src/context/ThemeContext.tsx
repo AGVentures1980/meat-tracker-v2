@@ -53,6 +53,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
                     // Inject the primary color into the CSS Variables root so Tailwind can pick it up
                     document.documentElement.style.setProperty('--color-brand-red', data.primary_color);
+                    document.documentElement.style.setProperty('--color-brand-gold', data.primary_color);
                 } else {
                     console.error('Failed to fetch theme rules');
                 }
