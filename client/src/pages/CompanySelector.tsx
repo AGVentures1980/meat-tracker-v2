@@ -124,17 +124,17 @@ export const CompanySelector = () => {
                         <div
                             key={company.id}
                             onClick={() => handleSelect(company)}
-                            className="group relative bg-[#1a1a1a]/40 backdrop-blur-xl border border-white/5 p-8 rounded-2xl cursor-pointer hover:border-[#C5A059]/30 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(197,160,89,0.1)] active:scale-95"
+                            className="group relative bg-[#1a1a1a]/40 backdrop-blur-xl border border-white/5 p-6 md:p-8 rounded-2xl cursor-pointer hover:border-[#C5A059]/30 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(197,160,89,0.1)] active:scale-95"
                         >
-                            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <div className="absolute top-0 right-0 p-4 md:p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                                 {company.name === 'Fogo de Chão' ? (
-                                    <img src="/fdc-logo-pure-white.png" alt="FDC Watermark" className="w-[150px] object-contain opacity-70" />
+                                    <img src="/fdc-logo-pure-white.png" alt="FDC Watermark" className="w-[100px] md:w-[150px] object-contain opacity-70" />
                                 ) : company.name === 'Texas de Brazil' ? (
-                                    <img src="/tdb-logo-white.svg" alt="TDB Watermark" className="w-[150px] object-contain opacity-70" />
+                                    <img src="/tdb-logo-white.svg" alt="TDB Watermark" className="w-[100px] md:w-[150px] object-contain opacity-70" />
                                 ) : company.name.toLowerCase().includes('outback') ? (
-                                    <img src="/outback-logo.svg" alt="Outback Watermark" className="w-[150px] object-contain opacity-70" />
+                                    <img src="/outback-logo.svg" alt="Outback Watermark" className="w-[100px] md:w-[150px] object-contain opacity-70" />
                                 ) : (
-                                    <Building2 size={80} className="text-white" />
+                                    <Building2 size={80} className="text-white scale-75 md:scale-100" />
                                 )}
                             </div>
 
@@ -149,22 +149,22 @@ export const CompanySelector = () => {
                             )}
 
                             <div className="relative z-10">
-                                <span className="inline-block px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest mb-6 border border-[#C5A059]/20">
+                                <span className="inline-block px-3 py-1 rounded-full bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-bold uppercase tracking-widest mb-4 md:mb-6 border border-[#C5A059]/20">
                                     {company.plan} plan
                                 </span>
 
                                 {company.name === 'Fogo de Chão' ? (
-                                    <img src="/fdc-logo-pure-white.png" alt="Fogo de Chão" className="h-[35px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                    <img src="/fdc-logo-pure-white.png" alt="Fogo de Chão" className="h-[28px] md:h-[35px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : company.name === 'Texas de Brazil' ? (
-                                    <img src="/tdb-logo-white.svg" alt="Texas de Brazil" className="h-[65px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                    <img src="/tdb-logo-white.svg" alt="Texas de Brazil" className="h-[45px] md:h-[65px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : company.name === 'Brasa Group' ? (
-                                    <img src="/brasa-logo-v3.png" alt="Brasa Group" className="h-[55px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md brightness-[5] grayscale" />
+                                    <img src="/brasa-logo-v3.png" alt="Brasa Group" className="h-[40px] md:h-[55px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md brightness-[5] grayscale" />
                                 ) : company.name.toLowerCase().includes('outback') ? (
-                                    <img src="/outback-logo.svg" alt="Outback Steakhouse" className="h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                    <img src="/outback-logo.svg" alt="Outback Steakhouse" className="h-[35px] md:h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : company.name.toLowerCase().includes('terra') ? (
-                                    <img src="https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg" alt="Terra Gaúcha" className="h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                    <img src="https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg" alt="Terra Gaúcha" className="h-[35px] md:h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : (
-                                    <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-[#C5A059] transition-colors">{company.name}</h3>
+                                    <h3 className="text-xl md:text-2xl font-bold text-white mb-2 group-hover:text-[#C5A059] transition-colors">{company.name}</h3>
                                 )}
 
                                 <p className="text-gray-500 text-sm mb-6 flex items-center gap-2 font-mono">

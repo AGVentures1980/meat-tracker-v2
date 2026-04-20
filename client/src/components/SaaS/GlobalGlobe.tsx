@@ -445,33 +445,33 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                                     <div
                                         key={company.id}
                                         onClick={() => handleSelectCard(company)}
-                                        className={`shrink-0 w-[280px] snap-start group relative bg-[#121212]/30 backdrop-blur-xl border p-6 rounded-2xl cursor-pointer transition-all duration-500 flex flex-col justify-between
-                                            ${isFocused ? 'border-[#C5A059] bg-[#1a1a1a]/80 shadow-[0_15px_40px_rgba(197,160,89,0.3)] scale-100 z-10 min-h-[160px]' : 'border-white/10 hover:bg-[#1a1a1a]/70 hover:border-[#C5A059]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}
+                                        className={`shrink-0 w-[220px] md:w-[280px] snap-start group relative bg-[#121212]/30 backdrop-blur-xl border p-4 md:p-6 rounded-xl md:rounded-2xl cursor-pointer transition-all duration-500 flex flex-col justify-between
+                                            ${isFocused ? 'border-[#C5A059] bg-[#1a1a1a]/80 shadow-[0_15px_40px_rgba(197,160,89,0.3)] scale-100 z-10 min-h-[130px] md:min-h-[160px]' : 'border-white/10 hover:bg-[#1a1a1a]/70 hover:border-[#C5A059]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}
                                             ${isDimmed ? 'opacity-30 pointer-events-none' : ''}
                                         `}
                                     >
                                         <div>
-                                            <div className="flex justify-between items-start mb-4">
+                                            <div className="flex justify-between items-start mb-3 md:mb-4">
                                                 {company.img ? (
                                                     <img 
                                                         src={company.img} 
                                                         alt={company.name} 
-                                                        className={`h-[36px] md:h-[44px] w-auto max-w-[180px] object-contain object-left ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''} ${company.name.includes('Adega') || company.name.includes('Texas') || company.name.includes('Terra') || company.name.includes('Brasa') ? 'scale-[1.7] md:scale-[2.0] origin-left' : ''}`} 
+                                                        className={`h-[28px] md:h-[44px] w-auto max-w-[150px] md:max-w-[180px] object-contain object-left ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''} ${company.name.includes('Adega') || company.name.includes('Texas') || company.name.includes('Terra') || company.name.includes('Brasa') ? 'scale-[1.5] md:scale-[2.0] origin-left' : ''}`} 
                                                     />
                                                 ) : (
-                                                    <h3 className="text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
+                                                    <h3 className="text-base md:text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
                                                 )}
                                             </div>
-                                            <div className="flex items-center justify-between text-[10px] uppercase font-mono tracking-widest text-[#C5A059]">
+                                            <div className="flex items-center justify-between text-[9px] md:text-[10px] uppercase font-mono tracking-widest text-[#C5A059]">
                                                 <span>{company.stores} STORES <span className="text-gray-500">MAPPED</span></span>
                                             </div>
                                         </div>
 
                                         {/* Reveal "ACESSAR SYSTEMA" on First Click target */}
-                                        <div className={`mt-4 w-full overflow-hidden transition-all duration-500 ease-in-out ${isFocused ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                            <div className="pt-4 border-t border-white/5">
-                                                <button className="w-full flex items-center justify-center gap-2 py-2 bg-[#C5A059] text-black font-bold text-xs uppercase tracking-widest rounded shadow-lg hover:bg-white transition-colors">
-                                                    Acessar Dashboard <ArrowRight className="w-4 h-4" />
+                                        <div className={`mt-3 md:mt-4 w-full overflow-hidden transition-all duration-500 ease-in-out ${isFocused ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                            <div className="pt-3 md:pt-4 border-t border-white/5">
+                                                <button className="w-full flex items-center justify-center gap-1 md:gap-2 py-1.5 md:py-2 bg-[#C5A059] text-black font-bold text-[9px] md:text-xs uppercase tracking-widest rounded shadow-lg hover:bg-white transition-colors">
+                                                    Acessar Dashboard <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
                                                 </button>
                                             </div>
                                         </div>
