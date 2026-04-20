@@ -74,6 +74,26 @@ export class StoreController {
 
             const now = new Date();
             const snapshot_id = "demo_mode_snapshot_forced_override";
+
+            // Enforce Foreign Key Safety
+            const existingSnapshot = await prisma.intelligenceSnapshot.findUnique({ where: { id: snapshot_id } });
+            if (!existingSnapshot) {
+                await prisma.intelligenceSnapshot.create({
+                    data: {
+                        id: snapshot_id,
+                        tenant_id: store.company_id,
+                        store_id: store.id,
+                        period_start: now,
+                        period_end: now,
+                        is_demo: true,
+                        // Provide required empty payloads to bypass constraints safely
+                        confidence_map: {},
+                        insights: [],
+                        recommendations: []
+                    }
+                });
+            }
+
             await prisma.anomalyEvent.createMany({
                 data: [
                     {
@@ -119,6 +139,7 @@ export class StoreController {
             });
             return res.json({ success: true, message: "Orlando Demo Data perfectly reset." });
         } catch (error: any) {
+            console.error("FORCED RESET CRASH:", error);
             return res.status(500).json({ error: error.message });
         }
     }
