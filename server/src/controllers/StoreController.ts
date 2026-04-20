@@ -73,6 +73,7 @@ export class StoreController {
             });
 
             const now = new Date();
+            const snapshot_id = "demo_mode_snapshot_forced_override";
             await prisma.anomalyEvent.createMany({
                 data: [
                     {
@@ -82,7 +83,11 @@ export class StoreController {
                         severity: 'CRITICAL',
                         confidence: 88,
                         demo_mode: true,
-                        created_at: now
+                        created_at: now,
+                        snapshot_id,
+                        message: 'YIELD_VARIANCE: lbs_guest_delta_pct +9.2% detected. Root cause structurally coherent with missing portions.',
+                        trigger_value: 0.092,
+                        baseline_value: 0.02
                     },
                     {
                         tenant_id: store.company_id,
@@ -91,7 +96,11 @@ export class StoreController {
                         severity: 'HIGH',
                         confidence: 84,
                         demo_mode: true,
-                        created_at: now
+                        created_at: now,
+                        snapshot_id,
+                        message: 'INVOICE_DISCREPANCY: invoice_variance_pct -6.5%. Weight divergence verified against local vendor manifest.',
+                        trigger_value: -0.065,
+                        baseline_value: 0.0
                     },
                     {
                         tenant_id: store.company_id,
@@ -100,7 +109,11 @@ export class StoreController {
                         severity: 'MEDIUM',
                         confidence: 78,
                         demo_mode: true,
-                        created_at: now
+                        created_at: now,
+                        snapshot_id,
+                        message: 'Recebimento fora do padrão de temperatura identificado.',
+                        trigger_value: 46.5,
+                        baseline_value: 40.0
                     }
                 ]
             });
