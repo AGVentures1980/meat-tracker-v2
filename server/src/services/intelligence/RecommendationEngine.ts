@@ -49,28 +49,28 @@ export class RecommendationEngine {
     private static evaluateAction(anomaly_type: string, severity: string): { recommended_action: string, owner_role: string } | null {
         if (anomaly_type.includes('YIELD')) {
             if (severity === 'CRITICAL' || severity === 'HIGH') {
-                 return { recommended_action: "Revisar controle de porcionamento e perdas operacionais na faca imediatamente", owner_role: "STORE_MANAGER" };
+                 return { recommended_action: "Review portion control and operational yield losses immediately.", owner_role: "STORE_MANAGER" };
             }
-            return { recommended_action: "Monitorar consistência de porções. Iniciar checagem aleatória de gramatura", owner_role: "KITCHEN_MANAGER" };
+            return { recommended_action: "Monitor portion consistency. Initiate random weight checks.", owner_role: "KITCHEN_MANAGER" };
         }
         
         if (anomaly_type.includes('SHRINK') || anomaly_type.includes('GHOST_SHIFT')) {
              if (severity === 'CRITICAL' || severity === 'HIGH') {
-                 return { recommended_action: "Auditoria imediata de câmara fria. Recontagem cega forçada.", owner_role: "STORE_MANAGER" };
+                 return { recommended_action: "Immediate cold room audit. Forced blind recount.", owner_role: "STORE_MANAGER" };
              }
-             return { recommended_action: "Revisar relatório de transferências e devoluções. Conferir desperdício cego.", owner_role: "KITCHEN_MANAGER" };
+             return { recommended_action: "Review transfer and return reports. Verify blind waste.", owner_role: "KITCHEN_MANAGER" };
         }
 
         if (anomaly_type.includes('INVOICE')) {
-             return { recommended_action: "Validar pesagem de recebimento vs Invoice do fornecedor na DocDigger.", owner_role: "STORE_MANAGER" };
+             return { recommended_action: "Validate receiving weights against vendor Invoice via DocDigger.", owner_role: "STORE_MANAGER" };
         }
 
         if (anomaly_type.includes('RECEIVING')) {
-             return { recommended_action: "Inspecionar integridade da caixa e validar temperatura no recebimento antes de liberar para estoque.", owner_role: "RECEIVING_CLERK" };
+             return { recommended_action: "Inspect box integrity and validate receiving temperature before releasing to inventory.", owner_role: "RECEIVING_CLERK" };
         }
 
         if (anomaly_type.includes('CONFLICT')) {
-             return { recommended_action: "Auditar divergência entre consumo contábil e inventário estático da plataforma local.", owner_role: "FINANCE" };
+             return { recommended_action: "Audit variance between theoretical consumption and static inventory on the local platform.", owner_role: "FINANCE" };
         }
 
         // Return null instead of vague fallback to ensure Fail-Closed policy

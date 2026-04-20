@@ -270,20 +270,20 @@ export default function ReceivingScanner() {
           handleApproveSuccess(data.protein, parsedWeight, barcodeResult.normalized_object?.cleaned_barcode || inputBarcode);
       } else if (data.status === 'ACCEPTED_WITH_WARNING') {
           setScanResult('ACCEPTED_WITH_WARNING');
-          setResultMessage(data.details || 'Aprovado com ressalvas operacionais.');
+          setResultMessage(data.details || 'Approved with operational warnings.');
       } else if (data.status === 'UNMAPPED_REVIEW_ALLOWED') {
           setScanResult('UNMAPPED');
-          const finalMessage = data.details || data.error || 'Nenhum Padrão Corporativo Identificado.';
-          setResultMessage(`[AÇÃO REQUERIDA] ${finalMessage} Você tem o privilégio de Mapeamento Assistido para resolver isso agora.`);
+          const finalMessage = data.details || data.error || 'No Corporate Pattern Identified.';
+          setResultMessage(`[ACTION REQUIRED] ${finalMessage} You have Assisted Mapping privileges to resolve this now.`);
           setScannedGtin(data.gtin || barcodeResult.normalized_object?.gtin || barcodeResult.normalized_object?.cleaned_barcode?.substring(0, 14));
           setRoster(data.roster || []);
       } else if (data.status === 'REVIEW_REQUIRED') {
           setScanResult('REVIEW_REQUIRED'); // Using the robust state directly instead of masking it as REJECTED
-          const finalMessage = data.details || data.error || 'Nenhum Padrão Corporativo Identificado. Acione a Diretoria para mapear essa caixa.';
-          setResultMessage(`[BLOQUEIO] ${finalMessage}`);
+          const finalMessage = data.details || data.error || 'No Corporate Pattern Identified. Contact Directors to map this box.';
+          setResultMessage(`[BLOCKED] ${finalMessage}`);
       } else {
           setScanResult('REJECTED');
-          const finalMessage = data.details || data.error || 'Não reconhecido pelo motor corporativo. Procure sua liderança.';
+          const finalMessage = data.details || data.error || 'Not recognized by corporate engine. Consult your leadership.';
           const isAuthFraude = data.error && (data.error.includes('UNAUTHORIZED') || data.error.includes('Safe Operating Bounds'));
           setResultMessage(isAuthFraude ? data.error : finalMessage);
       }
@@ -604,7 +604,7 @@ export default function ReceivingScanner() {
                   {(!fusedData?.gtin?.value || fusedData?.gtin?.confidence < 0.8) && (
                       <div className="bg-red-900/30 border border-red-500/50 p-3 rounded-lg text-xs text-red-200 mt-2">
                           <p className="font-bold text-red-400 mb-1">⚠️ WEAK RULE GENERATION</p>
-                          A leitura deste código não extraiu um GTIN/ID global de alta confiança. Essa regra será gerada com status <strong>WEAK</strong> e cairá em <em>REVIEW_REQUIRED</em> continuamente no estoque até intervenção técnica.
+                          Scanning this code did not extract a high-confidence global GTIN/ID. This rule will be generated with a <strong>WEAK</strong> status and will continuously flag as <em>REVIEW_REQUIRED</em> in inventory until targeted for technical intervention.
                       </div>
                   )}
 

@@ -174,7 +174,7 @@ export class StoreController {
                         demo_mode: true,
                         created_at: now,
                         snapshot_id,
-                        message: 'Recebimento fora do padrão de temperatura identificado.',
+                        message: 'Receiving outside standard temperature parameters identified.',
                         trigger_value: 46.5,
                         baseline_value: 40.0
                     }
