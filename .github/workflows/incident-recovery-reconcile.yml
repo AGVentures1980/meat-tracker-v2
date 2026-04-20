@@ -33,3 +33,11 @@ jobs:
           DATABASE_URL="${{ secrets.DATABASE_URL_PROD }}" node -e "const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const res = await prisma.\$queryRaw\`SELECT migration_name, finished_at, rolled_back_at, logs, applied_steps_count FROM _prisma_migrations WHERE migration_name = '20260218194023_add_protein_group_and_lamb_toggle'\`; console.log(res); } main().catch(console.error).finally(()=> prisma.\$disconnect());"
           echo "==== QUERYING DATABASE STAGING ===="
           DATABASE_URL="${{ secrets.DATABASE_URL_STAGING }}" node -e "const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const res = await prisma.\$queryRaw\`SELECT migration_name, finished_at, rolled_back_at, logs, applied_steps_count FROM _prisma_migrations WHERE migration_name = '20260218194023_add_protein_group_and_lamb_toggle'\`; console.log(res); } main().catch(console.error).finally(()=> prisma.\$disconnect());"
+
+      - name: Force Orlando Demo State (C-Level Seeder)
+        working-directory: server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
+        run: |
+          echo "==== INJECTING DEMO STATE INTO PRODUCTION DB ===="
+          DATABASE_URL="${{ secrets.DATABASE_URL_PROD }}" npx ts-node src/scripts/brasa_pre_demo_validation_v1.ts || true
