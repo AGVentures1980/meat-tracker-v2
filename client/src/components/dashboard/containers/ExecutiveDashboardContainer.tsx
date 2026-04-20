@@ -42,6 +42,9 @@ export const ExecutiveDashboardContainer = () => {
 
     // Contract Validation (Fail-Closed)
     const validateContract = (data: ExecutiveDashboardPayload) => {
+        if (!data || !data.top_risk_stores) return "Contract Invalid: Missing Payload Data";
+        if (data.top_risk_stores.length === 0) return "Contract Blocked: Demo requires at least 1 risk store (Orlando). Array is empty.";
+        
         if (data.global_trust_score < 0 || data.global_trust_score > 100) {
             return "Contract Invalid: global_trust_score must be between 0 and 100.";
         }
@@ -109,8 +112,21 @@ export const ExecutiveDashboardContainer = () => {
     }
 
     if (contractError || !payload) {
+        if (contractError?.includes('Contract Blocked')) {
+            return (
+                <div className="flex bg-[#121212] min-h-screen text-white isolation-boundary p-6 flex-col relative">
+                    <div className="absolute top-6 right-6 border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] px-3 py-1 text-[10px] font-mono tracking-widest uppercase rounded flex items-center gap-2"><span className="w-1.5 h-1.5 bg-[#C5A059] rounded-full animate-pulse" />Pilot Mode Active</div>
+                    <h1 className="text-3xl font-bold mb-8 text-[#C5A059]">Executive Strategy Command</h1>
+                    <div className="mt-12 bg-[#1a1a1a] border border-[#FF9F1C]/50 p-8 rounded-sm max-w-2xl w-full mx-auto flex flex-col gap-4 text-center">
+                        <div className="text-[10px] text-[#FF9F1C] uppercase tracking-widest font-mono">STATUS: BLOCKED (SEVERITY HIGH)</div>
+                        <h2 className="text-xl font-bold text-gray-200">Data Integrity Protection Active</h2>
+                        <p className="text-gray-400 text-sm">Executive data withheld due to validation safeguards. Internal parameters are currently being evaluated.</p>
+                    </div>
+                </div>
+            );
+        }
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-[#121212] flex-col gap-4">
+             <div className="flex bg-[#121212] min-h-screen text-white isolation-boundary p-6 flex-col relative">
                 <div className="text-[#FF2A6D] text-lg font-mono tracking-widest font-bold">CONTRACT BLOCKED</div>
                 <div className="text-gray-500 font-mono text-xs max-w-lg text-center uppercase tracking-widest p-4 border border-[#FF2A6D]/30 bg-[#FF2A6D]/10">
                     Executive dashboard contract invalid — check backend payload integrity.
@@ -122,7 +138,8 @@ export const ExecutiveDashboardContainer = () => {
     }
 
     return (
-        <div className="executive-scope p-6 bg-[#121212] min-h-screen text-white isolation-boundary">
+        <div className="executive-scope p-6 bg-[#121212] min-h-screen text-white isolation-boundary relative">
+            <div className="absolute top-6 right-6 border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] px-3 py-1 text-[10px] font-mono tracking-widest uppercase rounded flex items-center gap-2"><span className="w-1.5 h-1.5 bg-[#C5A059] rounded-full animate-pulse" />Pilot Mode Active</div>
             <h1 className="text-3xl font-bold mb-8 text-[#C5A059]">Executive Strategy Command</h1>
             <p className="text-xs text-gray-500 font-mono tracking-widest uppercase mb-8">
                 // Zero-Trust Frontend • C-Level Display Only

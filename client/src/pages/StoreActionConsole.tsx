@@ -54,12 +54,23 @@ export const StoreActionConsole = () => {
                     if (data.success && Array.isArray(data.data?.actions)) {
                         const incomingActions = data.data.actions as StoreAction[];
                         
-                        // FAIL-CLOSED: Quick sanity check validating that we received ISO strings and Priority is present
-                        if (incomingActions.length > 0) {
-                            if (!incomingActions[0].created_at_iso || !incomingActions[0].priority) {
-                                throw new Error('Action ordering integrity compromised — verify backend sorting and DTO constraints.');
-                            }
-                        }
+                        // ZERO-TRUST VALIDATION CONTRACT
+                        const validateContract = (payload: StoreAction[]) => {
+                             if (payload.length === 0) return; // Valid state (no anomalies)
+                             payload.forEach(action => {
+                                 if (!action.priority || !action.severity || !action.root_cause || !action.recommended_action || !action.created_at_iso) {
+                                     throw new Error("CONTRACT BLOCKED");
+                                 }
+                                 if (!['URGENT', 'HIGH', 'MEDIUM', 'LOW'].includes(action.priority)) {
+                                     throw new Error("CONTRACT BLOCKED");
+                                 }
+                                 if (isNaN(Date.parse(action.created_at_iso))) {
+                                     throw new Error("CONTRACT BLOCKED");
+                                 }
+                             });
+                        };
+                        
+                        validateContract(incomingActions);
 
                         // NOTE: Explicit NO-SORTING policy. The backend strictly controls the list.
                         setActions(incomingActions);
@@ -86,6 +97,23 @@ export const StoreActionConsole = () => {
     }
 
     if (error) {
+        if (error.includes('CONTRACT BLOCKED')) {
+            return (
+                <div className="flex bg-[#121212] min-h-screen text-white isolation-boundary p-6 flex-col relative">
+                    {/* Demo Badge */}
+                    <div className="absolute top-6 right-6 border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] px-3 py-1 text-[10px] font-mono tracking-widest uppercase rounded flex items-center gap-2"><span className="w-1.5 h-1.5 bg-[#C5A059] rounded-full animate-pulse" />Pilot Mode Active</div>
+                    <h1 className="text-3xl font-bold mb-2 text-[#C5A059]">Store Action Console</h1>
+                    <p className="text-xs text-gray-500 font-mono tracking-widest uppercase mb-8 border-b border-[#333] pb-4">
+                         // TACTICAL DISPATCH LAYER • NO DISTRACTIONS
+                    </p>
+                    <div className="mt-12 bg-[#1a1a1a] border border-[#FF9F1C]/50 p-8 rounded-sm max-w-2xl w-full mx-auto flex flex-col gap-4 text-center">
+                        <div className="text-[10px] text-[#FF9F1C] uppercase tracking-widest font-mono">STATUS: BLOCKED (SEVERITY HIGH)</div>
+                        <h2 className="text-xl font-bold text-gray-200">Data Integrity Protection Active</h2>
+                        <p className="text-gray-400 text-sm">Executive data withheld due to validation safeguards. Internal parameters are currently being evaluated.</p>
+                    </div>
+                </div>
+            );
+        }
         return (
              <div className="flex h-screen w-full items-center justify-center bg-[#121212] flex-col gap-4">
                 <div className="text-[#FF2A6D] text-lg font-mono tracking-widest font-bold">DISPATCH ERROR</div>
@@ -114,7 +142,9 @@ export const StoreActionConsole = () => {
     };
 
     return (
-        <div className="p-6 bg-[#121212] min-h-screen text-white isolation-boundary">
+        <div className="p-6 bg-[#121212] min-h-screen text-white isolation-boundary relative">
+            {/* Demo Badge */}
+            <div className="absolute top-6 right-6 border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] px-3 py-1 text-[10px] font-mono tracking-widest uppercase rounded flex items-center gap-2"><span className="w-1.5 h-1.5 bg-[#C5A059] rounded-full animate-pulse" />Pilot Mode Active</div>
             <h1 className="text-3xl font-bold mb-2 text-[#C5A059]">Store Action Console</h1>
             <p className="text-xs text-gray-500 font-mono tracking-widest uppercase mb-8 border-b border-[#333] pb-4">
                  // TACTICAL DISPATCH LAYER • NO DISTRACTIONS • IMMEDIATE RESOLUTION OVERVIEW

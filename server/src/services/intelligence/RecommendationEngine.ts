@@ -61,8 +61,12 @@ export class RecommendationEngine {
              return { recommended_action: "Revisar relatório de transferências e devoluções. Conferir desperdício cego.", owner_role: "KITCHEN_MANAGER" };
         }
 
-        if (anomaly_type.includes('INVOICE') || anomaly_type.includes('RECEIVING')) {
-             return { recommended_action: "Validar pesagem de recebimento vs Invoice do fornecedor na DocDigger.", owner_role: "RECEIVING_CLERK" };
+        if (anomaly_type.includes('INVOICE')) {
+             return { recommended_action: "Validar pesagem de recebimento vs Invoice do fornecedor na DocDigger.", owner_role: "STORE_MANAGER" };
+        }
+
+        if (anomaly_type.includes('RECEIVING')) {
+             return { recommended_action: "Inspecionar integridade da caixa e validar temperatura no recebimento antes de liberar para estoque.", owner_role: "RECEIVING_CLERK" };
         }
 
         if (anomaly_type.includes('CONFLICT')) {

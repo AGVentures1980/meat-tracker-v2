@@ -90,7 +90,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             }
         );
 
-        if (isStoreLevel || isAreaLevel || isPaulo) {
+        if (isStoreLevel || isAreaLevel || isPaulo || isSystemAdmin) {
             navItems.push({
                 section: t('nav.section_run') || 'RUN (Daily Operations)', items: [
                     { icon: AlertOctagon, label: 'Store Action Console', path: '/store-actions' },

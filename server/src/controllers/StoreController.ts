@@ -11,7 +11,8 @@ export class StoreController {
     public getStoreActions = async (req: any, res: Response) => {
         try {
             // Must have tenant contextualization from requireAuth middleware (companyId/storeId)
-            const tenant_id = req.user?.companyId || req.user?.tenant_id;
+            const explicitCompanyId = req.headers['x-company-id'];
+            const tenant_id = explicitCompanyId ? explicitCompanyId : (req.user?.companyId || req.user?.tenant_id);
             const storeIdContext = req.user?.storeId || req.user?.store_id; // Narrowing scope
 
             if (!tenant_id) {
