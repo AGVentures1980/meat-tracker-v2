@@ -52,9 +52,22 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
                         companyName: data.company_name
                     });
 
+                    // Convert Hex to Space-Separated RGB Tuple for Tailwind 3+ alpha modifiers to work correctly
+                    const hexToRgbTuple = (hex: string) => {
+                        hex = hex.replace(/^#/, '');
+                        if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+                        const r = parseInt(hex.substring(0, 2), 16);
+                        const g = parseInt(hex.substring(2, 4), 16);
+                        const b = parseInt(hex.substring(4, 6), 16);
+                        return `${r} ${g} ${b}`;
+                    };
+
+                    const validHex = data.primary_color || '#8B0000';
+                    const colorTuple = hexToRgbTuple(validHex);
+
                     // Inject the primary color into the CSS Variables root so Tailwind can pick it up
-                    document.documentElement.style.setProperty('--color-brand-red', data.primary_color);
-                    document.documentElement.style.setProperty('--color-brand-gold', data.primary_color);
+                    document.documentElement.style.setProperty('--color-brand-red', colorTuple);
+                    document.documentElement.style.setProperty('--color-brand-gold', colorTuple);
                 } else {
                     console.error('Failed to fetch theme rules');
                 }

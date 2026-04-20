@@ -9,8 +9,8 @@ export default {
             colors: {
                 brand: {
                     black: '#0a0a0a',
-                    gold: 'var(--color-brand-gold, #C5A059)',
-                    red: 'var(--color-brand-red, #8B0000)',
+                    gold: 'rgb(var(--color-brand-gold, 197 160 89) / <alpha-value>)',
+                    red: 'rgb(var(--color-brand-red, 139 0 0) / <alpha-value>)',
                     surface: '#121212',
                 }
             },
