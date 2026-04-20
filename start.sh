@@ -8,4 +8,4 @@ echo "🚀 Booting Client (Executive Dashboard)"
 echo "🚀 Booting AGV Website (Marketing Front)"
 echo ""
 
-npm run dev
+npm run start
