@@ -33,7 +33,6 @@ import {
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useThemeContext } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface DashboardLayoutProps {
@@ -42,7 +41,6 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const { logout, user, selectedCompany } = useAuth();
-    const { theme } = useThemeContext();
     const { t } = useLanguage();
     const location = useLocation();
     const [showAlerts, setShowAlerts] = useState(false);
@@ -331,8 +329,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <aside className={`fixed md:relative inset-y-0 left-0 z-[100] w-64 bg-[#1a1a1a] border-r border-[#333] transition-all duration-300 transform ${isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:w-0 md:pointer-events-none'} flex flex-col print:hidden`}>
                 <div className="p-4 border-b border-[#333] flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold tracking-tighter text-brand-gold">
-                            {theme?.companyName ? theme.companyName.split(' ')[0].toUpperCase() : 'BRASA'}
+                        <span className="text-xl font-bold tracking-tighter text-[#C5A059]">
+                            BRASA
                         </span>
                         <span className="text-xs text-gray-500 uppercase tracking-widest">INTEL</span>
                     </div>
@@ -344,7 +342,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <nav className="flex-1 p-2 space-y-4 overflow-y-auto">
                     {navItems.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-48 px-4 text-center">
-                            <Building2 className="w-8 h-8 text-brand-gold mb-3 opacity-50" />
+                            <Building2 className="w-8 h-8 text-[#C5A059] mb-3 opacity-50" />
                             <p className="text-sm font-medium text-gray-300">No Location Selected</p>
                             <p className="text-xs text-gray-500 mt-2">Please select a store from the top menu to view the operational command center.</p>
                         </div>
@@ -363,7 +361,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                             to={isLocked ? '#' : item.path}
                                             onClick={(e) => isLocked && e.preventDefault()}
                                             className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${active
-                                                ? 'bg-brand-gold/10 text-brand-gold border-l-2 border-brand-gold'
+                                                ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
                                                 : isLocked
                                                     ? 'text-gray-600 cursor-not-allowed opacity-50'
                                                     : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
@@ -406,11 +404,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                 <Link
                                     to="/data-analyst"
                                     className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${location.pathname === '/data-analyst'
-                                        ? 'bg-brand-gold/10 text-brand-gold border-l-2 border-brand-gold'
+                                        ? 'bg-[#C5A059]/10 text-[#C5A059] border-l-2 border-[#C5A059]'
                                         : 'text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
                                         } `}
                                 >
-                                    <Zap className="w-5 h-5 min-w-[20px] text-brand-gold fill-brand-gold/20" />
+                                    <Zap className="w-5 h-5 min-w-[20px] text-[#C5A059] fill-[#C5A059]/20" />
                                     <div className="flex flex-1 items-center justify-between">
                                         <span className="text-sm font-medium tracking-wide">{t('nav_data_analyst')}</span>
                                     </div>
@@ -425,7 +423,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <>
                             <Link
                                 to="/select-company"
-                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-brand-gold hover:bg-brand-gold/10 mt-4 border border-brand-gold/20 border-dashed"
+                                className="w-full flex items-center gap-3 p-3 rounded transition-colors text-[#C5A059] hover:bg-[#C5A059]/10 mt-4 border border-[#C5A059]/20 border-dashed"
                             >
                                 <Building2 className="w-5 h-5 min-w-[20px]" />
                                 <span className="text-sm font-bold tracking-tight">Switch Company</span>
@@ -481,8 +479,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <span className="text-[#00FF94] flex items-center gap-1.5 py-0.5 px-2 bg-[#00FF94]/10 rounded border border-[#00FF94]/20"><span className="w-1.5 h-1.5 bg-[#00FF94] rounded-full animate-pulse" /> LIVE</span>
                         </div>
                         
-                        <div className="text-[10px] text-brand-gold font-mono font-bold tracking-widest flex items-center gap-2 bg-brand-gold/5 p-2 rounded border border-brand-gold/10">
-                            <Database className="w-3 h-3 text-brand-gold" />
+                        <div className="text-[10px] text-[#C5A059] font-mono font-bold tracking-widest flex items-center gap-2 bg-[#C5A059]/5 p-2 rounded border border-[#C5A059]/10">
+                            <Database className="w-3 h-3 text-[#C5A059]" />
                             POSTGRES_V3_LINK
                         </div>
                         
@@ -511,22 +509,22 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                             className="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors border border-white/5"
                         >
-                            <Menu className="w-5 h-5 text-brand-gold" />
+                            <Menu className="w-5 h-5 text-[#C5A059]" />
                         </button>
                         <div className="flex items-center gap-2 text-gray-400">
                             <span className="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse"></span>
                             <span className="hidden md:inline">{t('system_online')}</span>
                         </div>
                         {selectedCompany && (
-                            <div className="hidden lg:flex items-center gap-2 ml-4 px-3 py-1 bg-brand-gold/10 border border-brand-gold/30 rounded-full shadow-[0_0_10px_rgba(197,160,89,0.2)]">
-                                <Building2 className="w-3 h-3 text-brand-gold" />
-                                <span className="text-[10px] text-brand-gold font-bold uppercase tracking-widest">{companyName || 'ORGANIZATION'}</span>
+                            <div className="hidden lg:flex items-center gap-2 ml-4 px-3 py-1 bg-[#C5A059]/10 border border-[#C5A059]/30 rounded-full shadow-[0_0_10px_rgba(197,160,89,0.2)]">
+                                <Building2 className="w-3 h-3 text-[#C5A059]" />
+                                <span className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest">{companyName || 'ORGANIZATION'}</span>
                             </div>
                         )}
                         {/* Ticker */}
                         <div className="hidden md:flex items-center space-x-6 ml-4">
                             <div className="flex items-center space-x-2 px-3 py-1 bg-[#222] rounded-full border border-[#333]">
-                                <Network className="w-4 h-4 text-brand-gold" />
+                                <Network className="w-4 h-4 text-[#C5A059]" />
                                 <span className="text-xs text-gray-400 uppercase tracking-wider">Systemwide Units</span>
                                 <span className="text-sm font-bold text-white">{networkStats ? networkStats.totalStores : 57} <span className="text-[10px] text-gray-500 font-normal">ACTIVE</span></span>
                             </div>
@@ -550,7 +548,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         {user?.email && (
                             <div className="hidden lg:flex items-center gap-2 mr-2 bg-[#222] px-3 py-1 rounded-full border border-[#333] shadow-sm">
                                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Welcome</span>
-                                <span className="text-xs font-bold text-brand-gold tracking-wide">
+                                <span className="text-xs font-bold text-[#C5A059] tracking-wide">
                                     {user.first_name || (user.email.toLowerCase().includes('rodrigo') ? 'Rodrigo' : user.email.toLowerCase().includes('alexandre') ? 'Alexandre' : user.email.toLowerCase().includes('carlos') ? 'Carlos' : user.email.split('@')[0].split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase()))}
                                 </span>
                             </div>
@@ -615,7 +613,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <button
                                 title="User Profile Menu"
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                                className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-gold to-[#F0E68C] border-2 border-[#121212] cursor-pointer hover:ring-2 hover:ring-brand-gold transition-all overflow-hidden"
+                                className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C5A059] to-[#F0E68C] border-2 border-[#121212] cursor-pointer hover:ring-2 hover:ring-[#C5A059] transition-all overflow-hidden"
                             >
                                 <img src={`https://ui-avatars.com/api/?name=${user?.email}&background=C5A059&color=fff`} alt="User" />
                             </button >
@@ -625,7 +623,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     <div className="px-4 py-2 border-b border-[#333]">
                                         <p className="text-xs text-gray-500 font-mono underline uppercase tracking-tighter">{t('profile_current_user')}</p>
                                         <p className="text-[11px] text-white font-bold truncate">{user?.email}</p>
-                                        <p className="text-[10px] text-brand-gold font-mono uppercase">
+                                        <p className="text-[10px] text-[#C5A059] font-mono uppercase">
                                             {operationType === 'ALACARTE' && user?.role === 'director' ? 'Joint Venture Partner' : 
                                              operationType === 'ALACARTE' && user?.role === 'manager' ? 'Managing Partner' : 
                                              user?.role}
@@ -633,13 +631,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                     </div>
                                     <button
                                         onClick={() => { navigate('/settings'); setShowProfileMenu(false); }}
-                                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-brand-gold/10 hover:text-brand-gold flex items-center gap-2"
+                                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2"
                                     >
                                         <Users className="w-3 h-3" /> {t('profile_settings')}
                                     </button>
                                     <button
                                         onClick={() => { navigate('/reports'); setShowProfileMenu(false); }}
-                                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-brand-gold/10 hover:text-brand-gold flex items-center gap-2"
+                                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-[#C5A059]/10 hover:text-[#C5A059] flex items-center gap-2"
                                     >
                                         <StickyNote className="w-3 h-3" /> {t('security_logs')}
                                     </button>
@@ -665,14 +663,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
                 {/* Mobile Bottom Navigation */}
                 <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#333] flex justify-around p-2 z-[9999] pb-safe print:hidden">
-                    <button title="Home" onClick={() => navigate('/dashboard')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/dashboard' ? 'text-brand-gold' : 'text-gray-500'}`}>
+                    <button title="Home" onClick={() => navigate('/dashboard')} className={`flex flex-col items-center p-2 rounded ${location.pathname === '/dashboard' ? 'text-[#C5A059]' : 'text-gray-500'}`}>
                         <LayoutDashboard size={20} />
                         <span className="text-[10px] mt-1">Home</span>
                     </button>
                     <button
                         title="Receive"
                         onClick={() => selectedCompany && navigate('/receiving')}
-                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/receiving' ? 'text-brand-gold' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/receiving' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
                         <ScanLine size={20} />
                         <span className="text-[10px] mt-1">Receive</span>
@@ -680,7 +678,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     <button
                         title="Prices"
                         onClick={() => selectedCompany && navigate('/prices')}
-                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/prices' ? 'text-brand-gold' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/prices' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
                         <ArrowUpRight size={20} />
                         <span className="text-[10px] mt-1">Prices</span>
@@ -688,7 +686,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     <button
                         title="Waste"
                         onClick={() => selectedCompany && navigate('/waste')}
-                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/waste' ? 'text-brand-gold' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/waste' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
                         <Trash size={20} />
                         <span className="text-[10px] mt-1">Variance</span>
@@ -696,7 +694,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     <button
                         title="Inventory"
                         onClick={() => selectedCompany && navigate('/inventory')}
-                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/inventory' ? 'text-brand-gold' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/inventory' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
                         <ShieldAlert size={20} />
                         <span className="text-[10px] mt-1">Inventory</span>
@@ -704,7 +702,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     <button
                         title="Reports"
                         onClick={() => selectedCompany && navigate('/reports')}
-                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/reports' ? 'text-brand-gold' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
+                        className={`flex flex-col items-center p-2 rounded ${location.pathname === '/reports' ? 'text-[#C5A059]' : !selectedCompany ? 'text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-500'}`}
                     >
                         <StickyNote size={20} />
                         <span className="text-[10px] mt-1">Reports</span>

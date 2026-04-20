@@ -226,7 +226,7 @@ export const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-lg text-sm font-bold text-black bg-brand-gold hover:opacity-90 active:opacity-80 transition-all duration-200 uppercase tracking-widest transform hover:scale-[1.02]"
+                        className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-lg text-sm font-bold text-black bg-brand-gold hover:bg-yellow-500 focus:outline-none focus:shadow-outline-yellow active:bg-yellow-600 transition-all duration-200 uppercase tracking-widest transform hover:scale-[1.02]"
                     >
                         {loading ? 'Authenticating...' : 'Initialize Session'}
                         {!loading && <ArrowRight className="w-4 h-4" />}
