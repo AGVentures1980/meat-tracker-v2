@@ -243,6 +243,10 @@ import { SetupController } from './controllers/SetupController';
 app.get('/api/v1/setup-demo', SetupController.runDemoSetup);
 app.get('/api/v1/setup/seed-targets', SetupController.seedTargets); // Emergency Init Route
 
+import { StoreController } from './controllers/StoreController';
+const storeController = new StoreController();
+app.post('/api/v1/trigger-demo-restore', storeController.triggerDemoRestore);
+
 // Debug / Emergency Migration Route
 app.get('/api/v1/debug/migrate', DebugController.runMigration);
 app.get('/api/v1/debug/env', DebugController.checkEnv);
