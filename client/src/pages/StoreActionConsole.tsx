@@ -126,10 +126,7 @@ export const StoreActionConsole = () => {
         );
     }
 
-    const filteredActions = activeStoreFilter 
-        ? actions.filter(a => a.store_id === activeStoreFilter) 
-        // No sorting, client is just display
-        : actions;
+    const filteredActions = actions; // Frontend validation removed. We strictly trust the backend resolved scope.
 
     const getPriorityColor = (priority: ActionPriority) => {
         switch (priority) {

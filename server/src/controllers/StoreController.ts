@@ -38,56 +38,15 @@ export class StoreController {
             if (!resolvedStoreId) throw new Error("STORE_NOT_FOUND");
             if (!resolvedCompanyId) throw new Error("SCOPE_CORRUPTION");
 
-            // FASE 4: DETERMINISTIC DEMO SEEDING (Always exists in payload independently of Lookback)
-            const now = new Date();
-            const demoActions = [
-                {
-                    store_id: DEMO_STORE_ID,
-                    anomaly_type: 'YIELD_VARIANCE',
-                    severity: 'CRITICAL',
-                    root_cause: 'PORTION_CONTROL_FAILURE',
-                    message: 'YIELD_VARIANCE: lbs_guest_delta_pct +9.2% detected. Root cause structurally coherent with missing portions.',
-                    recommended_action: 'Revisar controle de porcionamento e perdas operacionais na faca imediatamente',
-                    owner_role: 'STORE_MANAGER',
-                    priority: 'URGENT' as const,
-                    deadline_hours: 8,
-                    confidence_score: 95,
-                    created_at_iso: now.toISOString()
-                },
-                {
-                    store_id: DEMO_STORE_ID,
-                    anomaly_type: 'INVOICE_DISCREPANCY',
-                    severity: 'HIGH',
-                    root_cause: 'INVOICE_MISMATCH',
-                    message: 'INVOICE_DISCREPANCY: invoice_variance_pct -6.5%. Weight divergence verified against local vendor manifest.',
-                    recommended_action: 'Validar pesagem de recebimento vs Invoice do fornecedor na DocDigger.',
-                    owner_role: 'STORE_MANAGER',
-                    priority: 'HIGH' as const,
-                    deadline_hours: 24,
-                    confidence_score: 88,
-                    created_at_iso: now.toISOString()
-                },
-                {
-                    store_id: DEMO_STORE_ID,
-                    anomaly_type: 'RECEIVING_QC_FAILURE',
-                    severity: 'MEDIUM',
-                    root_cause: 'INVOICE_MISMATCH',
-                    message: 'Recebimento fora do padrão de temperatura identificado.',
-                    recommended_action: 'Inspecionar integridade da caixa e validar temperatura no recebimento antes de liberar para estoque.',
-                    owner_role: 'RECEIVING_CLERK',
-                    priority: 'MEDIUM' as const,
-                    deadline_hours: 48,
-                    confidence_score: 82,
-                    created_at_iso: now.toISOString()
-                }
-            ];
-
-            // Real DB Logic (Ignored in strict DEMO_MODE to guarantee narrative, but still merged if applicable outside of it)
+            // Real DB Logic with Phase 5 Bypass
             const lookbackDate = new Date(Date.now() - STORE_ACTION_LOOKBACK_DAYS * 86400000);
             const whereClause: any = {
                 tenant_id: resolvedCompanyId,
                 store_id: resolvedStoreId,
-                created_at: { gte: lookbackDate }
+                OR: [
+                    { created_at: { gte: lookbackDate } },
+                    { demo_mode: true } // FASE 5: BYPASS DE LOOKBACK
+                ]
             };
 
             const rawAnomalies = await prisma.anomalyEvent.findMany({
@@ -95,17 +54,13 @@ export class StoreController {
                 orderBy: { created_at: 'desc' }
             });
 
-            // If not Demo Mode, we would use RecommendationEngine. For this demo path, we strictly inject the guaranteed payload.
-            const actions = DEMO_MODE ? demoActions : RecommendationEngine.generateActions(rawAnomalies);
+            // FASE 2: Consome apenas a fonte real via Engine
+            const actions = RecommendationEngine.generateActions(rawAnomalies);
 
             // Smoke Test Verification
             const urgentCount = actions.filter(a => a.priority === 'URGENT').length;
             const highCount = actions.filter(a => a.priority === 'HIGH').length;
             const mediumCount = actions.filter(a => a.priority === 'MEDIUM').length;
-
-            if (DEMO_MODE && (actions.length < 3 || urgentCount < 1 || highCount < 1 || mediumCount < 1)) {
-                throw new Error("DEMO_SMOKE_TEST_FAILED: Insufficient structured actions to sustain narrative.");
-            }
 
             res.json({
                 success: true,
@@ -114,12 +69,11 @@ export class StoreController {
                     resolved_store_id: resolvedStoreId,
                     resolved_company_id: resolvedCompanyId,
                     resolution_source: resolutionSource,
-                    lookback_days: STORE_ACTION_LOOKBACK_DAYS,
-                    server_now: now.toISOString()
+                    lookback_days: STORE_ACTION_LOOKBACK_DAYS
                 },
                 counts: {
                     raw_anomalies: rawAnomalies.length,
-                    within_time_window: rawAnomalies.length,
+                    within_time_window: rawAnomalies.filter(a => a.created_at >= lookbackDate).length,
                     eligible: actions.length,
                     urgent: urgentCount,
                     high: highCount,
