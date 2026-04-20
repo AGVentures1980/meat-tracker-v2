@@ -62,4 +62,51 @@ export class StoreController {
             res.status(500).json({ error: 'Failed to evaluate store actions' });
         }
     }
+
+    public triggerDemoRestore = async (req: Request, res: Response) => {
+        try {
+            const store = await prisma.store.findFirst({ where: { store_name: { contains: 'Orlando' } } });
+            if (!store) return res.status(404).json({ error: "Store Orlando missing." });
+
+            await prisma.anomalyEvent.deleteMany({
+                where: { store_id: store.id, demo_mode: true }
+            });
+
+            const now = new Date();
+            await prisma.anomalyEvent.createMany({
+                data: [
+                    {
+                        tenant_id: store.company_id,
+                        store_id: store.id,
+                        anomaly_type: 'YIELD_VARIANCE',
+                        severity: 'CRITICAL',
+                        confidence_score: 88,
+                        demo_mode: true,
+                        created_at: now
+                    },
+                    {
+                        tenant_id: store.company_id,
+                        store_id: store.id,
+                        anomaly_type: 'INVOICE_DISCREPANCY',
+                        severity: 'HIGH',
+                        confidence_score: 84,
+                        demo_mode: true,
+                        created_at: now
+                    },
+                    {
+                        tenant_id: store.company_id,
+                        store_id: store.id,
+                        anomaly_type: 'RECEIVING_QC_FAILURE',
+                        severity: 'MEDIUM',
+                        confidence_score: 78,
+                        demo_mode: true,
+                        created_at: now
+                    }
+                ]
+            });
+            return res.json({ success: true, message: "Orlando Demo Data perfectly reset." });
+        } catch (error: any) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
 }
