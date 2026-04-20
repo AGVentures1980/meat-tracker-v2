@@ -39,7 +39,8 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
                 }
 
                 // In React Vite dev server, typically running at localhost:5173
-                const baseUrl = import.meta.env.VITE_API_URL || '';
+                let baseUrl = import.meta.env.VITE_API_URL || '';
+                baseUrl = baseUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
                 const response = await fetch(`${baseUrl}/api/v1/theme/${subdomain}?t=${Date.now()}`);
 
                 if (response.ok) {
