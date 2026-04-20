@@ -379,8 +379,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     )}
 
 
-                    {/* Executive View (Admin/Director Only) */}
-                    {selectedCompany && (user?.role === 'admin' || user?.role === 'director' || user?.role === 'area_manager' || user?.email?.includes('admin')) && (
+                    {/* Executive View (Admin/Director/Master Only) */}
+                    {(selectedCompany || isMaster) && (user?.role === 'admin' || user?.role === 'director' || user?.role === 'area_manager' || user?.email?.includes('admin') || isMaster) && (
                         <>
                             {!isDavid && (
                                 <Link
