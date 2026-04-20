@@ -39,7 +39,7 @@ export const ReportsPage = () => {
             };
             if (selectedCompany) headers['X-Company-Id'] = selectedCompany;
 
-            const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}${report.endpoint}?range=${dateRange}`, {
+            const response = await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}${report.endpoint}?range=${dateRange}`, {
                 headers
             });
 

@@ -130,7 +130,7 @@ export const CommandCenter = () => {
             }
 
             // 4. Fetch Products
-            const productRes = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
+            const productRes = await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/dashboard/settings/company-products`, {
                 headers: getHeaders()
             });
             if (productRes.ok) {

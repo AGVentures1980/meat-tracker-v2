@@ -22,7 +22,7 @@ export const GovernanceGuard = ({ children }: GovernanceGuardProps) => {
         const checkStatus = async () => {
             if (!user?.token) return;
             try {
-                const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/training/status`, {
+                const res = await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/dashboard/training/status`, {
                     headers: { 'Authorization': `Bearer ${user.token}` }
                 });
                 const data = await res.json();

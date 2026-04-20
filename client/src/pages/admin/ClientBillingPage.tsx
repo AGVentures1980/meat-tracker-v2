@@ -7,7 +7,7 @@ export const ClientBillingPage = () => {
     const [stores, setStores] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const API_URL = (import.meta as any).env.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
     const authHeaders = {
         'Authorization': `Bearer ${user?.token}`,
         'x-company-id': selectedCompany || user?.companyId || ''

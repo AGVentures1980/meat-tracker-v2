@@ -852,7 +852,7 @@ export const TrainingPage = () => {
     // Fetch Status
     const fetchStatus = async () => {
         try {
-            const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/training/status`, {
+            const res = await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/dashboard/training/status`, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await res.json();
@@ -873,7 +873,7 @@ export const TrainingPage = () => {
     // Save Progress
     const saveProgress = async (moduleId: string, score: number) => {
         try {
-            await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/training/progress`, {
+            await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/dashboard/training/progress`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user?.token}` },
                 body: JSON.stringify({ moduleId, score })
@@ -887,7 +887,7 @@ export const TrainingPage = () => {
         // Score is number of correct answers (0-10). Convert to percentage (0-100)
         const pct = (score / 10) * 100;
         try {
-            const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/training/exam-attempt`, {
+            const res = await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/dashboard/training/exam-attempt`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user?.token}` },
                 body: JSON.stringify({ score: pct })

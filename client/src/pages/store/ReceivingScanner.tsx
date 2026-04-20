@@ -112,7 +112,7 @@ export default function ReceivingScanner() {
       if (scannedItems.length === 0) return;
       setIsSubmittingBatch(true);
       try {
-          const apiUrl = import.meta.env.VITE_API_URL || '';
+          const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
           const res = await fetch(`${apiUrl}/api/v1/compliance/submit-batch`, {
               method: 'POST',
               headers: {
@@ -185,7 +185,7 @@ export default function ReceivingScanner() {
     }
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
       console.log("🚨 SENDING SCAN TO BACKEND", {
           barcode: inputBarcode,
           apiUrl: `${apiUrl}/api/v1/barcodes/parse`
@@ -298,7 +298,7 @@ export default function ReceivingScanner() {
       if (!selectedProtein) return;
       setIsMapping(true);
       try {
-          const apiUrl = import.meta.env.VITE_API_URL || '';
+          const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
           const res = await fetch(`${apiUrl}/api/v1/compliance/map-barcode`, {
               method: 'POST',
               headers: {
@@ -537,7 +537,7 @@ export default function ReceivingScanner() {
             onClick={async () => {
                 setIsMapping(true);
                 try {
-                    const apiUrl = import.meta.env.VITE_API_URL || '';
+                    const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
                     const res = await fetch(`${apiUrl}/api/v1/compliance/force-accept`, {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${user?.token}`, 'Content-Type': 'application/json' },

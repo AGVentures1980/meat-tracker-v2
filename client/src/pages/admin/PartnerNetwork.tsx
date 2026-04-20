@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 export const PartnerNetwork: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const API_URL = (import.meta as any).env.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
     const [partners, setPartners] = useState<any[]>([]);
     const [escalated, setEscalated] = useState<any[]>([]);
     const [leads, setLeads] = useState<any[]>([]);

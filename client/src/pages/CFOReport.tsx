@@ -33,7 +33,7 @@ export default function CFOReport() {
         try {
             // In a real app, we might need a specific endpoint for the CFO report, 
             // but the analyst scan has strict financial data we need.
-            const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/analyst/scan?timeframe=M`, {
+            const res = await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/analyst/scan?timeframe=M`, {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             const data = await res.json();

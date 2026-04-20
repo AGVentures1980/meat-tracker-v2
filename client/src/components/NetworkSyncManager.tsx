@@ -12,7 +12,7 @@ export function NetworkSyncManager() {
             setIsOnline(true);
             
             if (user?.token) {
-                const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+                const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
                 const syncedCount = await OfflineQueue.syncAll(API_URL, user.token, selectedCompany || user.companyId);
                 if (syncedCount > 0) {
                     // Optional: Dispatch a global success event, or use a toast notification if the app had one

@@ -72,7 +72,7 @@ export const DataAnalyst = () => {
 
     const fetchReport = async () => {
         try {
-            const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
             const headers: any = { 'Authorization': `Bearer ${user?.token}` };
             if (selectedCompany) headers['x-company-id'] = selectedCompany;
             const res = await fetch(`${API_URL}/api/v1/analyst/roi`, {
@@ -105,7 +105,7 @@ export const DataAnalyst = () => {
 
     const handleSave = async (storeId: number) => {
         try {
-            const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
             const headers: any = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${user?.token}`

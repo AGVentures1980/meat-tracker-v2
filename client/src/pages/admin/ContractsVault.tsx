@@ -7,7 +7,7 @@ import { DealDeskModal } from '../../components/SaaS/DealDeskModal';
 export const ContractsVault: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const API_URL = (import.meta as any).env.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
     const [contracts, setContracts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');

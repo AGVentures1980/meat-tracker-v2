@@ -55,7 +55,7 @@ export const CompanySettings = () => {
     const [newAmFirstName, setNewAmFirstName] = useState('');
     const [newAmLastName, setNewAmLastName] = useState('');
 
-    const API_URL = (import.meta as any).env.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
     const fetchData = async () => {
         setLoading(true);

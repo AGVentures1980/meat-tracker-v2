@@ -58,7 +58,7 @@ const SLIDES = [
 
 export const PartnerTraining: React.FC = () => {
     const { user } = useAuth();
-    const API_URL = (import.meta as any).env.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

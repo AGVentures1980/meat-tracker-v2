@@ -5,7 +5,7 @@ import { CheckCircle, Shield, Briefcase, FileText, ChevronRight, Loader2, Buildi
 export const AcceptProposal: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const API_URL = (import.meta as any).env.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
     const [loading, setLoading] = useState(true);
     const [accepting, setAccepting] = useState(false);

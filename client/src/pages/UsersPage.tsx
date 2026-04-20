@@ -62,7 +62,7 @@ export const UsersPage = () => {
     const [isPrimary, setIsPrimary] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
     // ================== DATA FETCHING ================== //
     

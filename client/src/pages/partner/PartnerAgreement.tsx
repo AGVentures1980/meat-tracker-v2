@@ -4,7 +4,7 @@ import { ShieldCheck, FileText, CheckCircle2 } from 'lucide-react';
 
 export const PartnerAgreement: React.FC = () => {
     const { user } = useAuth();
-    const API_URL = (import.meta as any).env.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
     const [formData, setFormData] = useState({
         legal_entity_type: 'Company',

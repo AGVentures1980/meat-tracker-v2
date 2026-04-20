@@ -60,10 +60,10 @@ export const PerformanceDashboard = () => {
         try {
             setLoading(true);
             const [perfRes, roiRes] = await Promise.all([
-                fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/performance-audit`, {
+                fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/dashboard/performance-audit`, {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 }),
-                fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/analyst/roi`, {
+                fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/analyst/roi`, {
                     headers: { 'Authorization': `Bearer ${user?.token}` }
                 })
             ]);
@@ -107,7 +107,7 @@ export const PerformanceDashboard = () => {
 
     const handleSave = async (storeId: number) => {
         try {
-            await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/analyst/roi/${storeId}/baselines`, {
+            await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/analyst/roi/${storeId}/baselines`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

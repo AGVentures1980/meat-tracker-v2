@@ -66,7 +66,7 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
         if (!user) return;
         setLoadingOlo(true);
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || '';
+            const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
             const token = `Bearer ${user.token}`;
 
             const res = await fetch(`${baseUrl}/automation/olo-sales?week=10`, {
@@ -97,7 +97,7 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
         formData.append('invoice', file);
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || '';
+            const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
             const token = `Bearer ${user.token}`;
 
             const res = await fetch(`${baseUrl}/automation/ocr-invoice`, {
@@ -159,7 +159,7 @@ export const WeeklyInputForm = ({ onSubmit, onClose, storeId }: WeeklyInputFormP
                 }))
             };
 
-            const baseUrl = import.meta.env.VITE_API_URL || '';
+            const baseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
             const token = `Bearer ${user.token}`;
 
             const res = await fetch(`${baseUrl}/inventory/weekly-close`, {

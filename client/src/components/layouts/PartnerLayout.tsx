@@ -7,7 +7,7 @@ export const PartnerLayout: React.FC = () => {
     const { user, logout, isLoading } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-    const API_URL = (import.meta as any).env.VITE_API_URL || '';
+    const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
 
     const [partnerProfile, setPartnerProfile] = useState<any>(null);
     const [loadingProfile, setLoadingProfile] = useState(true);

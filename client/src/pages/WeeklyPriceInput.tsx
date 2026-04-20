@@ -57,7 +57,7 @@ export const WeeklyPriceInput = () => {
 
     const fetchProducts = async () => {
         try {
-            const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/dashboard/settings/company-products`, {
+            const res = await fetch(`${((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '')}/api/v1/dashboard/settings/company-products`, {
                 headers: {
                     'Authorization': `Bearer ${user?.token}`,
                     'X-Company-ID': selectedCompany || ''

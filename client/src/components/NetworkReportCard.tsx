@@ -32,7 +32,7 @@ export const NetworkReportCard = () => {
 
         setLoading(true);
         try {
-            const API_URL = (import.meta as any).env?.VITE_API_URL || '';
+            const API_URL = ((import.meta as any).env?.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
             const baseUrl = `${API_URL}/api/v1`;
 
             // Use Real JWT from Auth Context
