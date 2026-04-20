@@ -80,7 +80,7 @@ export class StoreController {
                         store_id: store.id,
                         anomaly_type: 'YIELD_VARIANCE',
                         severity: 'CRITICAL',
-                        confidence_score: 88,
+                        confidence: 88,
                         demo_mode: true,
                         created_at: now
                     },
@@ -89,7 +89,7 @@ export class StoreController {
                         store_id: store.id,
                         anomaly_type: 'INVOICE_DISCREPANCY',
                         severity: 'HIGH',
-                        confidence_score: 84,
+                        confidence: 84,
                         demo_mode: true,
                         created_at: now
                     },
@@ -98,7 +98,7 @@ export class StoreController {
                         store_id: store.id,
                         anomaly_type: 'RECEIVING_QC_FAILURE',
                         severity: 'MEDIUM',
-                        confidence_score: 78,
+                        confidence: 78,
                         demo_mode: true,
                         created_at: now
                     }
