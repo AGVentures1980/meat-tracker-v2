@@ -14,14 +14,20 @@ export class StoreController {
             
             // FASE 3: Constant Demo Override
             const DEMO_MODE = true;
-            const DEMO_STORE_ID = 8;
-            const DEMO_COMPANY_ID = '26e29999-5e6e-4022-bd85-17aec722655e';
+            let DEMO_STORE_ID = 8;
+            let DEMO_COMPANY_ID = '26e29999-5e6e-4022-bd85-17aec722655e';
             
             let resolvedStoreId = req.user?.storeId || req.user?.store_id;
             let resolvedCompanyId = req.user?.companyId || req.user?.tenant_id;
             let resolutionSource = "explicit_store";
 
             if (DEMO_MODE) {
+                // AUTO FIX DETERMINÍSTICO: Busca O MESMO ID que o triggerDemoRestore usa para evitar divergência PRD vs STG
+                const orlando = await prisma.store.findFirst({ where: { store_name: { contains: 'Orlando' } } });
+                if (orlando) {
+                    DEMO_STORE_ID = orlando.id;
+                    DEMO_COMPANY_ID = orlando.company_id;
+                }
                 resolvedStoreId = DEMO_STORE_ID;
                 resolvedCompanyId = DEMO_COMPANY_ID;
                 resolutionSource = isMasterAccount ? "master_global_demo_override" : "demo_mode_forced";
@@ -62,6 +68,17 @@ export class StoreController {
             const highCount = actions.filter(a => a.priority === 'HIGH').length;
             const mediumCount = actions.filter(a => a.priority === 'MEDIUM').length;
 
+            const timeFilteredAnomalies = rawAnomalies.filter(a => a.created_at >= lookbackDate || a.demo_mode);
+            const statusFilteredAnomalies = timeFilteredAnomalies; // N/A em AnomalyEvent original
+            const actionableFilteredAnomalies = timeFilteredAnomalies.filter(a => a.confidence >= 65 && a.anomaly_type !== 'SYSTEM_SUPPRESSION_LOW_TRUST');
+
+            let emptyReason = null;
+            if (actions.length === 0) {
+                 if (rawAnomalies.length === 0) emptyReason = `[DATA_ABSENT] No structural anomalies registered for Store ID ${resolvedStoreId}`;
+                 else if (actionableFilteredAnomalies.length === 0) emptyReason = "[FILTERED_OUT] Anomalies exist but lack operational confidence threshold (>65%) to warrant executive action.";
+                 else emptyReason = "[ENGINE_SUPPRESSED] Recommendation Engine found no semantic mapping for the detected anomaly types.";
+            }
+
             res.json({
                 success: true,
                 resolved_scope: {
@@ -73,13 +90,15 @@ export class StoreController {
                 },
                 counts: {
                     raw_anomalies: rawAnomalies.length,
-                    within_time_window: rawAnomalies.filter(a => a.created_at >= lookbackDate).length,
-                    eligible: actions.length,
+                    after_time_filter: timeFilteredAnomalies.length,
+                    after_status_filter: statusFilteredAnomalies.length,
+                    after_actionable_filter: actionableFilteredAnomalies.length,
+                    final: actions.length,
                     urgent: urgentCount,
                     high: highCount,
                     medium: mediumCount
                 },
-                empty_reason: actions.length === 0 ? "No anomalies detected in the designated lookback period that satisfy confidence thresholds." : null,
+                empty_reason: emptyReason,
                 data: {
                     actions
                 }
