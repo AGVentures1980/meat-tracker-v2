@@ -59,6 +59,10 @@ import { ClientBillingPage } from './pages/admin/ClientBillingPage';
 import { EnterpriseDashboard } from './pages/EnterpriseDashboard';
 import { PropertySelector } from './pages/enterprise/PropertySelector';
 import { OutletSelector } from './pages/enterprise/OutletSelector';
+import { NetworkDashboard } from './pages/enterprise/NetworkDashboard';
+import { ExecutiveChefConsole } from './pages/enterprise/ExecutiveChefConsole';
+import { OutletKPIDashboard } from './pages/enterprise/OutletKPIDashboard';
+import { KitchenOperatorScreen } from './pages/enterprise/KitchenOperatorScreen';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 import CorporateSpecs from './pages/executive/CorporateSpecs';
@@ -149,6 +153,30 @@ const MasterGuard = () => {
     if (!isMasterOrAdmin) return <Navigate to="/dashboard" replace />;
     
     return <Outlet />;
+};
+
+// Light guard for Kitchen Operations that shouldn't load DashboardLayout
+const OpsGuard = () => {
+    const { user, isLoading } = useAuth();
+    const location = useLocation();
+
+    if (isLoading) {
+        return (
+            <div className="h-screen w-screen bg-black flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-t-2 border-r-2 border-[#00FF94] animate-spin shadow-[0_0_15px_rgba(0,255,148,0.5)]"></div>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    return (
+        <PilotModeInterceptor>
+            <Outlet />
+        </PilotModeInterceptor>
+    );
 };
 
 function AppContent() {
@@ -257,12 +285,20 @@ function AppContent() {
                     <Route path="/vault" element={<IdeaVault />} />
                 </Route>
 
-                {/* Enterprise Phase 3 - Drill Down Navigation */}
+                {/* Enterprise Phase 4 - Role-Aware Dashboards */}
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard/network" element={<PropertySelector />} />
+                    {/* Navigation Fallback */}
                     <Route path="/dashboard/property/:propertySlug" element={<OutletSelector />} />
-                    <Route path="/dashboard/outlet/:outletSlug" element={<Dashboard />} />
-                    <Route path="/dashboard/ops/:outletSlug" element={<Dashboard />} /> 
+                    
+                    {/* New Core KPI Dashboards */}
+                    <Route path="/dashboard/network" element={<NetworkDashboard />} />
+                    <Route path="/dashboard/property/:propertySlug/chef-console" element={<ExecutiveChefConsole />} />
+                    <Route path="/dashboard/outlet/:outletSlug/kpi" element={<OutletKPIDashboard />} />
+                </Route>
+
+                {/* Full-Screen Operational Isolation */}
+                <Route path="/dashboard/ops/:outletSlug" element={<OpsGuard />}>
+                    <Route index element={<KitchenOperatorScreen />} />
                 </Route>
 
                 {/* Partner / Reseller Isolated Portal */}
