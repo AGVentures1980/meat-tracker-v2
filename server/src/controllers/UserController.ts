@@ -432,5 +432,194 @@ export const UserController = {
             console.error('setupFdcAreaManagers error:', error);
             res.status(500).json({ error: 'Failed to setup FDC Area Managers' });
         }
+    },
+
+    // ============================================================================
+    // PHASE 3: Enterprise User Lifecycle
+    // ============================================================================
+    
+    getMyScopeUsers: async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            let whereClause: any = { company_id: user.companyId };
+
+            // Apply boundaries
+            if (user.role === 'admin' || user.role === 'corporate_director' || user.role === 'director') {
+                // can see all users in company
+            } else if (user.role === 'regional_director' || user.role === 'area_manager') {
+                if (!user.storeIds || user.storeIds.length === 0) {
+                    return res.json({ success: true, users: [] });
+                }
+                whereClause.store_id = { in: user.storeIds };
+            } else if (user.role === 'property_manager' || user.role === 'executive_chef' || user.role === 'manager') {
+                if (!user.storeId) return res.json({ success: true, users: [] });
+                whereClause.store_id = user.storeId;
+            } else {
+                // Lower roles cannot manage users
+                return res.json({ success: true, users: [] });
+            }
+
+            const users = await prisma.user.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    first_name: true,
+                    last_name: true,
+                    email: true,
+                    role: true,
+                    position: true,
+                    is_active: true,
+                    created_at: true,
+                    store_id: true,
+                    outletIds: true
+                },
+                orderBy: { created_at: 'asc' }
+            });
+
+            res.json({ success: true, users });
+        } catch (error: any) {
+            console.error('getMyScopeUsers error:', error);
+            res.status(500).json({ error: 'Failed to fetch scoped users' });
+        }
+    },
+
+    createScopedUser: async (req: Request, res: Response) => {
+        try {
+            const currentUser = (req as any).user;
+            const { first_name, last_name, email, password, role, position, store_id, outletIds } = req.body;
+
+            if (!email || !password || !role) {
+                return res.status(400).json({ error: 'Missing required standard user fields' });
+            }
+
+            // Boundary Logic checks
+            const targetStoreId = parseInt(store_id || currentUser.storeId);
+            if (!targetStoreId) {
+                 return res.status(400).json({ error: 'Target Property store_id must be known' });
+            }
+
+            // Scope assertion
+            if (currentUser.role === 'property_manager') {
+                if (targetStoreId !== currentUser.storeId) {
+                    return res.status(403).json({ error: 'Cannot create users for other properties' });
+                }
+                const allowedRoles = ['executive_chef', 'outlet_manager', 'kitchen_operator', 'read_only_viewer'];
+                if (!allowedRoles.includes(role)) {
+                    return res.status(403).json({ error: `property_manager cannot grant role: ${role}` });
+                }
+            } else if (currentUser.role === 'regional_director') {
+                 if (!currentUser.storeIds.includes(targetStoreId)) {
+                     return res.status(403).json({ error: 'Cannot create users for properties outside your region' });
+                 }
+                 const allowedRoles = ['property_manager', 'executive_chef', 'outlet_manager', 'kitchen_operator', 'read_only_viewer'];
+                 if (!allowedRoles.includes(role)) {
+                    return res.status(403).json({ error: `regional_director cannot grant role: ${role}` });
+                 }
+            } else if (currentUser.role === 'corporate_director') {
+                // can create up to regional_director
+                const allowedRoles = ['regional_director', 'property_manager', 'executive_chef', 'outlet_manager', 'kitchen_operator', 'read_only_viewer'];
+                if (!allowedRoles.includes(role)) {
+                   return res.status(403).json({ error: `corporate_director cannot grant role: ${role}` });
+                }
+            } else if (currentUser.role !== 'admin') {
+                return res.status(403).json({ error: 'You lack permissions to create scoped users' });
+            }
+
+            const existingUser = await prisma.user.findUnique({ where: { email } });
+            if (existingUser) {
+                return res.status(400).json({ error: 'Email already exists' });
+            }
+
+            const hash = await bcrypt.hash(password, 10);
+
+            const newUser = await prisma.user.create({
+                data: {
+                    first_name,
+                    last_name,
+                    email,
+                    password_hash: hash,
+                    role,
+                    position: position || null,
+                    company_id: currentUser.companyId,
+                    store_id: targetStoreId,
+                    outletIds: outletIds || [],
+                    force_change: true,
+                    is_active: true
+                }
+            });
+
+            // Write an AuditLog to track this creation inside the region/store context
+            await prisma.auditLog.create({
+                data: {
+                    company_id: currentUser.companyId,
+                    store_id: targetStoreId,
+                    user_id: getUserId(currentUser),
+                    action: 'USER_CREATED',
+                    location: 'SYSTEM',
+                    details: { createdUserId: newUser.id, role: role, targetEmail: email },
+                    ip_address: req.ip || '0.0.0.0',
+                    user_agent: req.headers['user-agent'] || 'Unknown',
+                    outlet_id: (outletIds && outletIds.length > 0) ? outletIds[0] : null
+                }
+            });
+
+            res.json({ success: true, user: { id: newUser.id, email: newUser.email, role: newUser.role } });
+        } catch (error: any) {
+            console.error('createScopedUser error:', error);
+            res.status(500).json({ error: 'Failed to create scoped user' });
+        }
+    },
+
+    deactivateScopedUser: async (req: Request, res: Response) => {
+        try {
+            const currentUser = (req as any).user;
+            const targetUserId = req.params.userId;
+
+            const targetUser = await prisma.user.findUnique({ where: { id: targetUserId }});
+            if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+            // Scope rules
+            if (currentUser.role === 'property_manager') {
+                if (targetUser.store_id !== currentUser.storeId) {
+                    return res.status(403).json({ error: 'Cannot manage users for other properties' });
+                }
+                if (targetUser.id === getUserId(currentUser)) {
+                    return res.status(403).json({ error: 'Cannot deactivate yourself' });
+                }
+            } else if (currentUser.role === 'regional_director') {
+                if (!targetUser.store_id || !currentUser.storeIds.includes(targetUser.store_id)) {
+                    return res.status(403).json({ error: 'Cannot manage users outside your region' });
+                }
+            } else if (currentUser.role === 'corporate_director') {
+                if (targetUser.company_id !== currentUser.companyId) {
+                    return res.status(403).json({ error: 'Corporate boundary error' });
+                }
+            } else if (currentUser.role !== 'admin') {
+                return res.status(403).json({ error: 'Insufficient permissions' });
+            }
+
+            const updatedUser = await prisma.user.update({
+                where: { id: targetUserId },
+                data: { is_active: false }
+            });
+
+            await prisma.auditLog.create({
+                data: {
+                    company_id: currentUser.companyId,
+                    store_id: targetUser.store_id || currentUser.storeId,
+                    user_id: getUserId(currentUser),
+                    action: 'USER_DEACTIVATED',
+                    location: 'SYSTEM',
+                    details: { targetUserId, targetEmail: targetUser.email, is_active: false },
+                    ip_address: req.ip || '0.0.0.0',
+                    user_agent: req.headers['user-agent'] || 'Unknown'
+                }
+            });
+
+            res.json({ success: true, message: 'User deactivated successfully' });
+        } catch (error: any) {
+            console.error('deactivateScopedUser error:', error);
+            res.status(500).json({ error: 'Failed to deactivate user' });
+        }
     }
 };

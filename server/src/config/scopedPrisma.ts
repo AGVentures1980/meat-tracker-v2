@@ -12,6 +12,18 @@ const modelsWithCompanyId = new Set(
         .map(m => m.name)
 );
 
+// DYNAMIC WHITELIST for Phase 1 Enterprise Outlets
+const modelsWithOutletId = new Set(
+    Prisma.dmmf.datamodel.models
+        .filter(m => m.fields.some(f => f.name === 'outlet_id'))
+        .map(m => m.name)
+);
+
+const REGIONS: Record<string, number[]> = {
+    'USA': [1202, 1203, 1205],
+    'CARIBBEAN': [1204]
+};
+
 export function getScopedPrisma(user: any) {
     if (!user || !user.scope) {
         throw new Error('Access Denied: Unauthenticated or missing scope');
@@ -38,7 +50,10 @@ export function getScopedPrisma(user: any) {
                            securedWhere.company_id = user.companyId;
                         }
 
-                        if (user.scope.type === 'STORE') {
+                        // Phase 1 Enterprise Handling: REGIONS
+                        if (user.regionId && REGIONS[user.regionId]) {
+                            securedWhere.store_id = { in: REGIONS[user.regionId] };
+                        } else if (user.scope.type === 'STORE') {
                             securedWhere.store_id = user.scope.storeId;
                         } else if (user.scope.type === 'AREA') {
                             securedWhere.store_id = { in: user.scope.storeIds || [] };
@@ -48,6 +63,14 @@ export function getScopedPrisma(user: any) {
                                 securedWhere.company_id = user.scope.companyId || user.companyId; 
                             }
                         }
+
+                        // Phase 1 Enterprise Handling: OUTLET SCOPING
+                        if (user.outletIds && Array.isArray(user.outletIds) && user.outletIds.length > 0) {
+                            if (modelsWithOutletId.has(model)) {
+                                securedWhere.outlet_id = { in: user.outletIds };
+                            }
+                        }
+
                         return securedWhere;
                     };
 

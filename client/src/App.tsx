@@ -57,6 +57,8 @@ import { SaaSBillingHub } from './pages/admin/SaaSBillingHub';
 import { ClientBillingPage } from './pages/admin/ClientBillingPage';
 
 import { EnterpriseDashboard } from './pages/EnterpriseDashboard';
+import { PropertySelector } from './pages/enterprise/PropertySelector';
+import { OutletSelector } from './pages/enterprise/OutletSelector';
 
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 import CorporateSpecs from './pages/executive/CorporateSpecs';
@@ -253,6 +255,14 @@ function AppContent() {
                     <Route path="/intelligence/procurement-shadow" element={<ProcurementShadowDashboard />} />
                     <Route path="/support" element={<SupportHub />} />
                     <Route path="/vault" element={<IdeaVault />} />
+                </Route>
+
+                {/* Enterprise Phase 3 - Drill Down Navigation */}
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard/network" element={<PropertySelector />} />
+                    <Route path="/dashboard/property/:propertySlug" element={<OutletSelector />} />
+                    <Route path="/dashboard/outlet/:outletSlug" element={<Dashboard />} />
+                    <Route path="/dashboard/ops/:outletSlug" element={<Dashboard />} /> 
                 </Route>
 
                 {/* Partner / Reseller Isolated Portal */}

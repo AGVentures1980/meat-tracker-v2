@@ -11,7 +11,26 @@ const JWT_SECRET = process.env.JWT_SECRET || 'brasa-secret-key-change-me';
 import { SentinelService } from '../services/SentinelService';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
 
-
+export interface AuthPayload {
+    userId: string;
+    email: string;
+    role: string;
+    storeId: number | null;
+    companyId: string | null;
+    scope: any;
+    tv: number;
+    isPrimary: boolean;
+    eula_accepted: boolean;
+    position: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    
+    // Phase 1 Enterprise Schema
+    propertyId: string | null;
+    regionId: string | null;
+    outletIds: string[];
+    defaultLandingLevel: 'COMPANY' | 'PROPERTY' | 'OUTLET' | 'OPERATIONAL';
+}
 export class AuthController {
 
     static async login(req: Request, res: Response) {
@@ -128,6 +147,28 @@ export class AuthController {
                 redirectPath = '/dashboard'; // Make Dashboard the standard Global Anchor Page!
             }
 
+            // 3.8: Define Phase 2 Enterprise Scope Defaults
+            let propertyId: string | null = null;
+            let regionId: string | null = null;
+            let outletIds: string[] = [];
+
+            const COMPANY_LEVEL_ROLES = ['admin', 'director', 'partner', 'corporate_director', 'regional_director'];
+            const PROPERTY_LEVEL_ROLES = ['property_manager', 'executive_chef', 'manager', 'area_manager'];
+            const OUTLET_LEVEL_ROLES = ['outlet_manager', 'read_only_viewer'];
+            const OPERATIONAL_LEVEL_ROLES = ['kitchen_operator', 'viewer'];
+
+            let defaultLandingLevel: 'COMPANY' | 'PROPERTY' | 'OUTLET' | 'OPERATIONAL' = 'PROPERTY';
+
+            if (COMPANY_LEVEL_ROLES.includes(user.role)) {
+                defaultLandingLevel = 'COMPANY';
+            } else if (PROPERTY_LEVEL_ROLES.includes(user.role)) {
+                defaultLandingLevel = 'PROPERTY';
+            } else if (OUTLET_LEVEL_ROLES.includes(user.role)) {
+                defaultLandingLevel = 'OUTLET';
+            } else if (OPERATIONAL_LEVEL_ROLES.includes(user.role)) {
+                defaultLandingLevel = 'OPERATIONAL';
+            }
+
             // 4. Issue Token
             const token = jwt.sign(
                 {
@@ -143,8 +184,13 @@ export class AuthController {
                     eula_accepted: !!user.eula_accepted_at,
                     position: user.position,
                     firstName: user.first_name,
-                    lastName: user.last_name
-                },
+                    lastName: user.last_name,
+
+                    propertyId,
+                    regionId,
+                    outletIds,
+                    defaultLandingLevel
+                } as AuthPayload,
                 JWT_SECRET,
                 { expiresIn: '24h' } // HARDENED: Short-lived token extended for demo
             );
@@ -175,7 +221,12 @@ export class AuthController {
                     eula_accepted: !!user.eula_accepted_at,
                     position: user.position,
                     firstName: user.first_name,
-                    lastName: user.last_name
+                    lastName: user.last_name,
+
+                    propertyId,
+                    regionId,
+                    outletIds,
+                    defaultLandingLevel
                 },
                 redirectPath,
                 defaultCompanyId,

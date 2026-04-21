@@ -1,6 +1,6 @@
-
 import { Router } from 'express';
 import { ForecastController } from '../controllers/ForecastController';
+import { requirePermission } from '../middleware/permissionMiddleware';
 
 const router = Router();
 
@@ -11,6 +11,6 @@ router.get('/network', ForecastController.getNetworkForecast);
 router.get('/next-week', ForecastController.getForecast);
 
 // Upsert forecast (Create/Update with Wednesday Lock logic)
-router.post('/upsert', ForecastController.upsertForecast);
+router.post('/upsert', requirePermission('forecast_submission'), ForecastController.upsertForecast);
 
 export default router;

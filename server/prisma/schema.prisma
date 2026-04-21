@@ -163,6 +163,30 @@ model Store {
   @@unique([company_id, store_name])
 }
 
+model Outlet {
+  id             String     @id @default(cuid())
+  store_id       Int
+  company_id     String
+  name           String
+  slug           String
+  outlet_type    OutletType
+  is_active      Boolean    @default(true)
+  covers_per_day Int?
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @updatedAt
+
+  @@unique([store_id, slug])
+  @@index([company_id, store_id])
+  @@index([store_id, outlet_type])
+}
+
+enum OutletType {
+  RESTAURANT
+  BAR
+  KITCHEN
+  EMPLOYEE
+}
+
 model StoreTemplate {
   id          String   @id @default(cuid())
   company_id  String
@@ -269,6 +293,7 @@ model OrderItem {
 model MeatUsage {
   id          String          @id @default(uuid())
   store_id    Int
+  outlet_id   String?
   protein     String
   lbs_total   Float
   date        DateTime        @db.Date
@@ -334,6 +359,7 @@ model PurchaseRecord {
 model InvoiceRecord {
   id             String   @id @default(uuid())
   store_id       Int
+  outlet_id      String?
   date           DateTime @default(now())
   invoice_number String?
   item_name      String
@@ -365,6 +391,7 @@ model AuditLog {
   company_id       String?
   store_id         Int?
   user_id          String?
+  outlet_id        String?
   action           String
   resource         String
   reason           String?
@@ -380,6 +407,7 @@ model AuditLog {
 
   @@index([company_id, created_at])
   @@index([store_id, created_at])
+  @@index([store_id, outlet_id, created_at])
 }
 
 model WasteLog {
@@ -733,6 +761,14 @@ enum Role {
   director
   area_manager
   partner
+  // Phase 2 Enterprise Additions
+  corporate_director
+  regional_director
+  property_manager
+  executive_chef
+  outlet_manager
+  kitchen_operator
+  read_only_viewer
 }
 
 enum OrderSource {
@@ -1690,6 +1726,7 @@ model AuditEvent {
 model SupplierProfile {
   id        String   @id @default(cuid())
   companyId String
+  store_id  Int?
   name      String
   code      String? // ex: SYSCO, USF
   isActive  Boolean  @default(true)
@@ -1699,6 +1736,7 @@ model SupplierProfile {
   rules        SupplierBarcodeRule[]
   catalogItems SupplierCatalogItem[]
 
+  @@index([companyId, store_id])
   @@index([companyId])
 }
 

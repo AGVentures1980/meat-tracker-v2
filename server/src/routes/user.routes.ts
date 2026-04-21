@@ -24,4 +24,11 @@ router.post('/accept-eula', requireAuth, UserController.acceptEula);
 router.get('/setup-fdc-directors', UserController.setupFdcDirectors);
 router.get('/setup-fdc-ams', UserController.setupFdcAreaManagers);
 
+import { requirePermission } from '../middleware/permissionMiddleware';
+
+// Phase 3 Enterprise Scoped Lifecycle
+router.get('/my-scope', requireAuth, UserController.getMyScopeUsers);
+router.post('/create-scoped', requireAuth, requirePermission('user_management_property'), UserController.createScopedUser);
+router.patch('/:userId/deactivate', requireAuth, requirePermission('user_management_property'), UserController.deactivateScopedUser);
+
 export default router;

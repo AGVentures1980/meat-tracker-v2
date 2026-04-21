@@ -61,3 +61,82 @@ export const getEnterpriseMetrics = async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+const REGIONS: Record<string, number[]> = {
+    'USA': [1202, 1203, 1205],
+    'CARIBBEAN': [1204]
+};
+
+function resolveUserStoreIds(user: any): number[] {
+    if (user.role === 'corporate_director' || user.role === 'admin' || user.role === 'director' || user.role === 'partner') {
+        // We resolve company wide. This will be queried dynamically or mocked out since it's Phase 3 enterprise boundaries
+        return [1202, 1203, 1204, 1205]; // All known stores in this demonstration
+    }
+    if (user.regionId) {
+        return REGIONS[user.regionId] || [];
+    }
+    if (user.storeIds && user.storeIds.length > 0) {
+        return user.storeIds;
+    }
+    if (user.storeId) {
+        return [user.storeId];
+    }
+    return [];
+}
+
+export const getNetworkSummary = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const allowedStoreIds = resolveUserStoreIds(user);
+        
+        if (allowedStoreIds.length === 0) {
+            return res.json({ success: true, properties: [] });
+        }
+
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        // Group consumption by property
+        const summary = await prisma.meatUsage.groupBy({
+            by: ['store_id'],
+            where: {
+                company_id: user.companyId,
+                store_id: { in: allowedStoreIds },
+                date: { gte: sevenDaysAgo }
+            },
+            _sum: { lbs_total: true }
+        });
+
+        return res.json({ success: true, properties: summary });
+    } catch (error: any) {
+        console.error('getNetworkSummary error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getPropertyOutletSummary = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const storeId = parseInt(req.params.storeId, 10);
+
+        if (!storeId) {
+            return res.status(400).json({ success: false, message: 'Invalid storeId' });
+        }
+
+        // Validate permissions
+        const allowedStoreIds = resolveUserStoreIds(user);
+        if (!allowedStoreIds.includes(storeId)) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to view this property' });
+        }
+
+        const outlets = await prisma.outlet.findMany({
+            where: { store_id: storeId },
+            select: { slug: true, name: true, outlet_type: true }
+        });
+
+        return res.json({ success: true, outlets });
+    } catch (error: any) {
+        console.error('getPropertyOutletSummary error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
