@@ -582,8 +582,8 @@ export class MeatEngine {
                 lbsGuestVar: lbsPerGuest - ((store as any).target_lbs_guest || 1.76),
                 target_lbs_guest: (store as any).target_lbs_guest || 1.76,
                 target_cost_guest: (store as any).target_cost_guest || 9.94,
-                costGuestVar: costPerGuest - ((store as any).target_cost_guest || 9.94),
-                impactYTD: (costPerGuest - ((store as any).target_cost_guest || 9.94)) * guests, // Simple impact calc
+                costGuestVar: totalLbs > 0 ? costPerGuest - ((store as any).target_cost_guest || 9.94) : 0,
+                impactYTD: totalLbs > 0 ? (costPerGuest - ((store as any).target_cost_guest || 9.94)) * guests : 0, // Suppress empty data leak
                 theoreticalRevenue, // New
                 foodCostPercentage, // New
                 hasQCAlert, // New

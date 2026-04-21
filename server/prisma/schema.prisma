@@ -10,37 +10,37 @@ datasource db {
 }
 
 model Company {
-  id                          String         @id @default(uuid())
+  id                          String                 @id @default(uuid())
   name                        String
-  plan                        String         @default("enterprise")
-  created_at                  DateTime       @default(now())
+  plan                        String                 @default("enterprise")
+  created_at                  DateTime               @default(now())
   owner_id                    String?
-  annual_growth_rate          Float          @default(5.0)
-  baseline_loss_pct           Float          @default(15.0)
-  baseline_yield              Float          @default(65.0)
-  baseline_overproduction_pct Float          @default(8.0)
-  baseline_ruptura_pct        Float          @default(5.0)
-  contract_savings_fee_pct    Float          @default(5.0)
-  subdomain                   String?        @unique
+  annual_growth_rate          Float                  @default(5.0)
+  baseline_loss_pct           Float                  @default(15.0)
+  baseline_yield              Float                  @default(65.0)
+  baseline_overproduction_pct Float                  @default(8.0)
+  baseline_ruptura_pct        Float                  @default(5.0)
+  contract_savings_fee_pct    Float                  @default(5.0)
+  subdomain                   String?                @unique
   theme_bg_url                String?
   theme_logo_url              String?
   theme_primary_color         String?
-  billing_type                String         @default("STRIPE_AUTO")
-  operationType               OperationType  @default(RODIZIO)
-  company_status              String         @default("Pending")
-  stripe_customer_id          String?        @unique
-  stripe_subscription_id      String?        @unique
-  billing_status              String         @default("trialing")
-  stores_licensed             Int            @default(1)
-  api_key                     String?        @unique
+  billing_type                String                 @default("STRIPE_AUTO")
+  operationType               OperationType          @default(RODIZIO)
+  company_status              String                 @default("Pending")
+  stripe_customer_id          String?                @unique
+  stripe_subscription_id      String?                @unique
+  billing_status              String                 @default("trialing")
+  stores_licensed             Int                    @default(1)
+  api_key                     String?                @unique
   // SRE & Enterprise Billing Extensions
-  current_tier                TierLevel      @default(TIER_1)
-  contract_status             DocuSignStatus @default(PENDING)
-  contract_id                 String?        @unique
+  current_tier                TierLevel              @default(TIER_1)
+  contract_status             DocuSignStatus         @default(PENDING)
+  contract_id                 String?                @unique
   contract_signed_at          DateTime?
-  contract_version            String         @default("v1.0")
+  contract_version            String                 @default("v1.0")
   onboarding_started_at       DateTime?
-  polling_attempts            Int            @default(0)
+  polling_attempts            Int                    @default(0)
   last_polled_at              DateTime?
   polling_expires_at          DateTime?
   grace_period_until          DateTime?
@@ -56,6 +56,7 @@ model Company {
   CorporateProteinSpec CorporateProteinSpec[]
   vaultFiles           VaultFile[]
   AuditLog             AuditLog[]
+  forecastLogs         ForecastIntelligenceLog[]
 }
 
 model CompanyProduct {
@@ -134,9 +135,9 @@ model Store {
   purchase_records      PurchaseRecord[]
   reports               Report[]
   sales_forecasts       SalesForecast[]
-  active_template       StoreTemplate?          @relation("ActiveTemplate", fields: [active_template_id], references: [id])
-  area_manager          User?                   @relation("AreaManager", fields: [area_manager_id], references: [id])
-  company               Company                 @relation(fields: [company_id], references: [id])
+  active_template       StoreTemplate?            @relation("ActiveTemplate", fields: [active_template_id], references: [id])
+  area_manager          User?                     @relation("AreaManager", fields: [area_manager_id], references: [id])
+  company               Company                   @relation(fields: [company_id], references: [id])
   meat_targets          StoreMeatTarget[]
   support_tickets       SupportTicket[]
   uploads               Upload[]
@@ -156,6 +157,8 @@ model Store {
   BarcodeDecisionLog    BarcodeDecisionLog[]
   vaultFiles            VaultFile[]
   OcrQuarantineQueue    OcrQuarantineQueue[]
+  AuditLogs             AuditLog[]
+  forecastLogs          ForecastIntelligenceLog[]
 
   @@unique([company_id, store_name])
 }
@@ -264,14 +267,16 @@ model OrderItem {
 }
 
 model MeatUsage {
-  id        String   @id @default(uuid())
-  store_id  Int
-  protein   String
-  lbs_total Float
-  date      DateTime @db.Date
-  store     Store    @relation(fields: [store_id], references: [id])
+  id          String          @id @default(uuid())
+  store_id    Int
+  protein     String
+  lbs_total   Float
+  date        DateTime        @db.Date
+  source_type MeatSourceType?
+  store       Store           @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, protein, date])
+  @@index([store_id, source_type, date])
 }
 
 model Upload {
@@ -336,7 +341,13 @@ model InvoiceRecord {
   price_per_lb   Float
   cost_total     Float
   source         String   @default("Manual")
-  store          Store    @relation(fields: [store_id], references: [id])
+
+  // NOVO: Enterprise Inbound Reconciliation
+  expected_weight_lb    Float?
+  received_weight_lb    Float?
+  weight_discrepancy_lb Float?
+
+  store Store @relation(fields: [store_id], references: [id])
 
   @@index([store_id, date])
 }
@@ -352,6 +363,7 @@ model SystemSettings {
 model AuditLog {
   id               String   @id @default(uuid())
   company_id       String?
+  store_id         Int?
   user_id          String?
   action           String
   resource         String
@@ -363,9 +375,11 @@ model AuditLog {
   target_lbs_guest Float    @default(1.76)
 
   company Company? @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  store   Store?   @relation(fields: [store_id], references: [id], onDelete: Cascade)
   // user    User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([company_id, created_at])
+  @@index([store_id, created_at])
 }
 
 model WasteLog {
@@ -518,10 +532,10 @@ model InventoryCycle {
 }
 
 model InventoryItem {
-  id            String         @id @default(uuid())
-  cycle_id      String
-  protein_id    String
-  expected_lbs  Float          @default(0)
+  id             String         @id @default(uuid())
+  cycle_id       String
+  protein_id     String
+  expected_lbs   Float          @default(0)
   actual_lbs     Float          @default(0)
   variance_lbs   Float          @default(0)
   variance_cost  Float          @default(0)
@@ -529,8 +543,8 @@ model InventoryItem {
   delta          Float          @default(0)
   deltaPct       Float          @default(0)
   notes          String?
-  cycle         InventoryCycle @relation(fields: [cycle_id], references: [id])
-  product       CompanyProduct @relation(fields: [protein_id], references: [id])
+  cycle          InventoryCycle @relation(fields: [cycle_id], references: [id])
+  product        CompanyProduct @relation(fields: [protein_id], references: [id])
 
   @@unique([cycle_id, protein_id])
 }
@@ -753,6 +767,51 @@ enum SenderType {
   ADMIN
 }
 
+enum MeatSourceType {
+  RODIZIO
+  DELIVERY
+  ALACARTE
+}
+
+model ForecastIntelligenceLog {
+  id                        String   @id @default(uuid())
+  company_id                String
+  store_id                  Int
+  business_date             DateTime @db.Date
+  reservation_forecast      Int?
+  manager_adjusted_forecast Int?
+  ai_forecast               Int?
+  actual_dine_in_guests     Int?
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+
+  company Company @relation(fields: [company_id], references: [id])
+  store   Store   @relation(fields: [store_id], references: [id])
+
+  @@unique([store_id, business_date])
+  @@index([store_id, business_date])
+  @@index([company_id, business_date])
+}
+
+model AuditLogArchive {
+  id               String   @id @default(uuid())
+  company_id       String?
+  store_id         Int?
+  user_id          String?
+  action           String
+  resource         String
+  reason           String?
+  details          Json?
+  created_at       DateTime
+  ip_address       String?
+  location         String
+  target_lbs_guest Float
+  archived_at      DateTime @default(now())
+
+  @@index([company_id, created_at])
+  @@index([store_id, created_at])
+}
+
 model CorporateProteinSpec {
   id                        String   @id @default(uuid())
   company_id                String
@@ -770,11 +829,11 @@ model CorporateProteinSpec {
   allow_exception_receiving Boolean  @default(false)
   max_yield_loss_percent    Float?
 
-  company Company @relation(fields: [company_id], references: [id])
-  receivingRules ReceivingRecognitionRule[]
+  company              Company                    @relation(fields: [company_id], references: [id])
+  receivingRules       ReceivingRecognitionRule[]
   supplierBarcodeRules SupplierBarcodeRule[]
-  catalogItems SupplierCatalogItem[]
-  aliasMappings SupplierAliasMapping[]
+  catalogItems         SupplierCatalogItem[]
+  aliasMappings        SupplierAliasMapping[]
 
   familyBindings FamilySpecBinding[]
 }
@@ -878,16 +937,16 @@ model ReceivingEvent {
 
   shipment_id                  String?
   supervisor_id                String?
-  override_flag                Boolean  @default(false)
+  override_flag                Boolean @default(false)
   alternative_box_identifier   String?
-  requires_supply_chain_review Boolean  @default(false)
+  requires_supply_chain_review Boolean @default(false)
 
   // Mapped Patches
-  barcode_source_type          String   @default("REAL") // REAL | OVERRIDE
-  original_barcode             String?
-  excess_receipt_reason        String?
+  barcode_source_type   String  @default("REAL") // REAL | OVERRIDE
+  original_barcode      String?
+  excess_receipt_reason String?
 
-  store Store @relation(fields: [store_id], references: [id])
+  store              Store             @relation(fields: [store_id], references: [id])
   inbound_line_units InboundLineUnit[]
 
   @@unique([company_id, client_event_id])
@@ -1201,7 +1260,7 @@ model ProteinBox {
   updated_at DateTime @updatedAt
 
   events BoxLifecycleEvent[]
-  
+
   transformationInputs TransformationInput[]
   allocations          ProteinConsumptionAllocation[]
 
@@ -1465,19 +1524,19 @@ model ShadowModeCompare {
 }
 
 model OutboxEvent {
-  id              String    @id @default(uuid())
-  idempotency_key String    @unique // Garante que a mesma intenção nunca seja registrada 2x
-  topic           String    // 'intake.queued'
-  payload         Json      // Must include itemId, tenant_id etc
-  status          String    @default("PENDING") // PENDING, PUBLISHED, FAILED
-  error           String?   @db.Text
+  id              String  @id @default(uuid())
+  idempotency_key String  @unique // Garante que a mesma intenção nunca seja registrada 2x
+  topic           String // 'intake.queued'
+  payload         Json // Must include itemId, tenant_id etc
+  status          String  @default("PENDING") // PENDING, PUBLISHED, FAILED
+  error           String? @db.Text
   tenant_id       String
-  
-  locked_at       DateTime?
-  locked_by       String?
-  
-  created_at      DateTime  @default(now())
-  published_at    DateTime?
+
+  locked_at DateTime?
+  locked_by String?
+
+  created_at   DateTime  @default(now())
+  published_at DateTime?
 
   @@index([status, locked_at, created_at])
   @@index([idempotency_key])
@@ -1501,94 +1560,94 @@ model FileObject {
 // ==== PHASE 6: OPERATIONAL INTELLIGENCE LAYER ====
 
 model RulesetVersion {
-  id              String   @id @default(uuid())
-  version_tag     String   @unique // ex: "v1.0-brazil_yield"
-  thresholds      Json     // Matrix of thresholds and bands
-  created_at      DateTime @default(now())
-  created_by      String   @default("SYSTEM")
+  id          String   @id @default(uuid())
+  version_tag String   @unique // ex: "v1.0-brazil_yield"
+  thresholds  Json // Matrix of thresholds and bands
+  created_at  DateTime @default(now())
+  created_by  String   @default("SYSTEM")
 }
 
 model ScoreDefinition {
-  id              String   @id @default(uuid())
-  score_name      String   @unique
-  formula_hash    String
-  active          Boolean  @default(true)
-  created_at      DateTime @default(now())
+  id           String   @id @default(uuid())
+  score_name   String   @unique
+  formula_hash String
+  active       Boolean  @default(true)
+  created_at   DateTime @default(now())
 }
 
 model IntelligenceSnapshot {
-  id                  String   @id @default(uuid())
-  tenant_id           String
-  store_id            Int?
-  period_start        DateTime
-  period_end          DateTime
-  
+  id           String   @id @default(uuid())
+  tenant_id    String
+  store_id     Int?
+  period_start DateTime
+  period_end   DateTime
+
   // Mathematical Scores (0-100)
-  op_risk_score       Float    @default(0)
-  store_trust_score   Float    @default(0)
-  ingestion_score     Float    @default(0)
-  
+  op_risk_score     Float @default(0)
+  store_trust_score Float @default(0)
+  ingestion_score   Float @default(0)
+
   // Raw Data Signals
-  lbs_guest_real      Float    @default(0)
-  lbs_guest_theo      Float    @default(0)
-  lbs_guest_delta_pct Float    @default(0)
-  
+  lbs_guest_real      Float @default(0)
+  lbs_guest_theo      Float @default(0)
+  lbs_guest_delta_pct Float @default(0)
+
   // Traceability & Lineage
   local_baseline_context Json?
-  source_inputs_used  Int      @default(0)
-  ruleset_version     String
-  confidence          Float    @default(1.0)
-  generated_at        DateTime @default(now())
+  source_inputs_used     Int      @default(0)
+  ruleset_version        String
+  confidence             Float    @default(1.0)
+  generated_at           DateTime @default(now())
 
   // Relationships to Events
-  anomalies           AnomalyEvent[]
-  recommendations     RecommendationEvent[]
+  anomalies       AnomalyEvent[]
+  recommendations RecommendationEvent[]
 
   @@unique([tenant_id, store_id, period_start, period_end])
   @@index([tenant_id, generated_at])
 }
 
 model AnomalyEvent {
-  id              String   @id @default(uuid())
-  snapshot_id     String
-  tenant_id       String
-  store_id        Int?
-  anomaly_type    String   // 'CRITICAL_LBS_VARIANCE', 'GHOST_SHIFT'
-  severity        String   // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
-  confidence      Float
-  message         String   @db.Text
-  is_capped       Boolean  @default(false)
-  demo_mode       Boolean  @default(false)
-  trigger_value   Float
-  baseline_value  Float
-  created_at      DateTime @default(now())
+  id             String   @id @default(uuid())
+  snapshot_id    String
+  tenant_id      String
+  store_id       Int?
+  anomaly_type   String // 'CRITICAL_LBS_VARIANCE', 'GHOST_SHIFT'
+  severity       String // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+  confidence     Float
+  message        String   @db.Text
+  is_capped      Boolean  @default(false)
+  demo_mode      Boolean  @default(false)
+  trigger_value  Float
+  baseline_value Float
+  created_at     DateTime @default(now())
 
-  snapshot        IntelligenceSnapshot @relation(fields: [snapshot_id], references: [id], onDelete: Cascade)
+  snapshot        IntelligenceSnapshot  @relation(fields: [snapshot_id], references: [id], onDelete: Cascade)
   recommendations RecommendationEvent[]
 
   @@index([tenant_id, severity])
 }
 
 model RecommendationEvent {
-  id              String   @id @default(uuid())
-  snapshot_id     String
-  anomaly_id      String?
-  tenant_id       String
-  store_id        Int?
-  
-  action_code     String
-  title           String
-  description     String   @db.Text
-  rationale       String   @db.Text
-  owner_role      String   // 'STORE_MANAGER', 'FINANCE'
-  priority        String   // 'LOW', 'MEDIUM', 'HIGH', 'URGENT'
-  status          String   @default("PENDING") // PENDING, DONE, IGNORED
-  deadline_at     DateTime?
-  
-  created_at      DateTime @default(now())
-  
-  snapshot        IntelligenceSnapshot @relation(fields: [snapshot_id], references: [id], onDelete: Cascade)
-  anomaly         AnomalyEvent?        @relation(fields: [anomaly_id], references: [id], onDelete: SetNull)
+  id          String  @id @default(uuid())
+  snapshot_id String
+  anomaly_id  String?
+  tenant_id   String
+  store_id    Int?
+
+  action_code String
+  title       String
+  description String    @db.Text
+  rationale   String    @db.Text
+  owner_role  String // 'STORE_MANAGER', 'FINANCE'
+  priority    String // 'LOW', 'MEDIUM', 'HIGH', 'URGENT'
+  status      String    @default("PENDING") // PENDING, DONE, IGNORED
+  deadline_at DateTime?
+
+  created_at DateTime @default(now())
+
+  snapshot IntelligenceSnapshot @relation(fields: [snapshot_id], references: [id], onDelete: Cascade)
+  anomaly  AnomalyEvent?        @relation(fields: [anomaly_id], references: [id], onDelete: SetNull)
 
   @@index([tenant_id, owner_role, status])
 }
@@ -1598,30 +1657,30 @@ model RecommendationEvent {
 // ==========================================
 
 model ReceivingRecognitionRule {
-  id                      String   @id @default(uuid())
+  id                      String  @id @default(uuid())
   company_id              String
   protein_spec_id         String
   gtin                    String?
   normalized_product_code String?
   raw_barcode_pattern     String?
-  match_strength          String   // 'STRONG' | 'MEDIUM' | 'WEAK'
-  
-  created_by              String
-  created_at              DateTime @default(now())
-  is_active               Boolean  @default(true)
-  notes                   String?
+  match_strength          String // 'STRONG' | 'MEDIUM' | 'WEAK'
+
+  created_by String
+  created_at DateTime @default(now())
+  is_active  Boolean  @default(true)
+  notes      String?
 
   spec CorporateProteinSpec @relation(fields: [protein_spec_id], references: [id], onDelete: Cascade)
 }
 
 model AuditEvent {
-  id           String   @id @default(uuid())
-  action       String
-  actor        String
-  store_id     Int?
-  target_id    String?
-  payload      Json?
-  timestamp    DateTime @default(now())
+  id        String   @id @default(uuid())
+  action    String
+  actor     String
+  store_id  Int?
+  target_id String?
+  payload   Json?
+  timestamp DateTime @default(now())
 }
 
 // ==========================================
@@ -1629,38 +1688,40 @@ model AuditEvent {
 // ==========================================
 
 model SupplierProfile {
-  id               String   @id @default(cuid())
-  companyId        String
-  name             String
-  code             String?  // ex: SYSCO, USF
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id        String   @id @default(cuid())
+  companyId String
+  name      String
+  code      String? // ex: SYSCO, USF
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  rules            SupplierBarcodeRule[]
-  catalogItems     SupplierCatalogItem[]
+  rules        SupplierBarcodeRule[]
+  catalogItems SupplierCatalogItem[]
+
   @@index([companyId])
 }
 
 model SupplierBarcodeRule {
-  id                    String   @id @default(cuid())
+  id                    String        @id @default(cuid())
   companyId             String
   supplierId            String
-  matchType             RuleMatchType  
+  matchType             RuleMatchType
   gtin                  String?
   normalizedProductCode String?
   rawBarcodePattern     String?
   regex                 String?
-  matchStrength         RuleStrength   
-  minPrefixLength       Int?           
-  isActive              Boolean @default(true)
+  matchStrength         RuleStrength
+  minPrefixLength       Int?
+  isActive              Boolean       @default(true)
   createdBy             String
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
-  supplier            SupplierProfile @relation(fields: [supplierId], references: [id])
-  proteinSpecId       String
-  spec                CorporateProteinSpec @relation(fields: [proteinSpecId], references: [id], onDelete: Cascade)
+  supplier      SupplierProfile      @relation(fields: [supplierId], references: [id])
+  proteinSpecId String
+  spec          CorporateProteinSpec @relation(fields: [proteinSpecId], references: [id], onDelete: Cascade)
+
   @@index([companyId, supplierId])
 }
 
@@ -1682,194 +1743,194 @@ enum RuleStrength {
 // =======================================================
 
 model SupplierCatalogItem {
-  id                   String  @id @default(cuid())
-  supplierId           String
-  supplierItemCode     String
-  gtin                 String?
-  supplierDescription  String?
-  supplierPackType     String?
-  expectedWeightRange  String?
-  expectedUom          String? @default("lb")
-  isActive             Boolean @default(true)
-  linkedProteinSpecId  String?
-  confidence           Float   @default(0.0)
+  id                  String  @id @default(cuid())
+  supplierId          String
+  supplierItemCode    String
+  gtin                String?
+  supplierDescription String?
+  supplierPackType    String?
+  expectedWeightRange String?
+  expectedUom         String? @default("lb")
+  isActive            Boolean @default(true)
+  linkedProteinSpecId String?
+  confidence          Float   @default(0.0)
 
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  supplier             SupplierProfile @relation(fields: [supplierId], references: [id])
-  spec                 CorporateProteinSpec? @relation(fields: [linkedProteinSpecId], references: [id], onDelete: SetNull)
+  supplier SupplierProfile       @relation(fields: [supplierId], references: [id])
+  spec     CorporateProteinSpec? @relation(fields: [linkedProteinSpecId], references: [id], onDelete: SetNull)
 
   @@index([supplierId, supplierItemCode])
 }
 
 model PurchaseOrder {
-  id               String   @id @default(cuid())
-  companyId        String
-  storeId          Int
-  supplierId       String?
-  poNumber         String
-  status           PoStatus @default(DRAFT)
-  plannedDelivery  DateTime?
+  id              String    @id @default(cuid())
+  companyId       String
+  storeId         Int
+  supplierId      String?
+  poNumber        String
+  status          PoStatus  @default(DRAFT)
+  plannedDelivery DateTime?
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  lines            PurchaseOrderLine[]
+  lines PurchaseOrderLine[]
 
   @@index([companyId, storeId])
   @@index([poNumber])
 }
 
 model PurchaseOrderLine {
-  id               String   @id @default(cuid())
+  id               String  @id @default(cuid())
   purchaseOrderId  String
   supplierItemCode String?
   productRefId     String?
   qtyExpected      Int
   weightExpected   Float?
   packCount        Int?
-  status           String   @default("OPEN")
-  
-  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  status           String  @default("OPEN")
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
 
   @@index([purchaseOrderId])
 }
 
 model ExpectedDelivery {
-  id               String   @id @default(cuid())
-  companyId        String
-  storeId          Int
-  supplierId       String?
-  asnNumber        String?
-  status           DeliveryStatus @default(PLANNED)
-  plannedDelivery  DateTime?
+  id              String         @id @default(cuid())
+  companyId       String
+  storeId         Int
+  supplierId      String?
+  asnNumber       String?
+  status          DeliveryStatus @default(PLANNED)
+  plannedDelivery DateTime?
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  lines            ExpectedDeliveryLine[]
+  lines ExpectedDeliveryLine[]
 
   @@index([companyId, storeId])
   @@index([asnNumber])
 }
 
 model ExpectedDeliveryLine {
-  id                 String   @id @default(cuid())
+  id                 String  @id @default(cuid())
   expectedDeliveryId String
   supplierItemCode   String?
   qtyExpected        Int
   weightExpected     Float?
 
-  expectedDelivery   ExpectedDelivery @relation(fields: [expectedDeliveryId], references: [id])
+  expectedDelivery ExpectedDelivery @relation(fields: [expectedDeliveryId], references: [id])
 }
 
 model SupplierDocument {
-  id                     String   @id @default(cuid())
+  id                     String          @id @default(cuid())
   companyId              String
   storeId                Int
   supplierId             String?
   documentType           SupplierDocType
   externalDocumentNumber String?
   issueDate              DateTime?
-  sourceChannel          String   @default("UPLOAD")
+  sourceChannel          String          @default("UPLOAD")
   rawPayload             Json?
   parsedStatus           DocParsedStatus @default(CAPTURED)
-  confidence             Float    @default(0.0)
+  confidence             Float           @default(0.0)
 
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  lines                  SupplierDocumentLine[]
+  lines SupplierDocumentLine[]
 
   @@index([storeId])
   @@index([externalDocumentNumber])
 }
 
 model SupplierDocumentLine {
-  id                 String   @id @default(cuid())
-  documentId         String
-  supplierItemCode   String?
-  qty                Int?
-  weight             Float?
-  price              Float?
+  id               String  @id @default(cuid())
+  documentId       String
+  supplierItemCode String?
+  qty              Int?
+  weight           Float?
+  price            Float?
 
-  document           SupplierDocument @relation(fields: [documentId], references: [id])
+  document SupplierDocument @relation(fields: [documentId], references: [id])
 }
 
 model PosSalesFeed {
-  id               String   @id @default(cuid())
-  storeId          Int
-  businessDate     DateTime
-  sourceSystem     String   @default("TOAST")
-  transactionRef   String?
-  importedAt       DateTime @default(now())
+  id             String   @id @default(cuid())
+  storeId        Int
+  businessDate   DateTime
+  sourceSystem   String   @default("TOAST")
+  transactionRef String?
+  importedAt     DateTime @default(now())
 
-  lines            PosSalesLine[]
+  lines PosSalesLine[]
 
   @@index([storeId, businessDate])
 }
 
 model PosSalesLine {
-  id               String   @id @default(cuid())
-  feedId           String
-  itemSold         String
-  quantity         Float
-  modifiers        Json?
-  channel          String   @default("DINE_IN")
+  id        String @id @default(cuid())
+  feedId    String
+  itemSold  String
+  quantity  Float
+  modifiers Json?
+  channel   String @default("DINE_IN")
 
-  feed             PosSalesFeed @relation(fields: [feedId], references: [id])
+  feed             PosSalesFeed                   @relation(fields: [feedId], references: [id])
   consumptionLinks ConsumptionLink[]
   allocations      ProteinConsumptionAllocation[]
 }
 
 model ReconciliationEvent {
-  id               String   @id @default(cuid())
-  storeId          Int
-  businessDate     DateTime
-  status           String   @default("OPEN")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id           String   @id @default(cuid())
+  storeId      Int
+  businessDate DateTime
+  status       String   @default("OPEN")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  varianceCases    VarianceCase[]
+  varianceCases VarianceCase[]
 
   @@index([storeId, businessDate])
 }
 
 model VarianceCase {
-  id                      String   @id @default(cuid())
-  reconciliationEventId   String
-  type                    String
-  severity                VarianceSeverity @default(LOW)
-  sourceEntities          Json?
-  financialEstimate       Float?
-  status                  String   @default("OPEN")
-  requiredAction          String?
-  assignedRole            String?
-  auditTrail              Json?
+  id                    String           @id @default(cuid())
+  reconciliationEventId String
+  type                  String
+  severity              VarianceSeverity @default(LOW)
+  sourceEntities        Json?
+  financialEstimate     Float?
+  status                String           @default("OPEN")
+  requiredAction        String?
+  assignedRole          String?
+  auditTrail            Json?
 
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  reconciliationEvent     ReconciliationEvent @relation(fields: [reconciliationEventId], references: [id])
+  reconciliationEvent ReconciliationEvent @relation(fields: [reconciliationEventId], references: [id])
 }
 
 model SupplierIntegritySnapshot {
-  id                       String   @id @default(cuid())
-  companyId                String
-  supplierId               String
-  periodStart              DateTime
-  periodEnd                DateTime
-  weakRuleRate             Float    @default(0.0)
-  reviewRate               Float    @default(0.0)
-  rejectRate               Float    @default(0.0)
-  documentMismatchRate     Float    @default(0.0)
-  expectedVsReceivedVariance Float  @default(0.0)
-  averageRiskScore         Float    @default(0.0)
-  confidenceIndex          Float    @default(1.0)
-  degradationTrend         String?
+  id                         String   @id @default(cuid())
+  companyId                  String
+  supplierId                 String
+  periodStart                DateTime
+  periodEnd                  DateTime
+  weakRuleRate               Float    @default(0.0)
+  reviewRate                 Float    @default(0.0)
+  rejectRate                 Float    @default(0.0)
+  documentMismatchRate       Float    @default(0.0)
+  expectedVsReceivedVariance Float    @default(0.0)
+  averageRiskScore           Float    @default(0.0)
+  confidenceIndex            Float    @default(1.0)
+  degradationTrend           String?
 
-  createdAt                DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([companyId, supplierId, periodEnd])
 }
@@ -1920,36 +1981,36 @@ enum VarianceSeverity {
 // =======================================================
 
 model ProteinTransformationBatch {
-  id                String   @id @default(cuid())
+  id                String      @id @default(cuid())
   storeId           Int
-  productType       String   // e.g. HAMBURGER, PRIME_RIB_PORTION
-  totalInputWeight  Float    @default(0.0)
-  totalOutputUnits  Int      @default(0)
-  totalOutputWeight Float    @default(0.0)
-  yieldPercentage   Float    @default(0.0)
+  productType       String // e.g. HAMBURGER, PRIME_RIB_PORTION
+  totalInputWeight  Float       @default(0.0)
+  totalOutputUnits  Int         @default(0)
+  totalOutputWeight Float       @default(0.0)
+  yieldPercentage   Float       @default(0.0)
   status            BatchStatus @default(OPEN)
 
-  createdBy         String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  inputs            TransformationInput[]
-  outputs           TransformationOutput[]
-  consumptionLinks  ConsumptionLink[]
+  inputs           TransformationInput[]
+  outputs          TransformationOutput[]
+  consumptionLinks ConsumptionLink[]
 
   @@index([storeId, status])
 }
 
 model TransformationInput {
-  id                 String   @id @default(cuid())
+  id                 String          @id @default(cuid())
   batchId            String
   sourceProteinBoxId String
   sourceType         InputSourceType // e.g. PRIME_CUT, SCRAP
   weightUsed         Float
-  timestamp          DateTime @default(now())
+  timestamp          DateTime        @default(now())
 
-  batch              ProteinTransformationBatch @relation(fields: [batchId], references: [id])
-  box                ProteinBox @relation(fields: [sourceProteinBoxId], references: [id])
+  batch ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+  box   ProteinBox                 @relation(fields: [sourceProteinBoxId], references: [id])
 
   @@index([batchId])
   @@index([sourceProteinBoxId])
@@ -1958,12 +2019,12 @@ model TransformationInput {
 model TransformationOutput {
   id             String   @id @default(cuid())
   batchId        String
-  productCode    String   // e.g. HAMBURGER
+  productCode    String // e.g. HAMBURGER
   unitsProduced  Int
   weightProduced Float
   timestamp      DateTime @default(now())
 
-  batch          ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+  batch ProteinTransformationBatch @relation(fields: [batchId], references: [id])
 
   @@index([batchId])
 }
@@ -1976,8 +2037,8 @@ model ConsumptionLink {
   unitsConsumed  Int
   timestamp      DateTime @default(now())
 
-  batch          ProteinTransformationBatch @relation(fields: [batchId], references: [id])
-  salesLine      PosSalesLine @relation(fields: [posSalesLineId], references: [id])
+  batch     ProteinTransformationBatch @relation(fields: [batchId], references: [id])
+  salesLine PosSalesLine               @relation(fields: [posSalesLineId], references: [id])
 
   @@index([batchId])
   @@index([posSalesLineId])
@@ -1999,37 +2060,37 @@ enum InputSourceType {
 // =======================================================
 
 model ConsumptionAllocationRule {
-  id                    String   @id @default(cuid())
+  id                    String           @id @default(cuid())
   storeId               Int
-  productCode           String   // e.g. LAMB_CHOP, BEEF_RIB
+  productCode           String // e.g. LAMB_CHOP, BEEF_RIB
   allocationMethod      AllocationMethod
-  unitName              String   // e.g. BONE, PORTION
-  unitsPerSale          Int      @default(1)
-  unitsPerCase          Int      @default(10) // default fallback
-  usesLotLevelWeight    Boolean  @default(true)
-  fixedPortionWeightLbs Float?   // Nullable, used if FIXED_WEIGHT
+  unitName              String // e.g. BONE, PORTION
+  unitsPerSale          Int              @default(1)
+  unitsPerCase          Int              @default(10) // default fallback
+  usesLotLevelWeight    Boolean          @default(true)
+  fixedPortionWeightLbs Float? // Nullable, used if FIXED_WEIGHT
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([storeId, productCode])
 }
 
 model ProteinConsumptionAllocation {
-  id                 String   @id @default(cuid())
+  id                 String             @id @default(cuid())
   sourceProteinBoxId String?
   sourceScanEventId  String?
   productCode        String
   unitsConsumed      Float
   lbsAllocated       Float
-  sourceSystem       String   // POS | OLO
+  sourceSystem       String // POS | OLO
   destinationType    DestinationChannel // SALAO | BAR | DELIVERY
   posSalesLineId     String?
 
-  timestamp          DateTime @default(now())
+  timestamp DateTime @default(now())
 
-  box                ProteinBox? @relation(fields: [sourceProteinBoxId], references: [id])
-  salesLine          PosSalesLine? @relation(fields: [posSalesLineId], references: [id])
+  box       ProteinBox?   @relation(fields: [sourceProteinBoxId], references: [id])
+  salesLine PosSalesLine? @relation(fields: [posSalesLineId], references: [id])
 
   @@index([sourceProteinBoxId])
   @@index([posSalesLineId])
@@ -2051,33 +2112,33 @@ enum DestinationChannel {
 // =======================================================
 
 model ExecutiveSnapshotLedger {
-  id                    String   @id @default(cuid())
-  companyId             Int
-  storeId               Int?
-  snapshotType          SnapshotType // DAILY | WEEKLY
-  businessDate          DateTime
-  generatedAt           DateTime @default(now())
+  id           String       @id @default(cuid())
+  companyId    Int
+  storeId      Int?
+  snapshotType SnapshotType // DAILY | WEEKLY
+  businessDate DateTime
+  generatedAt  DateTime     @default(now())
 
   integrityScore        Float
   executiveRiskLevel    String
   weeklyVarianceUSD     Float
   lbsPerGuestDiningRoom Float?
 
-  actionPanelPayload    Json
-  metricsVersion        String
-  scoreVersion          String?
-  policyVersion         String?
-  
-  isFinal               Boolean  @default(false)
-  completenessStatus    String   @default("COMPLETE") // COMPLETE | PARTIAL | INCOMPLETE
-  missingSources        String[] // Array of system modules that failed to report
-  reasonIfPartial       String?
+  actionPanelPayload Json
+  metricsVersion     String
+  scoreVersion       String?
+  policyVersion      String?
+
+  isFinal            Boolean  @default(false)
+  completenessStatus String   @default("COMPLETE") // COMPLETE | PARTIAL | INCOMPLETE
+  missingSources     String[] // Array of system modules that failed to report
+  reasonIfPartial    String?
 
   @@unique([companyId, storeId, snapshotType, businessDate])
 }
 
 model ExecutiveActionDecision {
-  id                         String   @id @default(cuid())
+  id                         String @id @default(cuid())
   companyId                  Int
   storeId                    Int?
   actionCode                 String
@@ -2085,28 +2146,28 @@ model ExecutiveActionDecision {
   actionSeverity             String
   financialImpactEstimateUSD Float
 
-  sourceSnapshotId           String?
-  sourceMetricVersion        String
-  sourceBusinessDate         DateTime?
-  
-  targetType                 String // STORE | CHANNEL | PRODUCT | SUPPLIER
-  targetId                   String // Ref associated to the target
-  
-  decisionStatus             DecisionStatus @default(OPEN)
-  resolutionOutcome          String? // SUCCESS | FALSE_POSITIVE | NO_ACTION_TAKEN
-  
-  assignedToUserId           String?
-  createdBySystem            Boolean @default(true)
-  
-  viewedAt                   DateTime?
-  acknowledgedAt             DateTime?
-  forwardedAt                DateTime?
-  actedByUserId              String?
-  actedAt                    DateTime?
-  resolvedAt                 DateTime?
-  
-  notes                      String?
-  createdAt                  DateTime @default(now())
+  sourceSnapshotId    String?
+  sourceMetricVersion String
+  sourceBusinessDate  DateTime?
+
+  targetType String // STORE | CHANNEL | PRODUCT | SUPPLIER
+  targetId   String // Ref associated to the target
+
+  decisionStatus    DecisionStatus @default(OPEN)
+  resolutionOutcome String? // SUCCESS | FALSE_POSITIVE | NO_ACTION_TAKEN
+
+  assignedToUserId String?
+  createdBySystem  Boolean @default(true)
+
+  viewedAt       DateTime?
+  acknowledgedAt DateTime?
+  forwardedAt    DateTime?
+  actedByUserId  String?
+  actedAt        DateTime?
+  resolvedAt     DateTime?
+
+  notes     String?
+  createdAt DateTime @default(now())
 
   @@index([storeId, decisionStatus, createdAt])
 }
@@ -2130,36 +2191,36 @@ enum DecisionStatus {
 // =======================================================
 
 model PilotConfiguration {
-  id                 String   @id @default(cuid())
-  companyId          Int
-  storeId            Int
-  status             PilotStatus @default(INACTIVE)
-  
-  pilotStartDate     DateTime
-  pilotEndDate       DateTime?
-  
-  enabledFeatures    String[] // ['ACTION_PANEL', 'BENTO_GRID_KPI']
-  allowedRoles       String[] // ['store_manager', 'director']
-  
-  successThresholds  Json? // For holding { "avgResolutionTimeSecs": 120 }
-  rollbackEnabled    Boolean @default(true)
+  id        String      @id @default(cuid())
+  companyId Int
+  storeId   Int
+  status    PilotStatus @default(INACTIVE)
+
+  pilotStartDate DateTime
+  pilotEndDate   DateTime?
+
+  enabledFeatures String[] // ['ACTION_PANEL', 'BENTO_GRID_KPI']
+  allowedRoles    String[] // ['store_manager', 'director']
+
+  successThresholds Json? // For holding { "avgResolutionTimeSecs": 120 }
+  rollbackEnabled   Boolean @default(true)
 
   @@unique([storeId])
 }
 
 model PilotFeedback {
-  id                 String   @id @default(cuid())
-  companyId          Int
-  storeId            Int
-  userId             String
-  actionDecisionId   String?  // If tied to a specific aborted card
-  
-  feedbackCategory   FeedbackCategory
-  severity           String   // MINOR | MAJOR | BLOCKER
-  affectedScreen     String
-  comments           String
-  
-  createdAt          DateTime @default(now())
+  id               String  @id @default(cuid())
+  companyId        Int
+  storeId          Int
+  userId           String
+  actionDecisionId String? // If tied to a specific aborted card
+
+  feedbackCategory FeedbackCategory
+  severity         String // MINOR | MAJOR | BLOCKER
+  affectedScreen   String
+  comments         String
+
+  createdAt DateTime @default(now())
 }
 
 enum PilotStatus {
@@ -2232,44 +2293,44 @@ model RawBarcodeEvent {
   metadata           Json?
   created_at         DateTime @default(now())
 
-  parsed_facts       ParsedBarcodeFacts?
+  parsed_facts ParsedBarcodeFacts?
 }
 
 model ParsedBarcodeFacts {
-  id                    String   @id @default(uuid())
-  raw_barcode_event_id  String   @unique
-  gtin                  String?
-  item_reference        String?
-  product_code          String?
-  weight_lb             Float?
-  lot                   String?
-  serial                String?
-  production_date       String?
-  parser_source         String
-  parser_confidence     Float
-  normalized_json       Json?
-  created_at            DateTime @default(now())
+  id                   String   @id @default(uuid())
+  raw_barcode_event_id String   @unique
+  gtin                 String?
+  item_reference       String?
+  product_code         String?
+  weight_lb            Float?
+  lot                  String?
+  serial               String?
+  production_date      String?
+  parser_source        String
+  parser_confidence    Float
+  normalized_json      Json?
+  created_at           DateTime @default(now())
 
-  raw_event             RawBarcodeEvent @relation(fields: [raw_barcode_event_id], references: [id], onDelete: Cascade)
+  raw_event RawBarcodeEvent @relation(fields: [raw_barcode_event_id], references: [id], onDelete: Cascade)
 }
 
 model CanonicalBarcodeIdentity {
-  id                  String   @id @default(uuid())
-  company_id          String
-  identity_hash       String   @unique
-  identity_basis      String   // e.g. "GTIN", "PRODUCT_CODE", "OCR_SIGNATURE"
-  identity_input_type String   // e.g. "GS1-128", "CUSTOM_LABEL"
-  stable_signature    String
-  supplier_context_id String?
-  source_integrity    String   @default("WEAK")
-  status              String   @default("ACTIVE")
+  id                    String   @id @default(uuid())
+  company_id            String
+  identity_hash         String   @unique
+  identity_basis        String // e.g. "GTIN", "PRODUCT_CODE", "OCR_SIGNATURE"
+  identity_input_type   String // e.g. "GS1-128", "CUSTOM_LABEL"
+  stable_signature      String
+  supplier_context_id   String?
+  source_integrity      String   @default("WEAK")
+  status                String   @default("ACTIVE")
   operational_family_id String?
-  created_at          DateTime @default(now())
-  updated_at          DateTime @updatedAt
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
 
-  operational_family  OperationalFamily? @relation(fields: [operational_family_id], references: [id], onDelete: SetNull)
-  aliases             SupplierProductAlias[]
-  resolutions         IdentityResolutionAudit[]
+  operational_family OperationalFamily?        @relation(fields: [operational_family_id], references: [id], onDelete: SetNull)
+  aliases            SupplierProductAlias[]
+  resolutions        IdentityResolutionAudit[]
 
   @@index([company_id])
   @@index([identity_hash])
@@ -2278,19 +2339,19 @@ model CanonicalBarcodeIdentity {
 }
 
 model SupplierProductAlias {
-  id                      String   @id @default(uuid())
-  canonical_identity_id   String
-  supplier_id             String?
-  alias_type              String   // e.g. "VENDOR_SKU", "GTIN_VARIANT"
-  alias_value             String
-  confidence              Float    @default(1.0)
-  status                  String   @default("ACTIVE")
-  created_by              String?
-  reviewed_by             String?
-  created_at              DateTime @default(now())
-  updated_at              DateTime @updatedAt
+  id                    String   @id @default(uuid())
+  canonical_identity_id String
+  supplier_id           String?
+  alias_type            String // e.g. "VENDOR_SKU", "GTIN_VARIANT"
+  alias_value           String
+  confidence            Float    @default(1.0)
+  status                String   @default("ACTIVE")
+  created_by            String?
+  reviewed_by           String?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
 
-  canonical_identity      CanonicalBarcodeIdentity @relation(fields: [canonical_identity_id], references: [id], onDelete: Cascade)
+  canonical_identity CanonicalBarcodeIdentity @relation(fields: [canonical_identity_id], references: [id], onDelete: Cascade)
 
   @@index([canonical_identity_id])
 }
@@ -2305,8 +2366,8 @@ model OperationalFamily {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  bindings      FamilySpecBinding[]
-  identities    CanonicalBarcodeIdentity[]
+  bindings   FamilySpecBinding[]
+  identities CanonicalBarcodeIdentity[]
 
   @@unique([company_id, family_code])
 }
@@ -2320,8 +2381,8 @@ model FamilySpecBinding {
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt
 
-  operational_family        OperationalFamily @relation(fields: [operational_family_id], references: [id], onDelete: Cascade)
-  protein_spec              CorporateProteinSpec @relation(fields: [corporate_protein_spec_id], references: [id], onDelete: Cascade)
+  operational_family OperationalFamily    @relation(fields: [operational_family_id], references: [id], onDelete: Cascade)
+  protein_spec       CorporateProteinSpec @relation(fields: [corporate_protein_spec_id], references: [id], onDelete: Cascade)
 
   @@unique([operational_family_id, corporate_protein_spec_id])
   @@index([operational_family_id])
@@ -2349,20 +2410,20 @@ model MappingReviewQueue {
 }
 
 model IdentityResolutionAudit {
-  id                      String   @id @default(uuid())
-  raw_barcode             String
-  parsed_facts_id         String?
-  canonical_identity_id   String?
-  alias_match_id          String?
-  operational_family_id   String?
-  corporate_spec_id       String?
-  decision_path           String
-  confidence_level        Float
-  governance_status       String
-  trace_payload_json      Json?
-  created_at              DateTime @default(now())
+  id                    String   @id @default(uuid())
+  raw_barcode           String
+  parsed_facts_id       String?
+  canonical_identity_id String?
+  alias_match_id        String?
+  operational_family_id String?
+  corporate_spec_id     String?
+  decision_path         String
+  confidence_level      Float
+  governance_status     String
+  trace_payload_json    Json?
+  created_at            DateTime @default(now())
 
-  canonical_identity      CanonicalBarcodeIdentity? @relation(fields: [canonical_identity_id], references: [id], onDelete: SetNull)
+  canonical_identity CanonicalBarcodeIdentity? @relation(fields: [canonical_identity_id], references: [id], onDelete: SetNull)
 
   @@index([raw_barcode])
   @@index([canonical_identity_id])
@@ -2383,42 +2444,42 @@ model InboundShipment {
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
-  units          InboundLineUnit[]
-  store          Store    @relation(fields: [store_id], references: [id])
+  units InboundLineUnit[]
+  store Store             @relation(fields: [store_id], references: [id])
 
   @@unique([store_id, invoice_number])
   @@index([store_id, supplier_id, status])
 }
 
 model InboundLineUnit {
-  id                String   @id @default(uuid())
-  shipment_id       String
-  item_name         String
-  canonical_family_id       String?
-  supply_chain_approved_id  String?
-  expectedWeightLb  Float
-  weightType        String   @default("FIXED") // FIXED | VARIABLE
-  status            String   @default("AVAILABLE") // AVAILABLE, MATCHED, REVIEW_REQUIRED
-  reviewReason      String?
-  matched_event_id  String?  @unique
-  created_at        DateTime @default(now())
+  id                       String   @id @default(uuid())
+  shipment_id              String
+  item_name                String
+  canonical_family_id      String?
+  supply_chain_approved_id String?
+  expectedWeightLb         Float
+  weightType               String   @default("FIXED") // FIXED | VARIABLE
+  status                   String   @default("AVAILABLE") // AVAILABLE, MATCHED, REVIEW_REQUIRED
+  reviewReason             String?
+  matched_event_id         String?  @unique
+  created_at               DateTime @default(now())
 
-  shipment          InboundShipment @relation(fields: [shipment_id], references: [id], onDelete: Cascade)
-  receiving_event   ReceivingEvent? @relation(fields: [matched_event_id], references: [id])
+  shipment        InboundShipment @relation(fields: [shipment_id], references: [id], onDelete: Cascade)
+  receiving_event ReceivingEvent? @relation(fields: [matched_event_id], references: [id])
 
   @@index([shipment_id, status])
 }
 
 model ProducedInventoryItem {
-  id               String   @id @default(uuid())
-  store_id         Int
-  source_batch_id  String
-  source_box_id    String?
-  product_name     String
-  weight_lb        Float
-  status           String   @default("AVAILABLE") // AVAILABLE, PARTIAL, CONSUMED, DISCARDED
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  id              String   @id @default(uuid())
+  store_id        Int
+  source_batch_id String
+  source_box_id   String?
+  product_name    String
+  weight_lb       Float
+  status          String   @default("AVAILABLE") // AVAILABLE, PARTIAL, CONSUMED, DISCARDED
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
   @@index([store_id, status])
   @@index([source_batch_id])

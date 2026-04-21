@@ -160,6 +160,8 @@ import userRoutes from './routes/user.routes';
 import companyRoutes from './routes/company.routes';
 import supportRoutes from './routes/support.routes';
 import vaultRoutes from './routes/vault.routes';
+import enterpriseRoutes from './routes/enterprise.routes';
+import forecastIntelligenceRoutes from './routes/forecastIntelligence.routes';
 import themeRoutes from './routes/theme.routes';
 import partnerRoutes from './routes/partner.routes';
 import agvAdminRoutes from './routes/agv-admin.routes';
@@ -203,6 +205,8 @@ import burgerRoutes from './routes/burger.routes';
 
 // Protected Routes
 app.use('/api/v1/dashboard', requireAuth, dashboardRoutes);
+app.use('/api/v1/enterprise', requireAuth, enterpriseRoutes);
+app.use('/api/v1/forecast-intelligence', requireAuth, forecastIntelligenceRoutes);
 app.use('/api/v2/dashboard', dashboardV2Routes);
 app.use('/api/v1/orders', requireAuth, orderRoutes);
 app.use('/api/v1/upload', requireAuth, uploadRoutes);
