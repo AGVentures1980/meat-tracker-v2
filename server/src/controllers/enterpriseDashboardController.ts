@@ -100,7 +100,6 @@ export const getNetworkSummary = async (req: Request, res: Response) => {
         const summary = await prisma.meatUsage.groupBy({
             by: ['store_id'],
             where: {
-                company_id: user.companyId,
                 store_id: { in: allowedStoreIds },
                 date: { gte: sevenDaysAgo }
             },

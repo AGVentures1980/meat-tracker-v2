@@ -240,6 +240,8 @@ model User {
   password_history     PasswordHistory[]
   vaultFiles           VaultFile[]
   fileAccessLogs       FileAccessLog[]
+  is_active            Boolean              @default(true)
+  outletIds            String[]
   // AuditLog             AuditLog[]
 }
 

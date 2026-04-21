@@ -555,10 +555,10 @@ export const UserController = {
                     store_id: targetStoreId,
                     user_id: getUserId(currentUser),
                     action: 'USER_CREATED',
+                    resource: 'USER_MANAGEMENT',
                     location: 'SYSTEM',
                     details: { createdUserId: newUser.id, role: role, targetEmail: email },
                     ip_address: req.ip || '0.0.0.0',
-                    user_agent: req.headers['user-agent'] || 'Unknown',
                     outlet_id: (outletIds && outletIds.length > 0) ? outletIds[0] : null
                 }
             });
@@ -609,10 +609,10 @@ export const UserController = {
                     store_id: targetUser.store_id || currentUser.storeId,
                     user_id: getUserId(currentUser),
                     action: 'USER_DEACTIVATED',
+                    resource: 'USER_MANAGEMENT',
                     location: 'SYSTEM',
                     details: { targetUserId, targetEmail: targetUser.email, is_active: false },
-                    ip_address: req.ip || '0.0.0.0',
-                    user_agent: req.headers['user-agent'] || 'Unknown'
+                    ip_address: req.ip || '0.0.0.0'
                 }
             });
 
