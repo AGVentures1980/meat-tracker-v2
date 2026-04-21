@@ -77,12 +77,18 @@ export const Login = () => {
         '/fdc-hero-3.jpg',
         '/fdc-hero-4.jpg'
     ];
+    const hardrockImages = [
+        '/hardrock-carousel-1.png',
+        '/hardrock-carousel-2.png',
+        '/hardrock-carousel-3.png'
+    ];
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {
-        if (theme?.companyName === 'Fogo de Chão') {
+        if (theme?.companyName === 'Fogo de Chão' || theme?.companyName === 'Hard Rock Hotel & Casino') {
+            const imagesArray = theme?.companyName === 'Fogo de Chão' ? fdcImages : hardrockImages;
             const interval = setInterval(() => {
-                setCurrentImageIndex((prev) => (prev + 1) % fdcImages.length);
+                setCurrentImageIndex((prev) => (prev + 1) % imagesArray.length);
             }, 6000);
             return () => clearInterval(interval);
         }
@@ -105,9 +111,9 @@ export const Login = () => {
 
             {/* Background Layers */}
             <div className="absolute inset-0 z-0">
-                {/* Conditional Carousel for FDC, Standard Background for others */}
-                {theme?.companyName === 'Fogo de Chão' ? (
-                    fdcImages.map((img, index) => (
+                {/* Conditional Carousel for FDC & Hard Rock, Standard Background for others */}
+                {theme?.companyName === 'Fogo de Chão' || theme?.companyName === 'Hard Rock Hotel & Casino' ? (
+                    (theme?.companyName === 'Fogo de Chão' ? fdcImages : hardrockImages).map((img, index) => (
                         <div
                             key={img}
                             className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-60' : 'opacity-0'}`}
@@ -123,7 +129,7 @@ export const Login = () => {
                     )
                 )}
 
-                {!theme?.bgUrl && theme?.companyName !== 'Fogo de Chão' && (
+                {!theme?.bgUrl && theme?.companyName !== 'Fogo de Chão' && theme?.companyName !== 'Hard Rock Hotel & Casino' && (
                     <div className="absolute inset-0 opacity-50 bg-cover bg-center bg-[url('/brasa-hero.png')]"></div>
                 )}
             </div>
