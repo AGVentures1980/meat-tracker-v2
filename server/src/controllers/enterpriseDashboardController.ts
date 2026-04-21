@@ -176,20 +176,20 @@ export const getOutletKPI = async (req: Request, res: Response) => {
             _sum: { lbs_total: true }
         });
 
-        const latestForecast = await prisma.forecastIntelligenceLog.findFirst({
-            where: { store_id: outlet.store_id },
+        const latestForecast = await prisma.outletForecastLog.findFirst({
+            where: { outlet_id: outlet.id },
             orderBy: { business_date: 'desc' }
         });
         
-        const totalGuests = latestForecast?.actual_dine_in_guests || latestForecast?.manager_adjusted_forecast || 0;
-
+        const totalGuests = latestForecast?.actual_guests || latestForecast?.manager_forecast || 0;
+        const currentLbsGuest = latestForecast?.lbs_per_guest || 0;
+        
         const latestUsage = await prisma.meatUsage.aggregate({
             where: { outlet_id: outlet.id, date: { gte: sevenDaysAgo } },
             _sum: { lbs_total: true }
         });
         
         const lbsConsumed = latestUsage._sum.lbs_total || 0;
-        const currentLbsGuest = totalGuests > 0 ? (lbsConsumed / totalGuests) : 0;
         
         const trend = Array.from({ length: 7 }).map((_, i) => ({
             day: i,
@@ -243,6 +243,324 @@ export const getOutletFlags = async (req: Request, res: Response) => {
     try {
         // Redundant since getOutletKPI computed this, but implemented for standalone requests
         res.json({ success: true, data: [] });
+    } catch (e: any) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+};
+
+export const postOutletForecast = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const outletSlug = req.params.outletSlug;
+        const { business_date, meal_period, manager_forecast, reservation_count } = req.body;
+
+        const outlet = await prisma.outlet.findFirst({ where: { slug: outletSlug } });
+        if (!outlet) return res.status(404).json({ success: false, message: 'Outlet not found' });
+
+        const allowedStoreIds = resolveUserStoreIds(user);
+        if (!allowedStoreIds.includes(outlet.store_id) && !(user.outletIds && user.outletIds.includes(outlet.id))) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const bDate = new Date(business_date);
+
+        const forecast = await prisma.outletForecastLog.upsert({
+            where: {
+                outlet_id_business_date_meal_period: {
+                    outlet_id: outlet.id,
+                    business_date: bDate,
+                    meal_period: meal_period
+                }
+            },
+            update: {
+                manager_forecast: parseInt(manager_forecast),
+                reservation_forecast: reservation_count ? parseInt(reservation_count) : null,
+                submitted_by_user_id: user.id
+            },
+            create: {
+                company_id: outlet.company_id,
+                store_id: outlet.store_id,
+                outlet_id: outlet.id,
+                business_date: bDate,
+                meal_period: meal_period,
+                manager_forecast: parseInt(manager_forecast),
+                reservation_forecast: reservation_count ? parseInt(reservation_count) : null,
+                submitted_by_user_id: user.id
+            }
+        });
+
+        await prisma.auditLog.create({
+            data: {
+                user_id: user.id,
+                action: 'FORECAST_SUBMITTED',
+                resource: `Outlet:${outlet.id}`,
+                details: `Manager Forecast: ${manager_forecast} for ${meal_period}`,
+                company_id: outlet.company_id,
+                store_id: outlet.store_id
+            }
+        });
+
+        res.json({ success: true, data: forecast });
+    } catch (e: any) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+};
+
+export const postOutletActualClose = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const outletSlug = req.params.outletSlug;
+        const { business_date, meal_period, actual_guests, lbs_consumed } = req.body;
+
+        const outlet = await prisma.outlet.findFirst({ where: { slug: outletSlug } });
+        if (!outlet) return res.status(404).json({ success: false, message: 'Outlet not found' });
+
+        const allowedStoreIds = resolveUserStoreIds(user);
+        if (!allowedStoreIds.includes(outlet.store_id) && !(user.outletIds && user.outletIds.includes(outlet.id))) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const bDate = new Date(business_date);
+        const parsedGuests = parseInt(actual_guests);
+        const parsedLbs = parseFloat(lbs_consumed);
+
+        const lbsPerGuest = parsedGuests > 0 ? (parsedLbs / parsedGuests) : null;
+        const target = outlet.target_lbs_per_guest || null;
+        let variance = null;
+        if (lbsPerGuest !== null && target !== null && target > 0) {
+            variance = ((lbsPerGuest - target) / target) * 100;
+        }
+
+        const closeRec = await prisma.outletForecastLog.upsert({
+            where: {
+                outlet_id_business_date_meal_period: {
+                    outlet_id: outlet.id,
+                    business_date: bDate,
+                    meal_period: meal_period
+                }
+            },
+            update: {
+                actual_guests: parsedGuests,
+                lbs_consumed: parsedLbs,
+                lbs_per_guest: lbsPerGuest,
+                target_lbs_per_guest: target,
+                variance_pct: variance,
+                submitted_by_user_id: user.id
+            },
+            create: {
+                company_id: outlet.company_id,
+                store_id: outlet.store_id,
+                outlet_id: outlet.id,
+                business_date: bDate,
+                meal_period: meal_period,
+                actual_guests: parsedGuests,
+                lbs_consumed: parsedLbs,
+                lbs_per_guest: lbsPerGuest,
+                target_lbs_per_guest: target,
+                variance_pct: variance,
+                submitted_by_user_id: user.id
+            }
+        });
+
+        await prisma.auditLog.create({
+            data: {
+                user_id: user.id,
+                action: 'ACTUAL_CLOSE_SUBMITTED',
+                resource: `Outlet:${outlet.id}`,
+                details: `Actual Guests: ${parsedGuests}, Lbs: ${parsedLbs} for ${meal_period}`,
+                company_id: outlet.company_id,
+                store_id: outlet.store_id
+            }
+        });
+
+        res.json({ success: true, data: closeRec });
+    } catch (e: any) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+};
+
+export const getOutletForecastAccuracy = async (req: Request, res: Response) => {
+    try {
+        const outlet = await prisma.outlet.findFirst({ where: { slug: req.params.outletSlug } });
+        if (!outlet) return res.status(404).json({ success: false, message: 'Outlet not found' });
+
+        const days = parseInt(req.query.days as string) || 30;
+        const d = new Date();
+        d.setDate(d.getDate() - days);
+
+        const logs = await prisma.outletForecastLog.findMany({
+            where: {
+                outlet_id: outlet.id,
+                business_date: { gte: d },
+                manager_forecast: { not: null },
+                actual_guests: { not: null }
+            },
+            orderBy: { business_date: 'asc' }
+        });
+
+        if (logs.length === 0) return res.json({ success: true, data: { manager_accuracy_pct: 0, days_with_data: 0, trend: 'stable', best_day: null, worst_day: null }});
+
+        let totalDev = 0;
+        let bestDay = logs[0];
+        let worstDay = logs[0];
+
+        logs.forEach(log => {
+            const dev = Math.abs(log.manager_forecast! - log.actual_guests!) / (log.actual_guests! === 0 ? 1 : log.actual_guests!);
+            totalDev += dev;
+
+            const bestDev = Math.abs(bestDay.manager_forecast! - bestDay.actual_guests!) / (bestDay.actual_guests! === 0 ? 1 : bestDay.actual_guests!);
+            const worstDev = Math.abs(worstDay.manager_forecast! - worstDay.actual_guests!) / (worstDay.actual_guests! === 0 ? 1 : worstDay.actual_guests!);
+
+            if (dev < bestDev) bestDay = log;
+            if (dev > worstDev) worstDay = log;
+        });
+
+        const avgDev = totalDev / logs.length;
+        const accuracyPct = Math.max(0, 100 - (avgDev * 100)); // 0 deviation = 100% accuracy
+
+        // calculate trend (compare first half to second half loosely)
+        const half = Math.floor(logs.length / 2);
+        let firstHalfDev = 0, secondHalfDev = 0;
+        
+        for (let i = 0; i < logs.length; i++) {
+            const dev = Math.abs(logs[i].manager_forecast! - logs[i].actual_guests!) / (logs[i].actual_guests! === 0 ? 1 : logs[i].actual_guests!);
+            if (i < half) firstHalfDev += dev;
+            else secondHalfDev += dev;
+        }
+
+        const fhAvg = half > 0 ? (firstHalfDev / half) : 0;
+        const shAvg = half > 0 ? (secondHalfDev / (logs.length - half)) : avgDev;
+        
+        const trend = (shAvg < fhAvg - 0.05) ? 'improving' : (shAvg > fhAvg + 0.05) ? 'declining' : 'stable';
+
+        res.json({
+            success: true,
+            data: {
+                manager_accuracy_pct: accuracyPct,
+                days_with_data: logs.length,
+                trend,
+                best_day: bestDay.business_date,
+                worst_day: worstDay.business_date
+            }
+        });
+    } catch (e: any) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+};
+
+export const getPropertyForecastAccuracySummary = async (req: Request, res: Response) => {
+    try {
+        const storeId = parseInt(req.params.storeId, 10);
+        if (!storeId) return res.status(400).json({ success: false });
+
+        const d = new Date();
+        d.setDate(d.getDate() - 30);
+
+        const logs = await prisma.outletForecastLog.findMany({
+            where: {
+                store_id: storeId,
+                business_date: { gte: d },
+                manager_forecast: { not: null },
+                actual_guests: { not: null }
+            },
+            include: {
+                outlet: { select: { slug: true, name: true, outlet_type: true } }
+            }
+        });
+
+        // Group by outlet
+        const outlets: any = {};
+        logs.forEach(l => {
+            if (!outlets[l.outlet_id]) {
+                outlets[l.outlet_id] = { slug: l.outlet.slug, name: l.outlet.name, outlet_type: l.outlet.outlet_type, deviations: [] };
+            }
+            if (l.actual_guests! >= 0) {
+                outlets[l.outlet_id].deviations.push(Math.abs(l.manager_forecast! - l.actual_guests!) / (l.actual_guests! === 0 ? 1 : l.actual_guests!));
+            }
+        });
+
+        const summaryData: any[] = [];
+        for (const oid in outlets) {
+            const devArray = outlets[oid].deviations;
+            if (devArray.length > 0) {
+                const avgDev = devArray.reduce((acc: number, cur: number) => acc + cur, 0) / devArray.length;
+                summaryData.push({
+                    outletSlug: outlets[oid].slug,
+                    outletName: outlets[oid].name,
+                    outletType: outlets[oid].outlet_type,
+                    manager_accuracy_pct: Math.max(0, 100 - (avgDev * 100)),
+                    days_with_data: devArray.length
+                });
+            }
+        }
+
+        res.json({ success: true, data: summaryData });
+    } catch (e: any) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+};
+
+export const getOutletInboundReconciliation = async (req: Request, res: Response) => {
+    try {
+        const outlet = await prisma.outlet.findFirst({ where: { slug: req.params.outletSlug } });
+        if (!outlet) return res.status(404).json({ success: false, message: 'Outlet not found' });
+
+        const days = parseInt(req.query.days as string) || 7;
+        const d = new Date();
+        d.setDate(d.getDate() - days);
+
+        // All invoices tied to this outlet
+        const invoices = await prisma.invoiceRecord.findMany({
+            where: { outlet_id: outlet.id, date: { gte: d } },
+            orderBy: { date: 'desc' }
+        });
+
+        // All receiving events inside the property roughly within that timeframe
+        const received = await prisma.receivingEvent.findMany({
+            where: { store_id: outlet.store_id, created_at: { gte: d } },
+            orderBy: { created_at: 'desc' }
+        });
+
+        const matchResults = [];
+
+        for (const inv of invoices) {
+            let match = received.find(r => r.invoice_id === inv.invoice_number);
+            
+            if (!match && inv.item_name) {
+                match = received.find(r => r.product_code?.toLowerCase() === inv.item_name.toLowerCase());
+            }
+
+            if (match && match.weight !== null && match.weight !== undefined) {
+                const variance = Math.abs(inv.quantity - match.weight) / (inv.quantity === 0 ? 1 : inv.quantity);
+                const status = variance > 0.02 ? 'DISCREPANCY' : 'MATCHED';
+                matchResults.push({
+                    invoice: inv,
+                    received: match,
+                    status,
+                    variance_pct: variance * 100
+                });
+            } else {
+                matchResults.push({
+                    invoice: inv,
+                    received: null,
+                    status: 'PENDING',
+                    variance_pct: null
+                });
+            }
+        }
+
+        const reconciled = matchResults.filter(m => m.status === 'MATCHED').length;
+        const targetableInvoices = invoices.length;
+        const reconciliation_pct = targetableInvoices > 0 ? (reconciled / targetableInvoices) * 100 : 100;
+
+        res.json({
+            success: true,
+            data: {
+                matches: matchResults,
+                reconciliation_pct
+            }
+        });
+
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
     }

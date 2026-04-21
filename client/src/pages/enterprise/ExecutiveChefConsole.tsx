@@ -9,6 +9,7 @@ export const ExecutiveChefConsole = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [outlets, setOutlets] = useState<any[]>([]);
+    const [accuracies, setAccuracies] = useState<any>({});
     const [loading, setLoading] = useState(true);
 
     // Using the same endpoint as propertySelector but we'll enrich it on the client
@@ -27,6 +28,15 @@ export const ExecutiveChefConsole = () => {
                 if (res.ok) {
                     const data = await res.json();
                     setOutlets(data.outlets || []);
+                }
+                const resAcc = await fetch(`/api/v1/enterprise/property/${storeId}/forecast-accuracy-summary`, {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                if (resAcc.ok) {
+                    const dataAcc = await resAcc.json();
+                    const accMap: any = {};
+                    dataAcc.data.forEach((d: any) => { accMap[d.outletSlug] = d.manager_accuracy_pct; });
+                    setAccuracies(accMap);
                 }
             } catch (err) {
                 console.error(err);
@@ -78,11 +88,18 @@ export const ExecutiveChefConsole = () => {
                     {type === 'EMPLOYEE' && <StatusBadge status={['ACTIVE', 'NO_DATA'][outlet.name.length % 2]} />}
                 </div>
 
-                <div className="mt-2 text-xs text-gray-400 font-mono space-y-1">
-                    {type === 'RESTAURANT' && <div>Lbs/Guest: {(1.5 + (outlet.name.length * 0.05)).toFixed(2)}</div>}
-                    {type === 'BAR' && <div>Consumed: {(outlet.name.length * 15)} lbs</div>}
-                    {type === 'KITCHEN' && <div>Received: {outlet.name.length} boxes</div>}
-                    {type === 'EMPLOYEE' && <div>Served: {outlet.name.length * 40} pax</div>}
+                <div className="mt-2 text-xs font-mono space-y-1">
+                    {type === 'RESTAURANT' && (
+                        <>
+                            <div className="text-gray-400">Lbs/Guest: {(1.5 + (outlet.name.length * 0.05)).toFixed(2)}</div>
+                            <div className={`${accuracies[outlet.slug] >= 90 ? 'text-[#00FF94]' : accuracies[outlet.slug] >= 80 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                Fcst Acc: {accuracies[outlet.slug] !== undefined ? `${accuracies[outlet.slug].toFixed(1)}%` : '--%'}
+                            </div>
+                        </>
+                    )}
+                    {type === 'BAR' && <div className="text-gray-400">Consumed: {(outlet.name.length * 15)} lbs</div>}
+                    {type === 'KITCHEN' && <div className="text-gray-400">Received: {outlet.name.length} boxes</div>}
+                    {type === 'EMPLOYEE' && <div className="text-gray-400">Served: {outlet.name.length * 40} pax</div>}
                 </div>
 
                 <div className="mt-auto self-end pt-2">

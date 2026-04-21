@@ -7,6 +7,7 @@ export const NetworkDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [network, setNetwork] = useState<any>(null);
+    const [accuracies, setAccuracies] = useState<any>({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -19,6 +20,23 @@ export const NetworkDashboard = () => {
                 if (res.ok) {
                     const data = await res.json();
                     setNetwork(data.summary);
+                    
+                    if (data.summary) {
+                        const accMap: any = {};
+                        for (const n of data.summary) {
+                            const accRes = await fetch(`/api/v1/enterprise/property/${n.store_id}/forecast-accuracy-summary`, {
+                                headers: { 'Authorization': `Bearer ${user?.token}` }
+                            });
+                            if (accRes.ok) {
+                                const accData = await accRes.json();
+                                if (accData.data && accData.data.length > 0) {
+                                    const sumAcc = accData.data.reduce((sum: number, cur: any) => sum + cur.manager_accuracy_pct, 0);
+                                    accMap[n.store_id] = sumAcc / accData.data.length;
+                                }
+                            }
+                        }
+                        setAccuracies(accMap);
+                    }
                 }
             } catch (err) {
                 console.error(err);
@@ -97,6 +115,7 @@ export const NetworkDashboard = () => {
                                     <th className="px-4 py-3 text-right">Covers Today</th>
                                     <th className="px-4 py-3 text-right">Lbs/Guest</th>
                                     <th className="px-4 py-3 text-right">Target</th>
+                                    <th className="px-4 py-3 text-center">Fcst Acc</th>
                                     <th className="px-4 py-3 text-center">Trend (7d)</th>
                                     <th className="px-4 py-3 text-center">Risk Score</th>
                                 </tr>
@@ -117,6 +136,9 @@ export const NetworkDashboard = () => {
                                             <td className="px-4 py-4 text-right font-mono text-gray-400">{p.guests}</td>
                                             <td className={`px-4 py-4 text-right font-bold ${lgColor}`}>{lg.toFixed(2)}</td>
                                             <td className="px-4 py-4 text-right text-gray-500">{p.target.toFixed(2)}</td>
+                                            <td className={`px-4 py-4 text-center font-bold font-mono ${accuracies[p.id] >= 90 ? 'text-[#00FF94]' : accuracies[p.id] >= 80 ? 'text-yellow-500' : accuracies[p.id] !== undefined ? 'text-red-500' : 'text-gray-600'}`}>
+                                                {accuracies[p.id] !== undefined ? `${accuracies[p.id].toFixed(1)}%` : '--%'}
+                                            </td>
                                             <td className="px-4 py-4 text-center text-gray-400 flex justify-center"><TrendIcon className={`w-4 h-4 ${lgColor}`} /></td>
                                             <td className="px-4 py-4 text-center">
                                                 <span className={`px-2 py-0.5 rounded text-xs font-mono font-bold ${pts > 3 ? 'bg-red-500/20 text-red-500' : pts > 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>

@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { NavigationBreadcrumb } from '../../components/enterprise/NavigationBreadcrumb';
+import { OutletInboundReconciliation } from '../../components/enterprise/OutletInboundReconciliation';
+import { ForecastSubmissionForm } from '../../components/enterprise/ForecastSubmissionForm';
+import { ActualCloseForm } from '../../components/enterprise/ActualCloseForm';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, BarChart, Bar, Legend } from 'recharts';
 import { AlertCircle, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 
@@ -10,6 +13,9 @@ export const OutletKPIDashboard = () => {
     const { user } = useAuth();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [accuracy, setAccuracy] = useState<any>(null);
+    const [showForecastForm, setShowForecastForm] = useState(false);
+    const [showCloseForm, setShowCloseForm] = useState(false);
 
     const isChef = user?.role === 'executive_chef' || user?.role === 'kitchen_operator';
 
@@ -29,7 +35,14 @@ export const OutletKPIDashboard = () => {
                 setLoading(false);
             }
         };
+        const fetchAccuracy = async () => {
+            const res = await fetch(`/api/v1/enterprise/outlet/${outletSlug}/forecast-accuracy`, {
+                headers: { 'Authorization': `Bearer ${user?.token}` }
+            });
+            if (res.ok) setAccuracy((await res.json()).data);
+        };
         fetchKPI();
+        fetchAccuracy();
     }, [outletSlug, user]);
 
     if (loading) return <div className="p-8 text-[#C5A059] animate-pulse font-mono tracking-widest text-center">Loading Data Source...</div>;
@@ -42,8 +55,23 @@ export const OutletKPIDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto py-8 text-white space-y-6">
-            <h1 className="text-2xl font-bold text-[#C5A059] tracking-widest uppercase pb-2">{outlet.name} / KPI</h1>
-            <NavigationBreadcrumb />
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-2xl font-bold text-[#C5A059] tracking-widest uppercase pb-2">{outlet.name} / KPI</h1>
+                    <NavigationBreadcrumb />
+                </div>
+                <div className="flex gap-3">
+                    <button onClick={() => { setShowForecastForm(!showForecastForm); setShowCloseForm(false); }} className="px-4 py-2 bg-[#C5A059] text-black font-bold tracking-widest uppercase rounded text-sm hover:opacity-90">
+                        Submit Forecast
+                    </button>
+                    <button onClick={() => { setShowCloseForm(!showCloseForm); setShowForecastForm(false); }} className="px-4 py-2 bg-[#00FF94] text-black font-bold tracking-widest uppercase rounded text-sm hover:opacity-90">
+                        Close Shift
+                    </button>
+                </div>
+            </div>
+
+            {showForecastForm && <ForecastSubmissionForm outletSlug={outletSlug!} onSuccess={() => setShowForecastForm(false)} />}
+            {showCloseForm && <ActualCloseForm outletSlug={outletSlug!} onSuccess={() => setShowCloseForm(false)} />}
 
             {/* FLAGS (Inline) */}
             {flags.length > 0 && (
@@ -71,7 +99,7 @@ export const OutletKPIDashboard = () => {
 
             {/* SECTION A: KPI HEADER BAR */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-[#1a1a1a] p-4 border border-[#333] rounded overflow-visible">
+                <div className="bg-[#1a1a1a] p-4 border border-[#333] rounded overflow-visible relative">
                     <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Lbs / Guest</div>
                     <div className="text-3xl font-bold text-white relative">
                         {today.lbsGuest.toFixed(2)}
@@ -79,15 +107,11 @@ export const OutletKPIDashboard = () => {
                     {!isChef && (
                         <div className="text-xs text-gray-400 mt-2">Target: {today.target.toFixed(2)}</div>
                     )}
-                    <div className="text-[10px] text-yellow-500 mt-2 flex items-start gap-1 leading-tight">
-                        <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                        <span>Guest count is property-wide. Outlet-level guest tracking coming in Phase 5.</span>
-                    </div>
                 </div>
                 <div className="bg-[#1a1a1a] p-4 border border-[#333] rounded">
                     <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Total Guests</div>
                     <div className="text-3xl font-bold text-white">{today.guests}</div>
-                    <div className="text-xs text-gray-400 mt-2">Property-Wide Estimate</div>
+                    <div className="text-xs text-gray-400 mt-2">Outlet Localized</div>
                 </div>
                 <div className="bg-[#1a1a1a] p-4 border border-[#333] rounded">
                     <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Total Lbs</div>
@@ -123,54 +147,48 @@ export const OutletKPIDashboard = () => {
 
                 {/* SECTION C: CHANNEL CONSUMPTION */}
                 {isRestaurant && (
-                    <div className="bg-[#1a1a1a] border border-[#333] p-4 rounded h-[400px]">
-                        <h2 className="text-sm text-[#C5A059] uppercase tracking-widest mb-4">Channel Breakdown</h2>
-                        {channels && channels.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="85%">
-                                <BarChart data={channels}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                                    <XAxis dataKey="source_type" stroke="#666" tick={{ fill: '#666', fontSize: 10 }} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#111', borderColor: '#333' }} />
-                                    <Bar dataKey="_sum.lbs_total" fill="#C5A059" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="h-full flex items-center justify-center text-gray-600 font-mono text-sm">No Channel Data</div>
-                        )}
+                    <div className="flex flex-col gap-4">
+                        <div className="bg-[#1a1a1a] border border-[#333] p-4 rounded flex-1">
+                            <h2 className="text-sm text-[#C5A059] uppercase tracking-widest mb-4">Channel Breakdown</h2>
+                            {channels && channels.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <BarChart data={channels}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                                        <XAxis dataKey="source_type" stroke="#666" tick={{ fill: '#666', fontSize: 10 }} />
+                                        <Tooltip contentStyle={{ backgroundColor: '#111', borderColor: '#333' }} />
+                                        <Bar dataKey="_sum.lbs_total" fill="#C5A059" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-[200px] flex items-center justify-center text-gray-600 font-mono text-sm">No Channel Data</div>
+                            )}
+                        </div>
+                        
+                        <div className="bg-[#1a1a1a] border border-[#333] p-4 rounded h-[120px] flex flex-col justify-center">
+                            <h2 className="text-xs text-gray-500 uppercase tracking-widest mb-3">Forecast Intelligence</h2>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <div className="text-[10px] text-gray-400 uppercase tracking-widest">Today's Fcst vs Actual</div>
+                                    <div className="text-lg font-bold text-white">{today.guests || '--'} <span className="text-gray-500 font-normal">/</span> {data.today?.manager_forecast || '--'}</div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-[10px] text-gray-400 uppercase tracking-widest">Accuracy (30d)</div>
+                                    <div className={`text-lg font-bold ${accuracy?.manager_accuracy_pct >= 90 ? 'text-[#00FF94]' : accuracy?.manager_accuracy_pct >= 80 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                        {accuracy?.manager_accuracy_pct ? accuracy.manager_accuracy_pct.toFixed(1) + '%' : '--%'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
             
-            {/* INBOUND SNAPSHOT FOR KITCHEN IN THE FUTURE OR IF EXTENDED (Dashboard 1 spec says KITCHEN skip channel, use inbound snapshot) */}
+            {/* INBOUND SNAPSHOT FOR KITCHEN */}
             {outlet.type === 'KITCHEN' && (
-                <InboundSnapshot outletSlug={outletSlug!} />
+                <div className="mt-6 h-[400px]">
+                    <OutletInboundReconciliation outletSlug={outletSlug!} />
+                </div>
             )}
         </div>
     );
 };
-
-const InboundSnapshot = ({ outletSlug }: { outletSlug: string }) => {
-    const { user } = useAuth();
-    const [snapshot, setSnapshot] = useState<any[]>([]);
-
-    useEffect(() => {
-        fetch(`/api/v1/enterprise/outlet/${outletSlug}/inbound-snapshot`, { headers: { 'Authorization': `Bearer ${user?.token}` } })
-            .then(res => res.json())
-            .then(data => { if (data.success) setSnapshot(data.data); });
-    }, [outletSlug, user]);
-
-    return (
-        <div className="bg-[#1a1a1a] border border-[#333] p-4 rounded mt-6">
-            <h2 className="text-sm text-[#C5A059] uppercase tracking-widest mb-4">Inbound Snapshot (Last 3 Boxes)</h2>
-            <div className="space-y-2">
-                {snapshot.length === 0 ? <div className="text-gray-500 font-mono text-sm py-4">No recent deliveries.</div> : snapshot.map((box, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-[#111] border border-[#222]">
-                        <div className="font-bold text-gray-300">{box.product_code || box.scanned_barcode}</div>
-                        <div className="text-[#00FF94] font-mono">{box.weight} lbs</div>
-                        <div className="text-xs text-gray-500">{new Date(box.created_at).toLocaleDateString()}</div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}

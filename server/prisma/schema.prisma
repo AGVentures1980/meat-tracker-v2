@@ -164,16 +164,19 @@ model Store {
 }
 
 model Outlet {
-  id             String     @id @default(cuid())
-  store_id       Int
-  company_id     String
-  name           String
-  slug           String
-  outlet_type    OutletType
-  is_active      Boolean    @default(true)
-  covers_per_day Int?
-  created_at     DateTime   @default(now())
-  updated_at     DateTime   @updatedAt
+  id                   String     @id @default(cuid())
+  store_id             Int
+  company_id           String
+  name                 String
+  slug                 String
+  outlet_type          OutletType
+  is_active            Boolean    @default(true)
+  covers_per_day       Int?
+  target_lbs_per_guest Float?
+  created_at           DateTime   @default(now())
+  updated_at           DateTime   @updatedAt
+
+  outlet_forecast_logs OutletForecastLog[]
 
   @@unique([store_id, slug])
   @@index([company_id, store_id])
@@ -829,6 +832,31 @@ model ForecastIntelligenceLog {
   @@unique([store_id, business_date])
   @@index([store_id, business_date])
   @@index([company_id, business_date])
+}
+
+model OutletForecastLog {
+  id                      String   @id @default(cuid())
+  company_id              String
+  store_id                Int
+  outlet_id               String   // FK to Outlet.id
+  business_date           DateTime @db.Date
+  meal_period             String   // 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'ALL_DAY'
+  reservation_forecast    Int?     // reservations for this outlet + period
+  manager_forecast        Int?     // manager's guest estimate for this outlet
+  actual_guests           Int?     // actual covers counted at close of period
+  lbs_consumed            Float?   // lbs consumed this period (from MeatUsage)
+  lbs_per_guest           Float?   // calculated: lbs_consumed / actual_guests
+  target_lbs_per_guest    Float?   // from Outlet.target_lbs_per_guest config
+  variance_pct            Float?   // calculated: (lbs_per_guest - target) / target * 100
+  submitted_by_user_id    String?
+  created_at              DateTime @default(now())
+  updated_at              DateTime   @updatedAt
+
+  outlet                  Outlet     @relation(fields: [outlet_id], references: [id])
+
+  @@unique([outlet_id, business_date, meal_period])
+  @@index([company_id, store_id, business_date])
+  @@index([outlet_id, business_date])
 }
 
 model AuditLogArchive {
