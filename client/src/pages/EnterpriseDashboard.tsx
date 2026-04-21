@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { PageHeader } from '../components/ui/PageHeader';
+
 import { useAuth } from '../context/AuthContext';
 import { Building2 } from 'lucide-react';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 export const EnterpriseDashboard: React.FC = () => {
     const { user, selectedCompany } = useAuth();
@@ -37,7 +36,7 @@ export const EnterpriseDashboard: React.FC = () => {
         fetchData();
     }, [user, selectedCompany]);
 
-    if (loading) return <LoadingSpinner />;
+    if (loading) return <div className="p-8 text-[#C5A059] flex animate-pulse">Establishing Secure Data Matrix...</div>;
 
     // Calculate aggregated metrics from the incoming payload (stub)
     const lbsGuest = 1.74; // Stub calculation
@@ -45,10 +44,10 @@ export const EnterpriseDashboard: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <PageHeader 
-                title="Enterprise Command Matrix" 
-                subtitle="High-level Multi-Unit metrics and reconciliation views." 
-            />
+            <div>
+                <h1 className="text-3xl font-black text-white tracking-tighter mb-1 mt-2">Enterprise Command Matrix</h1>
+                <p className="text-gray-500 text-[10px] uppercase tracking-widest font-bold mb-6">High-level Multi-Unit metrics and reconciliation views.</p>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* KPI Header */}
