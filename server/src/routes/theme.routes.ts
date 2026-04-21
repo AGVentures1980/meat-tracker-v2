@@ -343,6 +343,31 @@ router.get('/setup/terra-deploy', async (req: Request, res: Response): Promise<v
     }
 });
 
+// GET /api/v1/theme/setup/hardrock-deploy
+router.get('/setup/hardrock-deploy', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { exec } = require('child_process');
+        
+        let outputLog = 'Initializing Hard Rock deployment...\n\n';
+
+        const runCommand = (cmd: string): Promise<string> => {
+            return new Promise((resolve, reject) => {
+                exec(cmd, { cwd: process.cwd() }, (err: any, stdout: string, stderr: string) => {
+                    if (err) resolve(`[ERROR] ${cmd}: ${stderr || err.message}`);
+                    else resolve(`[SUCCESS] ${cmd}:\n${stdout}`);
+                });
+            });
+        };
+
+        // Try the JS compiled file first, fallback to TS-node if running locally
+        outputLog += await runCommand('node dist/src/scripts/seed_hardrock.js || npx tsx src/scripts/seed_hardrock.ts') + '\n';
+        
+        res.send(`<pre>${outputLog}</pre>`);
+    } catch (e: any) {
+        res.status(500).send(e.message);
+    }
+});
+
 // GET /api/v1/theme/:subdomain
 router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => {
     try {
