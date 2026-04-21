@@ -173,6 +173,7 @@ import alohaRoutes from './routes/aloha.routes';
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
 import { SentinelService } from './services/sentinel.service';
+import { runAuditLogArchival } from './jobs/archiveAuditLogs';
 import cron from 'node-cron';
 
 import path from 'path';
@@ -697,6 +698,12 @@ if (process.env.NODE_ENV !== 'test') {
             SentinelService.runDailyAudit().catch(err => console.error("Sentinel error:", err.message));
             cron.schedule('0 * * * *', () => {
                 SentinelService.runDailyAudit().catch(err => console.error("Sentinel Cron error:", err.message));
+            });
+            
+            // 📝 AUDIT LOG ARCHIVAL (Sunday at 03:00 AM)
+            console.log(`📦 Data Hygiene: AuditLog Archiver scheduled. (Cron: 0 3 * * 0)`);
+            cron.schedule(process.env.AUDITLOG_ARCHIVE_CRON || '0 3 * * 0', () => {
+                runAuditLogArchival().catch(err => console.error("AuditLog Archival Cron error:", err.message));
             });
         });
     }).catch(err => {
