@@ -648,8 +648,8 @@ export const WeeklyPriceInput = () => {
                             <span className="text-red-400 font-mono">+1.22%</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-500">{t('price_proj_margin_loss')}</span>
-                            <span className="text-white font-mono">-$2,140</span>
+                            <span className="text-gray-500">{t('price_proj_margin_loss') || 'Projected Margin Recaptured'}</span>
+                            <span className="text-[#00FF94] font-mono">+$3,069</span>
                         </div>
                         <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
                             <div className="h-full bg-red-500" style={{ width: '45%' }}></div>

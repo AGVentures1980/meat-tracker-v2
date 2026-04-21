@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MEAT_UNIT_WEIGHTS } from '../config/meat_weights';
@@ -520,10 +520,15 @@ const WastePage = () => {
                                                 <AlertTriangle className="w-10 h-10" />
                                                 <span className="text-xl font-bold uppercase">Critical</span>
                                             </div>
+                                        ) : status.analysis.global_percent == 0 ? (
+                                            <div className="flex items-center gap-2 text-yellow-500">
+                                                <AlertTriangle className="w-10 h-10" />
+                                                <span className="text-xl font-bold uppercase">Calibrating</span>
+                                            </div>
                                         ) : (
-                                            <div className="flex items-center gap-2 text-green-500">
+                                            <div className="flex items-center gap-2 text-[#00FF94]">
                                                 <CheckCircle className="w-10 h-10" />
-                                                <span className="text-xl font-bold uppercase">Good</span>
+                                                <span className="text-xl font-bold uppercase">Optimal</span>
                                             </div>
                                         )}
                                     </div>

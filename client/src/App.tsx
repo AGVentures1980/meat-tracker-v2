@@ -56,6 +56,8 @@ import { ContractsVault } from './pages/admin/ContractsVault';
 import { SaaSBillingHub } from './pages/admin/SaaSBillingHub';
 import { ClientBillingPage } from './pages/admin/ClientBillingPage';
 
+import { EnterpriseDashboard } from './pages/EnterpriseDashboard';
+
 import { DashboardLayout } from './components/layouts/DashboardLayout';
 import CorporateSpecs from './pages/executive/CorporateSpecs';
 import ReceivingScanner from './pages/store/ReceivingScanner';
@@ -232,6 +234,7 @@ function AppContent() {
                     <Route path="/forecast" element={<GovernanceGuard><ForecastPage /></GovernanceGuard>} />
                     <Route path="/quarantine-inbox" element={<QuarantineInbox />} />
                     <Route path="/command-center" element={<CommandCenter />} />
+                    <Route path="/enterprise-dashboard" element={<GovernanceGuard><EnterpriseDashboard /></GovernanceGuard>} />
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/jvp-dashboard" element={<GovernanceGuard><JVPDashboard /></GovernanceGuard>} />
                     <Route path="/executive/specs" element={<CorporateSpecs />} />

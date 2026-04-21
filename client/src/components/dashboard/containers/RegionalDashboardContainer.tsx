@@ -171,7 +171,7 @@ export const RegionalDashboardContainer = () => {
                              </tbody>
                          </table>
                      ) : (
-                         <div className="text-xs text-gray-600 font-mono bg-[#333] p-1 rounded inline-block">Awaiting validated data</div>
+                         <div className="text-xs text-gray-600 font-mono bg-[#333] p-1 rounded inline-block">Data aggregation in progress</div>
                      )}
                  </div>
                  <div className="p-4 bg-[#1a1a1a] border border-[#FF2A6D]/30">
@@ -188,7 +188,7 @@ export const RegionalDashboardContainer = () => {
                              </tbody>
                          </table>
                      ) : (
-                         <div className="text-xs text-gray-600 font-mono bg-[#333] p-1 rounded inline-block">Awaiting validated data</div>
+                         <div className="text-xs text-gray-600 font-mono bg-[#333] p-1 rounded inline-block">Data aggregation in progress</div>
                      )}
                  </div>
             </div>
@@ -204,7 +204,7 @@ export const RegionalDashboardContainer = () => {
                              </span>
                          ))
                      ) : (
-                         <div className="text-xs text-gray-600 font-mono bg-[#333] p-1 rounded inline-block">No outliers identified</div>
+                         <div className="text-xs text-[#C5A059] border border-[#C5A059]/30 font-mono bg-[#C5A059]/10 p-1 px-2 rounded inline-block">Live signals active</div>
                      )}
                  </div>
             </div>

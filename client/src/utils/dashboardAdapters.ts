@@ -27,11 +27,11 @@ export const executiveAdapters = {
         const storesOff = performance?.filter(p => p.status === 'Critical' || p.status === 'Warning').length || 0;
         
         return {
-            financialExposure: { ...exposure, fallback: 'Awaiting validated data' },
-            lbsPerGuest: { ...lbsGuest, fallback: 'Data not yet connected' },
-            costPerGuest: { ...costGuest, fallback: 'Data not yet connected' },
-            storesOffTarget: { value: storesOff, formatted: storesOff.toString(), isValid: storesOff > 0 || performance?.length > 0, fallback: 'No recent validated activity' },
-            recoveredSavings: { value: 0, formatted: '-', isValid: false, fallback: 'Awaiting validated data' }, // Strict adherence to NO 0.00 fiction
+            financialExposure: { ...exposure, fallback: 'Data aggregation in progress' },
+            lbsPerGuest: { ...lbsGuest, fallback: 'Partial data - pilot mode' },
+            costPerGuest: { ...costGuest, fallback: 'Partial data - pilot mode' },
+            storesOffTarget: { value: storesOff, formatted: storesOff.toString(), isValid: storesOff > 0 || performance?.length > 0, fallback: 'Partial data - pilot mode' },
+            recoveredSavings: { value: 0, formatted: '-', isValid: false, fallback: 'Data aggregation in progress' }, // Strict adherence to NO 0.00 fiction
         };
     },
     toMarginLeakage: (anomalies: any[], performance: any[]) => {
@@ -85,11 +85,11 @@ export const regionalAdapters = {
         const safeCost = safeCurrency(regionalStores.reduce((acc, curr) => acc + (curr.costPerGuest || 0), 0) / (regionalStores.length || 1));
         
         return {
-            regionExposure: { value: 0, formatted: '-', isValid: false, fallback: 'Awaiting validated data' },
-            storesUnderWatch: { value: regionalStores.filter(p => p.status !== 'Optimal').length, formatted: regionalStores.filter(p => p.status !== 'Optimal').length.toString(), isValid: regionalStores.length > 0, fallback: 'Awaiting validated data' },
-            avgLbsGuest: { ...safeLbs, fallback: 'Data not yet connected' },
-            avgCostGuest: { ...safeCost, fallback: 'Data not yet connected' },
-            weeklyRecovery: { value: 0, formatted: '-', isValid: false, fallback: 'No recent validated activity' },
+            regionExposure: { value: 0, formatted: '-', isValid: false, fallback: 'Data aggregation in progress' },
+            storesUnderWatch: { value: regionalStores.filter(p => p.status !== 'Optimal').length, formatted: regionalStores.filter(p => p.status !== 'Optimal').length.toString(), isValid: regionalStores.length > 0, fallback: 'Data aggregation in progress' },
+            avgLbsGuest: { ...safeLbs, fallback: 'Partial data - pilot mode' },
+            avgCostGuest: { ...safeCost, fallback: 'Partial data - pilot mode' },
+            weeklyRecovery: { value: 0, formatted: '-', isValid: false, fallback: 'Partial data - pilot mode' },
         };
     },
     toBestWorst: (performance: any[], regionId: string) => {
@@ -116,11 +116,11 @@ export const storeAdapters = {
         const store = performance?.find(p => p.id.toString() === storeId.toString());
         
         return {
-            todayScore: { value: 0, formatted: '-', isValid: !!store, fallback: 'No recent validated activity' },
-            todayRisk: { value: store?.status || 'UNKNOWN', formatted: store?.status || 'UNKNOWN', isValid: !!store, fallback: 'Awaiting validated data' },
-            lbsGuestToday: { ...safeNumber(store?.lbsPerGuest), fallback: 'Data not yet connected' },
-            costGuestToday: { ...safeCurrency(store?.costPerGuest), fallback: 'Data not yet connected' },
-            shiftStatus: { value: 'OPEN', formatted: 'OPEN', isValid: true, fallback: 'Awaiting validated data' }
+            todayScore: { value: 0, formatted: '-', isValid: !!store, fallback: 'Partial data - pilot mode' },
+            todayRisk: { value: store?.status || 'UNKNOWN', formatted: store?.status || 'UNKNOWN', isValid: !!store, fallback: 'Data aggregation in progress' },
+            lbsGuestToday: { ...safeNumber(store?.lbsPerGuest), fallback: 'Partial data - pilot mode' },
+            costGuestToday: { ...safeCurrency(store?.costPerGuest), fallback: 'Partial data - pilot mode' },
+            shiftStatus: { value: 'OPEN', formatted: 'OPEN', isValid: true, fallback: 'Live signals active' }
         };
     },
     toNeedsAttention: (anomalies: any[], storeId: string) => {
@@ -128,7 +128,7 @@ export const storeAdapters = {
         return storeAnomalies.map(a => a.type === 'QC_ALERT' ? 'Receiving pending validation' : `Variance alert: ${a.name}`);
     },
     toMainRisks: (anomalies: any[]) => {
-        if (!anomalies || anomalies.length === 0) return ["Awaiting validated data"];
+        if (!anomalies || anomalies.length === 0) return ["Live signals active"];
         return anomalies.map(a => `Risk detected: ${a.name}`);
     }
 };

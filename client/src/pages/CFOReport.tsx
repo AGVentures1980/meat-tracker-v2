@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-
 import { Printer, TrendingDown, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface ExecutiveScan {
