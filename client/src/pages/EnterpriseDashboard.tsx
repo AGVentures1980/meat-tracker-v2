@@ -83,7 +83,7 @@ export const EnterpriseDashboard: React.FC = () => {
 
             {/* Inbound Variances Block */}
             <div className="bg-[#1A1A1A] p-6 rounded-xl border border-gray-800 text-gray-400">
-                <h2 className="text-gray-300 font-medium border-b border-gray-800 pb-2 mb-4">Inbound Reconciliation (Discrepancies > 0)</h2>
+                <h2 className="text-gray-300 font-medium border-b border-gray-800 pb-2 mb-4">Inbound Reconciliation (Discrepancies &gt; 0)</h2>
                 {data?.inboundVariances?.length > 0 ? (
                     <div className="space-y-2">
                         {data.inboundVariances.map((inv: any) => (
