@@ -188,7 +188,7 @@ export const getOutletKPI = async (req: Request, res: Response) => {
             _sum: { lbs_total: true }
         });
         
-        const lbsConsumed = latestUsage._sum.payload || latestUsage._sum.lbs_total || 0;
+        const lbsConsumed = latestUsage._sum.lbs_total || 0;
         const currentLbsGuest = totalGuests > 0 ? (lbsConsumed / totalGuests) : 0;
         
         const trend = Array.from({ length: 7 }).map((_, i) => ({
