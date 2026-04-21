@@ -78,9 +78,8 @@ export const Login = () => {
         '/fdc-hero-4.jpg'
     ];
     const hardrockImages = [
-        '/hardrock-carousel-1.png',
-        '/hardrock-carousel-2.png',
-        '/hardrock-carousel-3.png'
+        '/hardrock-carousel-1.jpg',
+        '/hardrock-carousel-2.jpg'
     ];
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
