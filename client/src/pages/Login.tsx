@@ -112,13 +112,16 @@ export const Login = () => {
             <div className="absolute inset-0 z-0">
                 {/* Conditional Carousel for FDC & Hard Rock, Standard Background for others */}
                 {theme?.companyName === 'Fogo de Chão' || theme?.companyName === 'Hard Rock Hotel & Casino' ? (
-                    (theme?.companyName === 'Fogo de Chão' ? fdcImages : hardrockImages).map((img, index) => (
-                        <div
-                            key={img}
-                            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-60' : 'opacity-0'}`}
-                            style={{ backgroundImage: `url('${img}')` }}
-                        ></div>
-                    ))
+                    (theme?.companyName === 'Fogo de Chão' ? fdcImages : hardrockImages).map((img, index) => {
+                        const activeOpacity = theme?.companyName === 'Hard Rock Hotel & Casino' ? 'opacity-100' : 'opacity-60';
+                        return (
+                            <div
+                                key={img}
+                                className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? activeOpacity : 'opacity-0'}`}
+                                style={{ backgroundImage: `url('${img}')` }}
+                            ></div>
+                        );
+                    })
                 ) : (
                     theme?.bgUrl && !theme.bgUrl.endsWith('.mp4') && (
                         <div
