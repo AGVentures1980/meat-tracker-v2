@@ -21,7 +21,7 @@ async function main() {
                 plan: 'enterprise',
                 subdomain: 'hardrock',
                 theme_primary_color: '#c52828', // Hard Rock Red
-                theme_logo_url: '/hardrock_logo.svg', 
+                theme_logo_url: '/hardrock_logo.png', 
                 theme_bg_url: '/hardrock-bg.png' 
             }
         });
@@ -32,7 +32,7 @@ async function main() {
             data: { 
                 name: 'Hard Rock Hotel & Casino',
                 theme_primary_color: '#c52828',
-                theme_logo_url: '/hardrock_logo.svg',
+                theme_logo_url: '/hardrock_logo.png',
                 theme_bg_url: '/hardrock-bg.png'
             }
         });
