@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useAuth } from '../context/AuthContext';
-import { BuildingOfficeIcon } from '@heroicons/react/24/outline';
+import { Building2 } from 'lucide-react';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 export const EnterpriseDashboard: React.FC = () => {
@@ -54,7 +54,7 @@ export const EnterpriseDashboard: React.FC = () => {
                 {/* KPI Header */}
                 <div className="bg-[#1A1A1A] p-6 rounded-xl border border-gray-800">
                     <div className="flex items-center gap-3 mb-2">
-                        <BuildingOfficeIcon className="w-5 h-5 text-[#C5A059]" />
+                        <Building2 className="w-5 h-5 text-[#C5A059]" />
                         <h2 className="text-gray-400 font-medium">Lbs / Guest</h2>
                     </div>
                     <p className="text-3xl font-bold text-white">{lbsGuest}</p>
