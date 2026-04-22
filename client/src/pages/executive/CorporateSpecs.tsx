@@ -21,7 +21,7 @@ export default function CorporateSpecs() {
       const isDavid = user?.email?.toLowerCase().includes('davidcastro');
       const isMaster = user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
       const isRodrigo = user?.email?.toLowerCase().includes('rodrigo');
-      const isExecutive = user?.role === 'admin' || user?.role === 'director';
+      const isExecutive = user?.role === 'admin' || user?.role === 'director' || user?.role === 'corporate_director';
       
       const isAllowed = isDavid || isMaster || isRodrigo || isExecutive;
       
