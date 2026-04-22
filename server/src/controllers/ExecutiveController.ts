@@ -27,7 +27,7 @@ export class ExecutiveController {
 
     private requireExecutiveAccess(user: any) {
         // Zero-Trust Role Hardening: Now allows GMs (store_manager) to view their own metrics but blocks operators
-        const allowedRoles = ['admin', 'partner', 'director', 'c_level', 'regional_manager', 'store_manager'];
+        const allowedRoles = ['admin', 'partner', 'director', 'corporate_director', 'c_level', 'regional_manager', 'store_manager'];
         if (!user || !allowedRoles.includes(user.role)) {
              throw new Error("403: ZERO-TRUST VIOLATION. Executive or GM Access Required.");
         }
