@@ -565,7 +565,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div className="hidden lg:flex items-center gap-2 mr-2 bg-[#222] px-3 py-1 rounded-full border border-[#333] shadow-sm">
                                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Welcome</span>
                                 <span className="text-xs font-bold text-[#C5A059] tracking-wide">
-                                    {ROLE_DISPLAY_LABELS[user.role] || user.role}
+                                    {ROLE_DISPLAY_LABELS[user.role?.toLowerCase()] || user.role}
                                 </span>
                             </div>
                         )}

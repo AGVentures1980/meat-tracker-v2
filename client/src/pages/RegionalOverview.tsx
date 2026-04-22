@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AlertOctagon, TrendingUp, TrendingDown, Minus, ShieldAlert } from 'lucide-react';
 
@@ -34,6 +35,7 @@ interface RegionalOverviewPayload {
 
 export const RegionalOverview = () => {
     const { user, selectedCompany } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<RegionalOverviewPayload | null>(null);
@@ -176,8 +178,8 @@ export const RegionalOverview = () => {
                                     </tr>
                                 )}
                                 {validStoreRankings.map((store, idx) => (
-                                    <tr key={idx} className="hover:bg-[#222] transition-colors">
-                                        <td className="p-4 text-gray-200">
+                                    <tr key={idx} onClick={() => navigate(`/dashboard/property/${store.store_id}`)} className="hover:bg-[#222] transition-colors cursor-pointer group">
+                                        <td className="p-4 text-gray-200 group-hover:text-[#C5A059] transition-colors">
                                             <div className="font-bold">{store.store_name}</div>
                                             <div className="text-[10px] font-mono text-gray-500">ID: {store.store_id}</div>
                                         </td>

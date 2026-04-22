@@ -27,6 +27,30 @@ export const Login = () => {
 
     const currentUrl = window.location.href;
 
+    const resolveLoginRedirect = (u: any): string | null => {
+        if (!u) return null;
+        switch (u.defaultLandingLevel) {
+            case 'COMPANY':
+                return '/dashboard/network';
+            case 'PROPERTY':
+                return u.propertyId
+                    ? `/dashboard/property/${u.propertyId}`
+                    : '/dashboard/network';
+            case 'OUTLET':
+                return u.outletIds?.[0]
+                    ? `/dashboard/outlet/${u.outletIds[0]}/kpi`
+                    : '/dashboard';
+            case 'OPERATIONAL':
+                return u.outletIds?.[0]
+                    ? `/dashboard/ops/${u.outletIds[0]}`
+                    : '/dashboard';
+            default:
+                // Fallback for corporate_director if defaultLandingLevel mapping was missed
+                if (u.role === 'corporate_director' || u.role === 'director') return '/dashboard/network';
+                return '/dashboard';
+        }
+    };
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
@@ -35,8 +59,8 @@ export const Login = () => {
         try {
             const loginRes = await login(email, password, theme?.companyName);
             if (loginRes?.success) {
-                // Pitch Hardening: Always redirect to the standardized Anchor Page instead of previous states
-                const destination = loginRes.redirectPath || '/dashboard';
+                // Determine destination strictly through resolving user payload
+                const destination = resolveLoginRedirect(loginRes.user) || loginRes.redirectPath || '/dashboard';
                 navigate(destination, { replace: true });
             } else {
                 setError("Invalid email or password");

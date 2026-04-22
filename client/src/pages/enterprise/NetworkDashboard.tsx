@@ -19,11 +19,11 @@ export const NetworkDashboard = () => {
                 
                 if (res.ok) {
                     const data = await res.json();
-                    setNetwork(data.summary);
+                    setNetwork(data.properties || []);
                     
-                    if (data.summary) {
+                    if (data.properties) {
                         const accMap: any = {};
-                        for (const n of data.summary) {
+                        for (const n of data.properties) {
                             const accRes = await fetch(`/api/v1/enterprise/property/${n.store_id}/forecast-accuracy-summary`, {
                                 headers: { 'Authorization': `Bearer ${user?.token}` }
                             });
@@ -50,7 +50,9 @@ export const NetworkDashboard = () => {
     }, [user]);
 
     if (loading) return <div className="p-8 text-[#C5A059] animate-pulse font-mono tracking-widest text-center">Loading Network Context...</div>;
-    if (!network) return null;
+    if (!network || network.length === 0) return <div className="flex flex-col items-center justify-center h-64 text-gray-500 font-mono tracking-widest border border-dashed border-gray-800 rounded-xl m-8">No properties found.</div>;
+
+    try {
 
     const properties = [
         { id: 1202, slug: 'tampa-casino', name: 'Hard Rock Tampa', guests: 2450, lbs: 4500, target: 1.76 },
@@ -183,4 +185,7 @@ export const NetworkDashboard = () => {
             </div>
         </div>
     );
+    } catch (err: any) {
+        return <div className="p-8 text-red-500 font-mono tracking-widest text-center">Error parsing Network Dashboard: {err.message || 'Unknown Error'}</div>;
+    }
 };
