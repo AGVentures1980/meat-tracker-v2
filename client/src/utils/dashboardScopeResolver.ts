@@ -59,7 +59,8 @@ export const validateScopeContext = (context: UserContextPayload): { valid: bool
     }
 
     // 4. Tactical Data Integrity
-    if (scopeType === 'STORE' && !selectedStore) {
+    // 4. Tactical Data Integrity
+    if (scopeType === 'STORE' && !selectedStore && role !== 'read_only_viewer' && role !== 'property_manager' && role !== 'executive_chef' && role !== 'outlet_manager') {
         return { valid: false, reason: "Tactical Data Integrity: STORE scope invoked without selectedStore" };
     }
     
@@ -92,7 +93,7 @@ export const resolveDashboardView = (context: UserContextPayload): ScopeResoluti
     const storeId = selectedStore || 'NO_STORE';
 
     // 1. EXECUTIVE
-    if (['admin', 'director', 'vp'].includes(role) || ['COMPANY', 'TENANT_EXECUTIVE_SCOPE', 'MASTER_EXECUTIVE', 'GLOBAL', 'Global'].includes(scopeType.toUpperCase())) {
+    if (['admin', 'director', 'vp', 'partner', 'corporate_director'].includes(role) || ['COMPANY', 'TENANT_EXECUTIVE_SCOPE', 'MASTER_EXECUTIVE', 'GLOBAL', 'Global'].includes(scopeType.toUpperCase())) {
         return { 
             view: 'EXECUTIVE', 
             isolationKey: `tenant:${safeTenant}|view:exec|role:${role}`
@@ -100,7 +101,7 @@ export const resolveDashboardView = (context: UserContextPayload): ScopeResoluti
     }
 
     // 2. REGIONAL
-    if (role === 'area_manager' || scopeType === 'AREA') {
+    if (['area_manager', 'regional_director'].includes(role) || scopeType === 'AREA') {
         return { 
             view: 'REGIONAL', 
             isolationKey: `tenant:${safeTenant}|view:regional|region:${regionId}|role:${role}`
@@ -108,12 +109,12 @@ export const resolveDashboardView = (context: UserContextPayload): ScopeResoluti
     }
 
     // 3. STORE
-    if ((role === 'manager' || role === 'user' || scopeType === 'STORE') && selectedStore) {
+    if (['manager', 'user', 'property_manager', 'executive_chef', 'outlet_manager', 'read_only_viewer'].includes(role) || scopeType === 'STORE') {
         return { 
             view: 'STORE', 
             isolationKey: `tenant:${safeTenant}|view:store|store:${storeId}|role:${role}`
         };
     }
 
-    return { view: 'UNAUTHORIZED', isolationKey: 'unauthorized', errorMessage: 'Unhandled scope logic block' };
+    return { view: 'UNAUTHORIZED', isolationKey: 'unauthorized', errorMessage: `Unhandled scope logic block. Role: ${role}, Scope: ${scopeType}` };
 };
