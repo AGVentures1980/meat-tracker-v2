@@ -44,25 +44,30 @@ async function run() {
 
     let createdUsersCount = 0;
     for (const u of users) {
-        const existing = await prisma.user.findUnique({ where: { email: u.email } });
-        if (!existing) {
-            const hash = await bcrypt.hash(u.pass, 10);
-            await prisma.user.create({
-                data: {
-                    email: u.email,
-                    password_hash: hash,
-                    role: u.role as Role,
-                    company_id: companyId,
-                    store_id: u.store_id,
-                    director_region: u.region_id,
-                    outletIds: u.outletIds,
-                    is_active: true
-                }
-            });
-            console.log(`[USER] Created: ${u.email}`);
-        } else {
-            console.log(`[USER] Skipped (already exists): ${u.email}`);
-        }
+        const hash = await bcrypt.hash(u.pass, 10);
+        await prisma.user.upsert({
+            where: { email: u.email },
+            update: {
+                password_hash: hash,
+                role: u.role as Role,
+                company_id: companyId,
+                store_id: u.store_id,
+                director_region: u.region_id,
+                outletIds: u.outletIds,
+                is_active: true
+            },
+            create: {
+                email: u.email,
+                password_hash: hash,
+                role: u.role as Role,
+                company_id: companyId,
+                store_id: u.store_id,
+                director_region: u.region_id,
+                outletIds: u.outletIds,
+                is_active: true
+            }
+        });
+        console.log(`[USER] Upserted/Forced Password: ${u.email}`);
         createdUsersCount++;
     }
 
