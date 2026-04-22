@@ -95,7 +95,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         }
     }, [activeRegion, isPaused, focusedCompany]);
 
-    const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa") || c.name.toLowerCase().includes("terra") || c.name.toLowerCase().includes("adega"));
+    const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa") || c.name.toLowerCase().includes("terra") || c.name.toLowerCase().includes("adega") || c.name.toLowerCase().includes("hard rock") || c.name.toLowerCase().includes("hardrock"));
 
     // Hardcode the region variations based on master database
     const regionalOperations = {
@@ -105,7 +105,8 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             { id: 'usa-3', dbMatch: 'Outback', name: 'Outback USA', img: '/outback-logo.svg', stores: 700, plan: 'ENTERPRISE' },
             { id: 'usa-4', dbMatch: 'Brasa', name: 'Brasa USA', img: '/brasa-logo-v3.png', stores: 1, plan: 'HQ' },
             { id: 'usa-5', dbMatch: 'Terra', name: 'Terra Gaúcha USA', img: 'https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg', stores: 6, plan: 'ENTERPRISE' },
-            { id: 'usa-6', dbMatch: 'Adega', name: 'Adega Gaucha USA', img: '/adega-logo.png', stores: 3, plan: 'ENTERPRISE' }
+            { id: 'usa-6', dbMatch: 'Adega', name: 'Adega Gaucha USA', img: '/adega-logo.png', stores: 3, plan: 'ENTERPRISE' },
+            { id: 'usa-7', dbMatch: 'Hard Rock', name: 'Hard Rock Cafe', img: '/hardrock_logo.png', stores: 180, plan: 'ENTERPRISE' }
         ],
         'BR': [
             { id: 'br-1', dbMatch: 'Fogo', name: 'Fogo de Chão Brasil', img: '/fdc-logo-pure-white.png', stores: 9, plan: 'ENTERPRISE' },
@@ -132,6 +133,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
              c.name.toLowerCase().includes('outback') ? '/outback-logo.svg' : 
              c.name.toLowerCase().includes('terra') ? 'https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg' :
              c.name.toLowerCase().includes('adega') ? '/adega-logo.png' :
+             c.name.toLowerCase().includes('hard rock') || c.name.toLowerCase().includes('hardrock') ? '/hardrock_logo.png' :
              '/brasa-logo-v3.png'
     }));
 
@@ -456,7 +458,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                                                     <img 
                                                         src={company.img} 
                                                         alt={company.name} 
-                                                        className={`h-[28px] md:h-[44px] w-auto max-w-[150px] md:max-w-[180px] object-contain object-left ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''} ${company.name.includes('Adega') || company.name.includes('Texas') || company.name.includes('Terra') || company.name.includes('Brasa') ? 'scale-[1.5] md:scale-[2.0] origin-left' : ''}`} 
+                                                        className={`h-[28px] md:h-[44px] w-auto max-w-[150px] md:max-w-[180px] object-contain object-left ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''} ${company.name.includes('Adega') || company.name.includes('Texas') || company.name.includes('Terra') || company.name.includes('Brasa') || company.name.toLowerCase().includes('hard rock') || company.name.toLowerCase().includes('hardrock') ? 'scale-[1.5] md:scale-[2.0] origin-left' : ''}`} 
                                                     />
                                                 ) : (
                                                     <h3 className="text-base md:text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
