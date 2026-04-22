@@ -14,12 +14,10 @@ async function seedStagingClean() {
         await prisma.supportTicket.deleteMany();
         await prisma.recommendationEvent.deleteMany();
         await prisma.anomalyEvent.deleteMany();
-        await prisma.intelligenceLog.deleteMany();
         await prisma.intelligenceSnapshot.deleteMany();
         await prisma.outletForecastLog.deleteMany();
         await prisma.outlet.deleteMany();
         await prisma.meatUsage.deleteMany();
-        await prisma.inventoryCount.deleteMany();
         await prisma.receivingEvent.deleteMany();
         
         await prisma.store.deleteMany();
