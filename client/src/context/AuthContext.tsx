@@ -19,11 +19,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         const stored = localStorage.getItem('brasameat_user');
         const storedCompany = localStorage.getItem('brasameat_selected_company');
+        
+        const decodeJWT = (token: string) => {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => 
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                ).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) { return null; }
+        };
+
         if (stored) {
-            setUser(JSON.parse(stored));
-        }
-        if (storedCompany) {
-            setSelectedCompany(storedCompany);
+            const parsedUser = JSON.parse(stored);
+            const decoded = parsedUser.token ? decodeJWT(parsedUser.token) : null;
+            
+            // Validate Token Freshness
+            if (!decoded || !decoded.companyId || !decoded.role || (decoded.exp && decoded.exp < Date.now() / 1000)) {
+                console.warn("[AUTH] Stale or invalid JWT detected. Forcing re-login.");
+                localStorage.removeItem('brasameat_user');
+                localStorage.removeItem('brasameat_selected_company');
+            } else {
+                setUser(parsedUser);
+                if (storedCompany) setSelectedCompany(storedCompany);
+            }
         }
         setIsLoading(false);
     }, []);

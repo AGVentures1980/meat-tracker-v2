@@ -134,6 +134,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         if (isCompanyOrGlobal || isAreaLevel || isMaster) {
             navItems.push({
                 section: t('nav.section_executive') || 'EXECUTIVE CONTROL', items: [
+                    { icon: Building2, label: 'Property Network', path: '/dashboard/network' },
                     { icon: ShieldCheck, label: 'Regional Oversight Console', path: '/regional-oversight' },
                     ...(isMaster ? [{ icon: Globe, label: t('nav.saasAdmin') || 'Brand Overview Center', path: '/saas-admin' }] : []),
                     ...(isMaster ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/procurement' }] : []),

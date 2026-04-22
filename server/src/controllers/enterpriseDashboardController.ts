@@ -84,13 +84,19 @@ function resolveBusinessDate(timestampUTC: Date, timezone: string = 'America/New
 }
 
 async function resolveUserStoreIds(user: any): Promise<number[]> {
-    if (!user.companyId) return [];
+    console.log(`[DIAGNOSE] resolveUserStoreIds called with user:`, { id: user.id, email: user.email, role: user.role, companyId: user.companyId });
+    if (!user.companyId) {
+        console.warn(`[DIAGNOSE] user.companyId is falsy! Returning []`);
+        return [];
+    }
 
     if (['corporate_director', 'admin', 'director', 'partner'].includes(user.role)) {
+        console.log(`[DIAGNOSE] Querying stores WHERE company_id = '${user.companyId}' for role ${user.role}`);
         const stores = await prisma.store.findMany({
             where: { company_id: user.companyId },
             select: { id: true }
         });
+        console.log(`[DIAGNOSE] Resulting stores:`, stores.map((s: any) => s.id));
         return stores.map((s: any) => s.id);
     }
 
@@ -213,12 +219,17 @@ export const getPropertyOutletSummary = async (req: Request, res: Response) => {
             return res.status(403).json({ success: false, message: 'Unauthorized to view this property' });
         }
 
-        const outlets = await prisma.outlet.findMany({
-            where: { store_id: storeId },
-            select: { slug: true, name: true, outlet_type: true }
+        const store = await prisma.store.findUnique({
+            where: { id: storeId },
+            select: { store_name: true, location: true }
         });
 
-        return res.json({ success: true, outlets });
+        const outlets = await prisma.outlet.findMany({
+            where: { store_id: storeId },
+            select: { slug: true, name: true, outlet_type: true, store_id: true }
+        });
+
+        return res.json({ success: true, outlets, property: store });
     } catch (error: any) {
         console.error('getPropertyOutletSummary error:', error);
         res.status(500).json({ success: false, message: error.message });

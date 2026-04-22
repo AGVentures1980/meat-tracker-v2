@@ -45,8 +45,9 @@ export const Login = () => {
                     ? `/dashboard/ops/${u.outletIds[0]}`
                     : '/dashboard';
             default:
-                // Fallback for corporate_director if defaultLandingLevel mapping was missed
-                if (u.role === 'corporate_director' || u.role === 'director') return '/dashboard/network';
+                if (['corporate_director', 'regional_director', 'admin', 'director'].includes(u.role)) {
+                    return '/dashboard/network';
+                }
                 return '/dashboard';
         }
     };

@@ -50,15 +50,24 @@ export const NetworkDashboard = () => {
     }, [user]);
 
     if (loading) return <div className="p-8 text-[#C5A059] animate-pulse font-mono tracking-widest text-center">Loading Network Context...</div>;
-    if (!network || network.length === 0) return <div className="flex flex-col items-center justify-center h-64 text-gray-500 font-mono tracking-widest border border-dashed border-gray-800 rounded-xl m-8">No properties found.</div>;
+    if (!network || network.length === 0) return (
+        <div className="flex flex-col items-center justify-center p-12 mt-12 max-w-2xl mx-auto text-gray-400 border border-dashed border-[#333] rounded-xl bg-[#111]">
+            <Globe className="w-12 h-12 mb-4 text-[#C5A059] opacity-50" />
+            <h2 className="text-xl font-bold text-white mb-2 tracking-widest uppercase">Network Diagnostics</h2>
+            <p className="text-center mb-6">No active properties provisioned for your current access level, or session requires a refresh. Please refresh or contact support.</p>
+            <button onClick={() => window.location.reload()} className="px-6 py-2 border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-black font-bold uppercase tracking-widest transition-colors rounded">
+                Refresh Context
+            </button>
+        </div>
+    );
 
     try {
 
     const properties = [
-        { id: 1202, slug: 'tampa-casino', name: 'Hard Rock Tampa', guests: 2450, lbs: 4500, target: 1.76 },
-        { id: 1203, slug: 'hollywood-casino', name: 'Hard Rock Hollywood', guests: 3100, lbs: 5800, target: 1.76 },
-        { id: 1204, slug: 'punta-cana', name: 'Hard Rock Punta Cana', guests: 1800, lbs: 2800, target: 1.60 },
-        { id: 1205, slug: 'atlantic-city', name: 'Hard Rock Atlantic City', guests: 2200, lbs: 4100, target: 1.80 },
+        { id: 1202, slug: 'tampa-casino', name: 'Hard Rock Tampa', location: 'Tampa, FL', guests: 2450, lbs: 4500, target: 1.76, outlets: 16 },
+        { id: 1203, slug: 'hollywood-casino', name: 'Hard Rock Hollywood', location: 'Hollywood, FL', guests: 3100, lbs: 5800, target: 1.76, outlets: 12 },
+        { id: 1204, slug: 'punta-cana', name: 'Hard Rock Punta Cana', location: 'Punta Cana, DR', guests: 1800, lbs: 2800, target: 1.60, outlets: 8 },
+        { id: 1205, slug: 'atlantic-city', name: 'Hard Rock Atlantic City', location: 'Atlantic City, NJ', guests: 2200, lbs: 4100, target: 1.80, outlets: 10 },
     ].filter(p => !network.length || network.some((n: any) => n.store_id === p.id));
 
     const totalStats = properties.reduce((acc, curr) => ({
@@ -104,54 +113,51 @@ export const NetworkDashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
-                {/* B. PROPERTY COMPARISON TABLE */}
-                <div className="lg:col-span-3 bg-[#1a1a1a] border border-[#333] rounded overflow-hidden">
-                    <div className="p-4 border-b border-[#333]">
-                        <h2 className="text-sm font-bold text-gray-300 tracking-widest uppercase">Property Comparison</h2>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-[#111] text-xs uppercase font-mono tracking-widest text-gray-500">
-                                <tr>
-                                    <th className="px-4 py-3">Property Name</th>
-                                    <th className="px-4 py-3 text-right">Covers Today</th>
-                                    <th className="px-4 py-3 text-right">Lbs/Guest</th>
-                                    <th className="px-4 py-3 text-right">Target</th>
-                                    <th className="px-4 py-3 text-center">Fcst Acc</th>
-                                    <th className="px-4 py-3 text-center">Trend (7d)</th>
-                                    <th className="px-4 py-3 text-center">Risk Score</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[#222]">
-                                {properties.map(p => {
-                                    const lg = p.lbs / p.guests;
-                                    const dev = (lg - p.target) / p.target;
-                                    const lgColor = dev > 0.15 ? 'text-red-500' : dev > 0.08 ? 'text-yellow-500' : 'text-green-500';
-                                    const pts = dev > 0.15 ? 4 : dev > 0.08 ? 2 : 0;
-                                    const TrendIcon = dev > 0 ? TrendingUp : dev < 0 ? TrendingDown : Minus;
+                {/* B. PROPERTY CARDS GRID */}
+                <div className="lg:col-span-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {properties.map(p => {
+                            const lg = p.lbs / p.guests;
+                            const dev = (lg - p.target) / p.target;
+                            const pts = dev > 0.15 ? 4 : dev > 0.08 ? 2 : 0;
+                            const dataTrust = accuracies[p.id] !== undefined ? accuracies[p.id] : 85; 
+                            
+                            return (
+                                <div 
+                                    key={p.id} 
+                                    onClick={() => navigate(`/dashboard/property/${p.slug}`)} 
+                                    className="bg-[#1a1a1a] border border-[#333] hover:border-[#C5A059] rounded-lg p-5 cursor-pointer transition-all group relative overflow-hidden"
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="font-bold text-lg text-white group-hover:text-[#C5A059] transition-colors">{p.name}</h3>
+                                            <p className="text-sm text-gray-500 font-mono">{p.location}</p>
+                                        </div>
+                                        <ArrowRight className="w-5 h-5 text-gray-600 group-hover:text-[#C5A059] transition-colors" />
+                                    </div>
                                     
-                                    return (
-                                        <tr key={p.id} onClick={() => navigate(`/dashboard/property/${p.slug}`)} className="hover:bg-[#222] cursor-pointer transition-colors group">
-                                            <td className="px-4 py-4 font-bold text-gray-300 group-hover:text-[#C5A059] flex items-center gap-2">
-                                                {p.name} <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </td>
-                                            <td className="px-4 py-4 text-right font-mono text-gray-400">{p.guests}</td>
-                                            <td className={`px-4 py-4 text-right font-bold ${lgColor}`}>{lg.toFixed(2)}</td>
-                                            <td className="px-4 py-4 text-right text-gray-500">{p.target.toFixed(2)}</td>
-                                            <td className={`px-4 py-4 text-center font-bold font-mono ${accuracies[p.id] >= 90 ? 'text-[#00FF94]' : accuracies[p.id] >= 80 ? 'text-yellow-500' : accuracies[p.id] !== undefined ? 'text-red-500' : 'text-gray-600'}`}>
-                                                {accuracies[p.id] !== undefined ? `${accuracies[p.id].toFixed(1)}%` : '--%'}
-                                            </td>
-                                            <td className="px-4 py-4 text-center text-gray-400 flex justify-center"><TrendIcon className={`w-4 h-4 ${lgColor}`} /></td>
-                                            <td className="px-4 py-4 text-center">
-                                                <span className={`px-2 py-0.5 rounded text-xs font-mono font-bold ${pts > 3 ? 'bg-red-500/20 text-red-500' : pts > 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>
-                                                    {pts} PTS
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                    <div className="grid grid-cols-2 gap-4 mb-4">
+                                        <div className="bg-[#111] p-3 rounded">
+                                            <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Outlets</div>
+                                            <div className="font-mono text-xl font-bold text-white">{p.outlets}</div>
+                                        </div>
+                                        <div className="bg-[#111] p-3 rounded">
+                                            <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Data Trust</div>
+                                            <div className={`font-mono text-xl font-bold ${dataTrust >= 90 ? 'text-[#00FF94]' : dataTrust >= 80 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                                {dataTrust.toFixed(1)}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex justify-between items-center bg-[#111] p-3 rounded">
+                                        <span className="text-xs font-mono uppercase tracking-widest text-gray-500">Risk Score</span>
+                                        <span className={`px-2 py-1 rounded text-xs font-bold font-mono ${pts > 3 ? 'bg-red-500/20 text-red-500' : pts > 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>
+                                            {pts > 0 ? `${pts} PTS` : 'HEALTHY (0 PTS)'}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 

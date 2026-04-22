@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { resolveDashboardView } from '../utils/dashboardScopeResolver';
 
@@ -7,7 +8,15 @@ import { RegionalDashboardContainer } from '../components/dashboard/containers/R
 import { StoreDashboardContainer } from '../components/dashboard/containers/StoreDashboardContainer';
 
 export const Dashboard = () => {
+    const navigate = useNavigate();
     const { user, selectedCompany } = useAuth();
+
+    useEffect(() => {
+        if (user && ['corporate_director', 'regional_director', 'admin', 'director'].includes(user.role)) {
+            navigate('/dashboard/network', { replace: true });
+        }
+    }, [user, navigate]);
+
     const selectedStore = user?.storeId || null;
 
     // 1. Resolve View and Cache Policy Exception

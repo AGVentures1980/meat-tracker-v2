@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { NavigationBreadcrumb } from '../../components/enterprise/NavigationBreadcrumb';
 import { OutletInboundReconciliation } from '../../components/enterprise/OutletInboundReconciliation';
@@ -11,6 +11,10 @@ import { AlertCircle, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 export const OutletKPIDashboard = () => {
     const { outletSlug } = useParams();
     const { user } = useAuth();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const propertyName = location.state?.propertyName || 'Property';
+
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [accuracy, setAccuracy] = useState<any>(null);
@@ -55,10 +59,16 @@ export const OutletKPIDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto py-8 text-white space-y-6">
+            <NavigationBreadcrumb levels={[
+                { label: 'Network', href: '/dashboard/network' },
+                { label: propertyName, href: `/dashboard/property/${outlet.store_id}` },
+                { label: outlet.name, href: '#' }
+            ]} />
+
             <div className="flex justify-between items-start">
-                <div>
-                    <h1 className="text-2xl font-bold text-[#C5A059] tracking-widest uppercase pb-2">{outlet.name} / KPI</h1>
-                    <NavigationBreadcrumb />
+                <div className="flex items-center gap-4 mb-4">
+                    <button onClick={() => navigate(`/dashboard/property/${outlet.store_id}`)} className="px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-widest border border-[#333] hover:border-[#C5A059] text-gray-400 hover:text-[#C5A059] rounded transition-colors">&larr; Back</button>
+                    <h1 className="text-2xl font-bold text-[#C5A059] tracking-widest uppercase pb-1">{outlet.name} / KPI</h1>
                 </div>
                 <div className="flex gap-3">
                     <button onClick={() => { setShowForecastForm(!showForecastForm); setShowCloseForm(false); }} className="px-4 py-2 bg-[#C5A059] text-black font-bold tracking-widest uppercase rounded text-sm hover:opacity-90">
