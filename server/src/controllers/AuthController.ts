@@ -133,24 +133,18 @@ export class AuthController {
             // Step 4: Define Scope Object
             let scope: any = { type: 'UNKNOWN' };
             if (user.role === 'admin') scope = { type: 'GLOBAL' };
-            else if (user.role === 'director') scope = { type: 'COMPANY', companyId: defaultCompanyId };
-            else if (user.role === 'area_manager') scope = { type: 'AREA', storeIds: areaStoreIds };
+            else if (['director', 'corporate_director'].includes(user.role)) scope = { type: 'COMPANY', companyId: defaultCompanyId };
+            else if (user.role === 'regional_director') scope = { type: 'COMPANY', companyId: defaultCompanyId }; // Fallback for regional 
+            else if (['area_manager'].includes(user.role)) scope = { type: 'AREA', storeIds: areaStoreIds };
             else if (user.role === 'partner') scope = { type: 'PARTNER' };
             else if (user.store_id) scope = { type: 'STORE', storeId: user.store_id };
-
-            // Route user depending on Role
-            if (user.role === 'admin') {
-                redirectPath = '/select-company'; // Admin always picks
-            } else if (user.role === 'partner') {
-                redirectPath = '/partner';
-            } else {
-                redirectPath = '/dashboard'; // Make Dashboard the standard Global Anchor Page!
-            }
+            
+// Redirect logic will be handled using 'resolveLoginRedirect' after landing level is determined
 
             // 3.8: Define Phase 2 Enterprise Scope Defaults
-            let propertyId: string | null = null;
-            let regionId: string | null = null;
-            let outletIds: string[] = [];
+            let propertyId: string | null = (user as any).property_id || null;
+            let regionId: string | null = (user as any).region_id || user.director_region || null;
+            let outletIds: string[] = user.outletIds || [];
 
             const COMPANY_LEVEL_ROLES = ['admin', 'director', 'partner', 'corporate_director', 'regional_director'];
             const PROPERTY_LEVEL_ROLES = ['property_manager', 'executive_chef', 'manager', 'area_manager'];
@@ -167,6 +161,35 @@ export class AuthController {
                 defaultLandingLevel = 'OUTLET';
             } else if (OPERATIONAL_LEVEL_ROLES.includes(user.role)) {
                 defaultLandingLevel = 'OPERATIONAL';
+            }
+
+            if (user.role === 'admin') {
+                redirectPath = '/select-company';
+            } else if (user.role === 'partner') {
+                redirectPath = '/partner';
+            } else {
+                switch (defaultLandingLevel) {
+                    case 'COMPANY':
+                        redirectPath = '/dashboard/network';
+                        break;
+                    case 'PROPERTY':
+                        redirectPath = propertyId
+                            ? `/dashboard/property/${propertyId}`
+                            : '/dashboard/network';
+                        break;
+                    case 'OUTLET':
+                        redirectPath = outletIds?.[0]
+                            ? `/dashboard/outlet/${outletIds[0]}/kpi`
+                            : '/dashboard';
+                        break;
+                    case 'OPERATIONAL':
+                        redirectPath = outletIds?.[0]
+                            ? `/dashboard/ops/${outletIds[0]}`
+                            : '/dashboard';
+                        break;
+                    default:
+                        redirectPath = '/dashboard';
+                }
             }
 
             // 4. Issue Token

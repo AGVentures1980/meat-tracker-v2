@@ -42,16 +42,16 @@ export const validateScopeContext = (context: UserContextPayload): { valid: bool
     }
 
     // 3. Role/Scope Consistency Matrix
-    const isExecutiveRole = ['admin', 'director', 'vp'].includes(role);
-    const isRegionalRole = ['area_manager'].includes(role);
-    const isStoreRole = ['manager', 'user'].includes(role);
+    const isExecutiveRole = ['admin', 'director', 'vp', 'corporate_director', 'partner'].includes(role);
+    const isRegionalRole = ['area_manager', 'regional_director'].includes(role);
+    const isStoreRole = ['manager', 'user', 'property_manager', 'executive_chef', 'outlet_manager', 'read_only_viewer'].includes(role);
 
-    if (isExecutiveRole && !['COMPANY', 'TENANT_EXECUTIVE_SCOPE', 'MASTER_EXECUTIVE', 'GLOBAL', 'Global'].includes(scopeType.toUpperCase())) {
+    if (isExecutiveRole && !['COMPANY', 'TENANT_EXECUTIVE_SCOPE', 'MASTER_EXECUTIVE', 'GLOBAL', 'Global', 'PARTNER'].includes(scopeType.toUpperCase())) {
         return { valid: false, reason: `Consistency Mismatch: Executive role '${role}' cannot have restricted scope '${scopeType}'` };
     }
 
-    if (isRegionalRole && scopeType !== 'AREA') {
-        return { valid: false, reason: `Consistency Mismatch: Regional role '${role}' must be bound to 'AREA' scope.` };
+    if (isRegionalRole && !['AREA', 'COMPANY'].includes(scopeType.toUpperCase())) {
+        return { valid: false, reason: `Consistency Mismatch: Regional role '${role}' must be bound to 'AREA' or 'COMPANY' scope.` };
     }
 
     if (isStoreRole && scopeType !== 'STORE') {
