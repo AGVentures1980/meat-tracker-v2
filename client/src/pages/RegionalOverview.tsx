@@ -178,7 +178,7 @@ export const RegionalOverview = () => {
                                     </tr>
                                 )}
                                 {validStoreRankings.map((store, idx) => (
-                                    <tr key={idx} onClick={() => navigate(`/dashboard/property/${store.store_id}`)} className="hover:bg-[#222] transition-colors cursor-pointer group">
+                                    <tr key={idx} onClick={() => navigate(`/dashboard/property/${store.id || store.store_id}`)} className="hover:bg-[#222] transition-colors cursor-pointer group">
                                         <td className="p-4 text-gray-200 group-hover:text-[#C5A059] transition-colors">
                                             <div className="font-bold">{store.store_name}</div>
                                             <div className="text-[10px] font-mono text-gray-500">ID: {store.store_id}</div>

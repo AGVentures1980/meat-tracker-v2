@@ -139,7 +139,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     ...(isMaster ? [{ icon: Globe, label: t('nav.saasAdmin') || 'Brand Overview Center', path: '/saas-admin' }] : []),
                     ...(isMaster ? [{ icon: Sparkles, label: t('nav.aiSourcing') || 'AI Strategic Sourcing', path: '/procurement' }] : []),
                     ...(isMaster ? [{ icon: DatabaseZap, label: 'Validation Center', path: '/validation' }] : []),
-                    { icon: Users, label: t('nav.corporateSpecs') || 'Network Standard Specs', path: '/executive/specs' },
+                    { icon: Users, label: t('nav.corporateSpecs') || 'Network Standard Specs', path: '/corporate-specs' },
                     ...( (isDavid || isMaster) ? [{ icon: ShieldAlert, label: 'Supply Chain Inbox', path: '/quarantine-inbox' }] : []),
                     ...(isMaster ? [{ icon: ShieldAlert, label: 'Global Fraud & Intercepts', path: '/agv-fraud-audit' }] : [])
                 ]
