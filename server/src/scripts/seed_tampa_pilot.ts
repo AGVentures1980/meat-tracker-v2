@@ -7,15 +7,24 @@ const prisma = new PrismaClient();
 async function run() {
     console.log("=== STARTING PHASE 5 PILOT SEED (HARD ROCK TAMPA) ===");
 
-    const tampaStore = await prisma.store.findFirst({ where: { store_name: { contains: 'Tampa' } } }) 
-                    || await prisma.store.findFirst({ where: { id: 1202 } })
-                    || await prisma.store.findFirst();
-                    
-    if (!tampaStore) {
-        throw new Error("Store not found. Ensure Phase 2 seeding was complete.");
+    const hrCompany = await prisma.company.findFirst({
+        where: { name: { contains: 'Hard Rock', mode: 'insensitive' } }
+    });
+    
+    if (!hrCompany) {
+        throw new Error("Hard Rock company missing in database.");
     }
     
-    const companyId = tampaStore.company_id || 'tdb-main'; 
+    const companyId = hrCompany.id;
+
+    const tampaStore = await prisma.store.findFirst({ 
+        where: { company_id: companyId, store_name: { contains: 'Tampa', mode: 'insensitive' } } 
+    });
+                    
+    if (!tampaStore) {
+        throw new Error("Hard Rock Tampa store not found.");
+    }
+    
     const storeId = tampaStore.id;
     console.log(`Targeting Company: ${companyId} | Store: ${storeId}`);
 
