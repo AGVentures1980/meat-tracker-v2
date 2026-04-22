@@ -268,6 +268,7 @@ function AppContent() {
                     <Route path="/executive" element={<ExecutiveDashboard />} />
                     <Route path="/jvp-dashboard" element={<GovernanceGuard><JVPDashboard /></GovernanceGuard>} />
                     <Route path="/executive/specs" element={<CorporateSpecs />} />
+                    <Route path="/corporate-specs" element={<CorporateSpecs />} />
                     <Route path="/executive/quarantine-inbox" element={<QuarantineInbox />} />
                     <Route path="/executive/agv-fraud-audit" element={<FraudAuditReport />} />
                     <Route path="/validation" element={<ValidationCenter />} />
