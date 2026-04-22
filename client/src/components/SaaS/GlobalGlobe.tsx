@@ -182,6 +182,16 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             ];
         }
 
+        // If Hard Rock, return exact geographic points for the 4 actual stores
+        if (companyName.toLowerCase().includes('hard rock') || companyName.toLowerCase().includes('hardrock')) {
+            return [
+                { lat: 27.9890, lng: -82.3735 }, // Tampa, FL
+                { lat: 26.0461, lng: -80.2096 }, // Hollywood, FL
+                { lat: 39.3597, lng: -74.4229 }, // Atlantic City, NJ
+                { lat: 18.7301, lng: -68.5303 }, // Punta Cana, DR
+            ];
+        }
+
         // Determine which clusters to use
         let activeClusters: any[] = [];
         if (regionId && clusters[regionId as keyof typeof clusters]) {
