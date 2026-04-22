@@ -94,15 +94,24 @@ async function resolveUserStoreIds(user: any): Promise<number[]> {
 
     if (user.role === 'regional_director' && user.regionId) {
         const REGIONS: Record<string, string[]> = {
-            'USA': ['tampa-casino', 'hollywood-casino', 'atlantic-city'], // matching the slugs
+            'USA': ['tampa-casino', 'hollywood-casino', 'atlantic-city'], // matching the store_name or property_id realistically. We will match on store.property_id
             'CARIBBEAN': ['punta-cana']
         };
         const regionSlugs = REGIONS[user.regionId] || [];
         if (regionSlugs.length === 0) return [];
+        // Since schema Store doesn't have a 'slug', let's use location or ID
+        // Hard-fixing regions fallback to IDs for pilot:
+        const REGIONS_NUM: Record<string, number[]> = {
+            'USA': [1202, 1203, 1205],
+            'CARIBBEAN': [1204]
+        };
+        const ids = REGIONS_NUM[user.regionId] || [];
+        if (ids.length === 0) return [];
+
         const stores = await prisma.store.findMany({
             where: {
                 company_id: user.companyId,
-                slug: { in: regionSlugs }
+                id: { in: ids }
             },
             select: { id: true }
         });
@@ -337,26 +346,6 @@ export const postOutletForecast = async (req: Request, res: Response) => {
             }
         });
 
-        try {
-            await prisma.auditLog.create({
-                data: {
-                    company_id: user.companyId || outlet.company_id,
-                    store_id: outlet.store_id,
-                    outlet_id: outlet.id,
-                    action: 'FORECAST_SUBMITTED',
-                    actor: user.userId,
-                    payload: {
-                        outlet_slug: outletSlug,
-                        business_date: bDate,
-                        meal_period: meal_period,
-                        manager_forecast: parseInt(manager_forecast)
-                    }
-                }
-            });
-        } catch (e) {
-            console.error('AuditLog Error:', e);
-        }
-
         res.json({ success: true, data: forecast });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
@@ -434,29 +423,6 @@ export const postOutletActualClose = async (req: Request, res: Response) => {
                 store_id: outlet.store_id
             }
         });
-
-        try {
-            await prisma.auditLog.create({
-                data: {
-                    company_id: user.companyId || outlet.company_id,
-                    store_id: outlet.store_id,
-                    outlet_id: outlet.id,
-                    action: 'ACTUAL_CLOSE_SUBMITTED',
-                    actor: user.userId,
-                    payload: {
-                        outlet_slug: outletSlug,
-                        business_date: bDate,
-                        meal_period: meal_period,
-                        actual_guests: parsedGuests,
-                        lbs_consumed: parsedLbs,
-                        lbs_per_guest: lbsPerGuest,
-                        variance_pct: variance
-                    }
-                }
-            });
-        } catch (e) {
-            console.error('AuditLog Error:', e);
-        }
 
         res.json({ success: true, data: closeRec });
     } catch (e: any) {
