@@ -210,8 +210,7 @@ export const getNetworkSummary = async (req: Request, res: Response) => {
                 store_id: { in: allowedStoreIds },
                 date: { gte: sevenDaysAgo }
             },
-            _sum: { lbs_total: true },
-            _avg: { lbs_per_guest: true }
+            _sum: { lbs_total: true }
         });
 
         const usageMap = Object.fromEntries(
@@ -224,7 +223,7 @@ export const getNetworkSummary = async (req: Request, res: Response) => {
             store_name: store.store_name,
             location: store.location,
             lbs_total: usageMap[store.id]?._sum?.lbs_total || 0,
-            lbs_per_guest: usageMap[store.id]?._avg?.lbs_per_guest || null,
+            lbs_per_guest: null, // Removed Prisma _avg mapping since field does not exist in MeatUsage
             has_data: !!usageMap[store.id]
         }));
 
