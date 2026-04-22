@@ -11,7 +11,6 @@ async function seedStagingClean() {
     try {
         console.log("\n[1/3] Purging all client data...");
         // Wipe in correct dependency order
-        await prisma.supportTicketReply.deleteMany();
         await prisma.supportTicket.deleteMany();
         await prisma.recommendationEvent.deleteMany();
         await prisma.anomalyEvent.deleteMany();
@@ -49,12 +48,12 @@ async function seedStagingClean() {
         await prisma.store.upsert({
             where: { id: 9001 },
             update: {},
-            create: { id: 9001, company_id: demoCompany.id, store_name: 'Demo Store Alpha', status: 'ACTIVE' }
+            create: { id: 9001, company_id: demoCompany.id, store_name: 'Demo Store Alpha', status: 'ACTIVE', location: 'Demo Location' }
         });
         await prisma.store.upsert({
             where: { id: 9002 },
             update: {},
-            create: { id: 9002, company_id: demoCompany.id, store_name: 'Demo Store Beta', status: 'ACTIVE' }
+            create: { id: 9002, company_id: demoCompany.id, store_name: 'Demo Store Beta', status: 'ACTIVE', location: 'Demo Location' }
         });
 
         console.log("\n[3/3] Seeding Demo User...");
