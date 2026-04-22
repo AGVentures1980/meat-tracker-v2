@@ -39,6 +39,22 @@ interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
+const ROLE_DISPLAY_LABELS: Record<string, string> = {
+    'admin':               'Admin',
+    'director':            'Director',
+    'corporate_director':  'Corporate Director',
+    'regional_director':   'Regional Director',
+    'property_manager':    'Property Manager',
+    'executive_chef':      'Executive Chef',
+    'outlet_manager':      'Outlet Manager',
+    'kitchen_operator':    'Kitchen Operator',
+    'read_only_viewer':    'Viewer',
+    'manager':             'Manager',
+    'viewer':              'Viewer',
+    'area_manager':        'Area Manager',
+    'partner':             'Partner',
+};
+
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const { logout, user, selectedCompany } = useAuth();
     const { t } = useLanguage();
@@ -549,7 +565,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div className="hidden lg:flex items-center gap-2 mr-2 bg-[#222] px-3 py-1 rounded-full border border-[#333] shadow-sm">
                                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Welcome</span>
                                 <span className="text-xs font-bold text-[#C5A059] tracking-wide">
-                                    {user.first_name || (user.email.toLowerCase().includes('rodrigo') ? 'Rodrigo' : user.email.toLowerCase().includes('alexandre') ? 'Alexandre' : user.email.toLowerCase().includes('carlos') ? 'Carlos' : user.email.split('@')[0].split('.')[0].replace(/^\w/, (c: string) => c.toUpperCase()))}
+                                    {ROLE_DISPLAY_LABELS[user.role] || user.role}
                                 </span>
                             </div>
                         )}
