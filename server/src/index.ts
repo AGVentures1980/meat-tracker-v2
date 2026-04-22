@@ -258,6 +258,34 @@ app.get('/api/v1/trigger-pilot-seed', async (req, res) => {
     }
 });
 
+app.get('/api/v1/debug/login-check', async (req, res) => {
+    try {
+        const email = (req.query.email as string) || 'director@hardrock.brasameat.com';
+        const pass = (req.query.pass as string) || 'HardRock@2026!Corp';
+        
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        const bcrypt = require('bcryptjs');
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return res.json({ success: false, error: 'User not found in database.' });
+
+        const isValid = await bcrypt.compare(pass, user.password_hash);
+        
+        res.json({ 
+            success: true, 
+            emailFound: true, 
+            passwordMatch: isValid,
+            dbHashLength: user.password_hash.length,
+            role: user.role,
+            isActive: user.is_active,
+            failReason: !isValid ? 'Bcrypt compare failed' : null
+        });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 import { StoreController } from './controllers/StoreController';
 const storeController = new StoreController();
 app.post('/api/v1/trigger-demo-restore', storeController.triggerDemoRestore);
