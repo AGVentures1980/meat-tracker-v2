@@ -61,7 +61,12 @@ export const OutletSelector = () => {
                     {items.map((outlet: any, idx: number) => (
                         <div 
                             key={idx}
-                            onClick={() => navigate(`/dashboard/outlet/${outlet.slug}/kpi`, { state: { propertyName: property?.store_name } })}
+                            onClick={() => navigate(`/dashboard/outlet/${outlet.slug}/kpi`, { 
+                                state: { 
+                                    propertyName: property?.store_name,
+                                    propertyId: propertySlug || user?.storeId || outlet.store_id
+                                } 
+                            })}
                             className="bg-[#1a1a1a] border border-[#333] hover:border-[#C5A059] p-4 rounded-lg cursor-pointer transition-all flex flex-col items-start gap-4 shadow-lg group"
                         >
                             <h3 className="font-bold text-sm tracking-wide text-white group-hover:text-[#C5A059] transition-colors">{outlet.name}</h3>

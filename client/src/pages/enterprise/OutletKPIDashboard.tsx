@@ -13,7 +13,8 @@ export const OutletKPIDashboard = () => {
     const { user } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-    const propertyName = location.state?.propertyName || 'Property';
+    const { propertyName, propertyId } = location.state || {};
+    const fallbackPropertyLabel = propertyName || 'Property';
 
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -57,17 +58,19 @@ export const OutletKPIDashboard = () => {
     const variance = today.target ? ((today.lbsGuest - today.target) / today.target) * 100 : 0;
     const varianceColor = variance > 15 ? 'text-red-500' : variance > 8 ? 'text-yellow-500' : 'text-green-500';
 
+    const targetPropertyHref = `/dashboard/property/${propertyId || outlet.store_id || ''}`;
+
     return (
         <div className="max-w-7xl mx-auto py-8 text-white space-y-6">
             <NavigationBreadcrumb levels={[
                 { label: 'Network', href: '/dashboard/network' },
-                { label: propertyName, href: `/dashboard/property/${outlet.store_id}` },
+                { label: fallbackPropertyLabel, href: targetPropertyHref },
                 { label: outlet.name, href: '#' }
             ]} />
 
             <div className="flex justify-between items-start">
                 <div className="flex items-center gap-4 mb-4">
-                    <button onClick={() => navigate(`/dashboard/property/${outlet.store_id}`)} className="px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-widest border border-[#333] hover:border-[#C5A059] text-gray-400 hover:text-[#C5A059] rounded transition-colors">&larr; Back</button>
+                    <button onClick={() => navigate(targetPropertyHref)} className="px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-widest border border-[#333] hover:border-[#C5A059] text-gray-400 hover:text-[#C5A059] rounded transition-colors">&larr; Back</button>
                     <h1 className="text-2xl font-bold text-[#C5A059] tracking-widest uppercase pb-1">{outlet.name} / KPI</h1>
                 </div>
                 <div className="flex gap-3">
