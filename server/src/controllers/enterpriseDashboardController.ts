@@ -179,6 +179,8 @@ export const getNetworkSummary = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const allowedStoreIds = await resolveUserStoreIds(user);
         
+        console.log(`[DEBUG:getNetworkSummary] user.companyId=${user.companyId}, user.role=${user.role}, allowedStoreIds=[${allowedStoreIds.join(',')}]`);
+
         if (allowedStoreIds.length === 0) {
             return res.json({ success: true, properties: [] });
         }
@@ -186,17 +188,47 @@ export const getNetworkSummary = async (req: Request, res: Response) => {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        // Group consumption by property
-        const summary = await prisma.meatUsage.groupBy({
+        // ALWAYS fetch the stores so properties appear even without usage data
+        const stores = await prisma.store.findMany({
+            where: {
+                id: { in: allowedStoreIds },
+                company_id: user.companyId
+            },
+            select: {
+                id: true,
+                store_name: true,
+                location: true,
+                status: true,
+                is_pilot: true
+            }
+        });
+
+        // Optionally enrich with usage stats (last 7 days)
+        const usageStats = await prisma.meatUsage.groupBy({
             by: ['store_id'],
             where: {
                 store_id: { in: allowedStoreIds },
                 date: { gte: sevenDaysAgo }
             },
-            _sum: { lbs_total: true }
+            _sum: { lbs_total: true },
+            _avg: { lbs_per_guest: true }
         });
 
-        return res.json({ success: true, properties: summary });
+        const usageMap = Object.fromEntries(
+            usageStats.map((u: any) => [u.store_id, u])
+        );
+
+        const properties = stores.map((store: any) => ({
+            id: store.id,
+            store_id: store.id, 
+            store_name: store.store_name,
+            location: store.location,
+            lbs_total: usageMap[store.id]?._sum?.lbs_total || 0,
+            lbs_per_guest: usageMap[store.id]?._avg?.lbs_per_guest || null,
+            has_data: !!usageMap[store.id]
+        }));
+
+        return res.json({ success: true, properties });
     } catch (error: any) {
         console.error('getNetworkSummary error:', error);
         res.status(500).json({ success: false, message: error.message });
