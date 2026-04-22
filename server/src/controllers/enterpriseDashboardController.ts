@@ -72,8 +72,10 @@ const REGIONS: Record<string, number[]> = {
  * Business day ends at 4:00 AM local time (covers late-night closings).
  * All storage in UTC. Display in local timezone.
  */
-function resolveBusinessDate(timestampUTC: Date, timezoneOffset: number = -5): string {
-    const localHour = (timestampUTC.getUTCHours() + 24 + timezoneOffset) % 24;
+function resolveBusinessDate(timestampUTC: Date, timezone: string = 'America/New_York'): string {
+    const localTime = new Date(timestampUTC.toLocaleString('en-US', { timeZone: timezone }));
+    const localHour = localTime.getHours();
+
     const businessDate = new Date(timestampUTC);
     if (localHour < 4) {
       businessDate.setUTCDate(businessDate.getUTCDate() - 1);
@@ -345,7 +347,11 @@ export const postOutletForecast = async (req: Request, res: Response) => {
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
 
-        const bDateStr = business_date ? business_date : resolveBusinessDate(new Date());
+        let storeTimezone = 'America/New_York';
+        const storeRec = await prisma.store.findUnique({ where: { id: outlet.store_id } });
+        if (storeRec && storeRec.timezone) storeTimezone = storeRec.timezone;
+
+        const bDateStr = business_date ? business_date : resolveBusinessDate(new Date(), storeTimezone);
         const bDate = new Date(bDateStr);
 
         const forecast = await prisma.outletForecastLog.upsert({
@@ -404,7 +410,11 @@ export const postOutletActualClose = async (req: Request, res: Response) => {
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
 
-        const bDateStr = business_date ? business_date : resolveBusinessDate(new Date());
+        let storeTimezone = 'America/New_York';
+        const storeRec = await prisma.store.findUnique({ where: { id: outlet.store_id } });
+        if (storeRec && storeRec.timezone) storeTimezone = storeRec.timezone;
+
+        const bDateStr = business_date ? business_date : resolveBusinessDate(new Date(), storeTimezone);
         const bDate = new Date(bDateStr);
         const parsedGuests = parseInt(actual_guests);
         const parsedLbs = parseFloat(lbs_consumed);

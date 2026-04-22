@@ -710,7 +710,7 @@ if (process.env.NODE_ENV !== 'test') {
 
         app.listen(Number(PORT) || 3002, '0.0.0.0', () => {
             console.log(`🚀 BRASA INTEL v4.2.0-DASHBOARD-EXEC running on http://localhost:${PORT}`);
-            console.log(`📅 Business Date Sync: Central Time (UTC-6) ACTIVE`);
+            console.log(`📅 Business Date Sync: Dynamic Local Timezone ACTIVE (Default: Eastern)`);
 
             // 🟢 24/7 AI AGENT BACKGROUND LOOP
             console.log(`🤖 AI Prospecting Agent: ONLINE (24/7 Watch Mode)`);
