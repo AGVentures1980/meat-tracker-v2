@@ -242,7 +242,7 @@ export class SupportController {
             const user = (req as any).user;
             const whereClause: any = { status: 'OPEN', is_escalated: true };
 
-            if (user.role === 'director' && user.companyId) {
+            if (['director', 'corporate_director'].includes(user.role) && user.companyId) {
                 whereClause.store = { company_id: user.companyId };
             }
 
@@ -332,7 +332,7 @@ export class SupportController {
         try {
             const user = (req as any).user;
             const whereClause: any = {};
-            if (user.role === 'director' && user.companyId) {
+            if (['director', 'corporate_director'].includes(user.role) && user.companyId) {
                 whereClause.id = user.companyId;
             }
 
