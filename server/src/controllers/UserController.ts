@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+import { hasRole, DIRECTOR_ROLES, MANAGER_ROLES } from '../utils/roleGroups';
 
 
 const prisma = new PrismaClient();
@@ -13,7 +14,8 @@ export const UserController = {
             const { layer } = req.query;
 
             // Only Directors, Area Managers, and Admins can query the corporate hierarchy
-            if (user.role !== 'admin' && user.role !== 'director' && user.role !== 'area_manager') {
+            const HAS_ACCESS = hasRole(user.role, DIRECTOR_ROLES) || user.role === 'area_manager';
+            if (!HAS_ACCESS) {
                 return res.status(403).json({ error: 'Access Denied' });
             }
 
@@ -106,7 +108,7 @@ export const UserController = {
                 return res.status(400).json({ error: 'Store ID is required' });
             }
 
-            if (user.role === 'manager' && user.isPrimary === false) {
+            if (hasRole(user.role, MANAGER_ROLES) && user.isPrimary === false && !hasRole(user.role, ['area_manager', 'regional_director', ...DIRECTOR_ROLES])) {
                 return res.status(403).json({ error: 'Only the primary store account can view team members' });
             }
 
@@ -164,7 +166,7 @@ export const UserController = {
                 return res.status(400).json({ error: 'Store ID is required' });
             }
 
-            if (currentUser.role === 'manager' && currentUser.isPrimary === false) {
+            if (hasRole(currentUser.role, MANAGER_ROLES) && currentUser.isPrimary === false && !hasRole(currentUser.role, ['area_manager', 'regional_director', ...DIRECTOR_ROLES])) {
                 return res.status(403).json({ error: 'Only the primary store account can add team members' });
             }
 
@@ -444,14 +446,14 @@ export const UserController = {
             let whereClause: any = { company_id: user.companyId };
 
             // Apply boundaries
-            if (user.role === 'admin' || user.role === 'corporate_director' || user.role === 'director') {
+            if (hasRole(user.role, DIRECTOR_ROLES)) {
                 // can see all users in company
             } else if (user.role === 'regional_director' || user.role === 'area_manager') {
                 if (!user.storeIds || user.storeIds.length === 0) {
                     return res.json({ success: true, users: [] });
                 }
                 whereClause.store_id = { in: user.storeIds };
-            } else if (user.role === 'property_manager' || user.role === 'executive_chef' || user.role === 'manager') {
+            } else if (hasRole(user.role, MANAGER_ROLES)) {
                 if (!user.storeId) return res.json({ success: true, users: [] });
                 whereClause.store_id = user.storeId;
             } else {

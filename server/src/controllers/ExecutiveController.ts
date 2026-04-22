@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ExecutiveMetricsService } from '../services/ExecutiveMetricsService';
 import { AuditService } from '../services/AuditService';
+import { getUserId } from '../utils/authContext';
+import { hasRole, MANAGER_ROLES, VIEWER_ROLES } from '../utils/roleGroups';
 
 const prisma = new PrismaClient();
 
@@ -26,15 +28,17 @@ export interface StoreExecutiveSummary {
 export class ExecutiveController {
 
     private requireExecutiveAccess(user: any) {
-        // Zero-Trust Role Hardening: Now allows GMs (store_manager) to view their own metrics but blocks operators
-        const allowedRoles = ['admin', 'partner', 'director', 'corporate_director', 'c_level', 'regional_manager', 'store_manager'];
-        if (!user || !allowedRoles.includes(user.role)) {
+        // Zero-Trust Role Hardening: Now allows GMs to view their own metrics but blocks operators
+        if (!user || (!hasRole(user.role, MANAGER_ROLES) && user.role !== 'c_level' && user.role !== 'regional_manager' && user.role !== 'store_manager')) {
              throw new Error("403: ZERO-TRUST VIOLATION. Executive or GM Access Required.");
         }
         
         // Strict Operator Block
-        if (user.role === 'operator' || user.role === 'floor_staff') {
-            throw new Error("403: ZERO-TRUST VIOLATION. Operators cannot view executive metrics.");
+        if (!hasRole(user.role, VIEWER_ROLES) && !hasRole(user.role, MANAGER_ROLES)) {
+            // we will just ban 'kitchen_operator', 'floor_staff', etc explicitly to be safe
+            if (['operator', 'floor_staff', 'kitchen_operator'].includes(user.role)) {
+                throw new Error("403: ZERO-TRUST VIOLATION. Operators cannot view executive metrics.");
+            }
         }
     }
 
@@ -93,7 +97,7 @@ export class ExecutiveController {
                 const storeId = parseInt(storeIdStr, 10);
                 
                 // GM Scoping Logic for Legacy: Only process their own store
-                if (user.role === 'store_manager' && storeId !== user.storeId) {
+                if ((user.role === 'store_manager' || user.role === 'property_manager' || user.role === 'manager' || user.role === 'executive_chef') && storeId !== user.storeId) {
                     continue; 
                 }
 
@@ -177,13 +181,13 @@ export class ExecutiveController {
             // Scoping execution exactly as requested:
             let targetedStoreId: number | undefined = undefined;
 
-            if (user.role === 'store_manager') {
+            if (hasRole(user.role, [...MANAGER_ROLES]) && user.role !== 'director' && user.role !== 'corporate_director' && user.role !== 'area_manager' && user.role !== 'regional_director') {
                 targetedStoreId = user.storeId; // GM is strictly locked to their single store.
             } else if (req.query.storeId) {
                 targetedStoreId = parseInt(req.query.storeId as string);
                 
                 // If director / regional, ensure they can only query stores assigned to them.
-                if (user.role === 'regional_manager' && targetedStoreId) {
+                if ((user.role === 'regional_manager' || user.role === 'regional_director' || user.role === 'area_manager') && targetedStoreId) {
                     const regionalCheck = await prisma.store.findFirst({
                         where: { id: targetedStoreId, area_manager_id: user.id }
                     });

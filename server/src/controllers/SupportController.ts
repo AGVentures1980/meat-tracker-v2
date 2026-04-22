@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
-
+import { hasRole, DIRECTOR_ROLES } from '../utils/roleGroups';
 
 const prisma = new PrismaClient();
 
@@ -49,7 +49,7 @@ export class SupportController {
 
             let store_id = (req as any).user?.storeId;
             const role = (req as any).user?.role;
-            const isExecutive = role === 'admin' || role === 'director' || (req as any).user?.email?.includes('admin');
+            const isExecutive = hasRole(role, DIRECTOR_ROLES) || (req as any).user?.email?.includes('admin');
 
             // ONLY override if they are an executive pretending to be a store
             if (isExecutive && bodyStoreId) {
@@ -170,7 +170,7 @@ export class SupportController {
             const queryStoreId = req.query.store_id as string;
             let store_id = (req as any).user?.storeId;
             const role = (req as any).user?.role;
-            const isExecutive = role === 'admin' || role === 'director' || (req as any).user?.email?.includes('admin');
+            const isExecutive = hasRole(role, DIRECTOR_ROLES) || (req as any).user?.email?.includes('admin');
 
             // ONLY override if they are an executive without a strict store mapping
             if (isExecutive && queryStoreId) {
@@ -242,7 +242,7 @@ export class SupportController {
             const user = (req as any).user;
             const whereClause: any = { status: 'OPEN', is_escalated: true };
 
-            if (['director', 'corporate_director'].includes(user.role) && user.companyId) {
+            if (hasRole(user.role, DIRECTOR_ROLES) && user.companyId) {
                 whereClause.store = { company_id: user.companyId };
             }
 
@@ -332,7 +332,7 @@ export class SupportController {
         try {
             const user = (req as any).user;
             const whereClause: any = {};
-            if (['director', 'corporate_director'].includes(user.role) && user.companyId) {
+            if (hasRole(user.role, DIRECTOR_ROLES) && user.companyId) {
                 whereClause.id = user.companyId;
             }
 

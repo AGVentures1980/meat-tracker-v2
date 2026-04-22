@@ -7,6 +7,7 @@ import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../services/AuditService';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
 import { startOfMonth, endOfMonth } from 'date-fns';
+import { hasRole, DIRECTOR_ROLES } from '../utils/roleGroups';
 
 
 const prisma = new PrismaClient();
@@ -211,7 +212,7 @@ export class DashboardController {
             const { targets, annual_growth_rate } = req.body;
             const user = (req as any).user;
 
-            if (annual_growth_rate !== undefined && (user.role === 'admin' || user.role === 'director')) {
+            if (annual_growth_rate !== undefined && hasRole(user.role, DIRECTOR_ROLES)) {
                 await prisma.company.update({
                     where: { id: user.companyId },
                     data: { annual_growth_rate: parseFloat(annual_growth_rate) }
@@ -276,7 +277,7 @@ export class DashboardController {
             // Scoping: Managers only see their own store
             // Admin/Director can see all stores in their company, or a specific one if provided
             if (user.role !== 'admin' && user.role !== 'director') {
-                if (user.role === 'area_manager') {
+                if (user.role === 'area_manager' || user.role === 'regional_director') {
                     where.area_manager_id = getUserId(user);
                 } else {
                     where.id = user.storeId;
@@ -472,7 +473,7 @@ export class DashboardController {
                  whereStore.company_id = effectiveCompanyId; // Explicit explicit targeting for Global roles
             }
             if (user.role !== 'admin' && user.role !== 'director') {
-                if (user.role === 'area_manager') {
+                if (user.role === 'area_manager' || user.role === 'regional_director') {
                     whereStore.area_manager_id = getUserId(user);
                 } else {
                     whereStore.id = user.storeId;
@@ -540,7 +541,7 @@ export class DashboardController {
                 whereStore.company_id = activeCompanyId;
             }
             if (user.role !== 'admin' && user.role !== 'director') {
-                if (user.role === 'area_manager') {
+                if (user.role === 'area_manager' || user.role === 'regional_director') {
                     whereStore.area_manager_id = getUserId(user);
                 } else {
                     whereStore.id = user.storeId;
@@ -622,7 +623,7 @@ export class DashboardController {
             }
 
             if (user.role !== 'admin' && user.role !== 'director') {
-                if (user.role === 'area_manager') {
+                if (user.role === 'area_manager' || user.role === 'regional_director') {
                     where.area_manager_id = getUserId(user);
                 } else {
                     where.id = user.storeId;

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { MeatEngine } from '../engine/MeatEngine';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, startOfYear } from 'date-fns';
+import { hasRole, DIRECTOR_ROLES, MANAGER_ROLES } from '../utils/roleGroups';
 
 const getDateRange = (range: string = 'this-month') => {
     const now = new Date();
@@ -70,9 +71,9 @@ export class ReportController {
             if (user.companyId) {
                 whereClause.company_id = user.companyId;
             }
-            if (user.role !== 'admin' && user.role !== 'director') {
+            if (!hasRole(user.role, DIRECTOR_ROLES)) {
                 whereClause.id = user.storeId;
-            } else if (user.role === 'director' && user.director_region) {
+            } else if (hasRole(user.role, DIRECTOR_ROLES) && user.director_region) {
                 // Director scope filtering
                 whereClause.region = user.director_region;
             }
@@ -124,12 +125,12 @@ export class ReportController {
 
             const id = storeId ? parseInt(storeId as string) : user.storeId;
 
-            if (!id && user.role !== 'admin' && user.role !== 'director') {
+            if (!id && !hasRole(user.role, DIRECTOR_ROLES)) {
                 return res.status(400).json({ error: 'Store ID required for variance analysis' });
             }
 
             let targetId = id;
-            if (!targetId && (user.role === 'admin' || user.role === 'director')) {
+            if (!targetId && hasRole(user.role, DIRECTOR_ROLES)) {
                 const prisma = (req as any).scopedPrisma;
                 // Fetch the first store that belongs to their company
                 const firstStore = await prisma.store.findFirst({
@@ -174,12 +175,12 @@ export class ReportController {
             const { start, end } = getDateRange(range as string);
 
             const id = storeId ? parseInt(storeId as string) : user.storeId;
-            if (!id && user.role !== 'admin' && user.role !== 'director') {
+            if (!id && !hasRole(user.role, DIRECTOR_ROLES)) {
                 return res.status(400).json({ error: 'Store ID required' });
             }
 
             let targetId = id;
-            if (!targetId && (user.role === 'admin' || user.role === 'director')) {
+            if (!targetId && hasRole(user.role, DIRECTOR_ROLES)) {
                 const prisma = (req as any).scopedPrisma;
                 const firstStore = await prisma.store.findFirst({
                     where: user.companyId ? { company_id: user.companyId } : {}
@@ -221,7 +222,7 @@ export class ReportController {
             if (user.companyId) {
                 companyWhere.store = { company_id: user.companyId };
             }
-            if (user.role === 'director' && user.director_region) {
+            if (hasRole(user.role, DIRECTOR_ROLES) && user.director_region) {
                 if (!companyWhere.store) companyWhere.store = {};
                 companyWhere.store.region = user.director_region;
             }
@@ -251,7 +252,7 @@ export class ReportController {
             });
 
             // 2. Filter data for the specific report (Scope by Store if Manager)
-            const purchases = (user.role === 'manager' && user.storeId)
+            const purchases = (hasRole(user.role, MANAGER_ROLES) && user.storeId && !hasRole(user.role, DIRECTOR_ROLES))
                 ? allPurchases.filter((p: any) => p.store_id === user.storeId)
                 : allPurchases;
 

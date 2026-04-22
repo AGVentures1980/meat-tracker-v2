@@ -34,7 +34,9 @@ async function main() {
             company_id: companyId,
             store_name: "Atlantic City Casino",
             location: "Atlantic City, NJ",
-            status: "ACTIVE"
+            status: "ACTIVE",
+            is_pilot: true,
+            pilot_start_date: new Date()
         }
     });
 

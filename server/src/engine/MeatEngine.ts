@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { startOfMonth, endOfMonth, differenceInDays, getDate } from 'date-fns';
 import { MEAT_STANDARDS, GLOBAL_TARGET_PER_GUEST } from '../config/standards';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
+import { hasRole, DIRECTOR_ROLES, MANAGER_ROLES } from '../utils/roleGroups';
 
 
 const prisma = new PrismaClient();
@@ -341,13 +342,13 @@ export class MeatEngine {
             where.company_id = companyId;
         }
 
-        if (user && user.role !== 'admin' && user.role !== 'director') {
-            if (user.role === 'area_manager') {
+        if (user && !hasRole(user.role, DIRECTOR_ROLES)) {
+            if (user.role === 'area_manager' || user.role === 'regional_director') {
                 where.area_manager_id = getUserId(user);
             } else if (user.storeId) {
                 where.id = user.storeId;
             }
-        } else if (user && user.role === 'director' && user.director_region) {
+        } else if (user && hasRole(user.role, DIRECTOR_ROLES) && user.director_region) {
             // Apply regional scope shield for Directors
             where.region = user.director_region;
         }
@@ -430,13 +431,13 @@ export class MeatEngine {
             where.company_id = user.companyId;
         }
 
-        if (user.role !== 'admin' && user.role !== 'director') {
-            if (user.role === 'area_manager') {
+        if (!hasRole(user.role, DIRECTOR_ROLES)) {
+            if (user.role === 'area_manager' || user.role === 'regional_director') {
                 where.area_manager_id = getUserId(user);
             } else if (user.storeId) {
                 where.id = user.storeId;
             }
-        } else if (user.role === 'director' && user.director_region) {
+        } else if (hasRole(user.role, DIRECTOR_ROLES) && user.director_region) {
             // Apply regional scope shield for Directors
             where.region = user.director_region;
         }
@@ -675,8 +676,8 @@ export class MeatEngine {
             where.company_id = user.companyId;
         }
 
-        if (user.role !== 'admin' && user.role !== 'director') {
-            if (user.role === 'area_manager') {
+        if (!hasRole(user.role, DIRECTOR_ROLES)) {
+            if (user.role === 'area_manager' || user.role === 'regional_director') {
                 where.area_manager_id = getUserId(user);
             } else if (user.storeId) {
                 where.id = user.storeId;

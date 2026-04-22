@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Bot, User as UserIcon, Clock, CheckCircle2, ShieldAlert, ArrowLeft, MessageSquare, Star } from 'lucide-react';
+import { Send, Bot, User as UserIcon, Clock, CheckCircle2, ShieldAlert, ArrowLeft, MessageSquare, Star, ExternalLink } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface CompanyRating {
     company_id: string;
@@ -42,6 +43,7 @@ export const AdminSupport: React.FC = () => {
     const [replyContent, setReplyContent] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const fetchTickets = async () => {
         try {
@@ -182,9 +184,21 @@ export const AdminSupport: React.FC = () => {
                                             <h3 className="font-bold text-amber-400">{ticket.store.store_name}</h3>
                                             <p className="text-xs text-gray-400">{ticket.store.location}</p>
                                         </div>
-                                        <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded-full border border-red-500/30 flex items-center gap-1 font-bold">
-                                            ESCALATED
-                                        </span>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded-full border border-red-500/30 flex items-center gap-1 font-bold">
+                                                ESCALATED
+                                            </span>
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/dashboard/property/${ticket.store.id}`);
+                                                }}
+                                                className="text-[#C5A059] hover:text-white bg-[#C5A059]/10 hover:bg-[#C5A059]/30 p-1.5 rounded-md flex items-center gap-1 transition-colors"
+                                                title="View Property Dashboard"
+                                            >
+                                                <ExternalLink size={14} />
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="p-5 flex-1 w-full">
                                         <div className="flex items-start gap-2 mb-3">

@@ -64,21 +64,6 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
         decoded.id = decoded.id ?? decoded.userId;
         decoded.userId = decoded.userId ?? decoded.id;
 
-        // Phase 5 Pilot Role Equivalency Mapping for Legacy Controllers (Masquerading)
-        // This ensures all legacy endpoints checking `user.role === 'director'` work seamlessly
-        // without requiring a full backend refactor for the new 5-tier Pilot roles.
-        const legacyExecRoles = ['corporate_director', 'regional_director'];
-        if (legacyExecRoles.includes(decoded.role)) {
-            decoded.original_role = decoded.role;
-            decoded.role = 'director';
-        }
-
-        const legacyManagerRoles = ['property_manager', 'executive_chef', 'outlet_manager'];
-        if (legacyManagerRoles.includes(decoded.role)) {
-            decoded.original_role = decoded.role;
-            decoded.role = 'manager';
-        }
-
         (req as any).user = decoded;
         
         // ENTERPRISE HARDENING: Inject mathematically scoped Prisma Client
@@ -105,7 +90,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
  * Role-Based Access Control Middleware
  * @param allowedRoles Array of roles that can access this route
  */
-export const requireRole = (allowedRoles: Role[]) => {
+export const requireRole = (allowedRoles: string[] | readonly string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
         const user = (req as any).user;
 
@@ -113,16 +98,8 @@ export const requireRole = (allowedRoles: Role[]) => {
             return res.status(401).json({ error: 'Unauthorized: Authentication required' });
         }
 
-        const effectiveRoles = [...allowedRoles];
-        // Phase 5 Pilot Role Equivalency Mapping
-        if (effectiveRoles.includes('director' as Role)) {
-            effectiveRoles.push('corporate_director' as Role, 'regional_director' as Role);
-        }
-        if (effectiveRoles.includes('manager' as Role)) {
-            effectiveRoles.push('property_manager' as Role, 'executive_chef' as Role, 'outlet_manager' as Role);
-        }
 
-        if (!effectiveRoles.includes(user.role)) {
+        if (!allowedRoles.includes(user.role)) {
             console.warn(`RBAC Denied: User ${user.email} (${user.role}) attempted to access restricted route.`);
             return res.status(403).json({
                 error: 'Permission Denied',
