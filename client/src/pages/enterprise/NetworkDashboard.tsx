@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Globe, ArrowRight, ShieldAlert, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export const NetworkDashboard = () => {
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
     const navigate = useNavigate();
     const [network, setNetwork] = useState<any>(null);
     const [accuracies, setAccuracies] = useState<any>({});
@@ -14,7 +14,10 @@ export const NetworkDashboard = () => {
         const fetchNet = async () => {
             try {
                 const res = await fetch('/api/v1/enterprise/network-summary', {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${user?.token}`,
+                        'x-company-id': selectedCompany || user?.companyId
+                    }
                 });
                 
                 if (res.ok) {
@@ -25,7 +28,10 @@ export const NetworkDashboard = () => {
                         const accMap: any = {};
                         for (const n of data.properties) {
                             const accRes = await fetch(`/api/v1/enterprise/property/${n.store_id}/forecast-accuracy-summary`, {
-                                headers: { 'Authorization': `Bearer ${user?.token}` }
+                                headers: { 
+                                    'Authorization': `Bearer ${user?.token}`,
+                                    'x-company-id': selectedCompany || user?.companyId
+                                }
                             });
                             if (accRes.ok) {
                                 const accData = await accRes.json();
@@ -63,12 +69,24 @@ export const NetworkDashboard = () => {
 
     try {
 
-    const properties = [
-        { id: 1202, slug: 'tampa-casino', name: 'Hard Rock Tampa', location: 'Tampa, FL', guests: 2450, lbs: 4500, target: 1.76, outlets: 16 },
-        { id: 1203, slug: 'hollywood-casino', name: 'Hard Rock Hollywood', location: 'Hollywood, FL', guests: 3100, lbs: 5800, target: 1.76, outlets: 12 },
-        { id: 1204, slug: 'punta-cana', name: 'Hard Rock Punta Cana', location: 'Punta Cana, DR', guests: 1800, lbs: 2800, target: 1.60, outlets: 8 },
-        { id: 1205, slug: 'atlantic-city', name: 'Hard Rock Atlantic City', location: 'Atlantic City, NJ', guests: 2200, lbs: 4100, target: 1.80, outlets: 10 },
-    ].filter(p => !network.length || network.some((n: any) => n.store_id === p.id));
+    const properties = network.map((n: any) => {
+        const name = n.store_name?.toLowerCase() || '';
+        const isTampa = name.includes('tampa');
+        const isHollywood = name.includes('hollywood');
+        const isPunta = name.includes('punta');
+        const isAC = name.includes('atlantic');
+
+        return {
+            id: n.store_id,
+            slug: isTampa ? 'tampa-casino' : isHollywood ? 'hollywood-casino' : isPunta ? 'punta-cana' : isAC ? 'atlantic-city' : n.store_id.toString(),
+            name: n.store_name,
+            location: n.location || 'Pending Location',
+            guests: isTampa ? 2450 : isHollywood ? 3100 : isPunta ? 1800 : isAC ? 2200 : 1500,
+            lbs: isTampa ? 4500 : isHollywood ? 5800 : isPunta ? 2800 : isAC ? 4100 : 2000,
+            target: isTampa ? 1.76 : isHollywood ? 1.76 : isPunta ? 1.60 : isAC ? 1.80 : 1.75,
+            outlets: isTampa ? 16 : isHollywood ? 12 : isPunta ? 8 : isAC ? 10 : 5
+        };
+    });
 
     const totalStats = properties.reduce((acc, curr) => ({
         guests: acc.guests + curr.guests,
