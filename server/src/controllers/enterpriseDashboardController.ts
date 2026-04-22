@@ -67,27 +67,63 @@ const REGIONS: Record<string, number[]> = {
     'CARIBBEAN': [1204]
 };
 
-function resolveUserStoreIds(user: any): number[] {
-    if (user.role === 'corporate_director' || user.role === 'admin' || user.role === 'director' || user.role === 'partner') {
-        // We resolve company wide. This will be queried dynamically or mocked out since it's Phase 3 enterprise boundaries
-        return [1202, 1203, 1204, 1205]; // All known stores in this demonstration
+/**
+ * Resolves the operational business_date for a given timestamp.
+ * Business day ends at 4:00 AM local time (covers late-night closings).
+ * All storage in UTC. Display in local timezone.
+ */
+function resolveBusinessDate(timestampUTC: Date, timezoneOffset: number = -5): string {
+    const localHour = (timestampUTC.getUTCHours() + 24 + timezoneOffset) % 24;
+    const businessDate = new Date(timestampUTC);
+    if (localHour < 4) {
+      businessDate.setUTCDate(businessDate.getUTCDate() - 1);
     }
-    if (user.regionId) {
-        return REGIONS[user.regionId] || [];
+    return businessDate.toISOString().split('T')[0];
+}
+
+async function resolveUserStoreIds(user: any): Promise<number[]> {
+    if (!user.companyId) return [];
+
+    if (['corporate_director', 'admin', 'director', 'partner'].includes(user.role)) {
+        const stores = await prisma.store.findMany({
+            where: { company_id: user.companyId },
+            select: { id: true }
+        });
+        return stores.map((s: any) => s.id);
     }
-    if (user.storeIds && user.storeIds.length > 0) {
-        return user.storeIds;
+
+    if (user.role === 'regional_director' && user.regionId) {
+        const REGIONS: Record<string, string[]> = {
+            'USA': ['tampa-casino', 'hollywood-casino', 'atlantic-city'], // matching the slugs
+            'CARIBBEAN': ['punta-cana']
+        };
+        const regionSlugs = REGIONS[user.regionId] || [];
+        if (regionSlugs.length === 0) return [];
+        const stores = await prisma.store.findMany({
+            where: {
+                company_id: user.companyId,
+                slug: { in: regionSlugs }
+            },
+            select: { id: true }
+        });
+        return stores.map((s: any) => s.id);
     }
+
+    // Single store isolation
     if (user.storeId) {
-        return [user.storeId];
+        const store = await prisma.store.findFirst({
+            where: { id: user.storeId, company_id: user.companyId }
+        });
+        return store ? [store.id] : [];
     }
+
     return [];
 }
 
 export const getNetworkSummary = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
-        const allowedStoreIds = resolveUserStoreIds(user);
+        const allowedStoreIds = await resolveUserStoreIds(user);
         
         if (allowedStoreIds.length === 0) {
             return res.json({ success: true, properties: [] });
@@ -123,7 +159,7 @@ export const getPropertyOutletSummary = async (req: Request, res: Response) => {
         }
 
         // Validate permissions
-        const allowedStoreIds = resolveUserStoreIds(user);
+        const allowedStoreIds = await resolveUserStoreIds(user);
         if (!allowedStoreIds.includes(storeId)) {
             return res.status(403).json({ success: false, message: 'Unauthorized to view this property' });
         }
@@ -151,7 +187,7 @@ export const getOutletKPI = async (req: Request, res: Response) => {
 
         if (!outlet) return res.status(404).json({ success: false, message: 'Outlet not found' });
 
-        const allowedStoreIds = resolveUserStoreIds(user);
+        const allowedStoreIds = await resolveUserStoreIds(user);
         if (!allowedStoreIds.includes(outlet.store_id)) {
             // Also bypass if user has specific outlet assigned but role allows check
             if (!(user.outletIds && user.outletIds.includes(outlet.id))) {
@@ -257,12 +293,13 @@ export const postOutletForecast = async (req: Request, res: Response) => {
         const outlet = await prisma.outlet.findFirst({ where: { slug: outletSlug } });
         if (!outlet) return res.status(404).json({ success: false, message: 'Outlet not found' });
 
-        const allowedStoreIds = resolveUserStoreIds(user);
+        const allowedStoreIds = await resolveUserStoreIds(user);
         if (!allowedStoreIds.includes(outlet.store_id) && !(user.outletIds && user.outletIds.includes(outlet.id))) {
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
 
-        const bDate = new Date(business_date);
+        const bDateStr = business_date ? business_date : resolveBusinessDate(new Date());
+        const bDate = new Date(bDateStr);
 
         const forecast = await prisma.outletForecastLog.upsert({
             where: {
@@ -300,6 +337,26 @@ export const postOutletForecast = async (req: Request, res: Response) => {
             }
         });
 
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    company_id: user.companyId || outlet.company_id,
+                    store_id: outlet.store_id,
+                    outlet_id: outlet.id,
+                    action: 'FORECAST_SUBMITTED',
+                    actor: user.userId,
+                    payload: {
+                        outlet_slug: outletSlug,
+                        business_date: bDate,
+                        meal_period: meal_period,
+                        manager_forecast: parseInt(manager_forecast)
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('AuditLog Error:', e);
+        }
+
         res.json({ success: true, data: forecast });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
@@ -315,20 +372,25 @@ export const postOutletActualClose = async (req: Request, res: Response) => {
         const outlet = await prisma.outlet.findFirst({ where: { slug: outletSlug } });
         if (!outlet) return res.status(404).json({ success: false, message: 'Outlet not found' });
 
-        const allowedStoreIds = resolveUserStoreIds(user);
+        const allowedStoreIds = await resolveUserStoreIds(user);
         if (!allowedStoreIds.includes(outlet.store_id) && !(user.outletIds && user.outletIds.includes(outlet.id))) {
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
 
-        const bDate = new Date(business_date);
+        const bDateStr = business_date ? business_date : resolveBusinessDate(new Date());
+        const bDate = new Date(bDateStr);
         const parsedGuests = parseInt(actual_guests);
         const parsedLbs = parseFloat(lbs_consumed);
 
-        const lbsPerGuest = parsedGuests > 0 ? (parsedLbs / parsedGuests) : null;
+        // SAFE: never divide by zero
+        const lbsPerGuest = (parsedGuests > 0)
+          ? Number((parsedLbs / parsedGuests).toFixed(4))
+          : null;  // null = valid empty service, not Infinity
+
         const target = outlet.target_lbs_per_guest || null;
         let variance = null;
         if (lbsPerGuest !== null && target !== null && target > 0) {
-            variance = ((lbsPerGuest - target) / target) * 100;
+            variance = Number((((lbsPerGuest - target) / target) * 100).toFixed(2));
         }
 
         const closeRec = await prisma.outletForecastLog.upsert({
@@ -372,6 +434,29 @@ export const postOutletActualClose = async (req: Request, res: Response) => {
                 store_id: outlet.store_id
             }
         });
+
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    company_id: user.companyId || outlet.company_id,
+                    store_id: outlet.store_id,
+                    outlet_id: outlet.id,
+                    action: 'ACTUAL_CLOSE_SUBMITTED',
+                    actor: user.userId,
+                    payload: {
+                        outlet_slug: outletSlug,
+                        business_date: bDate,
+                        meal_period: meal_period,
+                        actual_guests: parsedGuests,
+                        lbs_consumed: parsedLbs,
+                        lbs_per_guest: lbsPerGuest,
+                        variance_pct: variance
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('AuditLog Error:', e);
+        }
 
         res.json({ success: true, data: closeRec });
     } catch (e: any) {
@@ -548,6 +633,31 @@ export const getOutletInboundReconciliation = async (req: Request, res: Response
                 });
             }
         }
+
+        const matchedBoxIds = new Set(
+            matchResults
+                .filter(item => item.status !== 'PENDING')
+                .map(item => item.received?.id)
+                .filter(Boolean)
+        );
+
+        const allRecentBoxes = await prisma.receivingEvent.findMany({
+            where: {
+                store_id: outlet.store_id,
+                created_at: { gte: d }
+            }
+        });
+
+        const excessBoxes = allRecentBoxes.filter((box: any) => !matchedBoxIds.has(box.id));
+
+        const excessItems = excessBoxes.map((box: any) => ({
+            invoice: { item_name: box.product_code || 'Unknown', quantity: null, invoice_number: null },
+            received: box,
+            status: 'EXCESS',
+            variance_pct: null
+        }));
+
+        matchResults.push(...excessItems);
 
         const reconciled = matchResults.filter(m => m.status === 'MATCHED').length;
         const targetableInvoices = invoices.length;

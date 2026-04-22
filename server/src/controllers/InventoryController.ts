@@ -354,6 +354,39 @@ export class InventoryController {
                         weight_variance: targetBox.available_weight_lb 
                     }
                 });
+
+                const outletId = (req as any).user?.outletIds?.[0] || req.body.outlet_id || null;
+                
+                // Resolves the operational business_date for a given timestamp.
+                const localHour = (new Date().getUTCHours() + 24 - 5) % 24;
+                const businessDate = new Date();
+                if (localHour < 4) {
+                    businessDate.setUTCDate(businessDate.getUTCDate() - 1);
+                }
+                const dList = businessDate.toISOString().split('T')[0];
+                const d = new Date(dList);
+
+                await tx.meatUsage.upsert({
+                    where: {
+                        store_id_protein_date: {
+                            store_id: Number(store_id),
+                            protein: targetBox.product_name,
+                            date: d
+                        }
+                    },
+                    update: {
+                        lbs_total: { increment: targetBox.available_weight_lb },
+                        outlet_id: outletId
+                    },
+                    create: {
+                        store_id: Number(store_id),
+                        date: d,
+                        protein: targetBox.product_name,
+                        lbs_total: targetBox.available_weight_lb,
+                        source_type: 'ALACARTE',
+                        outlet_id: outletId
+                    }
+                });
             });
 
             return res.json({ 

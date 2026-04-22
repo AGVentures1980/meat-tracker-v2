@@ -248,6 +248,16 @@ import { SetupController } from './controllers/SetupController';
 app.get('/api/v1/setup-demo', SetupController.runDemoSetup);
 app.get('/api/v1/setup/seed-targets', SetupController.seedTargets); // Emergency Init Route
 
+app.get('/api/v1/trigger-pilot-seed', async (req, res) => {
+    try {
+        const seedTask = require('./scripts/seed_tampa_pilot').run;
+        await seedTask();
+        res.json({ success: true, message: 'Pilot seed successfully executed on production DB.' });
+    } catch (e: any) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 import { StoreController } from './controllers/StoreController';
 const storeController = new StoreController();
 app.post('/api/v1/trigger-demo-restore', storeController.triggerDemoRestore);

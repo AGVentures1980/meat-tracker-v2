@@ -1,6 +1,6 @@
 import express from 'express';
 import { VaultController } from '../controllers/VaultController';
-import { requireAuth, requireScope } from '../middleware/auth.middleware';
+import { requireAuth, requireScope, requireRole } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -13,6 +13,7 @@ router.use((req, res, next) => {
 });
 
 router.use(requireAuth);
+router.use(requireRole(['admin', 'corporate_director', 'director', 'partner'] as any));
 
 // Store is the baseline rank, which allows STORE, AREA, COMPANY, and GLOBAL.
 // But GLOBAL is intercepted and forced to provide X-Audit-Reason.
