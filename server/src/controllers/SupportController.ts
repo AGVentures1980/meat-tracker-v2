@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import OpenAI from 'openai';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
 import { hasRole, DIRECTOR_ROLES } from '../utils/roleGroups';
 
@@ -114,29 +115,62 @@ export class SupportController {
                 }
             });
 
-            // 4. AI SIMULATION LOGIC
-            const lowerContent = content.toLowerCase();
-            let aiResponse = '';
+            // 4. OPENAI INTEGRATION
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+            
+            // Get previous messages to build context
+            const previousMessages = await prisma.supportMessage.findMany({
+                where: { ticket_id: ticket.id },
+                orderBy: { created_at: 'asc' }
+            });
+
+            // Build OpenAI Message Array
+            const chatContext: any[] = [
+                {
+                    role: 'system',
+                    content: `You are the AGV Operations Intelligence Support Agent. 
+You assist Brasa Meat Intelligence store managers and executives.
+Maintain a professional, concise, and helpful tone. 
+Answer questions regarding the platform, reporting, data analysis, and the Weekly Pulse Inventory.
+If the user encounters a severe technical bug, system crash, or specifically asks for executive help, you MUST append the exact string "[ESCALATE]" at the very end of your response.
+Do NOT use markdown unless formatting a very small list. Keep responses under 4 sentences.`
+                }
+            ];
+
+            // Add history
+            previousMessages.forEach(msg => {
+                chatContext.push({
+                    role: msg.sender_type === 'USER' ? 'user' : 'assistant',
+                    content: msg.content
+                });
+            });
+
+            let aiResponse = 'I am currently unable to process requests. Please contact support.';
             let escalate = false;
 
-            if (lowerContent.includes('bug') || lowerContent.includes('error') || lowerContent.includes('broken') || lowerContent.includes('help')) {
-                aiResponse = 'Understood. I have detected this may be a technical issue. I am immediately escalating this ticket to the Executive Command Center (Alex Garcia). You will be notified and receive a response here shortly.';
-                escalate = true;
-
-                await prisma.supportTicket.update({
-                    where: { id: ticket.id },
-                    data: { is_escalated: true }
+            try {
+                const aiResult = await openai.chat.completions.create({
+                    model: 'gpt-4o-mini',
+                    messages: chatContext,
+                    temperature: 0.3,
+                    max_tokens: 250,
                 });
-            } else if (lowerContent.includes('report') || lowerContent.includes('roi')) {
-                aiResponse = 'To read the ROI reports, access the "Financials & ROI" tab on the left menu. There you will see the projected impact based on actual consumption vs baseline. Did this answer help?';
-            } else if (lowerContent.includes('inventory') || lowerContent.includes('pulse') || lowerContent.includes('count')) {
-                aiResponse = 'The Weekly Smart Inventory (Pulse) must be physically counted and entered into the platform by 11:00 AM on Monday. Beware of The Garcia Rule!';
-            } else if (lowerContent.includes('obrigado') || lowerContent.includes('thanks') || lowerContent.includes('thank you') || lowerContent.includes('valeu')) {
-                aiResponse = 'You are very welcome! Let me know if you need anything else.';
-            } else if (lowerContent.includes('hi') || lowerContent.includes('hello') || lowerContent.includes('hey') || lowerContent.includes('ola') || lowerContent.includes('olá')) {
-                aiResponse = `Hello there! I am the AGV Support Agent. You can ask me questions about operations, or type "error" to escalate a ticket to the Executive Team.`;
-            } else {
-                aiResponse = `I'm here to help. Could you provide a bit more detail about what you need assistance with?`;
+                
+                aiResponse = aiResult.choices[0]?.message?.content?.trim() || aiResponse;
+
+                // Check for escalation keyword
+                if (aiResponse.includes('[ESCALATE]')) {
+                    escalate = true;
+                    // Remove the keyword from the output shown to the user
+                    aiResponse = aiResponse.replace(/\[ESCALATE\]/g, '').trim();
+
+                    await prisma.supportTicket.update({
+                        where: { id: ticket.id },
+                        data: { is_escalated: true }
+                    });
+                }
+            } catch (openAiError) {
+                console.error("OpenAI Chat generation failed:", openAiError);
             }
 
             // 5. Save AI Reply
