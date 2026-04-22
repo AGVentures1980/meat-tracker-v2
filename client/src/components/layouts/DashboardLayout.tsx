@@ -594,7 +594,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                                                     <span className="text-[10px] text-gray-600">{alert.time}</span>
                                                 </div>
                                                 <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{
-                                                    __html: alert.message.replace(
+                                                    __html: (alert.message || '').replace(
                                                         /(Dallas|3 Stores)/g,
                                                         '<strong>$1</strong>'
                                                     )
