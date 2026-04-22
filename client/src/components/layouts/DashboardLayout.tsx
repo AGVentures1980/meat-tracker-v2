@@ -121,13 +121,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         if (!isDavid) {
             const isRodizio = operationType === 'RODIZIO';
+            const HARD_ROCK_COMPANY_ID = '3a6ac28e-6b5e-4a60-8ad6-5bc18a4b5037';
+            const isHardRock = user?.companyId === HARD_ROCK_COMPANY_ID;
+
+            const viewItems = [];
+
+            if (!isHardRock) {
+                viewItems.push({ icon: LayoutDashboard, label: isRodizio ? 'Lbs/Pax Analytics Hub' : (t('nav.performanceHub') || 'Performance Hub'), path: '/dashboard' });
+            }
+
+            viewItems.push(
+                { icon: Trophy, label: 'Butcher Quarter Battle', path: '/leaderboard' },
+                { icon: TrendingUp, label: isRodizio ? 'Yield & Consumption Projections' : (t('nav.projections') || 'Projections'), path: '/projections' },
+                { icon: StickyNote, label: isRodizio ? 'Cost/Pax P&L Reports' : (t('nav.reports') || 'P&L Executive Reports'), path: '/reports' }
+            );
+
             navItems.push({
-                section: t('nav.section_view') || (isRodizio ? 'RODIZIO (Core Metrics)' : 'VIEW (Financial Analytics)'), items: [
-                    { icon: LayoutDashboard, label: isRodizio ? 'Lbs/Pax Analytics Hub' : (t('nav.performanceHub') || 'Performance Hub'), path: '/dashboard' },
-                    { icon: Trophy, label: 'Butcher Quarter Battle', path: '/leaderboard' },
-                    { icon: TrendingUp, label: isRodizio ? 'Yield & Consumption Projections' : (t('nav.projections') || 'Projections'), path: '/projections' },
-                    { icon: StickyNote, label: isRodizio ? 'Cost/Pax P&L Reports' : (t('nav.reports') || 'P&L Executive Reports'), path: '/reports' },
-                ]
+                section: t('nav.section_view') || (isRodizio ? 'RODIZIO (Core Metrics)' : 'VIEW (Financial Analytics)'), 
+                items: viewItems
             });
         }
 
