@@ -129,6 +129,43 @@ async function resolveUserStoreIds(user: any): Promise<number[]> {
     return [];
 }
 
+async function resolveStoreIdFromSlug(slug: string, companyId: string, prisma: any): Promise<number | null> {
+    const asNumber = parseInt(slug, 10);
+    if (!isNaN(asNumber)) return asNumber;
+
+    const slugToName: Record<string, string> = {
+        'tampa-casino':          'Tampa Casino',
+        'hollywood':             'Hollywood',
+        'punta-cana':            'Punta Cana',
+        'atlantic-city-casino':  'Atlantic City Casino',
+        'atlantic-city':         'Atlantic City Casino',
+    };
+
+    const storeName = slugToName[slug.toLowerCase()];
+    if (storeName) {
+        const store = await prisma.store.findFirst({
+            where: {
+                store_name: { contains: storeName, mode: 'insensitive' },
+                company_id: companyId
+            },
+            select: { id: true }
+        });
+        return store?.id || null;
+    }
+
+    const store = await prisma.store.findFirst({
+        where: {
+            store_name: {
+                contains: slug.replace(/-/g, ' '),
+                mode: 'insensitive'
+            },
+            company_id: companyId
+        },
+        select: { id: true }
+    });
+    return store?.id || null;
+}
+
 export const getNetworkSummary = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
@@ -161,7 +198,8 @@ export const getNetworkSummary = async (req: Request, res: Response) => {
 export const getPropertyOutletSummary = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
-        const storeId = parseInt(req.params.storeId, 10);
+        const storeIdStr = req.params.storeId;
+        const storeId = await resolveStoreIdFromSlug(storeIdStr, user.companyId, prisma);
 
         if (!storeId) {
             return res.status(400).json({ success: false, message: 'Invalid storeId' });
@@ -501,7 +539,10 @@ export const getOutletForecastAccuracy = async (req: Request, res: Response) => 
 
 export const getPropertyForecastAccuracySummary = async (req: Request, res: Response) => {
     try {
-        const storeId = parseInt(req.params.storeId, 10);
+        const user = (req as any).user;
+        const storeIdStr = req.params.storeId;
+        const storeId = await resolveStoreIdFromSlug(storeIdStr, user.companyId, prisma);
+        
         if (!storeId) return res.status(400).json({ success: false });
 
         const d = new Date();
