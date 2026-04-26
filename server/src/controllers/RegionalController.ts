@@ -41,8 +41,9 @@ export class RegionalController {
     public getRegionalOverview = async (req: any, res: Response) => {
         try {
             const tenant_id = req.user?.companyId || req.user?.tenant_id;
+            const isAdmin = req.user?.role === 'admin' || req.user?.scope?.type === 'GLOBAL';
             
-            if (!tenant_id) {
+            if (!tenant_id && !isAdmin) {
                 return res.status(401).json({ error: "Context Error: Tenant Missing" });
             }
 
@@ -51,9 +52,9 @@ export class RegionalController {
             const currentWindowStart = new Date(now - REGIONAL_LOOKBACK_DAYS * 86400000);
             const prevWindowStart = new Date(now - (REGIONAL_LOOKBACK_DAYS * 2) * 86400000);
 
-            // Fetch Stores for Tenant
+            // Fetch Stores for Tenant (or all if admin without specific tenant)
             const stores = await prisma.store.findMany({
-                where: { company_id: tenant_id }
+                where: tenant_id ? { company_id: tenant_id } : undefined
             });
             const total_stores = stores.length;
 
@@ -64,7 +65,7 @@ export class RegionalController {
             // Fetch Current Anomaly Data Window
             const currentAnomalies = await prisma.anomalyEvent.findMany({
                 where: {
-                    tenant_id,
+                    ...(tenant_id ? { tenant_id } : {}),
                     created_at: { gte: currentWindowStart }
                 }
             });
@@ -72,7 +73,7 @@ export class RegionalController {
             // Fetch Previous Anomaly Data Window (for Trend)
             const prevAnomalies = await prisma.anomalyEvent.findMany({
                 where: {
-                    tenant_id,
+                    ...(tenant_id ? { tenant_id } : {}),
                     created_at: { gte: prevWindowStart, lt: currentWindowStart }
                 }
             });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Activity, Database, Zap, Users, ShieldAlert, ArrowUpRight, Copy, Terminal, CheckCircle2, Clock } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -26,7 +26,7 @@ export const SRECommandCenter = () => {
         if (!user?.token) return;
         setLoading(true);
         try {
-            const headers = { 'Authorization': \`Bearer \${user.token}\` };
+            const headers = { 'Authorization': `Bearer ${user.token}` };
             const [healthRes, issuesRes, tenantsRes, metricsRes] = await Promise.all([
                 fetch('/api/v1/sre/health', { headers }),
                 fetch('/api/v1/sre/issues', { headers }),

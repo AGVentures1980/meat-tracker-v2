@@ -1,10 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, Download, Calendar, Loader2, Search, Building2, Clock, Box, Trash2 } from 'lucide-react';
+import { ShieldAlert, Download, Calendar, Loader2, Search, Building2, Clock, Box, Trash2, AlertOctagon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 // Assuming dates in simplified format for the UI
+
+class TableErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
+    constructor(props: any) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+    static getDerivedStateFromError(error: any) {
+        return { hasError: true, error };
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="p-8 text-center text-rose-500 bg-rose-500/10 rounded-xl border border-rose-500/20 m-6">
+                    <AlertOctagon className="w-12 h-12 mx-auto mb-4" />
+                    <h3 className="text-lg font-bold mb-2">Table Rendering Error</h3>
+                    <p className="text-sm opacity-80">{String(this.state.error)}</p>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 export const FraudAuditReport = () => {
     const { user, selectedCompany } = useAuth();
     const [attempts, setAttempts] = useState<any[]>([]);
@@ -263,7 +286,8 @@ export const FraudAuditReport = () => {
 
             {/* Master Table */}
             <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl overflow-hidden glass-effect">
-                <div className="overflow-x-auto">
+                <TableErrorBoundary>
+                    <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-slate-300">
                         <thead className="text-xs text-slate-400 uppercase bg-slate-800/50">
                             <tr>
@@ -320,14 +344,14 @@ export const FraudAuditReport = () => {
                                         <div className="flex flex-col gap-1">
                                             <span className="text-white font-bold tracking-wide flex items-center gap-1.5">
                                                 <Building2 className="w-3.5 h-3.5 text-indigo-400" />
-                                                {attempt.store?.company?.name || "Global Network"}
+                                                {String(attempt.store?.company?.name || "Global Network")}
                                             </span>
-                                            <span className="text-xs text-slate-400">{attempt.store?.store_name}</span>
+                                            <span className="text-xs text-slate-400">{String(attempt.store?.store_name || "Unknown Store")}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-rose-400 font-semibold">{attempt.protein_name || "Unidentified Anomalous"}</span>
+                                            <span className="text-rose-400 font-semibold">{String(attempt.protein_name || "Unidentified Anomalous")}</span>
                                             <span className="text-xs text-slate-400 flex items-center gap-1">
                                                <Box className="w-3 h-3" />
                                                {attempt.weight ? `${attempt.weight.toFixed(2)} LBS` : "No Weight Detected"}
@@ -337,18 +361,18 @@ export const FraudAuditReport = () => {
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1">
                                             <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded w-fit text-slate-300">
-                                                {attempt.supplier || "Supplier Missing"}
+                                                {attempt.supplier ? (typeof attempt.supplier === 'object' ? JSON.stringify(attempt.supplier) : String(attempt.supplier)) : "Supplier Missing"}
                                             </span>
                                             {attempt.metadata?.serial && (
                                                 <span className="text-xs text-slate-500 font-mono bg-slate-900 px-1.5 rounded w-fit">
-                                                    L/N: {attempt.metadata.serial}
+                                                    L/N: {typeof attempt.metadata.serial === 'object' ? JSON.stringify(attempt.metadata.serial) : String(attempt.metadata.serial)}
                                                 </span>
                                             )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="font-mono text-rose-500/90 bg-rose-500/10 px-2 py-1.5 rounded border border-rose-500/20 text-xs inline-block max-w-[240px] truncate" title={attempt.scanned_barcode}>
-                                            {attempt.scanned_barcode}
+                                            {typeof attempt.scanned_barcode === 'object' ? JSON.stringify(attempt.scanned_barcode) : String(attempt.scanned_barcode || "N/A")}
                                         </div>
                                     </td>
                                 </tr>
@@ -356,6 +380,7 @@ export const FraudAuditReport = () => {
                         </tbody>
                     </table>
                 </div>
+                </TableErrorBoundary>
             </div>
             
         </div>
