@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Activity, Database, Zap, Users, ShieldAlert, ArrowUpRight, Copy, Terminal, CheckCircle2, Clock } from 'lucide-react';
+import { ShieldCheck, Activity, Database, Zap, Users, ShieldAlert, ArrowUpRight, Copy, Terminal, CheckCircle2, Clock, X } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export const SRECommandCenter = () => {
@@ -15,6 +15,7 @@ export const SRECommandCenter = () => {
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showCopyModal, setShowCopyModal] = useState<string | null>(null);
 
     useEffect(() => {
         if (user?.email !== 'alexandre@alexgarciaventures.co') {
@@ -56,22 +57,41 @@ export const SRECommandCenter = () => {
         return () => clearInterval(interval);
     }, [user?.token, autoRefresh]);
 
-    const handleCopy = async (text: string, id: string) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            setCopiedId(id);
-            setTimeout(() => setCopiedId(null), 2000);
-        } catch (err) {
-            // Fallback for older browsers
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            setCopiedId(id);
-            setTimeout(() => setCopiedId(null), 2000);
+    const handleCopy = (text: string, buttonId: string) => {
+        // Method 1: Modern clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                setCopiedId(buttonId);
+                setTimeout(() => setCopiedId(null), 2000);
+            }).catch(() => fallbackCopy(text, buttonId));
+        } else {
+            fallbackCopy(text, buttonId);
         }
+    };
+
+    const fallbackCopy = (text: string, buttonId: string) => {
+        // Method 2: execCommand fallback
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                setCopiedId(buttonId);
+                setTimeout(() => setCopiedId(null), 2000);
+            } else {
+                setShowCopyModal(text);
+            }
+        } catch (e) {
+            // Method 3: Show text in modal for manual copy
+            setShowCopyModal(text);
+        }
+        document.body.removeChild(textArea);
     };
 
     if (!health || !metrics) {
@@ -360,6 +380,41 @@ export const SRECommandCenter = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Copy Prompt Modal Fallback */}
+            {showCopyModal && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
+                    <div className="bg-[#1a1a1a] border border-[#333] w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                        <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#111]">
+                            <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                                <Copy className="w-4 h-4 text-[#C5A059]" />
+                                Copy this prompt
+                            </h3>
+                            <button onClick={() => setShowCopyModal(null)} className="text-gray-500 hover:text-white transition-colors">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-xs text-gray-400 mb-4 font-mono uppercase">Please use Cmd+C / Ctrl+C to copy manually:</p>
+                            <textarea 
+                                readOnly
+                                autoFocus
+                                onFocus={(e) => e.target.select()}
+                                value={showCopyModal}
+                                className="w-full h-48 bg-black border border-[#333] rounded-lg p-4 text-xs text-gray-300 font-mono resize-none focus:outline-none focus:border-[#C5A059]/50"
+                            />
+                        </div>
+                        <div className="p-4 border-t border-[#333] bg-[#111] flex justify-end">
+                            <button 
+                                onClick={() => setShowCopyModal(null)}
+                                className="px-6 py-2 bg-[#C5A059] text-black text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#D4AF37] transition-all"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
