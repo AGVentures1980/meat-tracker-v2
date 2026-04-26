@@ -14,6 +14,7 @@ import {
     Send
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { SRECommandCenter } from './sre/SRECommandCenter';
 
 interface Metric {
     label: string;
@@ -25,7 +26,7 @@ interface Metric {
 
 export const OwnerTerminal = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<'overview' | 'billing' | 'leads' | 'dev'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'billing' | 'leads' | 'dev' | 'sre'>('overview');
     const [leads, setLeads] = useState<any[]>([]);
     const [finances, setFinances] = useState<any>(null);
     const [isScanning, setIsScanning] = useState(false);
@@ -229,7 +230,7 @@ Best regards,
 
                 {/* Main Navigation */}
                 <div className="flex gap-1 bg-[#111] p-1 border border-white/5 rounded-lg mb-8 w-fit">
-                    {(['overview', 'billing', 'leads', 'dev'] as const).map(tab => (
+                    {(['overview', 'billing', 'leads', 'dev', 'sre'] as const).map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
@@ -522,6 +523,12 @@ Best regards,
                                     ))}
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'sre' && (
+                        <div className="animate-in fade-in duration-500">
+                            <SRECommandCenter />
                         </div>
                     )}
                 </div>

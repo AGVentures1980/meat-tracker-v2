@@ -285,7 +285,7 @@ function AppContent() {
                     <Route path="/intelligence/procurement-shadow" element={<ProcurementShadowDashboard />} />
                     <Route path="/support" element={<SupportHub />} />
                     <Route path="/vault" element={<IdeaVault />} />
-                    <Route path="/dashboard/sre" element={<SRECommandCenter />} />
+                    <Route path="/dashboard/sre" element={<Navigate to="/owner-terminal" replace />} />
                 </Route>
 
                 {/* Enterprise Phase 4 - Role-Aware Dashboards */}

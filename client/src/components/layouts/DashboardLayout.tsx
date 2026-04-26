@@ -201,11 +201,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 );
             }
 
-            if (user?.email === 'alexandre@alexgarciaventures.co') {
-                manageItems.push(
-                    { icon: ShieldCheck, label: 'SRE Command Center', path: '/dashboard/sre' }
-                );
-            }
+
 
             if (manageItems.length > 0) {
                 navItems.push({
