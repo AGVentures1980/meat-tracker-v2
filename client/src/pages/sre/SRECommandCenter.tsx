@@ -58,19 +58,21 @@ export const SRECommandCenter = () => {
     }, [user?.token, autoRefresh]);
 
     const handleCopy = (text: string, buttonId: string) => {
-        // Method 1: Modern clipboard API
+        console.log(`[SRE Copy] Type: ${typeof text}`, text);
+        
+        // Method 1: Modern clipboard API (requires HTTPS/Secure Context)
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(text).then(() => {
                 setCopiedId(buttonId);
                 setTimeout(() => setCopiedId(null), 2000);
-            }).catch(() => fallbackCopy(text, buttonId));
+            }).catch(() => executeCopy(text, buttonId));
         } else {
-            fallbackCopy(text, buttonId);
+            // Method 2: Synchronous Fallback (required for HTTP or prompt execution)
+            executeCopy(text, buttonId);
         }
     };
 
-    const fallbackCopy = (text: string, buttonId: string) => {
-        // Method 2: execCommand fallback
+    const executeCopy = (text: string, buttonId: string) => {
         const textArea = document.createElement('textarea');
         textArea.value = text;
         textArea.style.position = 'fixed';
@@ -88,7 +90,6 @@ export const SRECommandCenter = () => {
                 setShowCopyModal(text);
             }
         } catch (e) {
-            // Method 3: Show text in modal for manual copy
             setShowCopyModal(text);
         }
         document.body.removeChild(textArea);
@@ -220,6 +221,7 @@ export const SRECommandCenter = () => {
                                     </div>
                                     <div className="flex flex-col gap-2 w-full lg:w-auto">
                                         <button 
+                                            type="button"
                                             onClick={() => handleCopy(issue.antigravity_prompt, `prompt-${issue.id}`)}
                                             className="flex items-center justify-center gap-2 px-3 py-1.5 bg-black/40 hover:bg-black/60 rounded text-xs font-bold transition-colors border border-white/10 whitespace-nowrap"
                                         >
@@ -228,6 +230,7 @@ export const SRECommandCenter = () => {
                                         </button>
                                         {issue.railway_command && (
                                             <button 
+                                                type="button"
                                                 onClick={() => handleCopy(issue.railway_command, `cmd-${issue.id}`)}
                                                 className="flex items-center justify-center gap-2 px-3 py-1.5 bg-black/40 hover:bg-black/60 rounded text-xs font-bold transition-colors border border-white/10 whitespace-nowrap"
                                             >
@@ -351,13 +354,15 @@ export const SRECommandCenter = () => {
                 <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">QUICK ACTIONS</h3>
                 <div className="flex flex-wrap gap-3">
                     <button 
-                        onClick={() => handleCopy("railway environment\\nrailway service\\nrailway redeploy", 'qa-redeploy')}
+                        type="button"
+                        onClick={() => handleCopy("railway environment\nrailway service\nrailway redeploy", 'qa-redeploy')}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
                         {copiedId === 'qa-redeploy' ? 'Copied! ✓' : '📋 REDEPLOY'}
                     </button>
                     <button 
+                        type="button"
                         onClick={() => handleCopy("railway logs --service meat-tracker-v2 | tail -50", 'qa-logs')}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
@@ -365,14 +370,16 @@ export const SRECommandCenter = () => {
                         {copiedId === 'qa-logs' ? 'Copied! ✓' : '📋 CHECK LOGS'}
                     </button>
                     <button 
-                        onClick={() => handleCopy("pg_dump \"postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway\" -f backup_$(date +%Y%m%d).sql", 'qa-backup')}
+                        type="button"
+                        onClick={() => handleCopy(`pg_dump "postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway" -f backup_$(date +%Y%m%d).sql`, 'qa-backup')}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
                         {copiedId === 'qa-backup' ? 'Copied! ✓' : '📋 BACKUP DB'}
                     </button>
                     <button 
-                        onClick={() => handleCopy("railway variables set REDIS_URL=\"redis://default:PyJBKWWhOqskNXLREeMHNLeZZiezdlZZ@redis-j0qr.railway.internal:6379\"", 'qa-redis')}
+                        type="button"
+                        onClick={() => handleCopy('railway variables set REDIS_URL="redis://default:PyJBKWWhOqskNXLREeMHNLeZZiezdlZZ@redis-j0qr.railway.internal:6379"', 'qa-redis')}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
