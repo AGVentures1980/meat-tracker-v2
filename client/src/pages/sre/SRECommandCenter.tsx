@@ -13,9 +13,7 @@ export const SRECommandCenter = () => {
     const [metrics, setMetrics] = useState<any>(null);
     const [lastCheck, setLastCheck] = useState<Date>(new Date());
     const [autoRefresh, setAutoRefresh] = useState(true);
-    const [copiedId, setCopiedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [showCopyModal, setShowCopyModal] = useState<string | null>(null);
 
     useEffect(() => {
         if (user?.email !== 'alexandre@alexgarciaventures.co') {
@@ -57,43 +55,7 @@ export const SRECommandCenter = () => {
         return () => clearInterval(interval);
     }, [user?.token, autoRefresh]);
 
-    const handleCopy = (text: string, buttonId: string) => {
-        console.log(`[SRE Copy] Type: ${typeof text}`, text);
-        
-        // Method 1: Modern clipboard API (requires HTTPS/Secure Context)
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(() => {
-                setCopiedId(buttonId);
-                setTimeout(() => setCopiedId(null), 2000);
-            }).catch(() => executeCopy(text, buttonId));
-        } else {
-            // Method 2: Synchronous Fallback (required for HTTP or prompt execution)
-            executeCopy(text, buttonId);
-        }
-    };
 
-    const executeCopy = (text: string, buttonId: string) => {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-9999px';
-        textArea.style.top = '-9999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                setCopiedId(buttonId);
-                setTimeout(() => setCopiedId(null), 2000);
-            } else {
-                setShowCopyModal(text);
-            }
-        } catch (e) {
-            setShowCopyModal(text);
-        }
-        document.body.removeChild(textArea);
-    };
 
     if (!health || !metrics) {
         return (
@@ -222,20 +184,54 @@ export const SRECommandCenter = () => {
                                     <div className="flex flex-col gap-2 w-full lg:w-auto">
                                         <button 
                                             type="button"
-                                            onClick={() => handleCopy(issue.antigravity_prompt, `prompt-${issue.id}`)}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const el = document.createElement('textarea');
+                                                el.value = issue.antigravity_prompt;
+                                                el.style.position = 'fixed';
+                                                el.style.opacity = '0';
+                                                document.body.appendChild(el);
+                                                el.focus();
+                                                el.select();
+                                                document.execCommand('copy');
+                                                document.body.removeChild(el);
+                                                const originalText = e.currentTarget.innerHTML;
+                                                e.currentTarget.innerHTML = 'Copied! ✓';
+                                                setTimeout(() => {
+                                                    e.currentTarget.innerHTML = originalText;
+                                                }, 2000);
+                                            }}
                                             className="flex items-center justify-center gap-2 px-3 py-1.5 bg-black/40 hover:bg-black/60 rounded text-xs font-bold transition-colors border border-white/10 whitespace-nowrap"
                                         >
                                             <Copy className="w-3 h-3" />
-                                            {copiedId === `prompt-${issue.id}` ? 'Copied! ✓' : 'COPY ANTIGRAVITY PROMPT'}
+                                            COPY ANTIGRAVITY PROMPT
                                         </button>
                                         {issue.railway_command && (
                                             <button 
                                                 type="button"
-                                                onClick={() => handleCopy(issue.railway_command, `cmd-${issue.id}`)}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    const el = document.createElement('textarea');
+                                                    el.value = issue.railway_command;
+                                                    el.style.position = 'fixed';
+                                                    el.style.opacity = '0';
+                                                    document.body.appendChild(el);
+                                                    el.focus();
+                                                    el.select();
+                                                    document.execCommand('copy');
+                                                    document.body.removeChild(el);
+                                                    const originalText = e.currentTarget.innerHTML;
+                                                    e.currentTarget.innerHTML = 'Copied! ✓';
+                                                    setTimeout(() => {
+                                                        e.currentTarget.innerHTML = originalText;
+                                                    }, 2000);
+                                                }}
                                                 className="flex items-center justify-center gap-2 px-3 py-1.5 bg-black/40 hover:bg-black/60 rounded text-xs font-bold transition-colors border border-white/10 whitespace-nowrap"
                                             >
                                                 <Terminal className="w-3 h-3" />
-                                                {copiedId === `cmd-${issue.id}` ? 'Copied! ✓' : 'COPY RAILWAY CMD'}
+                                                COPY RAILWAY CMD
                                             </button>
                                         )}
                                     </div>
@@ -355,73 +351,95 @@ export const SRECommandCenter = () => {
                 <div className="flex flex-wrap gap-3">
                     <button 
                         type="button"
-                        onClick={() => handleCopy("railway environment\nrailway service\nrailway redeploy", 'qa-redeploy')}
+                        onClick={(e) => {
+                            const val = "railway environment\nrailway service\nrailway redeploy";
+                            const el = document.createElement('textarea');
+                            el.value = val;
+                            el.style.position = 'fixed';
+                            el.style.opacity = '0';
+                            document.body.appendChild(el);
+                            el.focus();
+                            el.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(el);
+                            const originalText = e.currentTarget.innerHTML;
+                            e.currentTarget.innerHTML = 'Copied! ✓';
+                            setTimeout(() => { e.currentTarget.innerHTML = originalText; }, 2000);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
-                        {copiedId === 'qa-redeploy' ? 'Copied! ✓' : '📋 REDEPLOY'}
+                        📋 REDEPLOY
                     </button>
                     <button 
                         type="button"
-                        onClick={() => handleCopy("railway logs --service meat-tracker-v2 | tail -50", 'qa-logs')}
+                        onClick={(e) => {
+                            const val = "railway logs --service meat-tracker-v2 | tail -50";
+                            const el = document.createElement('textarea');
+                            el.value = val;
+                            el.style.position = 'fixed';
+                            el.style.opacity = '0';
+                            document.body.appendChild(el);
+                            el.focus();
+                            el.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(el);
+                            const originalText = e.currentTarget.innerHTML;
+                            e.currentTarget.innerHTML = 'Copied! ✓';
+                            setTimeout(() => { e.currentTarget.innerHTML = originalText; }, 2000);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
-                        {copiedId === 'qa-logs' ? 'Copied! ✓' : '📋 CHECK LOGS'}
+                        📋 CHECK LOGS
                     </button>
                     <button 
                         type="button"
-                        onClick={() => handleCopy(`pg_dump "postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway" -f backup_$(date +%Y%m%d).sql`, 'qa-backup')}
+                        onClick={(e) => {
+                            const val = `pg_dump "postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway" -f backup_$(date +%Y%m%d).sql`;
+                            const el = document.createElement('textarea');
+                            el.value = val;
+                            el.style.position = 'fixed';
+                            el.style.opacity = '0';
+                            document.body.appendChild(el);
+                            el.focus();
+                            el.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(el);
+                            const originalText = e.currentTarget.innerHTML;
+                            e.currentTarget.innerHTML = 'Copied! ✓';
+                            setTimeout(() => { e.currentTarget.innerHTML = originalText; }, 2000);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
-                        {copiedId === 'qa-backup' ? 'Copied! ✓' : '📋 BACKUP DB'}
+                        📋 BACKUP DB
                     </button>
                     <button 
                         type="button"
-                        onClick={() => handleCopy('railway variables set REDIS_URL="redis://default:PyJBKWWhOqskNXLREeMHNLeZZiezdlZZ@redis-j0qr.railway.internal:6379"', 'qa-redis')}
+                        onClick={(e) => {
+                            const val = 'railway variables set REDIS_URL="redis://default:PyJBKWWhOqskNXLREeMHNLeZZiezdlZZ@redis-j0qr.railway.internal:6379"';
+                            const el = document.createElement('textarea');
+                            el.value = val;
+                            el.style.position = 'fixed';
+                            el.style.opacity = '0';
+                            document.body.appendChild(el);
+                            el.focus();
+                            el.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(el);
+                            const originalText = e.currentTarget.innerHTML;
+                            e.currentTarget.innerHTML = 'Copied! ✓';
+                            setTimeout(() => { e.currentTarget.innerHTML = originalText; }, 2000);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
-                        {copiedId === 'qa-redis' ? 'Copied! ✓' : '📋 FIX REDIS'}
+                        📋 FIX REDIS
                     </button>
                 </div>
             </div>
 
-            {/* Copy Prompt Modal Fallback */}
-            {showCopyModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
-                    <div className="bg-[#1a1a1a] border border-[#333] w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                        <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#111]">
-                            <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                                <Copy className="w-4 h-4 text-[#C5A059]" />
-                                Copy this prompt
-                            </h3>
-                            <button onClick={() => setShowCopyModal(null)} className="text-gray-500 hover:text-white transition-colors">
-                                <X size={18} />
-                            </button>
-                        </div>
-                        <div className="p-6">
-                            <p className="text-xs text-gray-400 mb-4 font-mono uppercase">Please use Cmd+C / Ctrl+C to copy manually:</p>
-                            <textarea 
-                                readOnly
-                                autoFocus
-                                onFocus={(e) => e.target.select()}
-                                value={showCopyModal}
-                                className="w-full h-48 bg-black border border-[#333] rounded-lg p-4 text-xs text-gray-300 font-mono resize-none focus:outline-none focus:border-[#C5A059]/50"
-                            />
-                        </div>
-                        <div className="p-4 border-t border-[#333] bg-[#111] flex justify-end">
-                            <button 
-                                onClick={() => setShowCopyModal(null)}
-                                className="px-6 py-2 bg-[#C5A059] text-black text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#D4AF37] transition-all"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
