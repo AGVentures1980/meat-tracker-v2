@@ -73,6 +73,7 @@ import EndOfShiftAudit from './pages/store/EndOfShiftAudit';
 import JVPDashboard from './pages/executive/JVPDashboard';
 import { FraudAuditReport } from './pages/executive/FraudAuditReport';
 import QuarantineInbox from './pages/executive/QuarantineInbox';
+import { SRECommandCenter } from './pages/sre/SRECommandCenter';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -284,6 +285,7 @@ function AppContent() {
                     <Route path="/intelligence/procurement-shadow" element={<ProcurementShadowDashboard />} />
                     <Route path="/support" element={<SupportHub />} />
                     <Route path="/vault" element={<IdeaVault />} />
+                    <Route path="/dashboard/sre" element={<SRECommandCenter />} />
                 </Route>
 
                 {/* Enterprise Phase 4 - Role-Aware Dashboards */}
