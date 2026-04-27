@@ -182,24 +182,23 @@ export const SRECommandCenter = () => {
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-2 w-full lg:w-auto">
-                                        <button 
+                                        <button
                                             type="button"
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                                 const el = document.createElement('textarea');
                                                 el.value = issue.antigravity_prompt;
-                                                el.style.position = 'fixed';
-                                                el.style.opacity = '0';
+                                                el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
                                                 document.body.appendChild(el);
                                                 el.focus();
                                                 el.select();
                                                 document.execCommand('copy');
                                                 document.body.removeChild(el);
-                                                const originalText = e.currentTarget.innerHTML;
-                                                e.currentTarget.innerHTML = 'Copied! ✓';
+                                                const originalContent = e.currentTarget.innerHTML;
+                                                e.currentTarget.textContent = 'Copied! ✓';
                                                 setTimeout(() => {
-                                                    e.currentTarget.innerHTML = originalText;
+                                                    e.currentTarget.innerHTML = originalContent;
                                                 }, 2000);
                                             }}
                                             className="flex items-center justify-center gap-2 px-3 py-1.5 bg-black/40 hover:bg-black/60 rounded text-xs font-bold transition-colors border border-white/10 whitespace-nowrap"
@@ -208,24 +207,23 @@ export const SRECommandCenter = () => {
                                             COPY ANTIGRAVITY PROMPT
                                         </button>
                                         {issue.railway_command && (
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
                                                     const el = document.createElement('textarea');
                                                     el.value = issue.railway_command;
-                                                    el.style.position = 'fixed';
-                                                    el.style.opacity = '0';
+                                                    el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
                                                     document.body.appendChild(el);
                                                     el.focus();
                                                     el.select();
                                                     document.execCommand('copy');
                                                     document.body.removeChild(el);
-                                                    const originalText = e.currentTarget.innerHTML;
-                                                    e.currentTarget.innerHTML = 'Copied! ✓';
+                                                    const originalContent = e.currentTarget.innerHTML;
+                                                    e.currentTarget.textContent = 'Copied! ✓';
                                                     setTimeout(() => {
-                                                        e.currentTarget.innerHTML = originalText;
+                                                        e.currentTarget.innerHTML = originalContent;
                                                     }, 2000);
                                                 }}
                                                 className="flex items-center justify-center gap-2 px-3 py-1.5 bg-black/40 hover:bg-black/60 rounded text-xs font-bold transition-colors border border-white/10 whitespace-nowrap"
@@ -349,88 +347,92 @@ export const SRECommandCenter = () => {
             <div className="bg-[#1a1a1a] border border-[#333] p-4 rounded-lg">
                 <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">QUICK ACTIONS</h3>
                 <div className="flex flex-wrap gap-3">
-                    <button 
+                    <button
                         type="button"
                         onClick={(e) => {
                             const val = "railway environment\nrailway service\nrailway redeploy";
                             const el = document.createElement('textarea');
                             el.value = val;
-                            el.style.position = 'fixed';
-                            el.style.opacity = '0';
+                            el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
                             document.body.appendChild(el);
                             el.focus();
                             el.select();
                             document.execCommand('copy');
                             document.body.removeChild(el);
-                            const originalText = e.currentTarget.innerHTML;
-                            e.currentTarget.innerHTML = 'Copied! ✓';
-                            setTimeout(() => { e.currentTarget.innerHTML = originalText; }, 2000);
+                            const originalContent = e.currentTarget.innerHTML;
+                            e.currentTarget.textContent = 'Copied! ✓';
+                            setTimeout(() => {
+                                e.currentTarget.innerHTML = originalContent;
+                            }, 2000);
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
                         📋 REDEPLOY
                     </button>
-                    <button 
+                    <button
                         type="button"
                         onClick={(e) => {
                             const val = "railway logs --service meat-tracker-v2 | tail -50";
                             const el = document.createElement('textarea');
                             el.value = val;
-                            el.style.position = 'fixed';
-                            el.style.opacity = '0';
+                            el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
                             document.body.appendChild(el);
                             el.focus();
                             el.select();
                             document.execCommand('copy');
                             document.body.removeChild(el);
-                            const originalText = e.currentTarget.innerHTML;
-                            e.currentTarget.innerHTML = 'Copied! ✓';
-                            setTimeout(() => { e.currentTarget.innerHTML = originalText; }, 2000);
+                            const originalContent = e.currentTarget.innerHTML;
+                            e.currentTarget.textContent = 'Copied! ✓';
+                            setTimeout(() => {
+                                e.currentTarget.innerHTML = originalContent;
+                            }, 2000);
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
                         📋 CHECK LOGS
                     </button>
-                    <button 
+                    <button
                         type="button"
                         onClick={(e) => {
                             const val = `pg_dump "postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway" -f backup_$(date +%Y%m%d).sql`;
                             const el = document.createElement('textarea');
                             el.value = val;
-                            el.style.position = 'fixed';
-                            el.style.opacity = '0';
+                            el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
                             document.body.appendChild(el);
                             el.focus();
                             el.select();
                             document.execCommand('copy');
                             document.body.removeChild(el);
-                            const originalText = e.currentTarget.innerHTML;
-                            e.currentTarget.innerHTML = 'Copied! ✓';
-                            setTimeout(() => { e.currentTarget.innerHTML = originalText; }, 2000);
+                            const originalContent = e.currentTarget.innerHTML;
+                            e.currentTarget.textContent = 'Copied! ✓';
+                            setTimeout(() => {
+                                e.currentTarget.innerHTML = originalContent;
+                            }, 2000);
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
                         <Copy className="w-4 h-4 text-[#C5A059]" />
                         📋 BACKUP DB
                     </button>
-                    <button 
+                    <button
                         type="button"
                         onClick={(e) => {
                             const val = 'railway variables set REDIS_URL="redis://default:PyJBKWWhOqskNXLREeMHNLeZZiezdlZZ@redis-j0qr.railway.internal:6379"';
                             const el = document.createElement('textarea');
                             el.value = val;
-                            el.style.position = 'fixed';
-                            el.style.opacity = '0';
+                            el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
                             document.body.appendChild(el);
                             el.focus();
                             el.select();
                             document.execCommand('copy');
                             document.body.removeChild(el);
-                            const originalText = e.currentTarget.innerHTML;
-                            e.currentTarget.innerHTML = 'Copied! ✓';
-                            setTimeout(() => { e.currentTarget.innerHTML = originalText; }, 2000);
+                            const originalContent = e.currentTarget.innerHTML;
+                            e.currentTarget.textContent = 'Copied! ✓';
+                            setTimeout(() => {
+                                e.currentTarget.innerHTML = originalContent;
+                            }, 2000);
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-[#252525] hover:bg-[#333] border border-[#444] rounded text-xs font-bold text-gray-300 transition-colors"
                     >
