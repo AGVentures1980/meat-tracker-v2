@@ -136,7 +136,7 @@ export class SRECommandController {
                     title: 'Database unreachable or extremely slow',
                     description: `Latency: ${dbLatency}ms`,
                     detected_at: new Date().toISOString(),
-                    antigravity_prompt: "CRITICAL — Database unreachable.\nCheck Railway dashboard → Postgres-20Hr → is it online?\nIf restarting: wait 2 minutes and check again.\nIf down: railway redeploy --service Postgres-20Hr",
+                    antigravity_prompt: "CRITICAL — Database unreachable.\n\n1. Check Railway dashboard → Postgres-20Hr → is it online?\n2. Run this to check active connections:\nDATABASE_URL=\"postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway\" npx ts-node -e \"\nimport { PrismaClient } from '@prisma/client';\nconst p = new PrismaClient();\np.$queryRaw\`SELECT count(*) FROM pg_stat_activity\`.then(r => { console.log('Active connections:', r); p.$disconnect(); });\n\"\n3. If connections > 90: railway redeploy --service Postgres-20Hr",
                     railway_command: "railway redeploy --service Postgres-20Hr"
                 });
             } else if (dbLatency > 500) {
@@ -147,7 +147,7 @@ export class SRECommandController {
                     title: 'Database latency high',
                     description: `Latency: ${dbLatency}ms (threshold: 500ms)`,
                     detected_at: new Date().toISOString(),
-                    antigravity_prompt: `WARNING — Database latency ${dbLatency}ms (threshold: 500ms).\nCheck Railway → Postgres-20Hr → Metrics.\nIf persists > 10 min: railway redeploy --service Postgres-20Hr`,
+                    antigravity_prompt: `WARNING — Database latency ${dbLatency}ms (threshold: 500ms).\n\nInvestigate slow queries:\nDATABASE_URL=\"postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway\" npx ts-node -e \"\nimport { PrismaClient } from '@prisma/client';\nconst p = new PrismaClient();\np.$queryRaw\`SELECT query, calls, total_exec_time FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 5\`.then(r => { console.log(JSON.stringify(r, null, 2)); p.$disconnect(); });\n\"\n\nIf persists > 10 min: railway redeploy --service Postgres-20Hr`,
                     railway_command: "railway logs --service Postgres-20Hr"
                 });
             }
@@ -172,7 +172,7 @@ export class SRECommandController {
                     title: 'Redis running in MOCKED mode or Unreachable',
                     description: 'Background queues not processing.',
                     detected_at: new Date().toISOString(),
-                    antigravity_prompt: "URGENT — Redis MOCKED in Production.\nRun immediately:\nrailway environment → select production\nrailway service → select meat-tracker-v2\nrailway variables set REDIS_URL=\"redis://default:PyJBKWWhOqskNXLREeMHNLeZZiezdlZZ@redis-j0qr.railway.internal:6379\"\nrailway redeploy\nExpected: logs show 'Redis Mode: LIVE' after redeploy.",
+                    antigravity_prompt: "URGENT — Redis MOCKED in Production.\n\n1. Verify REDIS_URL variable in Railway dashboard.\n2. Run this to force variable sync:\nrailway variables set REDIS_URL=\"redis://default:PyJBKWWhOqskNXLREeMHNLeZZiezdlZZ@redis-j0qr.railway.internal:6379\"\n3. Trigger redeploy to pick up LIVE mode:\nrailway redeploy\n4. Verify logs for: 'Redis Mode: LIVE'",
                     railway_command: "railway variables set REDIS_URL=\"redis://default:PyJBKWWhOqskNXLREeMHNLeZZiezdlZZ@redis-j0qr.railway.internal:6379\""
                 });
             }
@@ -188,7 +188,7 @@ export class SRECommandController {
                     title: 'Migration BLOCKED detected',
                     description: 'System boot might be prevented due to failed migration.',
                     detected_at: new Date().toISOString(),
-                    antigravity_prompt: "CRITICAL — Migration BLOCKED detected.\nDO NOT restart the server.\nCopy the full migration log and paste here immediately.\nDo not attempt to fix without full log analysis.",
+                    antigravity_prompt: "CRITICAL — Migration BLOCKED detected.\n\nRun this to identify the failed migration:\nDATABASE_URL=\"postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway\" npx ts-node -e \"\nimport { PrismaClient } from '@prisma/client';\nconst p = new PrismaClient();\np.$queryRaw\`SELECT * FROM _prisma_migrations WHERE logs IS NOT NULL\`.then(r => { console.log(JSON.stringify(r, null, 2)); p.$disconnect(); });\n\"\n\nDO NOT attempt manual fixes without analyzing the full migration log.",
                     railway_command: "railway logs --service meat-tracker-v2"
                 });
             }
@@ -220,7 +220,7 @@ export class SRECommandController {
                             title: 'Hard Rock store INACTIVE',
                             description: `${inactiveStores.length} stores inactive`,
                             detected_at: new Date().toISOString(),
-                            antigravity_prompt: "CRITICAL — Hard Rock store INACTIVE.\nRun:\nDATABASE_URL=\"postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway\" npx ts-node -e \"\nimport { PrismaClient } from '@prisma/client';\nconst p = new PrismaClient();\np.store.updateMany({ where: { company_id: '3a6ac28e-6b5e-4a60-8ad6-5bc18a4b5037' } as any, data: { status: 'ACTIVE', activated_at: new Date() } as any }).then(() => { console.log('Fixed'); p.$disconnect(); });\n\""
+                            antigravity_prompt: "CRITICAL — Hard Rock store INACTIVE.\n\nRun recovery command to reactivate pilot stores:\nDATABASE_URL=\"postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway\" npx ts-node -e \"\nimport { PrismaClient } from '@prisma/client';\nconst p = new PrismaClient();\np.store.updateMany({ where: { company_id: '3a6ac28e-6b5e-4a60-8ad6-5bc18a4b5037' } as any, data: { status: 'ACTIVE', activated_at: new Date() } as any }).then(() => { console.log('Hard Rock stores reactivated successfully'); p.$disconnect(); });\n\""
                         });
                     }
                 }
@@ -252,7 +252,7 @@ export class SRECommandController {
                                 title: `Tenant ${company.name} has no activity in 48h`,
                                 description: 'Could indicate adoption drop off.',
                                 detected_at: new Date().toISOString(),
-                                antigravity_prompt: `WARNING — Tenant ${company.name} has no activity in 48h.\nVerify: is this expected?\nIf unexpected: check login at ${company.subdomain || 'app'}.brasameat.com`
+                                antigravity_prompt: `INVESTIGATE — ${company.name} has no activity in 48h.\n\nRun this query against Production DB:\nDATABASE_URL=\"postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway\" npx ts-node -e \"\nimport { PrismaClient } from '@prisma/client';\nconst p = new PrismaClient();\n(p as any).auditLog.findMany({\n  where: { company_id: '${company.id}' },\n  orderBy: { created_at: 'desc' },\n  take: 5\n}).then((r: any[]) => { console.log(JSON.stringify(r, null, 2)); p.$disconnect(); });\n\"\n\nReport: last 5 audit events for ${company.name}.\nIf empty: verify users can login at ${company.subdomain || 'app'}.brasameat.com`
                             });
                         }
                     }
@@ -278,7 +278,7 @@ export class SRECommandController {
                                 title: `Store ${store.store_name} has no outlets`,
                                 description: 'Active store missing outlets setup.',
                                 detected_at: new Date().toISOString(),
-                                antigravity_prompt: `INFO — Store ${store.store_name} has no outlets.\nRun: DATABASE_URL="..." npx ts-node src/scripts/seed_outlets.ts`
+                                antigravity_prompt: `INFO — Store ${store.store_name} has no outlets.\n\nVerify store configuration:\nDATABASE_URL=\"postgresql://postgres:jGGSjkxLCUhXQYntCHXoJQKGVRuWhIWu@yamanote.proxy.rlwy.net:48358/railway\" npx ts-node -e \"\nimport { PrismaClient } from '@prisma/client';\nconst p = new PrismaClient();\np.store.findUnique({ where: { id: '${store.id}' } }).then(s => { console.log(JSON.stringify(s, null, 2)); p.$disconnect(); });\n\"\n\nRun onboarding to seed outlets:\nnpx ts-node src/scripts/seed_outlets.ts --store-id ${store.id}`
                             });
                         }
                     }
