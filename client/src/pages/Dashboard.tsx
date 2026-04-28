@@ -11,12 +11,6 @@ export const Dashboard = () => {
     const navigate = useNavigate();
     const { user, selectedCompany } = useAuth();
 
-    useEffect(() => {
-        if (user && ['corporate_director', 'regional_director', 'admin', 'director'].includes(user.role)) {
-            navigate('/dashboard/network', { replace: true });
-        }
-    }, [user, navigate]);
-
     const selectedStore = user?.storeId || null;
 
     // 1. Resolve View and Cache Policy Exception
