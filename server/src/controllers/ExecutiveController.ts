@@ -55,7 +55,14 @@ export class ExecutiveController {
         try {
             const user = (req as any).user;
             this.requireExecutiveAccess(user);
-            const tenant_id = user.tenant_id;
+            
+            // SECURITY FIX: Enforce strict company_id scoping to prevent cross-tenant leakage
+            const companyId = user.company_id || user.companyId || (req.headers['x-company-id'] as string);
+
+            if (!companyId) {
+                console.error("CRITICAL SECURITY: Attempted access to Executive Dashboard without companyId context.", { userId: user.id });
+                return res.status(403).json({ error: "TENANT_CONTEXT_MISSING: Access Denied." });
+            }
 
             // Header explicit deprecation warning
             res.setHeader('X-API-Deprecated', 'true');
@@ -71,7 +78,10 @@ export class ExecutiveController {
 
             const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
             const snapshots = await prisma.intelligenceSnapshot.findMany({
-                where: { tenant_id, period_end: { gte: thirtyDaysAgo } },
+                where: { 
+                    tenant_id: companyId, // Now correctly uses the resolved companyId
+                    period_end: { gte: thirtyDaysAgo } 
+                },
                 orderBy: { period_end: 'desc' },
                 include: { anomalies: true }
             });
