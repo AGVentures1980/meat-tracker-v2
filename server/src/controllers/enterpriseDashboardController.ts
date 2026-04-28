@@ -90,10 +90,12 @@ async function resolveUserStoreIds(user: any): Promise<number[]> {
         return [];
     }
 
+    const isMaster = user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
+
     if (['corporate_director', 'admin', 'director', 'partner'].includes(user.role)) {
-        console.log(`[DIAGNOSE] Querying stores WHERE company_id = '${user.companyId}' for role ${user.role}`);
+        console.log(`[DIAGNOSE] Querying stores. Master: ${isMaster}, companyId: ${user.companyId}`);
         const stores = await prisma.store.findMany({
-            where: { company_id: user.companyId },
+            where: isMaster ? {} : { company_id: user.companyId },
             select: { id: true }
         });
         console.log(`[DIAGNOSE] Resulting stores:`, stores.map((s: any) => s.id));
@@ -188,11 +190,11 @@ export const getNetworkSummary = async (req: Request, res: Response) => {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        // ALWAYS fetch the stores so properties appear even without usage data
+        const isMaster = user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
         const stores = await prisma.store.findMany({
             where: {
                 id: { in: allowedStoreIds },
-                company_id: user.companyId
+                ...(isMaster ? {} : { company_id: user.companyId })
             },
             select: {
                 id: true,
