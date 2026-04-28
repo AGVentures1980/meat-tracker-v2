@@ -79,11 +79,16 @@ export class ExecutiveController {
             const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
             const snapshots = await prisma.intelligenceSnapshot.findMany({
                 where: { 
-                    tenant_id: companyId, // Now correctly uses the resolved companyId
+                    tenant_id: companyId,
                     period_end: { gte: thirtyDaysAgo } 
                 },
                 orderBy: { period_end: 'desc' },
-                include: { anomalies: true }
+                include: { 
+                    anomalies: true,
+                    store: {
+                        select: { store_name: true }
+                    }
+                }
             });
 
             const storeState: Record<number, any> = {};
@@ -148,7 +153,7 @@ export class ExecutiveController {
 
                 executiveSummaries.push({
                      store_id: storeId,
-                     store_name: `Store #${storeId}`, 
+                     store_name: current.store?.store_name || `Store #${storeId}`, 
                      risk_score: current.op_risk_score,
                      trend_direction: trend,
                      confidence_score: normalizedConfidence,
