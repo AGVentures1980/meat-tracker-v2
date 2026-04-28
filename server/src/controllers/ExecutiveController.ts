@@ -73,7 +73,7 @@ export class ExecutiveController {
                 user.id,
                 'DEPRECATED_API_ACCESS',
                 'ExecutiveController_V0',
-                { path: req.path, tenantId: tenant_id }
+                { path: req.path, tenantId: companyId }
             );
 
             const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
