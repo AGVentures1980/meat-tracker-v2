@@ -43,7 +43,7 @@ export const ExecutiveDashboardContainer = () => {
     // Contract Validation (Fail-Closed)
     const validateContract = (data: ExecutiveDashboardPayload) => {
         if (!data || !data.top_risk_stores) return "Contract Invalid: Missing Payload Data";
-        if (data.top_risk_stores.length === 0) return "Contract Blocked: Demo requires at least 1 risk store (Orlando). Array is empty.";
+        // REMOVED: Contract Blocked check for empty stores - allowing "No Action Required" state.
         
         if (data.global_trust_score < 0 || data.global_trust_score > 100) {
             return "Contract Invalid: global_trust_score must be between 0 and 100.";
