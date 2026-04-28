@@ -1668,6 +1668,7 @@ model IntelligenceSnapshot {
   // Relationships to Events
   anomalies       AnomalyEvent[]
   recommendations RecommendationEvent[]
+  store           Store?                @relation(fields: [store_id], references: [id])
 
   @@unique([tenant_id, store_id, period_start, period_end])
   @@index([tenant_id, generated_at])
