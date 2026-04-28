@@ -159,6 +159,7 @@ model Store {
   OcrQuarantineQueue    OcrQuarantineQueue[]
   AuditLogs             AuditLog[]
   forecastLogs          ForecastIntelligenceLog[]
+  intelligenceSnapshots IntelligenceSnapshot[]
 
   @@unique([company_id, store_name])
 }
