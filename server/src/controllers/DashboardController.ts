@@ -60,20 +60,21 @@ export class DashboardController {
             const y = year ? parseInt(year as string) : undefined;
             const w = week ? parseInt(week as string) : undefined;
 
+            const isMaster = user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
             let activeCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string) || (req.query.companyId as string);
 
             // SRE HARDENING: Enforce strict company boundary array bypass for global admins
-            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER') {
+            if (user.role !== 'admin' && user.scope?.type !== 'GLOBAL' && user.scope?.type !== 'PARTNER' && !isMaster) {
                 activeCompanyId = user.tenant_id || user.companyId;
             }
 
-            // Absolutely NO fallback to global unstructured DB queries.
-            if (!activeCompanyId || activeCompanyId === 'undefined' || activeCompanyId.trim() === '') {
+            // Absolutely NO fallback to global unstructured DB queries except for MASTER.
+            if (!isMaster && (!activeCompanyId || activeCompanyId === 'undefined' || activeCompanyId.trim() === '')) {
                 throw new Error("403: Multi-Tenant Zero-Trust boundary missing. Dashboard requires an active tenant context.");
             }
 
-            // Enforcement: Network stats must be filtered by companyId
-            const stats = await MeatEngine.getNetworkBiStats(y, w, activeCompanyId, user);
+            // Enforcement: Network stats must be filtered by companyId (unless MASTER)
+            const stats = await MeatEngine.getNetworkBiStats(y, w, isMaster ? undefined : activeCompanyId, user);
 
             return res.json(stats);
         } catch (error: any) {
