@@ -90,7 +90,7 @@ async function resolveUserStoreIds(user: any): Promise<number[]> {
         return [];
     }
 
-    const isMaster = user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
+    const isMaster = user.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
 
     if (['corporate_director', 'admin', 'director', 'partner'].includes(user.role)) {
         console.log(`[DIAGNOSE] Querying stores. Master: ${isMaster}, companyId: ${user.companyId}`);

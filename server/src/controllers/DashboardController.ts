@@ -60,7 +60,7 @@ export class DashboardController {
             const y = year ? parseInt(year as string) : undefined;
             const w = week ? parseInt(week as string) : undefined;
 
-            const isMaster = user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
+            const isMaster = user.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
             let activeCompanyId = user.tenant_id || user.companyId || (req.headers['x-company-id'] as string) || (req.query.companyId as string);
 
             // SRE HARDENING: Enforce strict company boundary array bypass for global admins

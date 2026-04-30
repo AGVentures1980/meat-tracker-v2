@@ -287,6 +287,22 @@ export const ProjectionsDashboard = () => {
     const isAlacarte = operationType === 'ALACARTE';
     const activeStandards = isAlacarte ? ALACARTE_MEAT_STANDARDS : RODIZIO_MEAT_STANDARDS;
 
+    // --- Tenant-Specific Label Overrides (Outback Only) ---
+    const isOutback = window.location.hostname.toLowerCase().includes('outback');
+    const getLabel = (key: string) => {
+        if (!isOutback) return t(key);
+        const overrides: Record<string, string> = {
+            'proj_col_avg_steak_ticket': 'WEIGHTED STEAK PPA',
+            'proj_col_steak_incidence': 'PROTEIN ATTACH RATE %',
+            'proj_col_foot_traffic_ly': 'HISTORICAL GUEST COUNT',
+            'proj_col_avg_lbs_steak': 'YIELD-ADJUSTED PORTION',
+            'proj_col_steak_vol': 'RAW PROCUREMENT NEED',
+            'proj_col_savings_opp': 'MARGIN RECOVERY POTENTIAL',
+            'proj_col_proj_foot_traffic': 'TARGET GUEST VOLUME'
+        };
+        return overrides[key] || t(key);
+    };
+
     const meatBreakdown = Object.entries(activeStandards).map(([meat, factor]) => ({
         name: meat,
         projectedLbs: totalGuests * factor
@@ -373,7 +389,7 @@ export const ProjectionsDashboard = () => {
                         {fmtNum(totalVolume)} <span className="text-lg text-gray-500">LBS</span>
                     </div>
                     <div className="text-xs text-gray-400 flex justify-between items-center">
-                        <span>{isAlacarte ? t('proj_annual_steak_req') : t('proj_annual_meat_req')}</span>
+                        <span>{isAlacarte ? (isOutback ? 'ANNUAL PROCUREMENT TARGET' : t('proj_annual_steak_req')) : t('proj_annual_meat_req')}</span>
                         <span className="text-brand-gold font-bold text-[10px] animate-pulse">{t('proj_view_breakdown')}</span>
                     </div>
                 </div>
@@ -383,12 +399,12 @@ export const ProjectionsDashboard = () => {
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                         <DollarSign className="w-16 h-16 text-[#00FF94]" />
                     </div>
-                    <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-2 font-mono">{t('proj_eff_opportunity')}</h3>
+                    <h3 className="text-gray-500 text-xs uppercase tracking-widest mb-2 font-mono">{getLabel('proj_col_savings_opp')}</h3>
                     <div className="text-4xl font-bold text-[#00FF94] font-mono mb-1">
                         {fmtCurrency(totalSavingsObs)}
                     </div>
                     <div className="text-xs text-gray-400">
-                        {t('proj_pot_savings')}
+                        {isOutback ? 'PROJECTED MARGIN RECOVERY POTENTIAL' : t('proj_pot_savings')}
                     </div>
                 </div>
             </div>
@@ -436,32 +452,32 @@ export const ProjectionsDashboard = () => {
                                     </th>
                                     {/* Commercial Targets */}
                                     <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
-                                        {t('proj_col_avg_steak_ticket')}
-                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Avg plate price)</div>
+                                        {getLabel('proj_col_avg_steak_ticket')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">{isOutback ? '(Weighted Mix PPA)' : '(Avg plate price)'}</div>
                                     </th>
                                     <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
-                                        {t('proj_col_steak_incidence')}
-                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(% Guests order steak)</div>
+                                        {getLabel('proj_col_steak_incidence')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">{isOutback ? '(POS Unit Attachment)' : '(% Guests order steak)'}</div>
                                     </th>
                                     <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
-                                        {t('proj_col_foot_traffic_ly')}
+                                        {getLabel('proj_col_foot_traffic_ly')}
                                         <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Base Volume)</div>
                                     </th>
                                     <th className="p-4 font-normal text-right border-r border-[#333]">
-                                        Proj. Foot Traffic
+                                        {getLabel('proj_col_proj_foot_traffic')}
                                         <div className="text-[8px] text-brand-gold font-normal lowercase tracking-wide mt-1">(Required to hit target)</div>
                                     </th>
                                     {/* Yield & Contribution */}
                                     <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
-                                        {t('proj_col_avg_lbs_steak')}
-                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(10.4 oz average)</div>
+                                        {getLabel('proj_col_avg_lbs_steak')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">{isOutback ? '(Standard + Waste Factor)' : '(10.4 oz average)'}</div>
                                     </th>
                                     <th className="p-4 font-normal text-right bg-[#1a1a1a]/50 border-r border-[#333]">
-                                        {t('proj_col_steak_vol')}
-                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Required Lbs)</div>
+                                        {getLabel('proj_col_steak_vol')}
+                                        <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">{isOutback ? '(Gross Buy-in Volume)' : '(Required Lbs)'}</div>
                                     </th>
                                     <th className="p-4 font-normal text-right text-[#00FF94] bg-[#00FF94]/5">
-                                        {t('proj_col_savings_opp')}
+                                        {getLabel('proj_col_savings_opp')}
                                         <div className="text-[8px] text-gray-500 font-normal lowercase tracking-wide mt-1">(Yield optimization)</div>
                                     </th>
                                 </tr>
