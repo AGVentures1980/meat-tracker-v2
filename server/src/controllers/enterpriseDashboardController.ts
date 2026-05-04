@@ -608,19 +608,24 @@ export const getPropertyForecastAccuracySummary = async (req: Request, res: Resp
                 business_date: { gte: d },
                 manager_forecast: { not: null },
                 actual_guests: { not: null }
-            },
-            include: {
-                outlet: { select: { slug: true, name: true, outlet_type: true } }
             }
         });
+
+        const outletIds = [...new Set(logs.map(l => l.outlet_id))];
+        const outletsList = await prisma.outlet.findMany({
+            where: { id: { in: outletIds } },
+            select: { id: true, slug: true, name: true, outlet_type: true }
+        });
+        const outletMap = new Map(outletsList.map(o => [o.id, o]));
 
         // Group by outlet
         const outlets: any = {};
         logs.forEach(l => {
-            if (!outlets[l.outlet_id]) {
-                outlets[l.outlet_id] = { slug: l.outlet.slug, name: l.outlet.name, outlet_type: l.outlet.outlet_type, deviations: [] };
+            const outletData = outletMap.get(l.outlet_id);
+            if (!outlets[l.outlet_id] && outletData) {
+                outlets[l.outlet_id] = { slug: outletData.slug, name: outletData.name, outlet_type: outletData.outlet_type, deviations: [] };
             }
-            if (l.actual_guests! >= 0) {
+            if (l.actual_guests! >= 0 && outlets[l.outlet_id]) {
                 outlets[l.outlet_id].deviations.push(Math.abs(l.manager_forecast! - l.actual_guests!) / (l.actual_guests! === 0 ? 1 : l.actual_guests!));
             }
         });
