@@ -84,12 +84,16 @@ export class ExecutiveController {
                 },
                 orderBy: { period_end: 'desc' },
                 include: { 
-                    anomalies: true,
-                    store: {
-                        select: { store_name: true }
-                    }
+                    anomalies: true
                 }
             });
+
+            const storeIds = [...new Set(snapshots.map(s => s.store_id).filter(Boolean))] as number[];
+            const stores = await prisma.store.findMany({
+                where: { id: { in: storeIds } },
+                select: { id: true, store_name: true }
+            });
+            const storeMap = new Map(stores.map(s => [s.id, s.store_name]));
 
             const storeState: Record<number, any> = {};
             const storePrevious: Record<number, any> = {};
@@ -153,7 +157,7 @@ export class ExecutiveController {
 
                 executiveSummaries.push({
                      store_id: storeId,
-                     store_name: current.store?.store_name || `Store #${storeId}`, 
+                     store_name: storeMap.get(storeId) || `Store #${storeId}`, 
                      risk_score: current.op_risk_score,
                      trend_direction: trend,
                      confidence_score: normalizedConfidence,
