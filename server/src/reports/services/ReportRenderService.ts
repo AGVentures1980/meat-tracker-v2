@@ -50,7 +50,7 @@ export class ReportRenderService {
                 preferCSSPageSize: true
             });
 
-            return pdfBuffer;
+            return Buffer.from(pdfBuffer);
 
         } catch (error) {
             console.error('CRITICAL: Headless PDF rendering failure in ReportRenderService:', error);
