@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRASA Enterprise — Executive Action Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #060608;
+            --panel-bg: #0b0b0e;
+            --border-color: #1a1a22;
+            --border-highlight: #2e2e3a;
+            --accent-red: #ef4444;
+            --accent-red-dim: rgba(239, 68, 68, 0.1);
+            --accent-green: #22c55e;
+            --accent-green-dim: rgba(34, 197, 94, 0.1);
+            --accent-orange: #f97316;
+            --accent-orange-dim: rgba(249, 115, 22, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #52525b;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-sans: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Dashboard Grid Layout */
+        .console-container {
+            display: grid;
+            grid-template-rows: 56px 1fr 32px;
+            height: 100vh;
+            min-height: 800px;
+            box-sizing: border-box;
+        }
+
+        /* Top Header */
+        .console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            background: #09090c;
+            border-bottom: 1.5px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 11pt;
+            color: var(--accent-red);
+            border: 1.5px solid var(--accent-red);
+            padding: 2px 6px;
+            border-radius: 1px;
+            letter-spacing: 1px;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 13pt;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-name span {
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            font-family: var(--font-mono);
+            font-size: 7.5pt;
+        }
+
+        .meta-tag {
+            color: var(--text-muted);
+        }
+
+        .meta-tag strong {
+            color: var(--text-secondary);
+        }
+
+        .security-badge {
+            color: var(--accent-red);
+            background: var(--accent-red-dim);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 2px 8px;
+            font-weight: 600;
+        }
+
+        /* Main Workspace Grid */
+        .console-workspace {
+            display: grid;
+            grid-template-columns: 340px 1fr 360px;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.005) 0%, transparent 80%);
+        }
+
+        /* Column Layouts */
+        .workspace-column {
+            display: flex;
+            flex-direction: column;
+            border-right: 1.5px solid var(--border-color);
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .workspace-column.right {
+            border-right: none;
+            border-left: 1.5px solid var(--border-color);
+        }
+
+        /* Dashboard Modules */
+        .module-card {
+            border-bottom: 1.5px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .module-card.no-border {
+            border-bottom: none;
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .module-title {
+            font-family: var(--font-mono);
+            font-size: 8pt;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .module-title::before {
+            content: '';
+            width: 4px;
+            height: 8px;
+            background: var(--accent-red);
+            display: inline-block;
+        }
+
+        .module-action {
+            font-family: var(--font-mono);
+            font-size: 7.5pt;
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .module-action:hover {
+            color: var(--text-primary);
+        }
+
+        /* KPI Visualizations */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .kpi-block {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: 1px;
+        }
+
+        .kpi-label {
+            font-family: var(--font-mono);
+            font-size: 7pt;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-family: var(--font-mono);
+            font-size: 15pt;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .kpi-value.danger {
+            color: var(--accent-red);
+        }
+
+        .kpi-value.success {
+            color: var(--accent-green);
+        }
+
+        .kpi-subtext {
+            font-size: 7pt;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Data Tables */
+        .console-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            text-align: left;
+        }
+
+        .console-table th {
+            font-family: var(--font-mono);
+            font-size: 7pt;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 8px 12px;
+            border-bottom: 1.5px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .console-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .console-table tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+            color: var(--text-primary);
+        }
+
+        /* Metric Heatmap Matrix */
+        .heatmap-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .region-block {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 1px;
+        }
+
+        .region-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-family: var(--font-mono);
+            font-size: 8pt;
+            font-weight: 600;
+        }
+
+        .region-header span.count {
+            color: var(--text-muted);
+            font-size: 7.5pt;
+        }
+
+        .unit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+        }
+
+        .unit-card {
+            background: #111115;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 1px;
+            font-family: var(--font-mono);
+        }
+
+        .unit-card.alert-active {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.02);
+        }
+
+        .unit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 7.5pt;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .unit-num {
+            color: var(--text-primary);
+        }
+
+        .unit-variance {
+            font-size: 7pt;
+            font-weight: 600;
+        }
+
+        .unit-variance.danger {
+            color: var(--accent-red);
+        }
+
+        .unit-variance.success {
+            color: var(--accent-green);
+        }
+
+        .unit-variance.warning {
+            color: var(--accent-orange);
+        }
+
+        .unit-meta {
+            font-size: 6.5pt;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Escalation Incident Queue */
+        .escalation-queue {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .incident-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 1px;
+            position: relative;
+        }
+
+        .incident-card.high-exposure {
+            border-left: 3px solid var(--accent-red);
+        }
+
+        .incident-card.medium-exposure {
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .incident-code {
+            font-family: var(--font-mono);
+            font-size: 7.5pt;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .incident-sla {
+            font-family: var(--font-mono);
+            font-size: 6.5pt;
+            color: var(--accent-red);
+            font-weight: 600;
+            background: var(--accent-red-dim);
+            padding: 2px 6px;
+            border-radius: 1px;
+        }
+
+        .incident-sla.warning {
+            color: var(--accent-orange);
+            background: var(--accent-orange-dim);
+        }
+
+        .incident-desc {
+            font-size: 8pt;
+            color: var(--text-secondary);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+
+        .incident-footer {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 6.5pt;
+            color: var(--text-muted);
+        }
+
+        .incident-footer strong {
+            color: var(--text-secondary);
+        }
+
+        /* Priority Matrix Cards */
+        .priority-matrix {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .matrix-item {
+            background: #111115;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .matrix-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 7pt;
+        }
+
+        .matrix-impact {
+            color: var(--accent-red);
+            font-weight: 700;
+        }
+
+        .matrix-action {
+            font-size: 8pt;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .matrix-meta {
+            font-size: 7.5pt;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+
+        .matrix-control {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .btn-action {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-highlight);
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 6.5pt;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            border-color: var(--accent-red);
+            color: var(--text-primary);
+        }
+
+        /* Progress Monitors */
+        .progress-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 7pt;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar-bg {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            height: 6px;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: var(--accent-red);
+            height: 100%;
+        }
+
+        .progress-bar-fill.success {
+            background: var(--accent-green);
+        }
+
+        .progress-bar-fill.warning {
+            background: var(--accent-orange);
+        }
+
+        /* Lower Console Bar */
+        .console-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            background: #09090c;
+            border-top: 1.5px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 7pt;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .footer-metrics {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-metrics span strong {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="console-container">
+        
+        <!-- Header -->
+        <header class="console-header">
+            <div class="header-brand">
+                <div class="brand-logo">B</div>
+                <div class="brand-name">BRASA <span>Enterprise</span></div>
+            </div>
+            <div class="header-meta">
+                <div class="meta-tag">AUDIT MODE: <strong>CONTINUOUS GOVERNANCE</strong></div>
+                <div class="meta-tag">TENANTS: <strong>3 ACTIVE BRANDS</strong></div>
+                <div class="security-badge">CONFIDENTIAL EXECUTIVE OVERVIEW</div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Workspace -->
+        <main class="console-workspace">
+            
+            <!-- Left Column: Margin Metrics & Escalation Queue -->
+            <div class="workspace-column">
+                
+                <!-- Module 1: Weekly Margin Exposure -->
+                <div class="module-card">
+                    <div class="module-header">
+                        <h2 class="module-title">Margin Exposure</h2>
+                        <span class="module-action">Details</span>
+                    </div>
+                    <div class="kpi-row">
+                        <div class="kpi-block">
+                            <div class="kpi-label">EBITDA Leakage</div>
+                            <div class="kpi-value danger">$18,420</div>
+                            <div class="kpi-subtext">Cumulative 6-Day Drift</div>
+                        </div>
+                        <div class="kpi-block">
+                            <div class="kpi-label">Yield Variance</div>
+                            <div class="kpi-value danger">5.2%</div>
+                            <div class="kpi-subtext">Tolerance Limit: 1.5%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 3: Receiving Compliance Score -->
+                <div class="module-card">
+                    <div class="module-header">
+                        <h2 class="module-title">Receiving Compliance</h2>
+                        <span class="module-action">Invoices</span>
+                    </div>
+                    <div class="kpi-row">
+                        <div class="kpi-block">
+                            <div class="kpi-label">Dock Audit Pass</div>
+                            <div class="kpi-value success">94.8%</div>
+                            <div class="kpi-subtext">Target: 95.0%</div>
+                        </div>
+                        <div class="kpi-block">
+                            <div class="kpi-label">Supplier Purge</div>
+                            <div class="kpi-value danger">-4.9%</div>
+                            <div class="kpi-subtext">Avg Weight Discrepancy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 5: Store-Level Escalations Queue -->
+                <div class="module-card no-border">
+                    <div class="module-header">
+                        <h2 class="module-title">Active Escalations</h2>
+                        <span class="module-action">View Queue</span>
+                    </div>
+                    <div class="escalation-queue">
+                        
+                        <!-- Incident 1 -->
+                        <div class="incident-card high-exposure">
+                            <div class="incident-header">
+                                <span class="incident-code">INC-ESC-MIA-118</span>
+                                <span class="incident-sla">17h SLA</span>
+                            </div>
+                            <div class="incident-desc">
+                                Cumulative yield variance exceeded tolerance for 6 consecutive days at Miami Beach.
+                            </div>
+                            <div class="incident-footer">
+                                <span>Owner: <strong>RD E. Vance</strong></span>
+                                <span>Exposure: <strong>$5,200/Wk</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Incident 2 -->
+                        <div class="incident-card medium-exposure">
+                            <div class="incident-header">
+                                <span class="incident-code">INC-RCV-TPA-042</span>
+                                <span class="incident-sla warning">4h SLA</span>
+                            </div>
+                            <div class="incident-desc">
+                                Wet-aged primals packaging purge variance at 4.90% from Prime Select Inc.
+                            </div>
+                            <div class="incident-footer">
+                                <span>Owner: <strong>Store Manager</strong></span>
+                                <span>Exposure: <strong>$2,800/Wk</strong></span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Middle Column: Yield Heatmap & Regional Analysis -->
+            <div class="workspace-column" style="background: rgba(0, 0, 0, 0.2);">
+                
+                <!-- Module 2: Yield Variance Network Heatmap -->
+                <div class="module-card" style="flex: 1;">
+                    <div class="module-header">
+                        <h2 class="module-title">Yield Variance Network Matrix</h2>
+                        <span class="module-action">Toggle Grid</span>
+                    </div>
+                    
+                    <div class="heatmap-container">
+                        
+                        <!-- Region: Florida -->
+                        <div class="region-block">
+                            <div class="region-header">
+                                <span>FLORIDA TERRITORY</span>
+                                <span class="count">4 Units Active</span>
+                            </div>
+                            <div class="unit-grid">
+                                <div class="unit-card alert-active">
+                                    <div class="unit-header">
+                                        <span class="unit-num">MIA #118</span>
+                                        <span class="unit-variance danger">5.2%</span>
+                                    </div>
+                                    <div class="unit-meta">Trim Drift</div>
+                                </div>
+                                <div class="unit-card">
+                                    <div class="unit-header">
+                                        <span class="unit-num">TPA #042</span>
+                                        <span class="unit-variance success">0.8%</span>
+                                    </div>
+                                    <div class="unit-meta">Compliant</div>
+                                </div>
+                                <div class="unit-card">
+                                    <div class="unit-header">
+                                        <span class="unit-num">MCO #088</span>
+                                        <span class="unit-variance warning">1.8%</span>
+                                    </div>
+                                    <div class="unit-meta">Borderline</div>
+                                </div>
+                                <div class="unit-card">
+                                    <div class="unit-header">
+                                        <span class="unit-num">FLL #201</span>
+                                        <span class="unit-variance success">1.1%</span>
+                                    </div>
+                                    <div class="unit-meta">Compliant</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Region: Texas -->
+                        <div class="region-block">
+                            <div class="region-header">
+                                <span>TEXAS TERRITORY</span>
+                                <span class="count">3 Units Active</span>
+                            </div>
+                            <div class="unit-grid">
+                                <div class="unit-card">
+                                    <div class="unit-header">
+                                        <span class="unit-num">HOU #012</span>
+                                        <span class="unit-variance success">0.7%</span>
+                                    </div>
+                                    <div class="unit-meta">Compliant</div>
+                                </div>
+                                <div class="unit-card">
+                                    <div class="unit-header">
+                                        <span class="unit-num">DFW #055</span>
+                                        <span class="unit-variance warning">1.6%</span>
+                                    </div>
+                                    <div class="unit-meta">Borderline</div>
+                                </div>
+                                <div class="unit-card">
+                                    <div class="unit-header">
+                                        <span class="unit-num">AUS #104</span>
+                                        <span class="unit-variance success">0.9%</span>
+                                    </div>
+                                    <div class="unit-meta">Compliant</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Region: New York -->
+                        <div class="region-block">
+                            <div class="region-header">
+                                <span>NEW YORK TERRITORY</span>
+                                <span class="count">2 Units Active</span>
+                            </div>
+                            <div class="unit-grid">
+                                <div class="unit-card">
+                                    <div class="unit-header">
+                                        <span class="unit-num">NYC #001</span>
+                                        <span class="unit-variance success">1.1%</span>
+                                    </div>
+                                    <div class="unit-meta">Compliant</div>
+                                </div>
+                                <div class="unit-card alert-active">
+                                    <div class="unit-header">
+                                        <span class="unit-num">NYC #002</span>
+                                        <span class="unit-variance danger">3.4%</span>
+                                    </div>
+                                    <div class="unit-meta">Purge Drift</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Module 7: Regional Operational Drift Index -->
+                <div class="module-card">
+                    <div class="module-header">
+                        <h2 class="module-title">Regional Operational Drift Index</h2>
+                    </div>
+                    <table class="console-table">
+                        <thead>
+                            <tr>
+                                <th>Territory</th>
+                                <th>Active Audits</th>
+                                <th>Yield Drift</th>
+                                <th>Escalation Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Florida South</td>
+                                <td>14 Audits</td>
+                                <td style="color: var(--accent-red); font-weight: 600;">+2.45% Avg</td>
+                                <td><span style="color: var(--accent-red);">CRITICAL</span></td>
+                            </tr>
+                            <tr>
+                                <td>Texas Gulf</td>
+                                <td>9 Audits</td>
+                                <td style="color: var(--accent-green); font-weight: 600;">+0.92% Avg</td>
+                                <td><span style="color: var(--text-muted);">LOW RISK</span></td>
+                            </tr>
+                            <tr>
+                                <td>Northeast Metro</td>
+                                <td>6 Audits</td>
+                                <td style="color: var(--accent-orange); font-weight: 600;">+1.88% Avg</td>
+                                <td><span style="color: var(--accent-orange);">ELEVATED</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Priority Matrix & Governance Actions -->
+            <div class="workspace-column right">
+                
+                <!-- Module 6: Active Governance Lockouts -->
+                <div class="module-card">
+                    <div class="module-header">
+                        <h2 class="module-title">Active Governance Lockouts</h2>
+                        <span class="module-action" style="color: var(--accent-red);">Active Override</span>
+                    </div>
+                    <div class="kpi-row">
+                        <div class="kpi-block" style="border-color: rgba(239,68,68,0.2); background: rgba(239,68,68,0.01);">
+                            <div class="kpi-label">Locked Units</div>
+                            <div class="kpi-value danger">1 UNIT</div>
+                            <div class="kpi-subtext">Miami Beach #118</div>
+                        </div>
+                        <div class="kpi-block">
+                            <div class="kpi-label">Lockout Type</div>
+                            <div class="kpi-value" style="font-size: 11pt; font-weight: 700; color: var(--accent-red); margin-top: 4px;">
+                                YIELD DECAY
+                            </div>
+                            <div class="kpi-subtext">Pending Override PIN</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 4: Executive Priority Matrix -->
+                <div class="module-card">
+                    <div class="module-header">
+                        <h2 class="module-title">Executive Action Board</h2>
+                    </div>
+                    <div class="priority-matrix">
+                        
+                        <!-- Priority Item 1 -->
+                        <div class="matrix-item">
+                            <div class="matrix-top">
+                                <span class="matrix-impact">HIGH EXPOSURE (MIA #118)</span>
+                                <span>INC-ESC-MIA</span>
+                            </div>
+                            <span class="matrix-action">Authorize Miami Override Grace Period</span>
+                            <div class="matrix-meta">
+                                Grants a temporary 72-hour grace window to Miami Beach while they recalibrate trim procedures.
+                            </div>
+                            <div class="matrix-control">
+                                <button class="btn-action" style="border-color: var(--accent-red); color: white;">AUTHORIZE OVERRIDE</button>
+                                <button class="btn-action">DECLINE</button>
+                            </div>
+                        </div>
+
+                        <!-- Priority Item 2 -->
+                        <div class="matrix-item">
+                            <div class="matrix-top" style="color: var(--accent-orange);">
+                                <span>MEDIUM EXPOSURE (TPA #042)</span>
+                                <span>INC-RCV-TPA</span>
+                            </div>
+                            <span class="matrix-action">Initiate Supplier Re-Audit Routine</span>
+                            <div class="matrix-meta">
+                                Dispatches an immediate dock re-audit to verify Prime Select weight measurements.
+                            </div>
+                            <div class="matrix-control">
+                                <button class="btn-action" style="border-color: var(--accent-orange); color: white;">INITIATE RE-AUDIT</button>
+                                <button class="btn-action">HOLD</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Module 8: Audit Completion Status -->
+                <div class="module-card no-border">
+                    <div class="module-header">
+                        <h2 class="module-title">Compliance Scan Status</h2>
+                    </div>
+                    
+                    <div class="progress-block">
+                        <div class="progress-label">
+                            <span>Florida Territory Scan</span>
+                            <strong>92% Complete</strong>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill success" style="width: 92%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-block">
+                        <div class="progress-label">
+                            <span>Texas Territory Scan</span>
+                            <strong>100% Complete</strong>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill success" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-block">
+                        <div class="progress-label">
+                            <span>New York Territory Scan</span>
+                            <strong>48% Complete</strong>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill warning" style="width: 48%;"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="console-footer">
+            <span>BRASA GOVERNANCE NETWORK CONSOLE // SOVEREIGN ENGINE</span>
+            <div class="footer-metrics">
+                <span>Console Core: <strong>v2.5.2-PRIME</strong></span>
+                <span>Active Nodes: <strong>42 Scale Bridges Connected</strong></span>
+                <span>Data Feed: <strong>SECURE TLS 1.3</strong></span>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>
