@@ -53,9 +53,12 @@ This real-world audit proof illustrates how the BRASA Sovereign Governance Suite
 *   **The Incident:** On May 15, 2026, the Tampa Flagship (#042) was billed for **13 cases** of Sirloin Coulot (Picanha, Item `7152153`) totaling **1,066.300 LBS** (average `82.02 LBS/case` on an average `60 LBS` spec).
 *   **The Discrepancy:** The distributor's dispatch team mixed up shipment weights, overbilling the client. 
 *   **BRASA Resolution:** The receiver scanned the yellow Sysco case labels on the dock using the BRASA smart scale integration. The engine instantly captured the exact actual received weight of **10 cases** totaling **819.50 LBS**, automatically proving a billing discrepancy of **246.80 LBS ($2,243.41 USD)**.
-*   **The Audit Artifact:**
+*   **The Audit Artifact (Branded - Internal Use):**
     *   [Live HTML Audit Document](file:///Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/linkedin_assets/brasa_tampa_audit_report.html)
     *   [High-Resolution Audit Proof PNG](file:///Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/linkedin_assets/brasa_tampa_audit_report.png)
+*   **The Audit Artifact (Whitelabeled - Public/LinkedIn Sharing):**
+    *   [Live HTML Audit Document (Anonymized)](file:///Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/linkedin_assets/brasa_tampa_audit_report_whitelabel.html)
+    *   [High-Resolution Audit Proof PNG (Anonymized)](file:///Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/linkedin_assets/brasa_tampa_audit_report_whitelabel.png)
 
 ---
 ### Positioning
