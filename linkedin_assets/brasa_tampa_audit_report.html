@@ -323,14 +323,14 @@
         @media print {
             @page {
                 size: letter;
-                margin: 0.25in;
+                margin: 0.5in;
             }
             body {
                 background-color: #08080a !important;
                 color: #ffffff !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                font-size: 7.5pt;
+                font-size: 10pt;
             }
             .container {
                 margin: 0 auto !important;
@@ -338,19 +338,19 @@
                 max-width: 100% !important;
             }
             .audit-header {
-                padding: 14px 20px !important;
-                margin-bottom: 12px !important;
+                padding: 24px !important;
+                margin-bottom: 24px !important;
                 border-color: #1f1f23 !important;
                 background: #0d0d11 !important;
             }
             .meta-grid {
-                padding-top: 10px !important;
-                gap: 10px !important;
+                padding-top: 16px !important;
+                gap: 16px !important;
                 border-color: #1f1f23 !important;
             }
             .comparison-layout {
-                margin-bottom: 12px !important;
-                gap: 14px !important;
+                margin-bottom: 24px !important;
+                gap: 20px !important;
                 page-break-after: always !important;
                 break-after: page !important;
             }
@@ -358,57 +358,73 @@
                 border-color: #1f1f23 !important;
             }
             .panel-title {
-                padding: 6px 10px !important;
+                padding: 10px 14px !important;
                 background: #121217 !important;
                 border-color: #1f1f23 !important;
+                font-size: 9pt !important;
             }
             .data-body {
-                padding: 10px !important;
+                padding: 14px !important;
                 background: #0d0d11 !important;
             }
+            .audit-table {
+                font-size: 9.5pt !important;
+            }
             .audit-table td {
-                padding: 5px 6px !important;
+                padding: 8px !important;
                 border-color: #141419 !important;
             }
             .terminal-block {
-                padding: 10px !important;
+                padding: 14px !important;
                 background: #000000 !important;
                 border-color: #1a1a22 !important;
+                font-size: 9.5pt !important;
             }
             .variance-card {
-                padding: 14px 18px !important;
-                margin-bottom: 12px !important;
+                padding: 24px !important;
+                margin-bottom: 24px !important;
                 background: #0d0d11 !important;
                 border-color: #1f1f23 !important;
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
             .variance-title {
-                margin-bottom: 8px !important;
+                font-size: 11pt !important;
+                margin-bottom: 16px !important;
             }
             .variance-desc {
-                margin-bottom: 10px !important;
-                font-size: 7.5pt !important;
+                margin-bottom: 16px !important;
+                font-size: 9.5pt !important;
+                line-height: 1.6 !important;
             }
             .variance-details-grid {
-                padding-top: 10px !important;
-                gap: 10px !important;
+                padding-top: 16px !important;
+                gap: 16px !important;
                 border-color: #1f1f23 !important;
+                font-size: 8.5pt !important;
             }
             .variance-details-grid .grid-box {
-                padding: 8px 10px !important;
+                padding: 12px !important;
                 background: #121217 !important;
                 border-color: #1f1f23 !important;
             }
+            .variance-details-grid .grid-box strong {
+                font-size: 11pt !important;
+            }
             .verification-stamp {
-                padding: 10px 14px !important;
-                margin-bottom: 16px !important;
+                padding: 16px !important;
+                margin-bottom: 32px !important;
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
+            .verification-stamp .stamp-text {
+                font-size: 9.5pt !important;
+                line-height: 1.5 !important;
+            }
             .audit-footer {
-                padding-top: 10px !important;
+                padding-top: 16px !important;
                 border-color: #1f1f23 !important;
+                font-size: 8pt !important;
             }
         }
     </style>
