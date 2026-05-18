@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BRASA Enterprise — LinkedIn Editorial Hub</title>
+    <title>BRASA Enterprise — LinkedIn Executive Editorial Hub</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         body {
@@ -135,7 +135,7 @@
         }
 
         .post-card::before {
-            content: 'POST PROFILE';
+            content: 'EDITORIAL POST PROFILE';
             position: absolute;
             top: 0;
             right: 24px;
@@ -186,7 +186,7 @@
             border: 1px solid #1f1f23;
             border-radius: 1px;
             overflow: hidden;
-            max-height: 480px;
+            max-height: 520px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -214,7 +214,7 @@
         .post-body {
             background: #0d0d11;
             border: 1px solid #1f1f23;
-            padding: 18px;
+            padding: 20px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 8.5pt;
             line-height: 1.6;
@@ -229,14 +229,15 @@
         .action-row {
             display: flex;
             justify-content: flex-end;
-            gap: 12px;
+            align-items: center;
+            gap: 16px;
         }
 
         .btn {
             background: #1f1f23;
             border: 1px solid #3f3f46;
             color: #e4e4e7;
-            padding: 6px 12px;
+            padding: 8px 16px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 7.5pt;
             font-weight: 600;
@@ -254,7 +255,7 @@
 
         .btn-copy-status {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 7pt;
+            font-size: 7.5pt;
             color: #4ade80;
             display: flex;
             align-items: center;
@@ -301,22 +302,22 @@
             
             <!-- Sidebar -->
             <div class="sidebar">
-                <div class="sidebar-title">Topic Navigator</div>
+                <div class="sidebar-title">Refined Topic Navigator</div>
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <a href="#post-1" class="nav-link">01. Biological Realism vs. Digital</a>
+                        <a href="#post-1" class="nav-link">01. Biological Inventory</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#post-2" class="nav-link">02. Silent Yield Compounds</a>
+                        <a href="#post-2" class="nav-link">02. Yield Drift</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#post-3" class="nav-link">03. The Governance Dock Gap</a>
+                        <a href="#post-3" class="nav-link">03. The Governance Gap</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#post-4" class="nav-link">04. The Illusion of Healthy P&Ls</a>
+                        <a href="#post-4" class="nav-link">04. The Illusion of a Healthy P&L</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#post-5" class="nav-link">05. Theoretical Cost vs. Reality</a>
+                        <a href="#post-5" class="nav-link">05. Theoretical Food Cost</a>
                     </li>
                 </ul>
             </div>
@@ -329,14 +330,14 @@
                     <div class="post-meta">
                         <div class="meta-group">
                             <span>Focus Category</span>
-                            <strong>Biological Variance & Dry-Goods Bias</strong>
+                            <strong>Biological Assets & Dry Goods Bias</strong>
                         </div>
                         <div class="meta-group">
                             <span>SLA Metric Code</span>
                             <strong>OP-BIO-011</strong>
                         </div>
                     </div>
-                    <h2 class="post-title">01. Biological Realism vs. Digital Inventory</h2>
+                    <h2 class="post-title">01. Biological Inventory</h2>
                     
                     <!-- Integrated Image -->
                     <div class="post-image-container">
@@ -344,20 +345,33 @@
                     </div>
 
                     <div class="post-body-container">
-                        <pre class="post-body" id="text-post-1">Most inventory software assumes that a sub-primal ribeye behaves like a box of paper cups. It does not. 
+                        <pre class="post-body" id="text-post-1">Most inventory software assumes that a sub-primal ribeye behaves like a box of paper cups.
 
-When you buy paper cups, you purchase static units. They do not lose weight during transit. They do not purge moisture. They do not vary in structural yield based on muscle configuration or the specific fat-cap trim of a packer. 
+It does not.
 
-Yet, multi-unit operators continue to manage millions of dollars in premium protein using inventory logic built for dry goods. 
+Paper cups are static units.
+They do not lose weight during transit.
+They do not purge moisture.
+They do not vary in structural yield based on muscle composition or fat-cap trim.
 
-Here is the operational reality:
-A USDA Choice strip loin is biological. A 14-pound sub-primal arriving at your loading dock is not a static 14 pounds. It has liquid purge weight. It has varying degrees of intermuscular fat. 
+Premium beef does.
 
-If your receiving protocols only check "box count" and "gross weight" on invoice, you are executing blind receiving. If your inventory system does not dynamically calculate the conversion yield from sub-primal to portion count, you are generating artificial food cost variances. 
+Yet many multi-unit operators still manage millions of dollars in protein using inventory logic built for dry goods.
 
-When a portion count audit shows a shortage, the standard operational response is to blame the kitchen staff for over-portioning. But the drift often started at the receiving dock, six days earlier, when a supplier delivered wet-aged primals with a 4.5% purge weight variance instead of the contractual 1.5% tolerance. 
+That creates a dangerous operational blind spot.
 
-Biological inventory requires dynamic yield modeling. If your system treats protein as a static SKU, you are not managing inventory. You are managing accounting fiction.</pre>
+A USDA strip loin is not a static SKU.
+It is a biological asset with dynamic yield behavior.
+
+If your receiving process only validates invoice weight and box count, you are operating blind.
+
+And when portion variance finally appears in the P&L, the kitchen often gets blamed for a problem that actually started days earlier at the loading dock.
+
+Biological inventory requires dynamic yield modeling.
+
+If your system treats protein as a static SKU, you are not managing inventory.
+
+You are managing accounting fiction.</pre>
                     </div>
                     <div class="action-row">
                         <span class="btn-copy-status" id="status-post-1">✓ Copied to clipboard</span>
@@ -377,30 +391,43 @@ Biological inventory requires dynamic yield modeling. If your system treats prot
                             <strong>OP-EBITDA-022</strong>
                         </div>
                     </div>
-                    <h2 class="post-title">02. The Silent Compound of Yield Variance</h2>
+                    <h2 class="post-title">02. Yield Drift</h2>
                     
                     <!-- Integrated Image -->
                     <div class="post-image-container">
-                        <img src="./post_2_yield_variance.png" alt="EBITDA Leakage Escalation Dashboard" class="post-image">
+                        <img src="./brasa_executive_action_console.png" alt="EBITDA Yield Drift Escalation Dashboard" class="post-image">
                     </div>
 
                     <div class="post-body-container">
-                        <pre class="post-body" id="text-post-2">In a single-unit restaurant, a 2.5% yield variance on beef tenderloin looks like a localized operational nuisance. An Area Manager might address it during a monthly store review, write it off to training, and move on. 
+                        <pre class="post-body" id="text-post-2">In a single-unit restaurant, a 2.5% yield variance on beef tenderloin looks like a localized operational nuisance.
 
-At 40 high-volume units, that same 2.5% variance is an EBITDA hemorrhage. 
+At 40 high-volume units, that same 2.5% variance becomes an EBITDA problem.
 
-The danger of yield drift is that it does not show up as a single, dramatic incident. It compounds silently, hidden within the daily noise of portioning, trimming, and plate waste. 
+The danger of yield drift is that it rarely appears as one dramatic operational failure.
 
-Consider the mathematics of a high-volume steakhouse network:
-If one store processes 8,000 pounds of premium beef per week, a 2.5% yield loss represents 200 pounds of premium protein lost to excessive trim or poor butcher calibration. At an average cost of $11.50 per pound, that is $2,300 per week, per store. 
+It compounds silently:
+• excessive trim
+• poor butcher calibration
+• inconsistent prep execution
+• untracked fabrication loss
 
-Across 40 locations, that silent bleed represents $92,000 per week. Over a fiscal year, that is $4,784,000 in pure EBITDA leakage that never makes it to the bottom line. 
+One store processing 8,000 pounds of premium beef per week can quietly lose thousands of dollars in margin through small daily variances.
 
-You cannot manage this scale of exposure through manual spot-checks. By the time a store manager notices a drift in their weekly P&L, the capital has already left the building. 
+Across an entire network, that operational drift scales into millions in annual leakage.
 
-Multi-unit operators do not need more reports. They need continuous, systemic operational governance. They need real-time yield tracking at the butcher table and receiving dock, locked to digital tolerances that trigger alert loops before the meat ever hits the broiler. 
+And by the time it becomes visible in a monthly P&L review, the capital has already left the building.
 
-At scale, the difference between an average operator and an elite operator is not the concept. It is the control over the decimal places.</pre>
+Multi-unit operators do not need more reports.
+
+They need continuous operational governance:
+• real-time yield visibility
+• receiving accountability
+• variance escalation
+• digital tolerance enforcement
+
+At scale, the difference between an average operator and an elite operator is not the concept.
+
+It is the control over the decimal places.</pre>
                     </div>
                     <div class="action-row">
                         <span class="btn-copy-status" id="status-post-2">✓ Copied to clipboard</span>
@@ -413,7 +440,7 @@ At scale, the difference between an average operator and an elite operator is no
                     <div class="post-meta">
                         <div class="meta-group">
                             <span>Focus Category</span>
-                            <strong>Dock-to-Butcher Telemetry</strong>
+                            <strong>Dock-to-Butcher Telemetry & Case Study</strong>
                         </div>
                         <div class="meta-group">
                             <span>SLA Metric Code</span>
@@ -422,27 +449,42 @@ At scale, the difference between an average operator and an elite operator is no
                     </div>
                     <h2 class="post-title">03. The Governance Gap</h2>
                     
-                    <!-- Integrated Image -->
+                    <!-- Integrated Image (Whitelabeled real-world case study!) -->
                     <div class="post-image-container">
-                        <img src="./post_3_governance_dock.png" alt="Industrial Scale Dock Telemetry Overlay" class="post-image">
+                        <img src="./brasa_tampa_audit_report_whitelabel.png" alt="Sovereign Dock Scale Verification Audit Proof" class="post-image">
                     </div>
 
                     <div class="post-body-container">
-                        <pre class="post-body" id="text-post-3">The loading dock and the prep table are often treated as two separate operational islands. This is the governance gap. 
+                        <pre class="post-body" id="text-post-3">The loading dock and the butcher table are often treated as two separate operational islands.
 
-At the receiving dock, the protocol is focused on checking invoices against purchase orders: Did we receive 20 boxes? Is the total weight correct? 
+This is the governance gap.
 
-At the butcher table, the focus is on speed and presentation: How quickly can the prep cook clean the primals and portion them to spec for the evening shift? 
+At the dock, the process focuses on invoices, purchase orders, and box counts.
 
-If there is no direct, digital telemetry connecting the raw received weight of a specific lot to the net portion yield of that same lot, your operational control is broken. 
+At the butcher table, the focus shifts to speed, prep execution, and presentation.
 
-Without this link, you cannot detect when a supplier is consistently shipping primals with heavier fat caps or excessive moisture retention. The receiver accepts the weight on the invoice because the box is intact. The butcher cuts the meat to spec, discarding the extra fat and purge without tracking it. 
+But if there is no direct operational trace connecting the inbound weight of a specific lot to the final portion yield, your control system is broken.
 
-The resulting yield loss is then misclassified as "kitchen waste" or "poor portion control," shielding the supplier from accountability and penalizing your kitchen managers. 
+That is where margin leakage hides.
 
-To close this gap, multi-unit operators must establish a trace chain. Every inbound lot must be weighed, logged on a calibrated digital scale, and tracked through a single system of record that monitors the conversion curve from raw dock weight to prep portion count. 
+A supplier can consistently ship heavier fat caps or higher moisture retention, and the operation may never detect it.
 
-If you cannot connect your dock scales to your butcher tables, you are not running a controlled supply chain. You are running a series of expensive assumptions.</pre>
+The receiver accepts the shipment because the invoice matches.
+The butcher trims to specification.
+The excess loss disappears into “kitchen waste.”
+
+The supplier avoids accountability.
+The kitchen absorbs the blame.
+
+To close this gap, operators need traceability between:
+• receiving weight
+• trim loss
+• fabrication yield
+• final portion output
+
+If you cannot connect your dock scales to your butcher tables, you are not running a controlled supply chain.
+
+You are running a series of expensive assumptions.</pre>
                     </div>
                     <div class="action-row">
                         <span class="btn-copy-status" id="status-post-3">✓ Copied to clipboard</span>
@@ -462,7 +504,7 @@ If you cannot connect your dock scales to your butcher tables, you are not runni
                             <strong>OP-FIN-044</strong>
                         </div>
                     </div>
-                    <h2 class="post-title">04. The Illusion of Healthy P&Ls</h2>
+                    <h2 class="post-title">04. The Illusion of a Healthy P&L</h2>
                     
                     <!-- Integrated Image -->
                     <div class="post-image-container">
@@ -470,24 +512,36 @@ If you cannot connect your dock scales to your butcher tables, you are not runni
                     </div>
 
                     <div class="post-body-container">
-                        <pre class="post-body" id="text-post-4">A strong P&L is the ultimate shield for a store manager. When top-line revenue is high and the overall food cost percentage sits comfortably within the corporate target, no one asks questions. 
+                        <pre class="post-body" id="text-post-4">A strong P&L is often the ultimate shield for operational problems.
 
-But a healthy P&L is often an illusion. 
+When sales are high and food cost percentages remain within target, most organizations stop asking deeper questions.
 
-In high-volume steakhouses, robust sales and premium guest counts can easily mask massive operational drift. If a store is hitting its budget targets, a manager has little incentive to investigate a 1.5% margin leak. 
+But a healthy P&L can hide severe operational drift.
 
-But that 1.5% leak is often where the most severe operational issues hide:
-- Biological bait-and-switch: Suppliers shipping lower USDA grades than invoiced.
-- Dock discrepancies: Drivers shorting boxes during busy Friday afternoon deliveries.
-- Yield decay: Untrained prep cooks leaving premium yield on the bone or in the trim bucket.
+High-volume steakhouses can absorb:
+• receiving discrepancies
+• specification inconsistencies
+• excessive trim loss
+• prep inefficiency
+• unmanaged yield decay
 
-When top-line sales eventually slow down, the tide goes out, and these hidden leaks suddenly become critical margin crises. 
+… without immediately triggering financial alarms.
 
-The role of regional operational leadership is not to review P&Ls that are already thirty days old. The role is to audit the underlying systems in real-time. 
+That is what makes operational leakage dangerous.
 
-A high-performing store should not be excused from yield governance simply because its revenue is strong. True operational excellence requires auditing the integrity of the data at the scale level, daily, regardless of the store's financial performance. 
+The problem stays hidden while revenue is strong.
 
-Do not let a high top-line blind you to a leaky bottom-line. The best time to fix a leak is when the water is high, not when the well runs dry.</pre>
+And when sales eventually soften, the underlying weaknesses suddenly become margin crises.
+
+The role of operational leadership is not simply to review financial reports that are already thirty days old.
+
+It is to audit the integrity of the operational systems generating those numbers in real time.
+
+A high-performing store should not be exempt from governance simply because top-line revenue is healthy.
+
+Operational excellence is not validated by sales volume alone.
+
+It is validated by the integrity of the execution underneath it.</pre>
                     </div>
                     <div class="action-row">
                         <span class="btn-copy-status" id="status-post-4">✓ Copied to clipboard</span>
@@ -507,7 +561,7 @@ Do not let a high top-line blind you to a leaky bottom-line. The best time to fi
                             <strong>OP-EXEC-055</strong>
                         </div>
                     </div>
-                    <h2 class="post-title">05. Theoretical Cost vs. Operational Reality</h2>
+                    <h2 class="post-title">05. Theoretical Food Cost</h2>
                     
                     <!-- Integrated Image -->
                     <div class="post-image-container">
@@ -515,21 +569,46 @@ Do not let a high top-line blind you to a leaky bottom-line. The best time to fi
                     </div>
 
                     <div class="post-body-container">
-                        <pre class="post-body" id="text-post-5">Every corporate office has a spreadsheet displaying "theoretical food cost." It is a beautiful, logical model. You multiply the cost of the raw ingredients by the static yield factor, add the portion cost, and project your gross margin. 
+                        <pre class="post-body" id="text-post-5">Your guests do not eat theoretical food cost.
 
-But your guests do not eat theoretical food cost. They eat operational reality. 
+They eat operational reality.
 
-In the actual kitchen, the yield factor is a moving target. It is influenced by the knife skills of a 22-year-old prep cook, the temperature calibration of the walk-in cooler, the age of the protein, and the accuracy of your dock scales. 
+Every corporate office has a spreadsheet projecting theoretical yield, theoretical portion cost, and theoretical margin performance.
 
-If your operational accountability is based on comparing actual costs against a static theoretical model, you are setting your store teams up for failure. 
+But kitchens do not operate in theoretical conditions.
 
-When actual costs exceed theoretical targets, the corporate response is often to increase the frequency of inventory counts or issue warnings. This creates "system fatigue." Managers begin adjusting inventory counts to match targets, and the data loses all integrity. 
+Actual yield is influenced every day by:
+• knife skill
+• protein age
+• trim discipline
+• cooler calibration
+• receiving accuracy
+• execution consistency
 
-Instead of chasing a static theoretical number, elite operators manage the variance itself. 
+When organizations compare operational reality against static theoretical models, teams eventually begin managing the spreadsheet instead of managing the operation.
 
-They establish real-time, digital baselines for every critical yield step: receiving weight, trim percentage, portion weight, and cooking loss. By measuring the daily drift away from these baselines, they identify the exact point where the margin is lost. 
+That is how data integrity collapses.
 
-Governance is not about demanding perfection from a theoretical model. It is about building a system that makes operational variance visible and actionable on the kitchen floor, where the margins are actually won or lost.</pre>
+Inventory counts get adjusted.
+Variance explanations become normalized.
+Operational drift becomes invisible.
+
+Elite operators do not obsess over static theoretical targets.
+
+They govern the variance itself.
+
+They establish real-time baselines for:
+• receiving weight
+• trim percentage
+• portion yield
+• cooking loss
+• fabrication drift
+
+And they monitor the daily movement away from those baselines before the margin leak reaches the P&L.
+
+Governance is not about demanding perfection from a spreadsheet.
+
+It is about making operational variance visible where the margin is actually won or lost.</pre>
                     </div>
                     <div class="action-row">
                         <span class="btn-copy-status" id="status-post-5">✓ Copied to clipboard</span>
@@ -545,7 +624,7 @@ Governance is not about demanding perfection from a theoretical model. It is abo
         <div class="footer">
             <span>BRASA Governance Engine Editorial Hub</span>
             <span>Version: v2.5-ENTERPRISE-HUB</span>
-            <span>Trace Code: ED-HUB-Garcia-2026</span>
+            <span>Trace Code: ED-HUB-Garcia-22026</span>
         </div>
 
     </div>
