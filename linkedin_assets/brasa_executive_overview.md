@@ -44,5 +44,19 @@ BRASA Enterprise deploys with zero disruption to your existing operational tech 
 *   Immediate identification of top 3 leakage points (Receiving, Trimming, Portioning).
 *   **Pilot programs are designed to identify measurable operational leakage and establish a governance baseline for scalable margin recovery.**
 
+---
+## PAGE 4: REAL-WORLD AUDIT PROOF
+
+### Case Study: Sysco Tampa Catch Weight Discrepancy (May 2026)
+This real-world audit proof illustrates how the BRASA Sovereign Governance Suite handles real catch-weight discrepancies automatically at the dock, converting a time-consuming manual dispute into a 5-second digital resolution:
+
+*   **The Incident:** On May 15, 2026, the Tampa Flagship (#042) was billed for **13 cases** of Sirloin Coulot (Picanha, Item `7152153`) totaling **1,066.300 LBS** (average `82.02 LBS/case` on an average `60 LBS` spec).
+*   **The Discrepancy:** The distributor's dispatch team mixed up shipment weights, overbilling the client. 
+*   **BRASA Resolution:** The receiver scanned the yellow Sysco case labels on the dock using the BRASA smart scale integration. The engine instantly captured the exact actual received weight of **10 cases** totaling **819.50 LBS**, automatically proving a billing discrepancy of **246.80 LBS ($2,243.41 USD)**.
+*   **The Audit Artifact:**
+    *   [Live HTML Audit Document](file:///Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/linkedin_assets/brasa_tampa_audit_report.html)
+    *   [High-Resolution Audit Proof PNG](file:///Users/alexandregarcia/Brasa-Meat-Intelligence-BACKUP/linkedin_assets/brasa_tampa_audit_report.png)
+
+---
 ### Positioning
 *Governance infrastructure for enterprise hospitality operations.*
