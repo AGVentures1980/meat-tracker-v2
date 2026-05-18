@@ -397,7 +397,7 @@
             <div class="data-panel">
                 <div class="panel-title">
                     <span>BRASA DOCK SCAN</span>
-                    <span class="indicator brasa">VERIFIED TELEMETRY</span>
+                    <span class="indicator brasa" style="background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3);">76.9% PROCESS COMPLIANCE</span>
                 </div>
                 <div class="data-body">
                     <table class="audit-table">
@@ -470,6 +470,25 @@
                                 <td>7152153</td>
                                 <td style="font-weight: 700; color: var(--text-primary);">81.30 LBS</td>
                             </tr>
+                            <!-- Bypassed human verification leak rows -->
+                            <tr style="background: rgba(239, 68, 68, 0.05);">
+                                <td style="color: var(--accent-red); font-weight: bold;">11 / 13</td>
+                                <td style="color: var(--accent-red);">Box [?]</td>
+                                <td style="color: var(--accent-red);">7152153</td>
+                                <td style="color: var(--accent-red); font-weight: 700; font-size: 7.5pt;">UNSCANNED (MANUAL OVERRIDE)</td>
+                            </tr>
+                            <tr style="background: rgba(239, 68, 68, 0.05);">
+                                <td style="color: var(--accent-red); font-weight: bold;">12 / 13</td>
+                                <td style="color: var(--accent-red);">Box [?]</td>
+                                <td style="color: var(--accent-red);">7152153</td>
+                                <td style="color: var(--accent-red); font-weight: 700; font-size: 7.5pt;">UNSCANNED (MANUAL OVERRIDE)</td>
+                            </tr>
+                            <tr style="background: rgba(239, 68, 68, 0.05);">
+                                <td style="color: var(--accent-red); font-weight: bold;">13 / 13</td>
+                                <td style="color: var(--accent-red);">Box [?]</td>
+                                <td style="color: var(--accent-red);">7152153</td>
+                                <td style="color: var(--accent-red); font-weight: 700; font-size: 7.5pt;">UNSCANNED (MANUAL OVERRIDE)</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -479,41 +498,45 @@
 
         <!-- Variance Analysis -->
         <div class="variance-card">
-            <h3 class="variance-title">Discrepancy Analysis & Findings</h3>
+            <h3 class="variance-title">Process Compliance & Margin Leakage Findings</h3>
             <p class="variance-desc">
-                During the dock receiving audit on <strong>5/15/2026</strong>, BRASA Pilot Site #042 scanned and checked in exactly 10 cases of Item 7152153 (Sirloin Coulot) and 2 cases of Item 941861. 
-                The distributor billed the client for <strong>13 cases of Item 7152153</strong> with a total weight of <strong>1,066.300 LBS</strong>—resulting in an anomalous average of <strong>82.02 LBS per case</strong>, despite the contract spec indicating an average case weight of <strong>60 LBS (1/60#AV)</strong>.
+                During the dock receiving audit on <strong>5/15/2026</strong>, the Tampa Flagship (#042) was billed for **13 cases** of Sirloin Coulot (Picanha, Item `7152153`) totaling **1,066.300 LBS** (average `82.02 LBS/case` on an average `60 LBS` contract spec). 
             </p>
             <p class="variance-desc">
-                <strong>Discrepancy Root Cause:</strong> The distributor's dispatch team accidentally loaded and scanned <strong>3 cases intended for another client</strong> onto the invoice, or billed catch weights for cases that were not physical delivered. The BRASA scale logs show the store received and signed for exactly 10 cases of Item 7152153, generating an overbilled variance.
+                <strong>The Compliance Leak:</strong> While the delivery consisted of 13 cases physically received, the receiving staff only scanned and registered **10 cases** on the BRASA scale system (819.50 LBS). The remaining **3 cases (246.80 LBS)** were confirmed manually by human override—signing the invoice paper sheet *without barcode capture or weight verification*.
+            </p>
+            <p class="variance-desc">
+                <strong>Critical Exposure:</strong> Because 3 cases bypassed digital telemetry, the corporate office has **zero digital proof** of the actual weights delivered for **23.1% of the shipment's value ($2,243.41 USD)**. If the distributor shorted the weight of those 3 unverified cases, the loss is completely absorbed by the store and invisible on the P&L. 
+                <br><br>
+                <strong style="color: var(--accent-red); font-family: var(--font-mono);">THE EXECUTIVE QUESTION: If 23.1% of this single high-stakes invoice was bypassed via human override, how many thousands of pounds are leaking unverified across the entire restaurant network every single week?</strong>
             </p>
             
             <div class="variance-details-grid">
                 <div class="grid-box">
-                    <span>Billed Weight (Invoice)</span>
+                    <span>Total Billed Weight (Invoice)</span>
                     <strong style="color: var(--accent-red);">1,066.30 LBS</strong>
                 </div>
                 <div class="grid-box">
-                    <span>BRASA Verified Weight (Actual Received)</span>
+                    <span>Verified Scale Weight (Digitally Logged)</span>
                     <strong style="color: var(--accent-green);">819.50 LBS</strong>
                 </div>
                 <div class="grid-box">
-                    <span>Billed Catch Weight Cases</span>
-                    <strong>13 Cases</strong>
+                    <span>Unverified Bypassed Weight</span>
+                    <strong style="color: var(--accent-red);">246.80 LBS (23.1% LEAK)</strong>
                 </div>
                 <div class="grid-box">
-                    <span>Actual Received Cases</span>
-                    <strong>10 Cases</strong>
+                    <span>Receiving Compliance Score</span>
+                    <strong style="color: var(--accent-red);">76.9% (FAIL)</strong>
                 </div>
             </div>
         </div>
 
         <!-- Verification Stamp -->
-        <div class="verification-stamp">
-            <div class="stamp-icon">✓</div>
+        <div class="verification-stamp" style="border-color: var(--accent-red); background: rgba(239, 68, 68, 0.02); color: var(--accent-red);">
+            <div class="stamp-icon" style="border-color: var(--accent-red);">⚠</div>
             <div class="stamp-text">
-                <strong>Sovereign Compliance Verified</strong><br>
-                This document is a certified extract from the BRASA Governance Engine, locked with cryptographic signature hash <strong>SHA-256: 4c8ce5b20260518t11f</strong>. Billed weight is disputed. Adjust for a credit memo of <strong>246.80 LBS ($2,243.41 USD)</strong>.
+                <strong>Process Compliance Failure Escalation</strong><br>
+                This invoice was flagged under high-risk exceptions. <strong>3 cases bypassed dock scales via manual check-in</strong>. Immediate operational locking recommended. Prevent manual receiving overrides across all network tenants to stop margin leakage.
             </div>
         </div>
 
