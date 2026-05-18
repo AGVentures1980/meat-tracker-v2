@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seminole Hard Rock Tampa — Food & Beverage Margin Protection Briefing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gold: #c5a880;
+            --primary-gold-dim: rgba(197, 168, 128, 0.1);
+            --bg-dark: #0b0b0d;
+            --panel-bg: #121216;
+            --border-color: #24242c;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --font-sans: 'Inter', sans-serif;
+            --font-serif: 'Playfair Display', serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            max-width: 8.5in;
+            min-height: 11in;
+            margin: 40px auto;
+            padding: 0.6in 0.8in;
+            background: #0f0f13;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* HEADER / LETTERHEAD */
+        .header {
+            border-bottom: 2px solid var(--primary-gold);
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .brand-name {
+            font-family: var(--font-mono);
+            font-size: 11pt;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--primary-gold);
+        }
+
+        .division {
+            font-family: var(--font-sans);
+            font-size: 7.5pt;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .status-stamp {
+            font-family: var(--font-mono);
+            font-size: 8pt;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--primary-gold);
+            border: 1px solid var(--primary-gold);
+            padding: 3px 8px;
+            text-transform: uppercase;
+            background: var(--primary-gold-dim);
+        }
+
+        /* DOCUMENT METADATA */
+        .metadata {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 16px 20px;
+            font-family: var(--font-mono);
+            font-size: 8.5pt;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .metadata-row {
+            display: flex;
+            margin-bottom: 6px;
+        }
+
+        .metadata-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .metadata-label {
+            color: var(--primary-gold);
+            font-weight: 700;
+            width: 90px;
+            flex-shrink: 0;
+        }
+
+        .metadata-value {
+            color: var(--text-primary);
+        }
+
+        /* BODY CONTENT */
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 14pt;
+            font-weight: 700;
+            color: var(--primary-gold);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        p {
+            font-size: 10pt;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            text-align: justify;
+        }
+
+        p strong {
+            color: var(--text-primary);
+        }
+
+        .bullet-points {
+            margin-left: 20px;
+            margin-bottom: 16px;
+            padding-left: 0;
+        }
+
+        .bullet-points li {
+            font-size: 10pt;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            list-style-type: square;
+        }
+
+        .bullet-points li strong {
+            color: var(--text-primary);
+        }
+
+        /* SIGNATURE */
+        .signature-block {
+            margin-top: auto;
+            padding-top: 30px;
+            margin-bottom: 10px;
+        }
+
+        .signature-line {
+            width: 200px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 8px;
+            height: 35px;
+        }
+
+        .signature-name {
+            font-family: var(--font-sans);
+            font-weight: 700;
+            font-size: 10pt;
+            color: var(--text-primary);
+        }
+
+        .signature-title {
+            font-family: var(--font-sans);
+            font-size: 8.5pt;
+            color: var(--text-secondary);
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 7.5pt;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            margin-top: 20px;
+        }
+
+        /* HIGH-FIDELITY PRINT OVERRIDES */
+        @media print {
+            @page {
+                size: letter;
+                margin: 0.5in;
+            }
+            body {
+                background-color: #0b0b0d !important;
+                color: #f3f4f6 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .page {
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                background: #0f0f13 !important;
+                width: 100% !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="header">
+            <div>
+                <div class="brand-name">BRASA MEAT INTELLIGENCE OS</div>
+                <div class="division">EXECUTIVE BRIEFING &bull; MARGIN PROTECTION</div>
+            </div>
+            <div class="status-stamp">CONFIDENTIAL BRIEF</div>
+        </div>
+
+        <!-- METADATA BLOCK -->
+        <div class="metadata">
+            <div class="metadata-row">
+                <div class="metadata-label">TO:</div>
+                <div class="metadata-value">AJ Uriarte, Vice President of Hotel Operations, Seminole Hard Rock Hotel & Casino Tampa</div>
+            </div>
+            <div class="metadata-row">
+                <div class="metadata-label">FROM:</div>
+                <div class="metadata-value">Alexandre Garcia, Founder, Brasa Meat Intelligence</div>
+            </div>
+            <div class="metadata-row">
+                <div class="metadata-label">PORTAL:</div>
+                <div class="metadata-value">hardrock.brasameat.com</div>
+            </div>
+            <div class="metadata-row">
+                <div class="metadata-label">DATE:</div>
+                <div class="metadata-value">May 18, 2026</div>
+            </div>
+            <div class="metadata-row">
+                <div class="metadata-label">SUBJECT:</div>
+                <div class="metadata-value">Operational Profit Protection: Protein Catch-Weight Overrides & Yield Analytics</div>
+            </div>
+        </div>
+
+        <h1>Council Oak Steaks & Seafood Yield Protection</h1>
+        <p>AJ, premium protein represents the single largest Cost of Goods Sold (COGS) item in high-volume luxury resort operations. At Council Oak Steaks & Seafood, USDA Prime beef, dry-aged cuts, and premium seafood are high-value physical assets. Yet, resort supply chains routinely manage these expensive biological assets using standard dry-goods logic, creating a systemic margin leakage point.</p>
+
+        <h1>The Tampa Catch-Weight Bypass: A $2,243.41 Single-Event Leak</h1>
+        <p>We recently executed a forensic receiving audit for a premium high-volume steakhouse operator right here in Tampa. The findings revealed a massive operational vulnerability: **the vendor billed for 13 cases of sub-primal meat (1,066.30 LBS), but the receiving dock team only scale-verified 10 cases (819.50 LBS)**.</p>
+        <p>The remaining 3 cases (246.80 LBS) were bypass-checked into inventory via manual "human override" at the screen—meaning **$2,243.41 USD in raw product cost was accepted completely unverified**. Because meat is processed, cooked, and consumed immediately, the physical evidence vanishes within hours, making retrospective auditing impossible. This is the **Temporal Blindspot**.</p>
+        
+        <h1>Scale-Locked Receiving & Multi-Kitchen Telemetry</h1>
+        <p>Most multi-unit hospitality operators only discover portion and catch-weight variance when it hits the monthly P&L post-mortem—blaming the kitchen team for a leak that actually occurred days prior at the loading dock. Brasa Meat Intelligence closes this loop:</p>
+        
+        <ul class="bullet-points">
+            <li><strong>Scale-Locked Governance (The "Garcia Rule"):</strong> Standardizes receiving by locking out inventory intake screens until the box's exact physical barcode weight is verified on the digital scale, completely eliminating manual human overrides.</li>
+            <li><strong>Biological Purge Modeling:</strong> Distinguishes natural moisture purge from operational yield variance from fabrication to final table portion.</li>
+            <li><strong>Executive Dashboard Controls:</strong> Gives you real-time visibility across all resort kitchens, banquet facilities, and receiving nodes on a single glass screen.</li>
+        </ul>
+
+        <h1>Proposed Action & Pilot Node Setup</h1>
+        <p>We have pre-provisioned a secure Hard Rock Tampa tenant workspace at <strong>hardrock.brasameat.com</strong>. I am prepared to spend 10 minutes showing you how to lock down your protein supply chain, beginning with a zero-cost 1-scale pilot on your primary receiving dock.</p>
+
+        <!-- ASSINATURA -->
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-name">Alexandre Garcia</div>
+            <div class="signature-title">Founder & CEO, Brasa Meat Intelligence OS</div>
+        </div>
+
+        <div class="footer">
+            Brasa Meat Intelligence OS &copy; 2026 | Private Operational Briefing | Port: 443 (Secure)
+        </div>
+    </div>
+</body>
+</html>
