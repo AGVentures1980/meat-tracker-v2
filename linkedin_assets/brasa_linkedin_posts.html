@@ -180,6 +180,31 @@
             letter-spacing: -0.5px;
         }
 
+        /* Post Image Styling */
+        .post-image-container {
+            margin-bottom: 20px;
+            border: 1px solid #1f1f23;
+            border-radius: 1px;
+            overflow: hidden;
+            max-height: 480px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+        }
+
+        .post-image:hover {
+            opacity: 1;
+        }
+
         /* Post Body / Monospace Field */
         .post-body-container {
             position: relative;
@@ -312,6 +337,12 @@
                         </div>
                     </div>
                     <h2 class="post-title">01. Biological Realism vs. Digital Inventory</h2>
+                    
+                    <!-- Integrated Image -->
+                    <div class="post-image-container">
+                        <img src="./post_1_biological_scale.png" alt="Biological Scale Telemetry Detail" class="post-image">
+                    </div>
+
                     <div class="post-body-container">
                         <pre class="post-body" id="text-post-1">Most inventory software assumes that a sub-primal ribeye behaves like a box of paper cups. It does not. 
 
@@ -347,6 +378,12 @@ Biological inventory requires dynamic yield modeling. If your system treats prot
                         </div>
                     </div>
                     <h2 class="post-title">02. The Silent Compound of Yield Variance</h2>
+                    
+                    <!-- Integrated Image -->
+                    <div class="post-image-container">
+                        <img src="./post_2_yield_variance.png" alt="EBITDA Leakage Escalation Dashboard" class="post-image">
+                    </div>
+
                     <div class="post-body-container">
                         <pre class="post-body" id="text-post-2">In a single-unit restaurant, a 2.5% yield variance on beef tenderloin looks like a localized operational nuisance. An Area Manager might address it during a monthly store review, write it off to training, and move on. 
 
@@ -384,6 +421,12 @@ At scale, the difference between an average operator and an elite operator is no
                         </div>
                     </div>
                     <h2 class="post-title">03. The Governance Gap</h2>
+                    
+                    <!-- Integrated Image -->
+                    <div class="post-image-container">
+                        <img src="./post_3_governance_dock.png" alt="Industrial Scale Dock Telemetry Overlay" class="post-image">
+                    </div>
+
                     <div class="post-body-container">
                         <pre class="post-body" id="text-post-3">The loading dock and the prep table are often treated as two separate operational islands. This is the governance gap. 
 
@@ -420,6 +463,12 @@ If you cannot connect your dock scales to your butcher tables, you are not runni
                         </div>
                     </div>
                     <h2 class="post-title">04. The Illusion of Healthy P&Ls</h2>
+                    
+                    <!-- Integrated Image -->
+                    <div class="post-image-container">
+                        <img src="./post_4_pl_illusion.png" alt="Microscopic Margin Leak Anomaly Graphic" class="post-image">
+                    </div>
+
                     <div class="post-body-container">
                         <pre class="post-body" id="text-post-4">A strong P&L is the ultimate shield for a store manager. When top-line revenue is high and the overall food cost percentage sits comfortably within the corporate target, no one asks questions. 
 
@@ -459,6 +508,12 @@ Do not let a high top-line blind you to a leaky bottom-line. The best time to fi
                         </div>
                     </div>
                     <h2 class="post-title">05. Theoretical Cost vs. Operational Reality</h2>
+                    
+                    <!-- Integrated Image -->
+                    <div class="post-image-container">
+                        <img src="./post_5_operational_butcher.png" alt="Protein Yield Loss Blueprint Schematic" class="post-image">
+                    </div>
+
                     <div class="post-body-container">
                         <pre class="post-body" id="text-post-5">Every corporate office has a spreadsheet displaying "theoretical food cost." It is a beautiful, logical model. You multiply the cost of the raw ingredients by the static yield factor, add the portion cost, and project your gross margin. 
 
