@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import { MeatEngine } from '../engine/MeatEngine';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, startOfYear } from 'date-fns';
 import { hasRole, DIRECTOR_ROLES, MANAGER_ROLES } from '../utils/roleGroups';
+import { ReportDataResolver } from '../reports/services/ReportDataResolver';
+import { ReportRenderService } from '../reports/services/ReportRenderService';
+import { ReportAuditLogService } from '../reports/services/ReportAuditLogService';
+
 
 const getDateRange = (range: string = 'this-month') => {
     const now = new Date();
@@ -317,4 +321,44 @@ export class ReportController {
             return res.status(500).json({ error: 'Failed to generate meat prices report' });
         }
     }
+
+    /**
+     * PDF Audit Generator: Exports an immutable, high-fidelity PDF report of receiving variance
+     * utilizing server-side data resolution and headless Puppeteer compilation.
+     */
+    static async exportReceivingVarianceReport(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const auditId = req.params.auditId;
+
+            if (!auditId) {
+                return res.status(400).json({ error: 'Audit Trace ID is required.' });
+            }
+
+            console.log(`[ReportController] Resolving report data for target: ${auditId} initiated by: ${user?.email}`);
+            
+            // 1. Resolve highly structured forensic data
+            const data = await ReportDataResolver.resolveReceivingReportData(auditId, user?.id);
+
+            // 2. Render premium dark-mode PDF using headless browser compilation
+            console.log(`[ReportController] Rendering premium PDF via Puppeteer...`);
+            const pdfBuffer = await ReportRenderService.renderReceivingReport(data);
+
+            // 3. Log compliance record to immutable DB audit table
+            await ReportAuditLogService.logReportGeneration(data, user?.id, req.ip);
+
+            // 4. Return binary stream to client
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="${auditId}_Audit_Report.pdf"`);
+            return res.send(pdfBuffer);
+
+        } catch (error: any) {
+            console.error('[ReportController] Premium PDF Export Failure:', error);
+            return res.status(500).json({ 
+                error: 'Failed to compile premium PDF audit document.', 
+                details: error instanceof Error ? error.message : String(error)
+            });
+        }
+    }
 }
+

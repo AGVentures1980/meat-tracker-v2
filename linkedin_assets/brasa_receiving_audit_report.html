@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receiving Variance Audit Report - BRASA Governance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Base Print Settings */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505; 
+            font-family: 'Inter', sans-serif;
+            color: #c8c8cc;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 8.5in;
+            height: 11in;
+            background-color: #08080a;
+            color: #d4d4d8;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            box-sizing: border-box;
+            padding: 0.4in 0.5in; /* Compressed padding for dense, utilitarian feel */
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        }
+
+        @media print {
+            body { background: #08080a; }
+            .page {
+                margin: 0;
+                box-shadow: none;
+                border: none;
+                page-break-after: avoid;
+            }
+        }
+
+        /* Header Area - Asymmetrical & Dense */
+        .header {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            border-bottom: 2px solid #1f1f23;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .header-left .org-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #52525b;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .header-left .doc-title {
+            font-size: 15pt;
+            font-weight: 900;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .status-flag-massive {
+            background: rgba(220, 38, 38, 0.12);
+            color: #ef4444;
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            padding: 4px 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8.5pt;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-radius: 1px;
+        }
+
+        /* Audit Metadata - Hyper-Dense Raw Table */
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            border: 1px solid #1f1f23;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .meta-table td {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            padding: 4px 8px;
+            border: 1px solid #1f1f23;
+        }
+
+        .meta-table td.label {
+            color: #52525b;
+            text-transform: uppercase;
+            font-weight: 700;
+            width: 15%;
+        }
+
+        .meta-table td.value {
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+
+        /* Sections */
+        h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #71717a;
+            margin: 0 0 8px 0;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #1f1f23;
+        }
+
+        .section {
+            margin-bottom: 12px;
+        }
+
+        /* Metric Grid - Asymmetrical Layout */
+        .exposure-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 0.8fr; /* Asymmetrical widths */
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .exposure-card {
+            background: rgba(20, 20, 22, 0.5);
+            border: 1px solid #1f1f23;
+            padding: 10px;
+            border-left: 2px solid #52525b;
+        }
+        
+        .exposure-card.critical {
+            border-left: 3px solid #dc2626;
+            background: linear-gradient(90deg, rgba(220, 38, 38, 0.05) 0%, transparent 100%);
+        }
+
+        .exposure-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #52525b;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .exposure-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20pt;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -1px;
+        }
+
+        .exposure-card.critical .exposure-value {
+            color: #ef4444;
+        }
+
+        /* Data Tables - Highly Utilitarian Bloomberg Terminal Style */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            margin-bottom: 5px;
+        }
+
+        .data-table th {
+            background: rgba(255, 255, 255, 0.01);
+            color: #52525b;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 5px 6px;
+            border-bottom: 1px solid #1f1f23;
+            border-top: 1px solid #1f1f23;
+        }
+
+        .data-table td {
+            padding: 6px;
+            border-bottom: 1px solid #1f1f23;
+            color: #a1a1aa;
+        }
+
+        .heavy-red {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        .status-flag {
+            padding: 1px 4px;
+            border-radius: 1px;
+            font-size: 6pt;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+        .flag-red { background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); }
+        .flag-yellow { background: rgba(234, 179, 8, 0.08); color: #fbbf24; border: 1px solid rgba(234, 179, 8, 0.2); }
+        .flag-green { background: rgba(34, 197, 94, 0.08); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
+
+        /* Findings List */
+        ul.findings-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        ul.findings-list li {
+            font-size: 7.5pt;
+            line-height: 1.35;
+            color: #a1a1aa;
+            margin-bottom: 4px;
+            padding-left: 10px;
+            position: relative;
+        }
+
+        ul.findings-list li::before {
+            content: '■';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 5pt;
+            color: #3f3f46;
+        }
+        
+        ul.findings-list li.alert::before {
+            color: #ef4444;
+        }
+
+        ul.findings-list li strong {
+            color: #e4e4e7;
+            font-weight: 700;
+        }
+
+        .sub-data {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            color: #52525b;
+            margin-top: 1px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid #1f1f23;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            color: #3f3f46;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="org-title">BRASA Governance Engine</div>
+                <h1 class="doc-title">Receiving Variance Report</h1>
+            </div>
+            <div class="header-right">
+                <div class="status-flag-massive">ESCALATION_ACTIVE</div>
+            </div>
+        </div>
+
+        <!-- Audit Metadata - Utilitarian Dense Grid Table -->
+        <table class="meta-table">
+            <tr>
+                <td class="label">Trace ID</td>
+                <td class="value">RCV-TPA-042-8891</td>
+                <td class="label">Freight ID</td>
+                <td class="value">FRT-99201-X</td>
+            </tr>
+            <tr>
+                <td class="label">Location</td>
+                <td class="value">Unit #042 — Tampa</td>
+                <td class="label">Scale ID</td>
+                <td class="value">SCL-042-A (Cal: 05:30)</td>
+            </tr>
+            <tr>
+                <td class="label">Shift / Gate</td>
+                <td class="value">AM / Dock A</td>
+                <td class="label">Receiver</td>
+                <td class="value">JW (J. Wagner)</td>
+            </tr>
+            <tr>
+                <td class="label">Supplier Code</td>
+                <td class="value">PRM-882 (Prime Select)</td>
+                <td class="label">Temp (Inbound)</td>
+                <td class="value" style="color: #4ade80;">35.8°F [COMPLIANT]</td>
+            </tr>
+        </table>
+
+        <!-- 1. Executive Summary -->
+        <div class="section">
+            <h2>1. Primary Audit Log</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>Weight Discrepancy:</strong> Invoice-to-dock weight discrepancy detected.</li>
+                <li class="alert"><strong>Threshold Breach:</strong> Trim variance exceeded regional compliance thresholds.</li>
+                <li class="alert"><strong>Governance Override:</strong> Payment reconciliation lockout active. Regional override required.</li>
+            </ul>
+        </div>
+
+        <!-- 2. Financial Exposure Estimate -->
+        <div class="section">
+            <h2>2. Financial Exposure Matrix</h2>
+            <div class="exposure-grid">
+                <div class="exposure-card critical">
+                    <div class="exposure-label">Annualized Drift Projection</div>
+                    <div class="exposure-value">$111,306</div>
+                </div>
+                <div class="exposure-card critical">
+                    <div class="exposure-label">Weekly Margin Exposure</div>
+                    <div class="exposure-value" style="font-size: 16pt; padding-top: 4px;">$2,140</div>
+                </div>
+                <div class="exposure-card">
+                    <div class="exposure-label">Variance Category</div>
+                    <div class="exposure-value" style="font-size: 9pt; padding-top: 10px; color: #a1a1aa; font-family: 'JetBrains Mono', monospace; font-weight: 700; text-transform: uppercase;">YIELD_LOSS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Receiving Variance Table -->
+        <div class="section">
+            <h2>3. Dock Reconciliation Log</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Lot / Batch ID</th>
+                        <th>Inv Wgt (Lbs)</th>
+                        <th>Act Wgt (Lbs)</th>
+                        <th>Variance</th>
+                        <th>Status</th>
+                        <th>System Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>10/05</td>
+                        <td>LOT-9921-A<span class="sub-data">BTCH-9921</span></td>
+                        <td>450.0</td>
+                        <td>450.2</td>
+                        <td>+0.04%</td>
+                        <td><span class="status-flag flag-green">OK</span></td>
+                        <td>None</td>
+                    </tr>
+                    <tr>
+                        <td>10/08</td>
+                        <td>LOT-4482-B<span class="sub-data">BTCH-4482</span></td>
+                        <td>620.5</td>
+                        <td>608.1</td>
+                        <td>-2.00%</td>
+                        <td><span class="status-flag flag-yellow">WARN</span></td>
+                        <td>Log Exception</td>
+                    </tr>
+                    <tr>
+                        <td>10/10</td>
+                        <td>LOT-4501-B<span class="sub-data">BTCH-4501</span></td>
+                        <td>580.0</td>
+                        <td>556.8</td>
+                        <td class="heavy-red">-4.00%</td>
+                        <td><span class="status-flag flag-red">BREACH</span></td>
+                        <td>Request Credit</td>
+                    </tr>
+                    <tr>
+                        <td>10/12</td>
+                        <td>LOT-4550-B<span class="sub-data">BTCH-4550</span></td>
+                        <td>710.2</td>
+                        <td>675.4</td>
+                        <td class="heavy-red">-4.90%</td>
+                        <td><span class="status-flag flag-red">CRIT</span></td>
+                        <td>Lockout Active</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 4. Product Compliance Findings -->
+        <div class="section">
+            <h2>4. Forensic Product Analysis</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>NY Strip:</strong> Fat cap > 1/4" specification. Inbound yield degraded.</li>
+                <li class="alert"><strong>Filet Mignon:</strong> Yield -4.2% vs baseline. Inbound trim failure.</li>
+                <li><strong>Purge Loss:</strong> Cryovac purge accounts for 1.2% of manifested weight.</li>
+                <li><strong>Thermal Compliance:</strong> Inbound temperature compliant at 35.8°F.</li>
+            </ul>
+        </div>
+
+        <!-- 5. Governance Actions -->
+        <div class="section" style="margin-bottom: 0;">
+            <h2>5. System Enforcement Protocol</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>Payment Lockout:</strong> Automated lock active. Supplier reconciliation suspended.</li>
+                <li class="alert"><strong>Escalation:</strong> Regional Director review mandated (24h SLA).</li>
+                <li><strong>Dock Audit:</strong> Mandatory two-person scale verification enabled for Prime Select.</li>
+                <li><strong>Network Flag:</strong> Strict audit flag set for Prime Select (30d) across all locations.</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span>Generated by BRASA Governance Agent</span>
+            <span>Trace: RCV-SYS-993-81</span>
+            <span>System Timestamp: 2026-10-12 08:14:22 UTC</span>
+            <span>CONFIDENTIAL INTERNAL DOCUMENT</span>
+        </div>
+
+    </div>
+
+</body>
+</html>

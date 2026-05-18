@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confidential Briefing - Bloomin' Brands (Outback)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #fff; 
+            font-family: 'Roboto', sans-serif;
+            color: #1a1a1a;
+            -webkit-print-color-adjust: exact;
+        }
+
+        @page {
+            margin: 0;
+            size: letter;
+        }
+
+        .page {
+            max-width: 8.5in;
+            height: 10.5in;
+            margin: 0 auto;
+            padding: 0.45in; /* Margem reduzida */
+            position: relative;
+            background: white;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER / LETTERHEAD */
+        .header {
+            border-bottom: 2px solid #1a1a1a;
+            padding-bottom: 5px;
+            margin-bottom: 0.1in;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 14pt;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .division {
+            font-family: 'Roboto', sans-serif;
+            font-size: 7pt;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #555;
+        }
+
+        .confidential-stamp {
+            font-family: 'Roboto', sans-serif;
+            font-size: 8pt;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #b30000;
+            border: 1px solid #b30000;
+            padding: 2px 5px;
+            text-transform: uppercase;
+        }
+
+        /* DOCUMENT METADATA */
+        .metadata {
+            font-size: 10pt;
+            line-height: 1.4;
+            margin-bottom: 0.1in;
+        }
+
+        .metadata span {
+            font-weight: 700;
+            display: inline-block;
+            width: 75px;
+        }
+
+        /* BODY CONTENT */
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 11.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+
+        p {
+            font-size: 10.5pt; 
+            line-height: 1.4;
+            text-align: justify;
+            margin-bottom: 6px;
+        }
+
+        .bullet-points {
+            margin-left: 20px;
+            margin-bottom: 6px;
+        }
+
+        .bullet-points li {
+            font-size: 10.5pt; 
+            line-height: 1.4;
+            margin-bottom: 4px;
+            text-align: justify;
+        }
+
+        /* SIGNATURE */
+        .signature-block {
+            margin-top: 0.2in;
+            margin-bottom: 0.1in;
+        }
+
+        .signature-line {
+            width: 200px;
+            border-bottom: 1px solid #1a1a1a;
+            margin-bottom: 3px;
+            height: 30px; /* Aumentado um pouquinho para sua assinatura caber melhor */
+        }
+
+        .signature-name {
+            font-weight: 700;
+            font-size: 10.5pt;
+        }
+
+        .signature-title {
+            font-size: 9pt;
+            color: #555;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: auto; 
+            text-align: center;
+            font-size: 8pt;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        <!-- CABEÇALHO (LETTERHEAD) -->
+        <div class="header">
+            <div>
+                <div class="brand-name">BRASA MEAT INTELLIGENCE OS</div>
+                <div class="division">Executive Audit Division</div>
+            </div>
+            <div class="confidential-stamp">Confidential</div>
+        </div>
+
+        <!-- DADOS DO DESTINATÁRIO -->
+        <div class="metadata">
+            <div><span>TO:</span> Randy Scruggs, Executive Leadership, Bloomin' Brands (Outback)</div>
+            <div><span>FROM:</span> Alexandre Garcia, Founder, Brasa Meat Intelligence</div>
+            <div><span>CONTACT:</span> alexandre@alexgarciaventures.co &nbsp;|&nbsp; LinkedIn: /in/alexandre-garcia-166653157</div>
+            <div><span>DATE:</span> May 13, 2026</div>
+            <div><span>SUBJECT:</span> Network-Wide EBITDA Recovery: The Protein Yield Protocol</div>
+        </div>
+
+        <!-- CONTEÚDO -->
+        <h1>Executive Summary</h1>
+        <p>At the operational scale of Bloomin' Brands, standard F&B inventory systems create a false sense of security. While they efficiently track gross weight and invoice costs, they completely fail to track the biological reality of protein yield across hundreds of units. I refer to this systemic blind spot as "The Ghost Math."</p>
+
+        <h1>The Scale of the Blind Spot</h1>
+        <p>After 20 years as a high-volume F&B operator, I identified that a massive volume of margin is silently lost in operations like Outback due to structural, unmonitored variables:</p>
+        <ul class="bullet-points">
+            <li><strong>The Multiplier Effect:</strong> A mere 0.5 oz variance in trimming or portioning at the prep station seems negligible per plate, but across 700+ locations, it translates into millions of dollars in untracked EBITDA leakage annually.</li>
+            <li><strong>Inbound Spec Tolerance:</strong> Paying premium prices for excess fat caps and untrimmed waste at the receiving docks without a real-time, network-wide reconciliation mechanism.</li>
+            <li><strong>Data Latency:</strong> Relying on end-of-month P&L reports to identify yield variance is a post-mortem exercise. By the time the variance is caught, the margin is already gone.</li>
+        </ul>
+
+        <h1>The Prototype Initiative</h1>
+        <p>Standard software tells you what your network <em>bought</em>. Brasa OS tells you what your network actually <em>yielded</em>.</p>
+        <p>I have mapped a functioning "Digital Twin" prototype designed for high-volume, multi-unit steakhouse operations. The model establishes a real-time, forensic chain of custody for protein from the receiving dock to the guest plate, standardizing yield governance across the entire Florida footprint.</p>
+
+        <h1>The 15-Minute Validation</h1>
+        <p>Following up on my recent email regarding the Bloomin' turnaround, I know your inbox is a war zone. I am sending this physical audit brief directly to your desk because tightening margins requires moving past theoretical software pitches and dealing purely with the mathematical reality of your yield.</p> 
+        <p><strong>The proposal stands:</strong> Give me 15 minutes to plug your actual volume data into this framework. If the "Ghost Math" isn't leaking margin from your operations, I will walk away. If it is, we discuss a pilot.</p>
+
+        <!-- ASSINATURA -->
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-name">Alexandre Garcia</div>
+            <div class="signature-title">Founder & CEO, Brasa Meat Intelligence OS</div>
+        </div>
+
+        <!-- RODAPÉ -->
+        <div class="footer">
+            100% Data Confidentiality Maintained &nbsp;&nbsp;|&nbsp;&nbsp; Proprietary Yield Intelligence Technology &nbsp;&nbsp;|&nbsp;&nbsp; Tampa, FL
+        </div>
+    </div>
+
+</body>
+</html>

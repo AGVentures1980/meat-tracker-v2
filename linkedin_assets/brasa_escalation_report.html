@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operational Governance Escalation Report - BRASA Governance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Base Print Settings */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505; 
+            font-family: 'Inter', sans-serif;
+            color: #c8c8cc;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 8.5in;
+            height: 11in;
+            background-color: #08080a;
+            color: #d4d4d8;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            box-sizing: border-box;
+            padding: 0.35in 0.45in; /* Hyper-compressed padding for raw utilitarian density */
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        }
+
+        @media print {
+            body { background: #08080a; }
+            .page {
+                margin: 0;
+                box-shadow: none;
+                border: none;
+                page-break-after: avoid;
+            }
+        }
+
+        /* Header Area - Utilitarian & Asymmetrical */
+        .header {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            border-bottom: 2px solid #1f1f23;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .header-left .org-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #52525b;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .header-left .doc-title {
+            font-size: 14pt;
+            font-weight: 900;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .status-flag-massive {
+            background: rgba(220, 38, 38, 0.12);
+            color: #ef4444;
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            padding: 3px 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8pt;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-radius: 1px;
+        }
+
+        /* Audit Metadata - Raw Compact Table */
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            border: 1px solid #1f1f23;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .meta-table td {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+            padding: 3px 6px;
+            border: 1px solid #1f1f23;
+        }
+
+        .meta-table td.label {
+            color: #52525b;
+            text-transform: uppercase;
+            font-weight: 700;
+            width: 15%;
+        }
+
+        .meta-table td.value {
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+
+        /* Sections */
+        h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #52525b;
+            margin: 0 0 6px 0;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #1f1f23;
+        }
+
+        .section {
+            margin-bottom: 10px;
+        }
+
+        /* KPI Blocks - Asymmetrical Column Spans */
+        .exposure-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.1fr 0.9fr 0.9fr;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        
+        .exposure-card {
+            background: rgba(20, 20, 22, 0.5);
+            border: 1px solid #1f1f23;
+            padding: 6px 8px;
+            border-left: 2px solid #52525b;
+        }
+        
+        .exposure-card.critical {
+            border-left: 3px solid #dc2626;
+            background: linear-gradient(90deg, rgba(220, 38, 38, 0.04) 0%, transparent 100%);
+        }
+
+        .exposure-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #52525b;
+            margin-bottom: 2px;
+            font-weight: 700;
+        }
+
+        .exposure-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14pt;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -1px;
+        }
+
+        .exposure-card.critical .exposure-value {
+            color: #ef4444;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+            margin-bottom: 4px;
+        }
+
+        .data-table th {
+            background: rgba(255, 255, 255, 0.01);
+            color: #52525b;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 4px 5px;
+            border-bottom: 1px solid #1f1f23;
+            border-top: 1px solid #1f1f23;
+        }
+
+        .data-table td {
+            padding: 5px;
+            border-bottom: 1px solid #1f1f23;
+            color: #a1a1aa;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .heavy-red {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        .status-flag {
+            padding: 1px 3px;
+            border-radius: 1px;
+            font-size: 5.5pt;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .flag-red { background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); }
+        .flag-yellow { background: rgba(234, 179, 8, 0.08); color: #fbbf24; border: 1px solid rgba(234, 179, 8, 0.2); }
+        .flag-green { background: rgba(34, 197, 94, 0.08); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
+
+        /* Timeline Flow - Compressed Grid */
+        .timeline-flow {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid #1f1f23;
+            padding: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+        }
+
+        .timeline-node {
+            border-left: 2px solid #3f3f46;
+            padding-left: 4px;
+        }
+
+        .timeline-node.active {
+            border-left-color: #dc2626;
+        }
+
+        .node-time {
+            color: #52525b;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .node-title {
+            color: #ffffff;
+            font-weight: 700;
+            margin-bottom: 1px;
+        }
+
+        .node-desc {
+            color: #71717a;
+            line-height: 1.2;
+        }
+
+        /* Findings List */
+        ul.findings-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        ul.findings-list li {
+            font-size: 7.5pt;
+            line-height: 1.3;
+            color: #a1a1aa;
+            margin-bottom: 3px;
+            padding-left: 10px;
+            position: relative;
+        }
+
+        ul.findings-list li::before {
+            content: '■';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 5pt;
+            color: #3f3f46;
+        }
+        
+        ul.findings-list li.alert::before {
+            color: #ef4444;
+        }
+
+        ul.findings-list li strong {
+            color: #e4e4e7;
+            font-weight: 700;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid #1f1f23;
+            padding-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            color: #3f3f46;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="org-title">BRASA Governance Engine</div>
+                <h1 class="doc-title">Operational Escalation</h1>
+            </div>
+            <div class="header-right">
+                <div class="status-flag-massive">THRESHOLD_BREACHED</div>
+            </div>
+        </div>
+
+        <!-- Audit Metadata - Dense Grid Table -->
+        <table class="meta-table">
+            <tr>
+                <td class="label">Trigger ID</td>
+                <td class="value">ESC-MIA-118-0421</td>
+                <td class="label">Protocol ID</td>
+                <td class="value">PROT-YLD-99A</td>
+            </tr>
+            <tr>
+                <td class="label">Location</td>
+                <td class="value">Unit #118 — Miami (Dock B)</td>
+                <td class="label">Variance Class</td>
+                <td class="value" style="color: #ef4444; font-weight: 800;">Class A (Yield Failure)</td>
+            </tr>
+            <tr>
+                <td class="label">Region ID</td>
+                <td class="value">REG-SOUTH-04</td>
+                <td class="label">Escalated To</td>
+                <td class="value">RD (Area 4)</td>
+            </tr>
+            <tr>
+                <td class="label">Audit Chain</td>
+                <td class="value">CHN-MIA-118-Y</td>
+                <td class="label">Vendor Tier</td>
+                <td class="value">Tier 1 (Premium Protein)</td>
+            </tr>
+        </table>
+
+        <!-- 1. Escalation Summary -->
+        <div class="section">
+            <h2>1. Primary Escalation Logs</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>Variance Violation:</strong> Yield variance exceeded 3.0% limit for 6 consecutive days.</li>
+                <li class="alert"><strong>Reconciliation Drift:</strong> Invoice-to-portion reconciliation drift detected.</li>
+                <li class="alert"><strong>Operational Control:</strong> Daily lockout active. Regional RD override required.</li>
+            </ul>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="section">
+            <h2>2. Governance Metrics</h2>
+            <div class="exposure-grid">
+                <div class="exposure-card critical">
+                    <div class="exposure-label">Yield Variance %</div>
+                    <div class="exposure-value">5.2%</div>
+                </div>
+                <div class="exposure-card critical">
+                    <div class="exposure-label">Weekly Exposure</div>
+                    <div class="exposure-value">$3,420</div>
+                </div>
+                <div class="exposure-card">
+                    <div class="exposure-label">Compliance Score</div>
+                    <div class="exposure-value" style="color: #ef4444;">72.4%</div>
+                </div>
+                <div class="exposure-card">
+                    <div class="exposure-label">Recovery Trend</div>
+                    <div class="exposure-value" style="color: #fbbf24; font-size: 11pt; padding-top: 4px;">Muted</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Risk Matrix Table -->
+        <div class="section">
+            <h2>3. Risk Matrix</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Risk Category</th>
+                        <th>Severity</th>
+                        <th>Financial Exposure</th>
+                        <th>Operational Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Inbound Receiving Variance</td>
+                        <td><span class="status-flag flag-yellow">HIGH</span></td>
+                        <td>$1,120 / Wk</td>
+                        <td>Inbound discrepancy detected at Dock B</td>
+                    </tr>
+                    <tr>
+                        <td>Butcher Yield Fabrication</td>
+                        <td><span class="status-flag flag-red">CRIT</span></td>
+                        <td>$1,850 / Wk</td>
+                        <td>Trim waste exceeds specification</td>
+                    </tr>
+                    <tr>
+                        <td>Portion Execution Drift</td>
+                        <td><span class="status-flag flag-yellow">WARN</span></td>
+                        <td>$450 / Wk</td>
+                        <td>Lbs/Guest drift vs menu baseline</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 3. Operational Findings -->
+        <div class="section">
+            <h2>4. Operational Variance Findings</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>Trim Inconsistency:</strong> Sub-primal ribeye trim variance measured 6.8% over spec.</li>
+                <li class="alert"><strong>Fabrication Loss:</strong> Unaccounted fabrication waste logged between shifts.</li>
+                <li><strong>Inventory Discrepancy:</strong> Physical counts misaligned with digital portion count logs.</li>
+            </ul>
+        </div>
+
+        <!-- 4. Governance Timeline -->
+        <div class="section">
+            <h2>5. Escalation Sequence</h2>
+            <div class="timeline-flow">
+                <div class="timeline-node">
+                    <div class="node-time">10/08 (D1)</div>
+                    <div class="node-title">Detect</div>
+                    <div class="node-desc">Variance exceeded 3% limit</div>
+                </div>
+                <div class="timeline-node">
+                    <div class="node-time">10/10 (D3)</div>
+                    <div class="node-title">Alert</div>
+                    <div class="node-desc">Manager warning dispatched</div>
+                </div>
+                <div class="timeline-node active">
+                    <div class="node-time">10/13 (D6)</div>
+                    <div class="node-title">Escalate</div>
+                    <div class="node-desc">RD lockout triggered</div>
+                </div>
+                <div class="timeline-node">
+                    <div class="node-time">10/15</div>
+                    <div class="node-title">Action</div>
+                    <div class="node-desc">Mandate issued to GM</div>
+                </div>
+                <div class="timeline-node">
+                    <div class="node-time">10/17</div>
+                    <div class="node-title">Re-Audit</div>
+                    <div class="node-desc">Compliance lock review</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Recommended Actions -->
+        <div class="section" style="margin-bottom: 0;">
+            <h2>6. Enforcement Directives</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>Lockout Enforcement:</strong> Daily lock active. Requires Regional Director override PIN.</li>
+                <li><strong>Butcher Review:</strong> Direct trim performance review assigned to morning shift.</li>
+                <li><strong>Dock Check:</strong> Mandated calibration check for Dock B scales within 24h.</li>
+                <li><strong>Manager Coaching:</strong> Store-level compliance coaching module assigned to KM.</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span>Generated by BRASA Governance Agent</span>
+            <span>Trace: ESC-SYS-118-MIA</span>
+            <span>System Timestamp: 2026-10-14 09:12:08 UTC</span>
+            <span>CONFIDENTIAL INTERNAL DOCUMENT</span>
+        </div>
+
+    </div>
+
+</body>
+</html>

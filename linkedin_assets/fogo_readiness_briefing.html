@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fogo de Chão - Operational Readiness Briefing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            font-family: 'Inter', sans-serif;
+            color: #1a1a1a;
+        }
+
+        .page {
+            max-width: 8.5in;
+            height: 10.5in;
+            margin: 0 auto;
+            padding: 0.5in;
+            position: relative;
+            background: white;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER / LETTERHEAD */
+        .header {
+            border-bottom: 2px solid #1a1a1a;
+            padding-bottom: 5px;
+            margin-bottom: 0.15in;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 15pt;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .division {
+            font-family: 'Roboto', sans-serif;
+            font-size: 7.5pt;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #555;
+        }
+
+        .status-stamp {
+            font-family: 'Roboto', sans-serif;
+            font-size: 8pt;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #006400;
+            border: 1px solid #006400;
+            padding: 2px 5px;
+            text-transform: uppercase;
+        }
+
+        /* DOCUMENT METADATA */
+        .metadata {
+            font-size: 10.5pt;
+            line-height: 1.4;
+            margin-bottom: 0.15in;
+        }
+
+        .metadata span {
+            font-weight: 700;
+            display: inline-block;
+            width: 75px;
+        }
+
+        /* BODY CONTENT */
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 12.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 11pt; 
+            line-height: 1.5;
+            text-align: justify;
+            margin-bottom: 12px;
+        }
+
+        .bullet-points {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .bullet-points li {
+            font-size: 11pt; 
+            line-height: 1.5;
+            margin-bottom: 6px;
+            text-align: justify;
+        }
+
+        /* SIGNATURE */
+        .signature-block {
+            margin-top: auto;
+            margin-bottom: 0.1in;
+        }
+
+        .signature-line {
+            width: 200px;
+            border-bottom: 1px solid #1a1a1a;
+            margin-bottom: 5px;
+            height: 30px;
+        }
+
+        .signature-name {
+            font-weight: 700;
+            font-size: 11pt;
+        }
+
+        .signature-title {
+            font-size: 9pt;
+            color: #555;
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            font-size: 8pt;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="header">
+            <div>
+                <div class="brand-name">BRASA MEAT INTELLIGENCE OS</div>
+                <div class="division">TENANT READINESS DIVISION</div>
+            </div>
+            <div class="status-stamp">SYSTEM LIVE</div>
+        </div>
+
+        <!-- DADOS DO DESTINATÁRIO -->
+        <div class="metadata">
+            <div><span>TO:</span> Paulo Simonetti, General Manager, Fogo de Chão Tampa</div>
+            <div><span>FROM:</span> Alexandre Garcia, Founder, Brasa Meat Intelligence</div>
+            <div><span>PORTAL:</span> fogo.brasameat.com</div>
+            <div><span>DATE:</span> May 13, 2026</div>
+            <div><span>SUBJECT:</span> Operational Node Activation & Governance Protocol</div>
+        </div>
+
+        <h1>System Readiness Update</h1>
+        <p>Paulo, while the industry continues to struggle with end-of-month P&L post-mortems, I have completed the final provisioning of the Fogo de Chão Intelligence Node. The infrastructure for your unit is now live and stable.</p>
+
+        <h1>The "Garcia Rule" Integration</h1>
+        <p>The core methodology we discussed regarding operational governance—specifically the lockout protocols for non-compliant inventory counts—is now fully mapped into your custom dashboard. We are moving past the concept of a "trial" and into full operational validation.</p>
+        
+        <ul class="bullet-points">
+            <li><strong>Live Monitoring:</strong> Your specific meat-cut profiles (Picanha, Fraldinha, Filet) are configured for real-time yield audit.</li>
+            <li><strong>Zero-Leak Governance:</strong> The inventory lockout logic is ready to enforce strict receiving dock discipline.</li>
+            <li><strong>Executive Transparency:</strong> Direct visibility into fabrication variance from butcher to table.</li>
+        </ul>
+
+        <h1>Activation Challenge</h1>
+        <p>The platform at <strong>fogo.brasameat.com</strong> is active. I am dropping this off to confirm that I am ready to spend 15 minutes with you to perform the first live "Dock-to-Table" yield audit. </p>
+        
+        <p>I know the floor is demanding, but the margin leakage is constant. Let's turn the key on the first unit in Tampa this week.</p>
+
+        <!-- ASSINATURA -->
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-name">Alexandre Garcia</div>
+            <div class="signature-title">Founder & CEO, Brasa Meat Intelligence OS</div>
+        </div>
+
+        <div class="footer">
+            Brasa Meat Intelligence OS &copy; 2026 | Private Operational Briefing | Port: 443 (Secure)
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRASA Enterprise - 14-Day Pilot Brief</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base Print Settings */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #18181b; /* Web background */
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 8.5in;
+            height: 11in;
+            background-color: #050505; /* Palantir dark */
+            color: #d4d4d8;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            box-sizing: border-box;
+            padding: 0.5in 0.6in;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: center;
+        }
+
+        @media print {
+            body { background: #050505; }
+            .page {
+                margin: 0;
+                box-shadow: none;
+                page-break-after: avoid;
+            }
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            font-family: 'Inter', sans-serif;
+            font-size: 14pt;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+        .logo span { color: #a1a1aa; font-weight: 300; }
+
+        .title-area { text-align: right; }
+        .doc-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 16pt;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+        }
+        .doc-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            color: #dc2626;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            padding: 2px 6px;
+            display: inline-block;
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        /* Typography */
+        h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 11pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ffffff;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h2::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 14px;
+            background-color: #dc2626;
+        }
+
+        p {
+            font-size: 9.5pt;
+            line-height: 1.5;
+            color: #a1a1aa;
+            margin: 0 0 12px 0;
+        }
+        strong { color: #e4e4e7; font-weight: 600; }
+
+        /* Layout */
+        .top-section {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 30px;
+            margin-bottom: 25px;
+        }
+
+        /* Left Column */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-top: 2px solid #52525b;
+        }
+        .metric-card.alert {
+            border-top: 2px solid #dc2626;
+            background: linear-gradient(180deg, rgba(220, 38, 38, 0.05) 0%, transparent 100%);
+        }
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14pt;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+        .metric-card.alert .metric-value { color: #ef4444; }
+        .metric-label {
+            font-size: 7pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #71717a;
+            line-height: 1.2;
+        }
+        .footnote {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            color: #52525b;
+            margin-top: 8px;
+        }
+
+        /* Right Column - Timeline */
+        .timeline {
+            position: relative;
+            margin-top: 15px;
+            padding-left: 15px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .timeline-step {
+            position: relative;
+            margin-bottom: 18px;
+        }
+        .timeline-step:last-child { margin-bottom: 0; }
+        .timeline-step::before {
+            content: '';
+            position: absolute;
+            left: -19px;
+            top: 2px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #52525b;
+            border: 2px solid #050505;
+        }
+        .timeline-step.active::before { background: #dc2626; }
+        .step-header {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .step-title {
+            font-size: 9.5pt;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .step-days {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7.5pt;
+            color: #71717a;
+        }
+        .step-desc {
+            font-size: 8.5pt;
+            color: #a1a1aa;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        /* Middle - Checkpoints */
+        .middle-section {
+            margin-bottom: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        .checkpoints-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .checkpoint-card {
+            background: rgba(20, 20, 22, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px;
+        }
+        .cp-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+            color: #d4af37; /* Muted gold */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .cp-title {
+            font-size: 8.5pt;
+            font-weight: 600;
+            color: #e4e4e7;
+            line-height: 1.3;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        ul.clean-list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0 0 0;
+        }
+        ul.clean-list li {
+            font-size: 9pt;
+            color: #a1a1aa;
+            margin-bottom: 8px;
+            padding-left: 14px;
+            position: relative;
+            line-height: 1.4;
+        }
+        ul.clean-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #52525b;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8pt;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .closing {
+            font-family: 'Playfair Display', serif;
+            font-size: 13pt;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 6px 0;
+        }
+        .closing-sub {
+            font-size: 8.5pt;
+            color: #71717a;
+            margin: 0;
+        }
+        .contact-info {
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            color: #a1a1aa;
+            line-height: 1.5;
+        }
+        .contact-info strong {
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-size: 8pt;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">BRASA<span> Enterprise</span></div>
+            <div class="title-area">
+                <h1 class="doc-title">14-Day Pilot Brief</h1>
+                <div class="doc-tag">Confidential / Executive Preview</div>
+            </div>
+        </div>
+
+        <!-- Top Section -->
+        <div class="top-section">
+            <!-- Left: Problem -->
+            <div>
+                <h2>The Governance Visibility Gap</h2>
+                <p>Most restaurant groups do not have a food cost problem alone. They have a <strong>governance visibility problem</strong>.</p>
+                <p>Traditional ERP and inventory systems reconcile invoices and gross weights, but they do not govern the operational variance that happens between receiving, fabrication, prep, and service.</p>
+                <p>At scale, small yield discrepancies become material EBITDA exposure.</p>
+
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">3.5%</div>
+                        <div class="metric-label">Unmonitored Yield Drift</div>
+                    </div>
+                    <div class="metric-card alert">
+                        <div class="metric-value">$1.75M</div>
+                        <div class="metric-label">Annual Margin Exposure</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">50</div>
+                        <div class="metric-label">Unit High-Volume Network</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" style="font-size: 11pt; padding-top: 4px;">BLIND SPOT</div>
+                        <div class="metric-label">P&L Status</div>
+                    </div>
+                </div>
+                <div class="footnote">* Model based on illustrative 50-unit high-volume steakhouse network processing $50M in annual protein spend.</div>
+            </div>
+
+            <!-- Right: Timeline -->
+            <div>
+                <h2>14-Day Validation Protocol</h2>
+                <p>Designed for immediate execution with zero disruption to existing tech stacks.</p>
+                
+                <div class="timeline">
+                    <div class="timeline-step">
+                        <div class="step-header">
+                            <span class="step-title">Phase 1: Targeting</span>
+                            <span class="step-days">DAYS 0–1</span>
+                        </div>
+                        <p class="step-desc">Select 2 high-volume flagship units. Define protein categories, baseline reports, receiving workflow, and operational owners.</p>
+                    </div>
+
+                    <div class="timeline-step">
+                        <div class="step-header">
+                            <span class="step-title">Phase 2: Baseline Audit</span>
+                            <span class="step-days">DAYS 2–8</span>
+                        </div>
+                        <p class="step-desc">Run shadow audit parallel to existing systems. Measure actual yield variance, receiving discrepancies, trim loss, and inventory drift.</p>
+                    </div>
+
+                    <div class="timeline-step active">
+                        <div class="step-header">
+                            <span class="step-title">Phase 3: Governance Activation</span>
+                            <span class="step-days">DAYS 9–14</span>
+                        </div>
+                        <p class="step-desc">Activate variance thresholds, compliance checkpoints, and manager escalation workflow. Document leakage patterns and recovery opportunities.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle: Checkpoints -->
+        <div class="middle-section">
+            <h2>What BRASA Measures</h2>
+            <div class="checkpoints-grid">
+                <div class="checkpoint-card">
+                    <div class="cp-label">Receiving</div>
+                    <div class="cp-title">Invoice Weight vs. Actual Receiving Weight</div>
+                </div>
+                <div class="checkpoint-card">
+                    <div class="cp-label">Governance</div>
+                    <div class="cp-title">Out-of-Spec Product Flags</div>
+                </div>
+                <div class="checkpoint-card">
+                    <div class="cp-label">Yield</div>
+                    <div class="cp-title">Primal Yield Variance</div>
+                </div>
+                <div class="checkpoint-card">
+                    <div class="cp-label">Inventory</div>
+                    <div class="cp-title">Trim & Fabrication Waste</div>
+                </div>
+                <div class="checkpoint-card">
+                    <div class="cp-label">Service</div>
+                    <div class="cp-title">Lbs / Guest Drift</div>
+                </div>
+                <div class="checkpoint-card">
+                    <div class="cp-label">Finance</div>
+                    <div class="cp-title">Store-Level Variance Escalation</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom: Success & Output -->
+        <div class="bottom-section">
+            <div>
+                <h2>Pilot Success Criteria</h2>
+                <ul class="clean-list">
+                    <li>Top 3 operational leakage points identified</li>
+                    <li>Baseline variance profile established</li>
+                    <li>Receiving compliance score calculated</li>
+                    <li>Store-level escalation workflow validated</li>
+                    <li>Margin recovery opportunity quantified</li>
+                    <li>Executive summary delivered within 48 hours</li>
+                </ul>
+            </div>
+            <div>
+                <h2>Executive Deliverables</h2>
+                <ul class="clean-list">
+                    <li>Pilot Summary Brief</li>
+                    <li>Variance Exposure Report</li>
+                    <li>Store-Level Risk Matrix</li>
+                    <li>Receiving Compliance Findings</li>
+                    <li>Yield Governance Recommendations</li>
+                    <li>Rollout Readiness Assessment</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div>
+                <p class="closing">BRASA Enterprise was designed to operationalize accountability at scale.</p>
+                <p class="closing-sub">Built by operators for enterprise hospitality teams managing scale, variance, and execution consistency.</p>
+            </div>
+            <div class="contact-info">
+                <strong>Alexandre Garcia</strong><br>
+                Founder — AGV Ventures<br>
+                BRASA Meat Intelligence™<br>
+                Tampa, Florida<br>
+                alexandre@alexgarciaventures.co<br>
+                alexgarciaventures.co
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 
+    TEXT FALLBACK FOR EMAIL / MESSAGING
+    
+    BRASA Enterprise | 14-Day Pilot Brief
+    Confidential / Executive Preview
+
+    THE GOVERNANCE VISIBILITY GAP
+    Most restaurant groups do not have a food cost problem alone. They have a governance visibility problem.
+    Traditional ERP and inventory systems reconcile invoices and gross weights, but they do not govern the operational variance that happens between receiving, fabrication, prep, and service. At scale, small yield discrepancies become material EBITDA exposure.
+
+    ILLUSTRATIVE BASELINE: 50-Unit High-Volume Network ($50M Protein Spend)
+    - 3.5% Unmonitored Yield Drift
+    - $1.75M Annual Margin Exposure
+    - P&L Status: Blind Spot
+
+    14-DAY VALIDATION PROTOCOL
+    Phase 1: Targeting (Days 0-1) - Select 2 high-volume units. Define workflows.
+    Phase 2: Baseline Audit (Days 2-8) - Shadow audit actual yield variance and trim loss.
+    Phase 3: Governance Activation (Days 9-14) - Activate thresholds and document recovery opportunities.
+
+    PILOT SUCCESS CRITERIA
+    - Top 3 leakage points identified
+    - Baseline variance profile established
+    - Margin recovery opportunity quantified
+    - Executive summary delivered within 48 hours
+
+    BRASA Enterprise was designed to operationalize accountability at scale.
+    Alexandre Garcia | Founder, BRASA Meat Intelligence™ | alexandre@alexgarciaventures.co
+    -->
+
+</body>
+</html>

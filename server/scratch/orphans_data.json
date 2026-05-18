@@ -1,0 +1,578 @@
+[
+  {
+    "email": "orlando@adegagaucha.com",
+    "role": "manager",
+    "first_name": "Orlando",
+    "last_name": "Manager"
+  },
+  {
+    "email": "paulo@terragaucha.com",
+    "role": "director",
+    "first_name": "Paulo",
+    "last_name": "Simonetti"
+  },
+  {
+    "email": "us.director@outback.com",
+    "role": "director",
+    "first_name": "US",
+    "last_name": "Director"
+  },
+  {
+    "email": "us.east.am@outback.com",
+    "role": "area_manager",
+    "first_name": "East",
+    "last_name": "AM"
+  },
+  {
+    "email": "us.west.am@outback.com",
+    "role": "area_manager",
+    "first_name": "West",
+    "last_name": "AM"
+  },
+  {
+    "email": "br.director@outback.com",
+    "role": "director",
+    "first_name": "Brazil",
+    "last_name": "Director"
+  },
+  {
+    "email": "fpando@texasdebrazil.com",
+    "role": "area_manager",
+    "first_name": "Frank",
+    "last_name": "Pando"
+  },
+  {
+    "email": "br.sp.am@outback.com",
+    "role": "area_manager",
+    "first_name": "SP",
+    "last_name": "AM"
+  },
+  {
+    "email": "br.regional.am@outback.com",
+    "role": "area_manager",
+    "first_name": "Regional",
+    "last_name": "AM"
+  },
+  {
+    "email": "yonkers@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "orlando@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "lasvegas@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "sanantonio@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "tampa@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "detroit@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "lexington@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "davidcastro@texasdebrazil.com",
+    "role": "director",
+    "first_name": "David",
+    "last_name": "Castro"
+  },
+  {
+    "email": "tampa.terra@terragaucha.com",
+    "role": "manager",
+    "first_name": "Store Manager",
+    "last_name": "Tampa"
+  },
+  {
+    "email": "alexandre@alexgarciaventures.co",
+    "role": "admin",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "addison@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "carlosrestrepo@texasdebrazil.com",
+    "role": "area_manager",
+    "first_name": "Carlos",
+    "last_name": "Restrepo"
+  },
+  {
+    "email": "partner@example.com",
+    "role": "partner",
+    "first_name": "John",
+    "last_name": "Doe (Partner)"
+  },
+  {
+    "email": "batonrouge@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "hartford@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "mcallen@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "global.ceo@outback.com",
+    "role": "director",
+    "first_name": "Global",
+    "last_name": "VP"
+  },
+  {
+    "email": "rodrigo.davila@texasdebrazil.com",
+    "role": "director",
+    "first_name": "Rodrigo",
+    "last_name": "Davila"
+  },
+  {
+    "email": "gabriel@agv.co",
+    "role": "director",
+    "first_name": "Gabriele",
+    "last_name": "Garcia"
+  },
+  {
+    "email": "albany@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "irvine@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "memphis@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "smithhaven@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "miamibeach@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "palmbeachgardens@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "denver@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "carlsbad@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "milwaukee@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "alirio@fogo.com",
+    "role": "area_manager",
+    "first_name": "Alirio",
+    "last_name": ""
+  },
+  {
+    "email": "dpassaia@fogo.com",
+    "role": "area_manager",
+    "first_name": "Daurio",
+    "last_name": "Passaia"
+  },
+  {
+    "email": "jpasquesi@fogo.com",
+    "role": "area_manager",
+    "first_name": "Joe",
+    "last_name": "Pasquesi"
+  },
+  {
+    "email": "adasilva@fogo.com",
+    "role": "area_manager",
+    "first_name": "Arlan",
+    "last_name": "Da Silva"
+  },
+  {
+    "email": "nhensel@fogo.com",
+    "role": "area_manager",
+    "first_name": "Neimar",
+    "last_name": "Hensel"
+  },
+  {
+    "email": "rmolinaro@fogo.com",
+    "role": "area_manager",
+    "first_name": "Rogerio",
+    "last_name": "Molinaro"
+  },
+  {
+    "email": "vmachado@fogo.com",
+    "role": "area_manager",
+    "first_name": "Valdenir",
+    "last_name": "Machado"
+  },
+  {
+    "email": "mbonfada@fogo.com",
+    "role": "area_manager",
+    "first_name": "Marcio",
+    "last_name": "Bonfada"
+  },
+  {
+    "email": "aconsoli@fogo.com",
+    "role": "area_manager",
+    "first_name": "Adriano",
+    "last_name": "Consoli"
+  },
+  {
+    "email": "avelando@fogo.com",
+    "role": "area_manager",
+    "first_name": "Alex",
+    "last_name": "Velando"
+  },
+  {
+    "email": "jalmeida@fogo.com",
+    "role": "area_manager",
+    "first_name": "Jorge",
+    "last_name": "Almeida"
+  },
+  {
+    "email": "rbonfada@fogo.com",
+    "role": "area_manager",
+    "first_name": "Rudimar",
+    "last_name": "Bonfada"
+  },
+  {
+    "email": "vmelchior@fogo.com",
+    "role": "area_manager",
+    "first_name": "Vitor",
+    "last_name": "Melchior"
+  },
+  {
+    "email": "vamelchior@fogo.com",
+    "role": "area_manager",
+    "first_name": "Vanderlei",
+    "last_name": "Melchior"
+  },
+  {
+    "email": "alex@fogo.com",
+    "role": "area_manager",
+    "first_name": "Alex",
+    "last_name": ""
+  },
+  {
+    "email": "bruno@fogo.com",
+    "role": "area_manager",
+    "first_name": "Bruno",
+    "last_name": ""
+  },
+  {
+    "email": "eduardo@fogo.com",
+    "role": "area_manager",
+    "first_name": "Eduardo",
+    "last_name": ""
+  },
+  {
+    "email": "houston@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "elias@fogo.com",
+    "role": "area_manager",
+    "first_name": "Elias",
+    "last_name": ""
+  },
+  {
+    "email": "alex@agv.com",
+    "role": "area_manager",
+    "first_name": "Alex",
+    "last_name": "Garcia"
+  },
+  {
+    "email": "acarvalho@agv.com",
+    "role": "area_manager",
+    "first_name": "Angela",
+    "last_name": "Carvalho"
+  },
+  {
+    "email": "jvp.dallas@outback.com",
+    "role": "director",
+    "first_name": "John",
+    "last_name": "JVP"
+  },
+  {
+    "email": "mp.dallas1@outback.com",
+    "role": "manager",
+    "first_name": "Mike",
+    "last_name": "MP"
+  },
+  {
+    "email": "agarcia@fogo.com",
+    "role": "manager",
+    "first_name": "Alexandre",
+    "last_name": "Garcia"
+  },
+  {
+    "email": "huntsville@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "oklahomacity@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "rogers@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "rochester@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "woodmere@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "cleveland@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "sawgrass@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "syracuse@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "birmingham@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "orlandpark@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "jacksonville@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "buffalo@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "columbus@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "pittsburgh@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "ranchocucamonga@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "cincinnati@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "dallas@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "fairfax@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "fortworth@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "greenville@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "fresno@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "grandrapids@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "gulfstream@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "annarbor@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "tacoma@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "tulsa@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "dadeland@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "miami@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "omaha@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "schaumburg@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "louisville@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "jean@fogo.com",
+    "role": "director",
+    "first_name": "Jean",
+    "last_name": "FDC"
+  },
+  {
+    "email": "richmond@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "tyler@texasdebrazil.com",
+    "role": "manager",
+    "first_name": null,
+    "last_name": null
+  },
+  {
+    "email": "rodrigodavila@texasdebrazil.com",
+    "role": "director",
+    "first_name": "Rodrigo",
+    "last_name": "Davila"
+  }
+]

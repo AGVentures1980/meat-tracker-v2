@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Variance Forensics - BRASA Enterprise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505; 
+            font-family: 'Inter', sans-serif;
+            color: #c8c8cc;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 8.5in;
+            height: 11in;
+            background-color: #08080a;
+            color: #d4d4d8;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            box-sizing: border-box;
+            padding: 0.35in 0.45in;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        }
+
+        @media print {
+            body { background: #08080a; }
+            .page {
+                margin: 0;
+                box-shadow: none;
+                border: none;
+                page-break-after: avoid;
+            }
+        }
+
+        /* Header Area - Utilitarian & Asymmetrical */
+        .header {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            border-bottom: 2px solid #1f1f23;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .header-left .org-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #52525b;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .header-left .doc-title {
+            font-size: 14pt;
+            font-weight: 900;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .status-flag-massive {
+            background: rgba(220, 38, 38, 0.12);
+            color: #ef4444;
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            padding: 3px 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8pt;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-radius: 1px;
+        }
+
+        /* Audit Metadata - Raw Grid Table */
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            border: 1px solid #1f1f23;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .meta-table td {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+            padding: 3px 6px;
+            border: 1px solid #1f1f23;
+        }
+
+        .meta-table td.label {
+            color: #52525b;
+            text-transform: uppercase;
+            font-weight: 700;
+            width: 15%;
+        }
+
+        .meta-table td.value {
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+
+        /* Sections */
+        h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #52525b;
+            margin: 0 0 6px 0;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #1f1f23;
+        }
+
+        .section {
+            margin-bottom: 10px;
+        }
+
+        /* Metric Grid - Asymmetrical */
+        .exposure-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 0.8fr;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        
+        .exposure-card {
+            background: rgba(20, 20, 22, 0.5);
+            border: 1px solid #1f1f23;
+            padding: 6px 8px;
+            border-left: 2px solid #52525b;
+        }
+        
+        .exposure-card.critical {
+            border-left: 3px solid #dc2626;
+            background: linear-gradient(90deg, rgba(220, 38, 38, 0.04) 0%, transparent 100%);
+        }
+
+        .exposure-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #52525b;
+            margin-bottom: 2px;
+            font-weight: 700;
+        }
+
+        .exposure-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14pt;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -1px;
+        }
+
+        .exposure-card.critical .exposure-value {
+            color: #ef4444;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+            margin-bottom: 4px;
+        }
+
+        .data-table th {
+            background: rgba(255, 255, 255, 0.01);
+            color: #52525b;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 4px 5px;
+            border-bottom: 1px solid #1f1f23;
+            border-top: 1px solid #1f1f23;
+        }
+
+        .data-table td {
+            padding: 5px;
+            border-bottom: 1px solid #1f1f23;
+            color: #a1a1aa;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .heavy-red {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        /* Findings List */
+        ul.findings-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        ul.findings-list li {
+            font-size: 7.5pt;
+            line-height: 1.35;
+            color: #a1a1aa;
+            margin-bottom: 3px;
+            padding-left: 10px;
+            position: relative;
+        }
+
+        ul.findings-list li::before {
+            content: '■';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 5pt;
+            color: #3f3f46;
+        }
+        
+        ul.findings-list li.alert::before {
+            color: #ef4444;
+        }
+
+        ul.findings-list li strong {
+            color: #e4e4e7;
+            font-weight: 700;
+        }
+
+        .sub-data {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            color: #52525b;
+            margin-top: 1px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid #1f1f23;
+            padding-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            color: #3f3f46;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="org-title">BRASA Governance Engine</div>
+                <h1 class="doc-title">Supplier Variance Forensics</h1>
+            </div>
+            <div class="header-right">
+                <div class="status-flag-massive">NETWORK_FLAG_ACTIVE</div>
+            </div>
+        </div>
+
+        <!-- Audit Metadata -->
+        <table class="meta-table">
+            <tr>
+                <td class="label">Analysis ID</td>
+                <td class="value">SUP-ANL-PRM-882</td>
+                <td class="label">Target Supplier</td>
+                <td class="value">PRM-882 (Prime Select)</td>
+            </tr>
+            <tr>
+                <td class="label">Region ID</td>
+                <td class="value">REG-SOUTH-04 (Florida)</td>
+                <td class="label">Supplier Class</td>
+                <td class="value">Tier 1 (Premium Protein)</td>
+            </tr>
+            <tr>
+                <td class="label">Audit Cycle</td>
+                <td class="value">30-Day Cumulative</td>
+                <td class="label">Active Traces</td>
+                <td class="value">14 Florida Locations</td>
+            </tr>
+            <tr>
+                <td class="label">Priority Class</td>
+                <td class="value" style="color: #ef4444; font-weight: 800;">Class A (Yield Failure)</td>
+                <td class="label">Reconciliation Chain</td>
+                <td class="value">CHN-SUP-PRM-882-FL</td>
+            </tr>
+        </table>
+
+        <!-- 1. Executive Forensic Summary -->
+        <div class="section">
+            <h2>1. Systemic Variance Overview</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>Systemic Packaging Purge:</strong> Purge loss consistently measured outside compliance limits across all Florida locations.</li>
+                <li class="alert"><strong>Sub-Primal Trim Failure:</strong> Consistently fat-capped sub-primals delivered, driving systemic artificial yield inflation.</li>
+                <li><strong>Network Financial Exposure:</strong> Prime Select discrepancies constitute the largest single margin leak in REG-SOUTH-04.</li>
+            </ul>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="section">
+            <h2>2. Forensic Exposure Matrix</h2>
+            <div class="exposure-grid">
+                <div class="exposure-card critical">
+                    <div class="exposure-label">Florida Regional Bleed</div>
+                    <div class="exposure-value">$14,240<span style="font-size: 7.5pt; font-weight: 500; color: #ef4444; margin-left: 4px;">/ Wk</span></div>
+                </div>
+                <div class="exposure-card critical">
+                    <div class="exposure-label">Annualized Regional Drift</div>
+                    <div class="exposure-value">$740,480</div>
+                </div>
+                <div class="exposure-card">
+                    <div class="exposure-label">Supplier Status</div>
+                    <div class="exposure-value" style="color: #ef4444; font-size: 11pt; padding-top: 4px;">FLAGGED</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Regional Drift Breakdown Table -->
+        <div class="section">
+            <h2>3. Cross-Location Variance Breakdown</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th>Associated Incident ID</th>
+                        <th>Primal Trim Drift</th>
+                        <th>Purge Loss Drift</th>
+                        <th>Net Weight Discrepancy</th>
+                        <th>Enforcement Trigger</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Unit #118 (Miami)</td>
+                        <td>INC-ESC-MIA-118-0421</td>
+                        <td class="heavy-red">-3.8% (Ribeye)</td>
+                        <td>-2.2% purge loss</td>
+                        <td class="heavy-red">-5.20% net</td>
+                        <td><span class="status-flag flag-red">LOCKOUT</span></td>
+                    </tr>
+                    <tr>
+                        <td>Unit #042 (Tampa)</td>
+                        <td>INC-RCV-TPA-042-8891</td>
+                        <td>-2.1% (NY Strip)</td>
+                        <td class="heavy-red">-2.8% purge loss</td>
+                        <td class="heavy-red">-4.90% net</td>
+                        <td><span class="status-flag flag-red">BREACH</span></td>
+                    </tr>
+                    <tr>
+                        <td>Unit #088 (Orlando)</td>
+                        <td>INC-RCV-ORL-088-01</td>
+                        <td>-1.8% (Filet)</td>
+                        <td>-1.4% purge loss</td>
+                        <td>-3.20% net</td>
+                        <td><span class="status-flag flag-yellow">WARN</span></td>
+                    </tr>
+                    <tr>
+                        <td>Unit #202 (Ft. Lauderdale)</td>
+                        <td>INC-RCV-FTL-202-09</td>
+                        <td>-0.8% (Ribeye)</td>
+                        <td>-1.1% purge loss</td>
+                        <td>-1.90% net</td>
+                        <td><span class="status-flag flag-green">OK</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 4. Product Compliance Findings -->
+        <div class="section">
+            <h2>4. Core Compliance Breaches</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>NY Strip Trim Spec:</strong> Cap thickness exceeds 1/4" spec on 84% of delivered primals in REG-SOUTH-04.</li>
+                <li class="alert"><strong>Cryovac Inbound Weight:</strong> Water/purged blood weight measured as biological product weight. Invoice reconciliation drift verified.</li>
+                <li><strong>Sub-Primal Packaging:</strong> Inconsistent plastic gauge used in vacuum packaging leading to micro-punctures and yield decay.</li>
+            </ul>
+        </div>
+
+        <!-- 5. Network Directives -->
+        <div class="section" style="margin-bottom: 0;">
+            <h2>5. Strategic Network Enforcement</h2>
+            <ul class="findings-list">
+                <li class="alert"><strong>Credit Claim Triggered:</strong> Immediate $14,240 credit claim initiated against Prime Select invoice cycle.</li>
+                <li class="alert"><strong>Dock Lockdown:</strong> Mandatory double-verification and weight logging at dock for all Prime Select inbound deliveries.</li>
+                <li><strong>Regional Purchasing Review:</strong> Sourcing department instructed to review alternative prime grade suppliers for REG-SOUTH-04.</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span>Generated by BRASA Governance Agent</span>
+            <span>Trace Ref: SUP-SYS-882-FL</span>
+            <span>System Timestamp: 2026-10-14 09:30:11 UTC</span>
+            <span>INTERNAL OPERATIONS CONSOLE // EXECUTIVE ACCESS ONLY // CONFIDENTIAL</span>
+        </div>
+
+    </div>
+
+</body>
+</html>

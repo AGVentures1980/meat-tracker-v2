@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Command Center - BRASA Enterprise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #030304;
+            color: #d4d4d8;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page {
+            width: 10.5in;
+            height: 8.1in;
+            background-color: #060608;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            padding: 16px 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Top Header - Tight & Cold */
+        .header {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            border-bottom: 2px solid #18181b;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .logo-area .org-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #4b5563;
+            text-transform: uppercase;
+        }
+
+        .logo-area .console-title {
+            font-size: 13pt;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            margin: 2px 0 0 0;
+        }
+
+        .status-panel {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+        }
+
+        .status-badge {
+            background: rgba(220, 38, 38, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            padding: 2px 6px;
+            font-weight: 800;
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Asymmetric Key Metrics Grid - Dominant Exposure Card */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 0.9fr; /* Left card heavily favored */
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .metric-card {
+            background: rgba(15, 15, 18, 0.6);
+            border: 1px solid #18181b;
+            padding: 8px 10px;
+            border-left: 2px solid #3f3f46;
+        }
+
+        .metric-card.critical-exposure {
+            border-left: 3px solid #dc2626;
+            background: linear-gradient(90deg, rgba(220, 38, 38, 0.08) 0%, transparent 100%);
+            border-top: 1px solid rgba(220, 38, 38, 0.2);
+            border-right: 1px solid rgba(220, 38, 38, 0.2);
+            border-bottom: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .metric-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #52525b;
+            margin-bottom: 3px;
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15pt;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .metric-card.critical-exposure .metric-value {
+            color: #ef4444;
+            font-size: 18pt;
+            text-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+            letter-spacing: -1px;
+        }
+
+        /* Main Workspace Grid - Extreme Utilization */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1.55fr 1fr;
+            gap: 12px;
+            flex: 1;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #18181b;
+            background: rgba(8, 8, 10, 0.5);
+            padding: 8px 10px;
+            overflow: hidden;
+        }
+
+        .panel h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #52525b;
+            margin: 0 0 6px 0;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #18181b;
+        }
+
+        /* Dense Bloomberg Tables */
+        .dense-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6.5pt;
+        }
+
+        .dense-table th {
+            color: #52525b;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-align: left;
+            padding: 3px 4px;
+            border-bottom: 1px solid #18181b;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .dense-table td {
+            padding: 5px 4px;
+            border-bottom: 1px solid #18181b;
+            color: #a1a1aa;
+        }
+
+        .dense-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .heavy-red {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        /* Sub-data references */
+        .sub-ref {
+            display: block;
+            font-size: 5.5pt;
+            color: #52525b;
+            margin-top: 1px;
+        }
+
+        /* Network Alerts & Anomaly Cluster - Fills Dead Space */
+        .anomaly-cluster {
+            margin-top: auto;
+            border-top: 1px solid #18181b;
+            padding-top: 6px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .cluster-widget {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+        }
+
+        .cluster-label {
+            color: #52525b;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .cluster-value {
+            color: #e4e4e7;
+            font-weight: 700;
+        }
+
+        .cluster-bar {
+            letter-spacing: -1px;
+            color: #ef4444;
+        }
+
+        /* Active Action Queue */
+        .action-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            overflow-y: hidden;
+        }
+
+        .action-item {
+            background: rgba(15, 15, 18, 0.4);
+            border: 1px solid #18181b;
+            padding: 6px 8px;
+            border-left: 2px solid #52525b;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px;
+        }
+
+        .action-item.critical {
+            border-left-color: #dc2626;
+            background: linear-gradient(90deg, rgba(220, 38, 38, 0.04) 0%, transparent 100%);
+            border-top: 1px solid rgba(220, 38, 38, 0.15);
+            border-bottom: 1px solid rgba(220, 38, 38, 0.15);
+        }
+
+        .action-details .action-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            color: #52525b;
+            font-weight: 700;
+        }
+
+        .action-details .action-desc {
+            font-size: 7pt;
+            font-weight: 700;
+            color: #e4e4e7;
+            margin: 1px 0;
+        }
+
+        .action-details .action-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            color: #71717a;
+        }
+
+        .action-details .action-aging {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            color: #ef4444;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #18181b;
+            color: #a1a1aa;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            padding: 2px 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            cursor: pointer;
+            align-self: center;
+        }
+
+        .action-item.critical .action-btn {
+            border-color: rgba(220, 38, 38, 0.3);
+            color: #ef4444;
+            background: rgba(220, 38, 38, 0.05);
+        }
+
+        /* Status Flags */
+        .status-flag {
+            padding: 1px 3px;
+            font-size: 5.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .flag-red { background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); }
+        .flag-yellow { background: rgba(234, 179, 8, 0.08); color: #fbbf24; border: 1px solid rgba(234, 179, 8, 0.2); }
+        .flag-green { background: rgba(34, 197, 94, 0.08); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
+
+        /* Bottom Live Telemetry Terminal */
+        .telemetry-feed {
+            height: 1.1in;
+            border: 1px solid #18181b;
+            background: #040405;
+            padding: 6px 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .telemetry-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            font-weight: 700;
+            color: #52525b;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            border-bottom: 1px solid #18181b;
+            padding-bottom: 1px;
+        }
+
+        .telemetry-lines {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5.5pt;
+            color: #71717a;
+            line-height: 1.25;
+            overflow-y: hidden;
+        }
+
+        .telemetry-line {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 1px;
+        }
+
+        .telemetry-time { color: #3f3f46; }
+        .telemetry-packet { color: #8e8e93; }
+        .telemetry-alert { color: #ef4444; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-area">
+                <div class="org-title">BRASA Enterprise Governance Layer</div>
+                <h1 class="console-title">Executive Command Console</h1>
+            </div>
+            <div class="status-panel">
+                <span>Feeds: 50/50 Est.</span>
+                <span class="status-badge">4 LOOPS_ENFORCED</span>
+            </div>
+        </div>
+
+        <!-- Asymmetric Key Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card critical-exposure">
+                <div class="metric-label">Network Capital Bleed</div>
+                <div class="metric-value">$18,420<span style="font-size: 7.5pt; font-weight: 500; color: #ef4444; margin-left: 4px;">/ Wk</span></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Enforced Lockouts</div>
+                <div class="metric-value">4 Units</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">EBITDA Risk Exposure</div>
+                <div class="metric-value">$958,400<span style="font-size: 7pt; color: #52525b; margin-left: 3px;">/ Yr</span></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Average Yield Drift</div>
+                <div class="metric-value">3.82%</div>
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="workspace">
+            
+            <!-- Left: Regional Compliance & Rankings -->
+            <div class="panel">
+                <h2>1. Network Compliance & Yield Drift Ranking</h2>
+                <table class="dense-table" style="margin-bottom: 8px;">
+                    <thead>
+                        <tr>
+                            <th>Unit ID</th>
+                            <th>Location</th>
+                            <th>Protocol Ref</th>
+                            <th>Yield Var</th>
+                            <th>Status</th>
+                            <th>Current Enforcement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Unit #118</td>
+                            <td>Miami (Dock B)</td>
+                            <td>PROT-YLD-99A</td>
+                            <td class="heavy-red">5.20%</td>
+                            <td><span class="status-flag flag-red">LOCKOUT</span></td>
+                            <td>Awaiting RD Override (ESC-MIA-118-0421)</td>
+                        </tr>
+                        <tr>
+                            <td>Unit #042</td>
+                            <td>Tampa (Dock A)</td>
+                            <td>PROT-RCV-02B</td>
+                            <td class="heavy-red">4.90%</td>
+                            <td><span class="status-flag flag-red">BREACH</span></td>
+                            <td>Dock Dispute Active (RCV-TPA-042-8891)</td>
+                        </tr>
+                        <tr>
+                            <td>Unit #088</td>
+                            <td>Orlando (Dock A)</td>
+                            <td>PROT-YLD-12X</td>
+                            <td style="color: #fbbf24; font-weight: 700;">3.20%</td>
+                            <td><span class="status-flag flag-yellow">WARN</span></td>
+                            <td>Active Scale Calibration Verification</td>
+                        </tr>
+                        <tr>
+                            <td>Unit #204</td>
+                            <td>Dallas</td>
+                            <td>PROT-YLD-01A</td>
+                            <td>1.40%</td>
+                            <td><span class="status-flag flag-green">OK</span></td>
+                            <td>Routine Automated Audits Active</td>
+                        </tr>
+                        <tr>
+                            <td>Unit #012</td>
+                            <td>Chicago</td>
+                            <td>PROT-YLD-08C</td>
+                            <td>0.90%</td>
+                            <td><span class="status-flag flag-green">OK</span></td>
+                            <td>Routine Automated Audits Active</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Anomaly Cluster - Fills space at the bottom of ranking panel -->
+                <div class="anomaly-cluster">
+                    <div class="cluster-widget">
+                        <div class="cluster-label">Vendor Pattern Log</div>
+                        <div class="cluster-value" style="color: #ef4444;">Prime Select [Critical]</div>
+                    </div>
+                    <div class="cluster-widget">
+                        <div class="cluster-label">Incident Clustering</div>
+                        <div class="cluster-value">REG-SOUTH-04 (Miami/Tampa)</div>
+                    </div>
+                    <div class="cluster-widget">
+                        <div class="cluster-label">Drift Anomaly Heat</div>
+                        <div class="cluster-value cluster-bar">[██████░░░░]</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Executive Action Queue -->
+            <div class="panel">
+                <h2>2. Executive Action Queue</h2>
+                <div class="action-list">
+                    
+                    <div class="action-item critical">
+                        <div class="action-details">
+                            <div class="action-id">INC-ESC-MIA-118-0421</div>
+                            <div class="action-desc">Miami Lockout: Persistent Yield Drift (5.2%)</div>
+                            <div class="action-meta">Owner: RD Area 4 // Trigger: 6-Day Breach</div>
+                            <div class="action-aging">RD REVIEW PENDING — 17h SLA Remaining</div>
+                        </div>
+                        <button class="action-btn">Override</button>
+                    </div>
+
+                    <div class="action-item critical">
+                        <div class="action-details">
+                            <div class="action-id">INC-RCV-TPA-042-8891</div>
+                            <div class="action-desc">Supplier Weight Dispute: Prime Select (-4.9%)</div>
+                            <div class="action-meta">Owner: RCV Auditor // Batch: BTCH-4550-B</div>
+                            <div class="action-aging" style="color: #fbbf24;">CREDIT DISPUTE OPEN — 4h elapsed</div>
+                        </div>
+                        <button class="action-btn">Escalate</button>
+                    </div>
+
+                    <div class="action-item">
+                        <div class="action-details">
+                            <div class="action-id">SYS-CAL-ORL-088-02</div>
+                            <div class="action-desc">Dock B Scale out-of-calibration warning</div>
+                            <div class="action-meta">Owner: Store GM // Scale: SCL-088-A</div>
+                            <div class="action-aging" style="color: #71717a;">COMPLIANCE RESPONSE PENDING</div>
+                        </div>
+                        <button class="action-btn">Re-Cal</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom: Live Telemetry Terminal -->
+        <div class="telemetry-feed">
+            <div class="telemetry-title">System Live Auditing Telemetry Feed // Packet Stream Active // Trace ID: RCV-SYS-993-81</div>
+            <div class="telemetry-lines">
+                <div class="telemetry-line">
+                    <span class="telemetry-time">[08:14:22 UTC]</span>
+                    <span class="telemetry-packet">AUD-RCV // Tampa Unit #042 scale SCL-042-A: Prime Select BTCH-4550-B. Invoiced: 710.2Lbs. Received: 675.4Lbs. purge: 1.2%</span>
+                    <span class="telemetry-alert">RCV-TPA-042-8891: EXPOSURE DRIFT DETECTED (-4.9%)</span>
+                </div>
+                <div class="telemetry-line">
+                    <span class="telemetry-time">[09:02:11 UTC]</span>
+                    <span class="telemetry-packet">SYS-MGR // Unit #118 lockout warning dispatched to GM Santos (Tampa/Miami Area). SLA escalation chain running.</span>
+                </div>
+                <div class="telemetry-line">
+                    <span class="telemetry-time">[09:12:08 UTC]</span>
+                    <span class="telemetry-packet">AUD-YLD // Miami butcher yield audit: ribeye fabrications at 6.8% over specs. Daily audit lockout engaged.</span>
+                    <span class="telemetry-alert">ESC-MIA-118-0421: 6-DAY COMPLIANCE FAILURE. ACTIVE LOCKOUT LOCKED.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span>Executive Command Console v4.2 // Active Instance</span>
+            <span>Trace Ref: BRASA-NET-MGR-0982-A</span>
+            <span>System Timestamp: 2026-10-14 09:29:13 UTC</span>
+            <span>INTERNAL OPERATIONS CONSOLE // EXECUTIVE ACCESS ONLY // CONFIDENTIAL</span>
+        </div>
+
+    </div>
+
+</body>
+</html>
