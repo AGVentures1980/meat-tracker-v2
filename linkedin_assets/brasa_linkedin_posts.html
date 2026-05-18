@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRASA Enterprise — LinkedIn Editorial Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #08080a;
+            color: #d4d4d8;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+
+        /* Header Area */
+        .header {
+            border-bottom: 2px solid #1f1f23;
+            padding-bottom: 16px;
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .header-left .org-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8pt;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #ef4444;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .header-left .doc-title {
+            font-size: 24pt;
+            font-weight: 900;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7.5pt;
+            color: #52525b;
+            text-align: right;
+            line-height: 1.5;
+        }
+
+        .header-right strong {
+            color: #a1a1aa;
+        }
+
+        /* Hub Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* Navigation Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 40px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid #1f1f23;
+            padding: 16px;
+            border-radius: 2px;
+        }
+
+        .sidebar-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7.5pt;
+            font-weight: 700;
+            color: #52525b;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #1f1f23;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            color: #a1a1aa;
+            text-decoration: none;
+            padding: 6px 8px;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.02);
+            border-left-color: #3f3f46;
+        }
+
+        /* Editorial Feed */
+        .feed {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* Post Card */
+        .post-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid #1f1f23;
+            padding: 24px;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .post-card::before {
+            content: 'POST PROFILE';
+            position: absolute;
+            top: 0;
+            right: 24px;
+            transform: translateY(-50%);
+            background: #08080a;
+            padding: 0 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 6pt;
+            color: #52525b;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .post-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #1f1f23;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+        }
+
+        .meta-group span {
+            color: #52525b;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .meta-group strong {
+            color: #e4e4e7;
+            font-weight: 500;
+        }
+
+        .post-title {
+            font-size: 14pt;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 16px 0;
+            letter-spacing: -0.5px;
+        }
+
+        /* Post Body / Monospace Field */
+        .post-body-container {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .post-body {
+            background: #0d0d11;
+            border: 1px solid #1f1f23;
+            padding: 18px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8.5pt;
+            line-height: 1.6;
+            color: #d4d4d8;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            border-radius: 1px;
+            margin: 0;
+        }
+
+        /* Action Buttons */
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            background: #1f1f23;
+            border: 1px solid #3f3f46;
+            color: #e4e4e7;
+            padding: 6px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7.5pt;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 1px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: #ffffff;
+        }
+
+        .btn-copy-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            color: #4ade80;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-copy-status.visible {
+            opacity: 1;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            border-top: 1px solid #1f1f23;
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7pt;
+            color: #3f3f46;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="org-title">BRASA Enterprise</div>
+                <h1 class="doc-title">LinkedIn Editorial Hub</h1>
+            </div>
+            <div class="header-right">
+                Document Classification: <strong>CONFIDENTIAL INTERNAL</strong><br>
+                Target Identity: <strong>Alexandre Garcia (Founder & Executive)</strong>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="layout">
+            
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-title">Topic Navigator</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#post-1" class="nav-link">01. Biological Realism vs. Digital</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#post-2" class="nav-link">02. Silent Yield Compounds</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#post-3" class="nav-link">03. The Governance Dock Gap</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#post-4" class="nav-link">04. The Illusion of Healthy P&Ls</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#post-5" class="nav-link">05. Theoretical Cost vs. Reality</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Feed -->
+            <div class="feed">
+                
+                <!-- Post 1 -->
+                <div class="post-card" id="post-1">
+                    <div class="post-meta">
+                        <div class="meta-group">
+                            <span>Focus Category</span>
+                            <strong>Biological Variance & Dry-Goods Bias</strong>
+                        </div>
+                        <div class="meta-group">
+                            <span>SLA Metric Code</span>
+                            <strong>OP-BIO-011</strong>
+                        </div>
+                    </div>
+                    <h2 class="post-title">01. Biological Realism vs. Digital Inventory</h2>
+                    <div class="post-body-container">
+                        <pre class="post-body" id="text-post-1">Most inventory software assumes that a sub-primal ribeye behaves like a box of paper cups. It does not. 
+
+When you buy paper cups, you purchase static units. They do not lose weight during transit. They do not purge moisture. They do not vary in structural yield based on muscle configuration or the specific fat-cap trim of a packer. 
+
+Yet, multi-unit operators continue to manage millions of dollars in premium protein using inventory logic built for dry goods. 
+
+Here is the operational reality:
+A USDA Choice strip loin is biological. A 14-pound sub-primal arriving at your loading dock is not a static 14 pounds. It has liquid purge weight. It has varying degrees of intermuscular fat. 
+
+If your receiving protocols only check "box count" and "gross weight" on invoice, you are executing blind receiving. If your inventory system does not dynamically calculate the conversion yield from sub-primal to portion count, you are generating artificial food cost variances. 
+
+When a portion count audit shows a shortage, the standard operational response is to blame the kitchen staff for over-portioning. But the drift often started at the receiving dock, six days earlier, when a supplier delivered wet-aged primals with a 4.5% purge weight variance instead of the contractual 1.5% tolerance. 
+
+Biological inventory requires dynamic yield modeling. If your system treats protein as a static SKU, you are not managing inventory. You are managing accounting fiction.</pre>
+                    </div>
+                    <div class="action-row">
+                        <span class="btn-copy-status" id="status-post-1">✓ Copied to clipboard</span>
+                        <button class="btn" onclick="copyText('text-post-1', 'status-post-1')">Copy Post Text</button>
+                    </div>
+                </div>
+
+                <!-- Post 2 -->
+                <div class="post-card" id="post-2">
+                    <div class="post-meta">
+                        <div class="meta-group">
+                            <span>Focus Category</span>
+                            <strong>EBITDA Compound Leaks</strong>
+                        </div>
+                        <div class="meta-group">
+                            <span>SLA Metric Code</span>
+                            <strong>OP-EBITDA-022</strong>
+                        </div>
+                    </div>
+                    <h2 class="post-title">02. The Silent Compound of Yield Variance</h2>
+                    <div class="post-body-container">
+                        <pre class="post-body" id="text-post-2">In a single-unit restaurant, a 2.5% yield variance on beef tenderloin looks like a localized operational nuisance. An Area Manager might address it during a monthly store review, write it off to training, and move on. 
+
+At 40 high-volume units, that same 2.5% variance is an EBITDA hemorrhage. 
+
+The danger of yield drift is that it does not show up as a single, dramatic incident. It compounds silently, hidden within the daily noise of portioning, trimming, and plate waste. 
+
+Consider the mathematics of a high-volume steakhouse network:
+If one store processes 8,000 pounds of premium beef per week, a 2.5% yield loss represents 200 pounds of premium protein lost to excessive trim or poor butcher calibration. At an average cost of $11.50 per pound, that is $2,300 per week, per store. 
+
+Across 40 locations, that silent bleed represents $92,000 per week. Over a fiscal year, that is $4,784,000 in pure EBITDA leakage that never makes it to the bottom line. 
+
+You cannot manage this scale of exposure through manual spot-checks. By the time a store manager notices a drift in their weekly P&L, the capital has already left the building. 
+
+Multi-unit operators do not need more reports. They need continuous, systemic operational governance. They need real-time yield tracking at the butcher table and receiving dock, locked to digital tolerances that trigger alert loops before the meat ever hits the broiler. 
+
+At scale, the difference between an average operator and an elite operator is not the concept. It is the control over the decimal places.</pre>
+                    </div>
+                    <div class="action-row">
+                        <span class="btn-copy-status" id="status-post-2">✓ Copied to clipboard</span>
+                        <button class="btn" onclick="copyText('text-post-2', 'status-post-2')">Copy Post Text</button>
+                    </div>
+                </div>
+
+                <!-- Post 3 -->
+                <div class="post-card" id="post-3">
+                    <div class="post-meta">
+                        <div class="meta-group">
+                            <span>Focus Category</span>
+                            <strong>Dock-to-Butcher Telemetry</strong>
+                        </div>
+                        <div class="meta-group">
+                            <span>SLA Metric Code</span>
+                            <strong>OP-GOV-033</strong>
+                        </div>
+                    </div>
+                    <h2 class="post-title">03. The Governance Gap</h2>
+                    <div class="post-body-container">
+                        <pre class="post-body" id="text-post-3">The loading dock and the prep table are often treated as two separate operational islands. This is the governance gap. 
+
+At the receiving dock, the protocol is focused on checking invoices against purchase orders: Did we receive 20 boxes? Is the total weight correct? 
+
+At the butcher table, the focus is on speed and presentation: How quickly can the prep cook clean the primals and portion them to spec for the evening shift? 
+
+If there is no direct, digital telemetry connecting the raw received weight of a specific lot to the net portion yield of that same lot, your operational control is broken. 
+
+Without this link, you cannot detect when a supplier is consistently shipping primals with heavier fat caps or excessive moisture retention. The receiver accepts the weight on the invoice because the box is intact. The butcher cuts the meat to spec, discarding the extra fat and purge without tracking it. 
+
+The resulting yield loss is then misclassified as "kitchen waste" or "poor portion control," shielding the supplier from accountability and penalizing your kitchen managers. 
+
+To close this gap, multi-unit operators must establish a trace chain. Every inbound lot must be weighed, logged on a calibrated digital scale, and tracked through a single system of record that monitors the conversion curve from raw dock weight to prep portion count. 
+
+If you cannot connect your dock scales to your butcher tables, you are not running a controlled supply chain. You are running a series of expensive assumptions.</pre>
+                    </div>
+                    <div class="action-row">
+                        <span class="btn-copy-status" id="status-post-3">✓ Copied to clipboard</span>
+                        <button class="btn" onclick="copyText('text-post-3', 'status-post-3')">Copy Post Text</button>
+                    </div>
+                </div>
+
+                <!-- Post 4 -->
+                <div class="post-card" id="post-4">
+                    <div class="post-meta">
+                        <div class="meta-group">
+                            <span>Focus Category</span>
+                            <strong>P&L Illusion & Revenue Shields</strong>
+                        </div>
+                        <div class="meta-group">
+                            <span>SLA Metric Code</span>
+                            <strong>OP-FIN-044</strong>
+                        </div>
+                    </div>
+                    <h2 class="post-title">04. The Illusion of Healthy P&Ls</h2>
+                    <div class="post-body-container">
+                        <pre class="post-body" id="text-post-4">A strong P&L is the ultimate shield for a store manager. When top-line revenue is high and the overall food cost percentage sits comfortably within the corporate target, no one asks questions. 
+
+But a healthy P&L is often an illusion. 
+
+In high-volume steakhouses, robust sales and premium guest counts can easily mask massive operational drift. If a store is hitting its budget targets, a manager has little incentive to investigate a 1.5% margin leak. 
+
+But that 1.5% leak is often where the most severe operational issues hide:
+- Biological bait-and-switch: Suppliers shipping lower USDA grades than invoiced.
+- Dock discrepancies: Drivers shorting boxes during busy Friday afternoon deliveries.
+- Yield decay: Untrained prep cooks leaving premium yield on the bone or in the trim bucket.
+
+When top-line sales eventually slow down, the tide goes out, and these hidden leaks suddenly become critical margin crises. 
+
+The role of regional operational leadership is not to review P&Ls that are already thirty days old. The role is to audit the underlying systems in real-time. 
+
+A high-performing store should not be excused from yield governance simply because its revenue is strong. True operational excellence requires auditing the integrity of the data at the scale level, daily, regardless of the store's financial performance. 
+
+Do not let a high top-line blind you to a leaky bottom-line. The best time to fix a leak is when the water is high, not when the well runs dry.</pre>
+                    </div>
+                    <div class="action-row">
+                        <span class="btn-copy-status" id="status-post-4">✓ Copied to clipboard</span>
+                        <button class="btn" onclick="copyText('text-post-4', 'status-post-4')">Copy Post Text</button>
+                    </div>
+                </div>
+
+                <!-- Post 5 -->
+                <div class="post-card" id="post-5">
+                    <div class="post-meta">
+                        <div class="meta-group">
+                            <span>Focus Category</span>
+                            <strong>Theoretical Cost vs. Floor Reality</strong>
+                        </div>
+                        <div class="meta-group">
+                            <span>SLA Metric Code</span>
+                            <strong>OP-EXEC-055</strong>
+                        </div>
+                    </div>
+                    <h2 class="post-title">05. Theoretical Cost vs. Operational Reality</h2>
+                    <div class="post-body-container">
+                        <pre class="post-body" id="text-post-5">Every corporate office has a spreadsheet displaying "theoretical food cost." It is a beautiful, logical model. You multiply the cost of the raw ingredients by the static yield factor, add the portion cost, and project your gross margin. 
+
+But your guests do not eat theoretical food cost. They eat operational reality. 
+
+In the actual kitchen, the yield factor is a moving target. It is influenced by the knife skills of a 22-year-old prep cook, the temperature calibration of the walk-in cooler, the age of the protein, and the accuracy of your dock scales. 
+
+If your operational accountability is based on comparing actual costs against a static theoretical model, you are setting your store teams up for failure. 
+
+When actual costs exceed theoretical targets, the corporate response is often to increase the frequency of inventory counts or issue warnings. This creates "system fatigue." Managers begin adjusting inventory counts to match targets, and the data loses all integrity. 
+
+Instead of chasing a static theoretical number, elite operators manage the variance itself. 
+
+They establish real-time, digital baselines for every critical yield step: receiving weight, trim percentage, portion weight, and cooking loss. By measuring the daily drift away from these baselines, they identify the exact point where the margin is lost. 
+
+Governance is not about demanding perfection from a theoretical model. It is about building a system that makes operational variance visible and actionable on the kitchen floor, where the margins are actually won or lost.</pre>
+                    </div>
+                    <div class="action-row">
+                        <span class="btn-copy-status" id="status-post-5">✓ Copied to clipboard</span>
+                        <button class="btn" onclick="copyText('text-post-5', 'status-post-5')">Copy Post Text</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span>BRASA Governance Engine Editorial Hub</span>
+            <span>Version: v2.5-ENTERPRISE-HUB</span>
+            <span>Trace Code: ED-HUB-Garcia-2026</span>
+        </div>
+
+    </div>
+
+    <!-- Copy to Clipboard Script -->
+    <script>
+        function copyText(elementId, statusId) {
+            const copyText = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(copyText).then(() => {
+                const status = document.getElementById(statusId);
+                status.classList.add('visible');
+                setTimeout(() => {
+                    status.classList.remove('visible');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text:', err);
+            });
+        }
+    </script>
+
+</body>
+</html>
