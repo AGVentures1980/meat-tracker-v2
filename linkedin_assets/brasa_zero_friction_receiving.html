@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRASA OS — Protocolo de Recebimento de Escaneamento Único (Zero-Friction)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #06070a;
+            --bg-card: rgba(18, 20, 29, 0.6);
+            --bg-card-solid: #11131c;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --border-glow: rgba(99, 102, 241, 0.25);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --neon-green: #10b981;
+            --neon-amber: #f59e0b;
+            --neon-red: #ef4444;
+            --neon-indigo: #6366f1;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'Space Grotesk', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            padding: 50px 20px;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow Circles */
+        .ambient-glow-1 {
+            position: absolute;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.07) 0%, rgba(0,0,0,0) 70%);
+            top: -200px;
+            left: 10%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .ambient-glow-2 {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, rgba(0,0,0,0) 70%);
+            bottom: 100px;
+            right: 5%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Header Style */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 40px;
+        }
+
+        .brand-badge {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--neon-indigo);
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 6px 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            color: #fff;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            max-width: 800px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        /* Mission Panel */
+        .mission-statement {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(18, 20, 29, 0.8) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            padding: 30px 40px;
+            border-radius: 20px;
+            margin-bottom: 50px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .mission-icon {
+            font-size: 3rem;
+            background: rgba(99, 102, 241, 0.15);
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+            flex-shrink: 0;
+        }
+
+        .mission-text h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .mission-text p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            font-weight: 300;
+        }
+
+        /* Flow Selection Grid */
+        .flow-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .flow-column {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flow-column::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .flow-packer::before {
+            background: linear-gradient(90deg, var(--neon-indigo), transparent);
+        }
+
+        .flow-distributor::before {
+            background: linear-gradient(90deg, var(--neon-green), transparent);
+        }
+
+        .flow-column:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-glow);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.08);
+        }
+
+        .flow-tag {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+
+        .flow-packer .flow-tag {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+        }
+
+        .flow-distributor .flow-tag {
+            background: rgba(16, 185, 129, 0.15);
+            color: #a7f3d0;
+        }
+
+        .flow-column h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .flow-column .lead-p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        /* Steps */
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step-item {
+            display: flex;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            transition: all 0.2s ease;
+        }
+
+        .step-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .step-number {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--neon-indigo);
+            background: rgba(99, 102, 241, 0.1);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .flow-distributor .step-number {
+            color: var(--neon-green);
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .step-details h4 {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .step-details p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        /* Tech Spec Section */
+        .spec-section {
+            background: var(--bg-card-solid);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 45px;
+            margin-bottom: 60px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        }
+
+        .spec-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 35px;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .tech-box {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .tech-box h3 {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tech-box h3::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background-color: var(--neon-indigo);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .tech-box p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background: #040508;
+            border-radius: 10px;
+            padding: 18px;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 0.85rem;
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            overflow-x: auto;
+        }
+
+        /* UI/UX Rules Alert Box */
+        .ui-alert-panel {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, rgba(18, 20, 29, 0.9) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .ui-alert-panel h3 {
+            color: #fff;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+        }
+
+        .ui-alert-panel h3 span {
+            color: var(--neon-red);
+        }
+
+        .ui-alert-panel ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .ui-alert-panel li {
+            position: relative;
+            padding-left: 25px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        .ui-alert-panel li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        /* Print and responsive optimization */
+        @media print {
+            body {
+                background: #fff;
+                color: #000;
+                padding: 0;
+            }
+            .ambient-glow-1, .ambient-glow-2 { display: none; }
+            .flow-column, .spec-section, .tech-box, .step-item, .ui-alert-panel, .mission-statement {
+                background: #fff;
+                border: 1px solid #ccc;
+                color: #000;
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+            h1, h2, h3, h4, strong { color: #000 !important; }
+            .flow-grid, .tech-grid, .ui-alert-panel ul {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .code-block {
+                background: #f3f4f6;
+                color: #000;
+                border: 1px solid #ccc;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .flow-grid, .tech-grid, .ui-alert-panel ul {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 2.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+    
+    <div class="container">
+        
+        <!-- Header -->
+        <header>
+            <span class="brand-badge">BRASA OS • OPERATIONAL EXCELLENCE</span>
+            <h1>Recebimento Inteligente Escaneamento Único</h1>
+            <p>Arquitetura de Zero-Fricção na Doca: Processo de Scan Único para Operadores de Chão de Fábrica</p>
+        </header>
+
+        <!-- Mission -->
+        <div class="mission-statement">
+            <div class="mission-icon">🎯</div>
+            <div class="mission-text">
+                <h2>A Diretriz Não-Negociável</h2>
+                <p>O operador de recebimento (chão de fábrica) deve realizar <strong>apenas um escaneamento por caixa</strong> e colocá-la na balança. Toda a complexidade lógica e validação tributária ocorre de forma silenciosa e invisível em background.</p>
+            </div>
+        </div>
+
+        <!-- Flow Grid -->
+        <div class="flow-grid">
+            
+            <!-- Packer Flow -->
+            <div class="flow-column flow-packer">
+                <span class="flow-tag">Etiqueta Branca Original</span>
+                <h2>ROTA A: Scanner na Etiqueta do Frigorífico</h2>
+                <p class="lead-p">Escaneia o código GS1-128 do frigorífico original (ex: JBS, Cargill) para ler o peso líquido exato direto da origem.</p>
+                
+                <div class="step-list">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-details">
+                            <h4>Escaneamento GS1-128</h4>
+                            <p>O operador faz um único scan na etiqueta do frigorífico. O BRASA extrai o GTIN e o peso real (ex: 63.6 Lbs).</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-details">
+                            <h4>Resolução EDI 856 / ASN</h4>
+                            <p>O sistema busca o GTIN/Serial no arquivo eletrônico pré-enviado pelo distribuidor para mapear o SKU automaticamente.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-details">
+                            <h4>Inferência Biológica</h4>
+                            <p>Se não houver EDI, o algoritmo analisa a nota fiscal e associa o GTIN à carne com base na faixa de peso biológico em background.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distributor Flow -->
+            <div class="flow-column flow-distributor">
+                <span class="flow-tag">Etiqueta Secundária</span>
+                <h2>ROTA B: Scanner na Etiqueta do Distribuidor</h2>
+                <p class="lead-p">Escaneia a etiqueta colada pela distribuidora (ex: Sysco, US Foods) para ler o SKU corporativo pré-mapeado do catálogo.</p>
+                
+                <div class="step-list">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-details">
+                            <h4>Escaneamento Local</h4>
+                            <p>O operador escaneia o código de barras local do distribuidor. O SKU (ex: Fraldinha) é resolvido de forma imediata.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-details">
+                            <h4>Pesagem Obrigatória</h4>
+                            <p>O operador coloca a caixa na balança integrada. O peso físico real (ex: 63.6 Lbs) é capturado pelo sistema.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-details">
+                            <h4>Quebra de Peso Fantasma</h4>
+                            <p>O BRASA compara a balança com o peso cobrado na NF (82.0 Lbs). Detecta o erro de 18.4 Lbs e abre disputa fiscal.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tech Spec -->
+        <div class="spec-section">
+            <h2>Engenharia de Background (Como a Mágica Acontece)</h2>
+            <div class="tech-grid">
+                <div class="tech-box">
+                    <h3>Mapeamento Invisível de GTIN</h3>
+                    <p>O algoritmo de inferência biológica elimina a necessidade de o funcionário selecionar a carne no tablet. Ele compara o peso real lido na etiqueta com as especificações cadastradas para os itens esperados na nota fiscal.</p>
+                    <div class="code-block">
+// Mapeamento Inteligente e Preditivo de Identidade
+const expectedProtein = invoiceItems.find(item => 
+    weightReal >= item.spec.minWeight && 
+    weightReal <= item.spec.maxWeight
+);
+if (expectedProtein) {
+    autoMapGtin(scannedGtin, expectedProtein.sku);
+}
+                    </div>
+                </div>
+                <div class="tech-box">
+                    <h3>Resolução de Wedge Scanners</h3>
+                    <p>Wedge scanners de teclado transmitem espaços, parênteses e caracteres de controle formatados. O BRASA normaliza a entrada crua antes do processamento lógico para evitar quebras sintáticas.</p>
+                    <div class="code-block">
+export function normalizeRawBarcode(raw: string) {
+    const cleaned = raw.replace(/[\s\r\n\t\x1D\(\)\[\]]/g, '').trim();
+    return { cleaned, is_valid: /^[a-zA-Z0-9\-]*$/.test(cleaned) };
+}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UI/UX Rules Alert -->
+        <div class="ui-alert-panel">
+            <h3><span>🛑</span> Regras de Interfaces do Operador de Chão de Fábrica</h3>
+            <ul>
+                <li><strong>Sem Cliques Extras:</strong> Foco padrão permanente no leitor de código de barras. O funcionário não encosta na tela.</li>
+                <li><strong>Sinais de Áudio Claros:</strong> Bipes curtos e agudos para aceitação (Verde); tons longos e graves para falha (Vermelho).</li>
+                <li><strong>Visão Limpa:</strong> Ocultação completa de terminologias técnicas como hashes canônicos, queries SQL ou códigos API.</li>
+                <li><strong>Conflitos Assíncronos:</strong> Qualquer dúvida de mapeamento de código é enviada silenciosamente para o painel administrativo do gerente.</li>
+            </ul>
+        </div>
+
+    </div>
+</body>
+</html>
