@@ -56,13 +56,13 @@ export const SentinelService = {
             record.blockedUntil = now + BLOCK_DURATION_MS;
             ipTracker.set(ip, record);
 
-            // 🚨 TRIGGER ALERT
-            await EmailService.sendSecurityAlert({
+            // 🚨 TRIGGER ALERT (Non-blocking background execution)
+            EmailService.sendSecurityAlert({
                 type: 'BRUTE_FORCE',
                 ip: ip,
                 details: `Detected ${record.attempts} failed login attempts in < 5 minutes. IP has been blocked for 5 minutes.`,
                 timestamp: new Date()
-            });
+            }).catch(err => console.error('[Sentinel Alert Error]:', err?.message));
 
             console.log(`⛔ [SENTINEL] IP verified BLOCKED: ${ip}`);
         }

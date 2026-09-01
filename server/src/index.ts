@@ -63,16 +63,18 @@ app.get('/health', (req, res) => {
     });
 });
 
+import { PulseController } from './controllers/PulseController';
+
 // Proxied Health Check for Frontend
 app.get('/api/health', (req, res) => {
     res.json({ status: 'UP', timestamp: new Date() });
 });
 
 // Public SSO Handoff Receiver Route for BRASA Pulse Redirects
-app.get('/api/auth/brasa-meat-sso', PulseController.handleBrowserSso);
-app.post('/api/auth/brasa-meat-sso', PulseController.handleBrowserSso);
-app.get('/api/v1/auth/brasa-meat-sso', PulseController.handleBrowserSso);
-app.post('/api/v1/auth/brasa-meat-sso', PulseController.handleBrowserSso);
+app.get('/api/auth/brasa-meat-sso', (req, res) => PulseController.handleBrowserSso(req, res));
+app.post('/api/auth/brasa-meat-sso', (req, res) => PulseController.handleBrowserSso(req, res));
+app.get('/api/v1/auth/brasa-meat-sso', (req, res) => PulseController.handleBrowserSso(req, res));
+app.post('/api/v1/auth/brasa-meat-sso', (req, res) => PulseController.handleBrowserSso(req, res));
 
 // Enriched Readiness Endpoint
 app.get('/ready', async (req, res) => {
@@ -176,7 +178,6 @@ import leadRoutes from './routes/lead.routes';
 import weatherRoutes from './routes/weather.routes';
 import alohaRoutes from './routes/aloha.routes';
 import pulseRoutes from './routes/pulse.routes';
-import { PulseController } from './controllers/PulseController';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
