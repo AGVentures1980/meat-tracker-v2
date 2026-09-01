@@ -13,4 +13,8 @@ router.get('/entitlement/status', requireAuth, PulseController.getEntitlementSta
 // Admin-only Entitlement toggle
 router.post('/entitlement/toggle', requireAuth, PulseController.toggleEntitlement);
 
+// Master Location Manifest Export Endpoints (Phase 7B-5L)
+router.get('/master-manifest', requireAuth, PulseController.getMasterManifest);
+router.get('/ecosystem/master-locations', requireAuth, PulseController.getMasterManifest);
+
 export default router;

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -304,6 +304,161 @@ export class PulseController {
         } catch (err: any) {
             console.error('Toggle entitlement error:', err);
             return res.status(500).json({ error: 'Failed to update entitlement', details: err.message });
+        }
+    }
+
+    /**
+     * GET /api/v1/pulse/master-manifest (and /api/v1/ecosystem/master-locations)
+     * PHASE 7B-5L — Master Location Manifest Export Contract
+     * Authenticated endpoint providing authoritative organization & store identity metadata for Pulse/Ecosystem provisioning.
+     * ZERO guessing: Returns exact Meat database store_id as brasaLocationId.
+     * No credentials or sensitive business metrics exposed.
+     */
+    static async getMasterManifest(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            if (!user) {
+                return res.status(401).json({ error: 'Unauthorized: Session missing' });
+            }
+
+            const { organizationId, companyId, subdomain } = req.query;
+
+            // Target organization resolution
+            let targetOrgId = (organizationId || companyId) as string | undefined;
+
+            if (!targetOrgId && subdomain) {
+                const company = await prisma.company.findFirst({
+                    where: { subdomain: String(subdomain).toLowerCase() },
+                    select: { id: true }
+                });
+                if (company) targetOrgId = company.id;
+            }
+
+            // Fallback to authenticated user's organization
+            if (!targetOrgId) {
+                targetOrgId = user.companyId || user.company_id;
+            }
+
+            // Master fallback if still null
+            if (!targetOrgId) {
+                const fogoCompany = await prisma.company.findFirst({
+                    where: { name: { contains: 'Fogo', mode: 'insensitive' } },
+                    select: { id: true }
+                });
+                if (fogoCompany) targetOrgId = fogoCompany.id;
+            }
+
+            if (!targetOrgId) {
+                return res.status(400).json({ error: 'Target organization required' });
+            }
+
+            // Access control: User must belong to organization or be admin/master
+            const isMaster = user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
+            const isAdmin = user.role === 'admin' || user.role === 'partner' || isMaster;
+            const userCompanyId = user.companyId || user.company_id;
+
+            if (!isAdmin && userCompanyId && userCompanyId !== targetOrgId) {
+                return res.status(403).json({ error: 'Forbidden: Access denied for requested organization' });
+            }
+
+            // Fetch Organization Master Data
+            const company = await prisma.company.findUnique({
+                where: { id: targetOrgId },
+                select: {
+                    id: true,
+                    name: true,
+                    subdomain: true,
+                    company_status: true,
+                    entitlements: {
+                        where: { product_code: 'BRASA_PULSE' },
+                        select: { status: true }
+                    }
+                }
+            });
+
+            if (!company) {
+                return res.status(404).json({ error: 'Organization not found' });
+            }
+
+            // Fetch all Stores for Organization
+            const stores = await prisma.store.findMany({
+                where: { company_id: company.id },
+                orderBy: { id: 'asc' }
+            });
+
+            const pulseEntitlement = company.entitlements?.[0]?.status === 'ACTIVE';
+
+            // Identity processing & quality classification
+            const locations = stores.map(store => {
+                const isComplete = Boolean(store.id && store.company_id && store.store_name && (store.location || store.city));
+                const isActive = store.status === 'ACTIVE';
+
+                return {
+                    brasaLocationId: String(store.id),
+                    store_id: store.id,
+                    name: store.store_name,
+                    brand: company.name,
+                    address_line1: store.location || null,
+                    address_line2: null,
+                    city: store.city || null,
+                    state: store.location || null,
+                    postal_code: null,
+                    country: store.country || 'USA',
+                    timezone: store.timezone || 'America/Chicago',
+                    latitude: null,
+                    longitude: null,
+                    status: store.status,
+                    dataType: store.data_type,
+                    active: isActive,
+                    identityQuality: isComplete ? 'MASTER_IDENTITY_COMPLETE' : 'MASTER_IDENTITY_PARTIAL'
+                };
+            });
+
+            // Duplicate checks
+            const storeIds = stores.map(s => s.id);
+            const uniqueStoreIds = new Set(storeIds);
+            const duplicateIdCount = storeIds.length - uniqueStoreIds.size;
+
+            const names = stores.map(s => s.store_name.toLowerCase().trim());
+            const uniqueNames = new Set(names);
+            const duplicatePhysicalCount = names.length - uniqueNames.size;
+
+            const activeLocations = locations.filter(l => l.active);
+            const completeIdentityCount = locations.filter(l => l.identityQuality === 'MASTER_IDENTITY_COMPLETE').length;
+
+            const locationsPayloadStr = JSON.stringify(locations);
+            const manifestHash = createHash('sha256').update(locationsPayloadStr).digest('hex');
+
+            const manifest = {
+                schemaVersion: '1.0',
+                generatedAt: new Date().toISOString(),
+                source: 'BRASA_MEAT_MASTER_IDENTITY',
+                manifestHash,
+                organization: {
+                    brasaOrganizationId: company.id,
+                    name: company.name,
+                    subdomain: company.subdomain || null,
+                    active: company.company_status !== 'DELETED' && company.company_status !== 'INACTIVE',
+                    pulseEntitlementActive: pulseEntitlement,
+                    totalStores: stores.length,
+                    activeStores: activeLocations.length
+                },
+                summary: {
+                    totalCount: stores.length,
+                    activeCount: activeLocations.length,
+                    inactiveCount: stores.length - activeLocations.length,
+                    completeIdentityCount,
+                    partialIdentityCount: stores.length - completeIdentityCount,
+                    duplicateIdCount,
+                    duplicatePhysicalCount
+                },
+                locations
+            };
+
+            return res.json(manifest);
+        } catch (err: any) {
+            console.error('Failed to generate master location manifest:', err);
+            return res.status(500).json({ error: 'Internal server error', details: err.message });
         }
     }
 }
