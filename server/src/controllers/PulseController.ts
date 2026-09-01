@@ -226,8 +226,13 @@ export class PulseController {
                 });
             }
 
-            // Redirect user directly to the Network / Pulse Dashboard in the application
-            const redirectTarget = `/dashboard/network?sso=pulse_active&org=${payload.organizationId || ''}`;
+            // Resolve dedicated Brand Pulse application URL
+            const brandPulseAppUrl = process.env.BRAND_PULSE_APP_URL ||
+                process.env.BRAND_PULSE_URL ||
+                (process.env.NODE_ENV === 'production' ? 'https://brandpulse.brasameat.com' : 'http://localhost:3001');
+
+            // Redirect user seamlessly to the Brand Pulse application SSO endpoint
+            const redirectTarget = `${brandPulseAppUrl}/api/auth/brasa-meat-sso?token=${token}`;
             return res.redirect(redirectTarget);
         } catch (err: any) {
             console.error('[SSO Browser Redirect Error]:', err.message);

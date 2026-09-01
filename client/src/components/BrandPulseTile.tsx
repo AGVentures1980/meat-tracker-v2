@@ -116,29 +116,29 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                 <button
                     onClick={handleHandoff}
                     disabled={loading}
-                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-all group ${
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-all group overflow-hidden ${
                         !isEntitled ? 'opacity-50 hover:bg-neutral-800/30' : loading ? 'opacity-70 cursor-wait' : 'hover:bg-amber-500/10 hover:border-amber-500/30'
                     } border border-transparent ${className}`}
                 >
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className={`w-8 h-8 rounded-md border flex items-center justify-center shrink-0 transition-transform ${
+                    <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                        <div className={`w-7 h-7 rounded-md border flex items-center justify-center shrink-0 transition-transform ${
                             !isEntitled ? 'bg-neutral-800 border-neutral-700 text-gray-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-400 group-hover:scale-105'
                         }`}>
-                            {isEntitled ? <Activity className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                            {isEntitled ? <Activity className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                         </div>
-                        <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-xs text-white whitespace-nowrap">
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                            <div className="flex items-center gap-1.5 whitespace-nowrap overflow-hidden">
+                                <span className="font-bold text-xs text-white shrink-0 whitespace-nowrap">
                                     BRASA Pulse
                                 </span>
-                                <span className={`text-[9px] uppercase font-mono px-1 py-0.5 rounded border shrink-0 whitespace-nowrap ${
+                                <span className={`text-[8px] uppercase font-mono px-1 py-0.5 rounded border shrink-0 whitespace-nowrap leading-none ${
                                     !isEntitled ? 'bg-neutral-800 text-gray-400 border-neutral-700' : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                                 }`}>
                                     {isEntitled ? 'Guest AI' : 'Disabled'}
                                 </span>
                             </div>
-                            <div className="text-[10px] text-gray-400 font-normal truncate leading-tight mt-0.5">
-                                {isEntitled ? 'Reputation & Guest Intel' : 'Not enabled for organization'}
+                            <div className="text-[9.5px] text-gray-400 font-normal truncate leading-tight mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                                {isEntitled ? 'Reputation & Guest Intel' : 'Not enabled for org'}
                             </div>
                         </div>
                     </div>

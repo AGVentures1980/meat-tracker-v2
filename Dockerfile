@@ -49,6 +49,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV PULSE_SSO_SECRET=brasa_pulse_sso_production_secret_rotated_2026
 ENV PULSE_BASE_URL=https://pulse.brasameat.com
+ENV BRAND_PULSE_APP_URL=https://brandpulse.brasameat.com
 
 WORKDIR /app/server
 EXPOSE 3000
