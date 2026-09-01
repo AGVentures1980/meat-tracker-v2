@@ -587,11 +587,45 @@ async function ensureProductionAccounts() {
     }
 }
 
+async function ensureFogoTheme() {
+    try {
+        console.log(`[Startup] Ensuring Fogo de Chão theme & subdomain are configured...`);
+        const fuego = await (prisma as any).company.findFirst({
+            where: {
+                OR: [
+                    { subdomain: 'fogo' },
+                    { name: { contains: 'Fogo', mode: 'insensitive' } }
+                ]
+            }
+        });
+        if (fuego) {
+            await (prisma as any).company.update({
+                where: { id: fuego.id },
+                data: {
+                    subdomain: 'fogo',
+                    theme_primary_color: '#A31D21',
+                    theme_logo_url: '/fdc-logo-pure-white.png',
+                    theme_bg_url: '/background_fdc.jpg'
+                }
+            });
+            console.log(`[Startup] SUCCESS: Fogo de Chão theme verified.`);
+        }
+    } catch (error) {
+        console.error('[Startup] FAILED to verify Fogo theme:', error);
+    }
+}
+
 async function ensureOutbackPilot() {
     try {
         console.log(`[Startup] Ensuring Outback Steakhouse (Pilot) environment is seeded...`);
         let outback = await (prisma as any).company.findFirst({
-            where: { name: { contains: 'Outback Steakhouse', mode: 'insensitive' } }
+            where: {
+                OR: [
+                    { subdomain: 'outback' },
+                    { name: { contains: 'Outback', mode: 'insensitive' } },
+                    { name: { contains: 'Bloomin', mode: 'insensitive' } }
+                ]
+            }
         });
 
         if (!outback) {
@@ -722,6 +756,7 @@ if (process.env.NODE_ENV !== 'test') {
         .then(() => ensurePrimaryStoreUsers())
         .then(() => ensureProductionAccounts())
         .then(() => ensureOutbackPilot())
+        .then(() => ensureFogoTheme())
         .then(() => {
         // ... (existing imports)
 
