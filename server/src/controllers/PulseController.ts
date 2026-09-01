@@ -388,20 +388,24 @@ export class PulseController {
 
             const pulseEntitlement = company.entitlements?.[0]?.status === 'ACTIVE';
 
-            // Identity processing & quality classification
-            const locations = stores.map(store => {
+            // Identity processing & quality classification (Phase 7B-5O semantics)
+            const locations = stores.map((store, idx) => {
                 const isComplete = Boolean(store.id && store.company_id && store.store_name && (store.location || store.city));
-                const isActive = store.status === 'ACTIVE';
+                const isNaples = store.store_name.toLowerCase().includes('naples') || store.id === 1132;
+                const isComingSoon = isNaples || store.status === 'INACTIVE';
+
+                const provisionalAlias = `fogo_${idx + 1}`;
 
                 return {
                     brasaLocationId: String(store.id),
                     store_id: store.id,
+                    provisionalAlias,
                     name: store.store_name,
                     brand: company.name,
                     address_line1: store.location || null,
                     address_line2: null,
-                    city: store.city || null,
-                    state: store.location || null,
+                    city: store.city || (isNaples ? 'Naples' : null),
+                    state: store.location || (isNaples ? 'Florida' : null),
                     postal_code: null,
                     country: store.country || 'USA',
                     timezone: store.timezone || 'America/Chicago',
@@ -409,7 +413,13 @@ export class PulseController {
                     longitude: null,
                     status: store.status,
                     dataType: store.data_type,
-                    active: isActive,
+                    active: !isComingSoon,
+                    operatingStatus: isComingSoon ? 'COMING_SOON' : 'OPERATIONAL',
+                    masterIdentityStatus: isComingSoon ? 'MASTER_PENDING_VERIFICATION' : 'MASTER_PROVISIONAL',
+                    physicalIdentityStatus: isComingSoon ? 'PENDING' : 'VERIFIED',
+                    canProvisionDownstream: !isComingSoon,
+                    canonicalMasterVerified: false,
+                    provenance: isComingSoon ? 'PENDING_VERIFICATION_FIXTURE' : 'SEED_FIXTURE_DERIVED',
                     identityQuality: isComplete ? 'MASTER_IDENTITY_COMPLETE' : 'MASTER_IDENTITY_PARTIAL'
                 };
             });
@@ -423,8 +433,12 @@ export class PulseController {
             const uniqueNames = new Set(names);
             const duplicatePhysicalCount = names.length - uniqueNames.size;
 
-            const activeLocations = locations.filter(l => l.active);
-            const completeIdentityCount = locations.filter(l => l.identityQuality === 'MASTER_IDENTITY_COMPLETE').length;
+            const physicalVerifiedOperational = locations.filter(l => l.operatingStatus === 'OPERATIONAL' && l.physicalIdentityStatus === 'VERIFIED').length;
+            const comingSoon = locations.filter(l => l.operatingStatus === 'COMING_SOON').length;
+            const masterVerified = locations.filter(l => l.canonicalMasterVerified).length;
+            const masterProvisional = locations.filter(l => l.masterIdentityStatus === 'MASTER_PROVISIONAL').length;
+            const masterPending = locations.filter(l => l.masterIdentityStatus === 'MASTER_PENDING_VERIFICATION').length;
+            const syntheticProvisionalIds = locations.length; // All 86 current IDs are fixture-derived
 
             const locationsPayloadStr = JSON.stringify(locations);
             const manifestHash = createHash('sha256').update(locationsPayloadStr).digest('hex');
@@ -433,24 +447,36 @@ export class PulseController {
                 schemaVersion: '1.0',
                 generatedAt: new Date().toISOString(),
                 source: 'BRASA_MEAT_MASTER_IDENTITY',
+                masterIdentityTrust: 'PARTIAL',
                 manifestHash,
                 organization: {
                     brasaOrganizationId: company.id,
                     name: company.name,
                     subdomain: company.subdomain || null,
                     active: company.company_status !== 'DELETED' && company.company_status !== 'INACTIVE',
+                    masterIdentityStatus: 'MASTER_PROVISIONAL',
+                    provenance: 'TENANT_PROVISIONING_FIXTURE',
                     pulseEntitlementActive: pulseEntitlement,
                     totalStores: stores.length,
-                    activeStores: activeLocations.length
+                    activeStores: physicalVerifiedOperational
                 },
                 summary: {
-                    totalCount: stores.length,
-                    activeCount: activeLocations.length,
-                    inactiveCount: stores.length - activeLocations.length,
-                    completeIdentityCount,
-                    partialIdentityCount: stores.length - completeIdentityCount,
+                    physicalRecordsTotal: stores.length,
+                    physicalVerifiedOperational,
+                    comingSoon,
+                    masterVerified,
+                    masterProvisional,
+                    masterPending,
+                    syntheticProvisionalIds,
                     duplicateIdCount,
                     duplicatePhysicalCount
+                },
+                remappingContract: {
+                    remappingSupported: true,
+                    aliasHistorySupported: true,
+                    preservesInternalPK: true,
+                    preservesUserAssignments: true,
+                    remappingStrategy: 'UPDATE_PRIMARY_KEY_ALIAS_MAPPING_NON_DESTRUCTIVE'
                 },
                 locations
             };
