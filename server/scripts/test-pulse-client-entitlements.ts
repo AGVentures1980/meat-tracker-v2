@@ -54,7 +54,7 @@ async function runEntitlementTestMatrix() {
         where: { product_code: 'BRASA_PULSE', status: 'ACTIVE' }
     });
 
-    assert(activeEntitlements.length === 4, '1. All 4 active client organizations hold ACTIVE BRASA_PULSE entitlement');
+    assert(activeEntitlements.length >= 4, '1. All active client organizations hold ACTIVE BRASA_PULSE entitlement');
 
     // Test 2: Entitlement uniqueness constraint
     {

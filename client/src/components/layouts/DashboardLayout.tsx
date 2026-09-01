@@ -93,7 +93,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const isAreaLevel = user?.scope?.type === 'AREA';
     const isCompanyOrGlobal = user?.scope?.type === 'COMPANY' || user?.scope?.type === 'GLOBAL';
 
-    if (selectedCompany) {
+    const activeCompanyId = selectedCompany || user?.companyId || user?.company_id || user?.scope?.companyId;
+
+    if (activeCompanyId || user) {
 
         navItems.push(
             {

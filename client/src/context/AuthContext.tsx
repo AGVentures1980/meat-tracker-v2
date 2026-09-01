@@ -42,7 +42,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.removeItem('brasameat_selected_company');
             } else {
                 setUser(parsedUser);
-                if (storedCompany) setSelectedCompany(storedCompany);
+                const resolvedCompany = storedCompany || parsedUser.companyId || parsedUser.company_id || decoded.companyId;
+                if (resolvedCompany) {
+                    setSelectedCompany(resolvedCompany);
+                    localStorage.setItem('brasameat_selected_company', resolvedCompany);
+                }
             }
         }
         setIsLoading(false);
@@ -73,8 +77,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(userData);
                 localStorage.setItem('brasameat_user', JSON.stringify(userData));
 
-                if (data.defaultCompanyId) {
-                    setCompany(data.defaultCompanyId);
+                const effectiveCompany = data.defaultCompanyId || userData.companyId || userData.company_id;
+                if (effectiveCompany) {
+                    setCompany(effectiveCompany);
                 }
 
                 return data; // Return full data including redirectPath
