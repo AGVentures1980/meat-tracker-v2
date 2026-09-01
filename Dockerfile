@@ -40,6 +40,7 @@ COPY --from=server-build /app/server/dist ./server/dist
 COPY --from=server-build /app/server/package*.json ./server/
 COPY --from=server-build /app/server/node_modules ./server/node_modules
 COPY --from=server-build /app/server/prisma ./server/prisma
+COPY server/.env ./server/.env
 
 # Copy built client to root /app/client/dist
 # This matches path.join(__dirname, '../../../client/dist') in server/dist/src/index.js
@@ -47,6 +48,8 @@ COPY --from=client-build /app/client/dist ./client/dist
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV PULSE_SSO_SECRET=brasa_pulse_sso_production_secret_rotated_2026
+ENV PULSE_BASE_URL=https://pulse.brasameat.com
 
 WORKDIR /app/server
 EXPOSE 3000
