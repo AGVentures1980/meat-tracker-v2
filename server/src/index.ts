@@ -784,23 +784,23 @@ if (process.env.NODE_ENV !== 'test') {
             // 🔵 OFFICE 365 CONNECT (WATCHER)
             OneDriveWatcher.start();
 
-            // Run immediately on startup
-            ProspectingAgent.discoverNewProspects().catch(err => console.error("Agent error:", err.message));
+            // Run prospecting agent on 6-hour interval
+            setInterval(() => {
+                ProspectingAgent.discoverNewProspects().catch(err => console.error("Agent error:", err.message));
+            }, 6 * 60 * 60 * 1000);
 
-            // Then run every 6 hours (Simulation of "24/7" work)
+            // Heartbeat logger
             setInterval(() => {
                 const now = new Date();
                 const mem = process.memoryUsage();
                 console.log(`[${now.toISOString()}] 🩺 HEARTBEAT | Memory: ${Math.round(mem.rss / 1024 / 1024)}MB RSS | Mode: PROSPECTING`);
-            }, 60 * 60 * 1000); // Hourly
+            }, 60 * 60 * 1000);
 
             // 🔴 24/7 SENTINEL AI METRIC AUDITOR
             console.log(`🛡️ Sentinel AI Background Auditor: ONLINE (Cron Mode)`);
             
-            // Schedule to run every hour at minute 0 (0 * * * *) 
-            // For testing/demonstration purposes, we will also run it on startup
-            SentinelService.runDailyAudit().catch(err => console.error("Sentinel error:", err.message));
-            cron.schedule('0 * * * *', () => {
+            // Schedule off-peak daily audit at 03:00 AM
+            cron.schedule('0 3 * * *', () => {
                 SentinelService.runDailyAudit().catch(err => console.error("Sentinel Cron error:", err.message));
             });
             
