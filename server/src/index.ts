@@ -68,6 +68,12 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'UP', timestamp: new Date() });
 });
 
+// Public SSO Handoff Receiver Route for BRASA Pulse Redirects
+app.get('/api/auth/brasa-meat-sso', PulseController.handleBrowserSso);
+app.post('/api/auth/brasa-meat-sso', PulseController.handleBrowserSso);
+app.get('/api/v1/auth/brasa-meat-sso', PulseController.handleBrowserSso);
+app.post('/api/v1/auth/brasa-meat-sso', PulseController.handleBrowserSso);
+
 // Enriched Readiness Endpoint
 app.get('/ready', async (req, res) => {
     let dbAlive = false;
