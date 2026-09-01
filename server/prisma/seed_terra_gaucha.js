@@ -7,14 +7,18 @@ async function bootstrapTerraGaucha() {
     console.log('🚀 Bootstrapping Pristine Environment for Terra Gaucha Pilot...');
 
     // 1. Create Terra Gaucha Company (Clean Slate)
-    const terraGaucha = await prisma.company.upsert({
-        where: { name: 'Terra Gaucha' },
-        update: {}, // Keep existing if present
-        create: {
-            name: 'Terra Gaucha',
-            industry: 'restaurant'
-        }
+    let terraGaucha = await prisma.company.findFirst({
+        where: { name: { contains: 'Terra Gaucha', mode: 'insensitive' } }
     });
+
+    if (!terraGaucha) {
+        terraGaucha = await prisma.company.create({
+            data: {
+                name: 'Terra Gaucha',
+                subdomain: 'terra'
+            }
+        });
+    }
 
     console.log(`✅ Company Configured: ${terraGaucha.name}`);
 
@@ -26,13 +30,14 @@ async function bootstrapTerraGaucha() {
                 store_name: 'Stamford'
             }
         },
-        update: { target_lbs_guest: 1.85 },
+        update: { target_lbs_guest: 1.85, data_type: 'DEMO' },
         create: {
             id: 9001, // Custom explicit ID to avoid conflicts
             company_id: terraGaucha.id,
             store_name: 'Stamford',
             location: 'USA',
-            target_lbs_guest: 1.85
+            target_lbs_guest: 1.85,
+            data_type: 'DEMO'
         }
     });
 

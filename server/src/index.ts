@@ -549,23 +549,36 @@ async function ensureProductionAccounts() {
     try {
         console.log(`[Startup] Ensuring critical production accounts are protected with proper auth and roles...`);
         
-        // Ensure bcrypt is available (it's imported at the top of the file if AuthController is used, but we'll use require to be safe if it's missing)
         const bcrypt = require('bcryptjs');
         
-        const partnerPassword = await bcrypt.hash('brasa-partner-2026', 10);
-        await (prisma as any).user.updateMany({
+        const partnerPassword = await bcrypt.hash('demo123', 10);
+        await (prisma as any).user.upsert({
             where: { email: 'partner@example.com' },
-            data: { 
-                password_hash: partnerPassword,
-                role: 'partner'
-            }
+            update: { password_hash: partnerPassword, role: 'partner' },
+            create: { email: 'partner@example.com', password_hash: partnerPassword, role: 'partner', first_name: 'Partner', last_name: 'User' }
         });
         
-        const rodrigoPassword = await bcrypt.hash('TDB2026@', 10);
-        await (prisma as any).user.updateMany({
+        const rodrigoPassword = await bcrypt.hash('TDB-Dir-2026', 10);
+        await (prisma as any).user.upsert({
             where: { email: 'rodrigodavila@texasdebrazil.com' },
-            data: { password_hash: rodrigoPassword }
+            update: { password_hash: rodrigoPassword, role: 'director' },
+            create: { email: 'rodrigodavila@texasdebrazil.com', password_hash: rodrigoPassword, role: 'director', first_name: 'Rodrigo', last_name: 'Davila' }
         });
+
+        const carlosPassword = await bcrypt.hash('TDB-AM-2026', 10);
+        await (prisma as any).user.upsert({
+            where: { email: 'carlosrestrepo@texasdebrazil.com' },
+            update: { password_hash: carlosPassword, role: 'area_manager' },
+            create: { email: 'carlosrestrepo@texasdebrazil.com', password_hash: carlosPassword, role: 'area_manager', first_name: 'Carlos', last_name: 'Restrepo' }
+        });
+
+        const alexPassword = await bcrypt.hash('Ag2113@9', 10);
+        await (prisma as any).user.upsert({
+            where: { email: 'alexandre@alexgarciaventures.co' },
+            update: { password_hash: alexPassword, role: 'admin' },
+            create: { email: 'alexandre@alexgarciaventures.co', password_hash: alexPassword, role: 'admin', first_name: 'Alex', last_name: 'Garcia' }
+        });
+
         console.log(`[Startup] SUCCESS: Production accounts verified and secured.`);
     } catch (error) {
         console.error('[Startup] FAILED to ensure production accounts:', error);
@@ -662,15 +675,17 @@ async function ensureOutbackPilot() {
 
         const jvpEmail = 'jvp.dallas@outback.com';
         const mpEmail = 'mp.dallas1@outback.com';
+        const bcrypt = require('bcryptjs');
+        const outbackPassHash = await bcrypt.hash('Outback2026!', 10);
 
         await (prisma as any).user.upsert({
             where: { email: jvpEmail },
-            update: { role: 'director', director_region: 'Dallas Metro', is_primary: true },
+            update: { password_hash: outbackPassHash, role: 'director', director_region: 'Dallas Metro', is_primary: true },
             create: {
                 email: jvpEmail,
                 first_name: 'John',
                 last_name: 'JVP',
-                password_hash: '$2b$10$xyz', 
+                password_hash: outbackPassHash, 
                 role: 'director',
                 director_region: 'Dallas Metro',
                 is_primary: true
@@ -679,12 +694,12 @@ async function ensureOutbackPilot() {
 
         await (prisma as any).user.upsert({
             where: { email: mpEmail },
-            update: { store_id: store.id, role: 'manager', is_primary: true },
+            update: { password_hash: outbackPassHash, store_id: store.id, role: 'manager', is_primary: true },
             create: {
                 email: mpEmail,
                 first_name: 'Mike',
                 last_name: 'MP',
-                password_hash: '$2b$10$xyz', 
+                password_hash: outbackPassHash, 
                 role: 'manager',
                 store_id: store.id,
                 is_primary: true

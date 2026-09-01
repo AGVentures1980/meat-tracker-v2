@@ -64,7 +64,7 @@ export const Login = () => {
                 const destination = resolveLoginRedirect(loginRes.user) || loginRes.redirectPath || '/dashboard';
                 navigate(destination, { replace: true });
             } else {
-                setError("Invalid email or password");
+                setError(loginRes?.error || "Invalid email or password");
             }
         } catch (err) {
             setError("An unexpected error occurred");

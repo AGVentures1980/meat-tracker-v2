@@ -79,11 +79,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 return data; // Return full data including redirectPath
             } else {
-                return null;
+                return { success: false, error: data?.error || data?.message || 'Invalid email or password' };
             }
         } catch (err) {
             console.error('Login Failed', err);
-            return null;
+            return { success: false, error: 'Network error or service unavailable' };
         }
     };
 
