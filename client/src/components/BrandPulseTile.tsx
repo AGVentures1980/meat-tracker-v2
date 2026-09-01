@@ -116,34 +116,36 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                 <button
                     onClick={handleHandoff}
                     disabled={loading}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all group ${
+                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-all group ${
                         !isEntitled ? 'opacity-50 hover:bg-neutral-800/30' : loading ? 'opacity-70 cursor-wait' : 'hover:bg-amber-500/10 hover:border-amber-500/30'
                     } border border-transparent ${className}`}
                 >
-                    <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-md border flex items-center justify-center transition-transform ${
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className={`w-8 h-8 rounded-md border flex items-center justify-center shrink-0 transition-transform ${
                             !isEntitled ? 'bg-neutral-800 border-neutral-700 text-gray-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-400 group-hover:scale-105'
                         }`}>
                             {isEntitled ? <Activity className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                         </div>
-                        <div>
-                            <div className="font-bold text-sm text-white flex items-center gap-1.5">
-                                BRASA Pulse
-                                <span className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded border ${
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-xs text-white whitespace-nowrap">
+                                    BRASA Pulse
+                                </span>
+                                <span className={`text-[9px] uppercase font-mono px-1 py-0.5 rounded border shrink-0 whitespace-nowrap ${
                                     !isEntitled ? 'bg-neutral-800 text-gray-400 border-neutral-700' : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                                 }`}>
                                     {isEntitled ? 'Guest AI' : 'Disabled'}
                                 </span>
                             </div>
-                            <div className="text-[11px] text-gray-400 font-normal">
-                                {isEntitled ? 'Reputation & Guest Intelligence' : 'Not enabled for organization'}
+                            <div className="text-[10px] text-gray-400 font-normal truncate leading-tight mt-0.5">
+                                {isEntitled ? 'Reputation & Guest Intel' : 'Not enabled for organization'}
                             </div>
                         </div>
                     </div>
                     {isEntitled ? (
-                        <ArrowUpRight className="w-4 h-4 text-gray-500 group-hover:text-amber-400 transition-colors" />
+                        <ArrowUpRight className="w-3.5 h-3.5 text-gray-500 shrink-0 ml-1 group-hover:text-amber-400 transition-colors" />
                     ) : (
-                        <Lock className="w-3.5 h-3.5 text-gray-600" />
+                        <Lock className="w-3 h-3 text-gray-600 shrink-0 ml-1" />
                     )}
                 </button>
 
@@ -162,22 +164,22 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                     } ${className}`}
                 >
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg border flex items-center justify-center ${
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 ${
                                 !isEntitled ? 'bg-neutral-800 border-neutral-700 text-gray-500' : 'bg-amber-500/15 border-amber-500/30 text-amber-400'
                             }`}>
                                 {isEntitled ? <Activity className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
                             </div>
-                            <div>
-                                <h4 className="text-base font-bold text-white tracking-wide">BRASA Pulse</h4>
-                                <p className="text-xs text-amber-200/70">
+                            <div className="min-w-0">
+                                <h4 className="text-base font-bold text-white tracking-wide whitespace-nowrap">BRASA Pulse</h4>
+                                <p className="text-xs text-amber-200/70 truncate">
                                     {isEntitled ? 'Reputation & Guest Intelligence' : 'Not enabled for this organization'}
                                 </p>
                             </div>
                         </div>
                         <button
                             disabled={loading || !isEntitled}
-                            className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all flex items-center gap-1 ${
+                            className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all shrink-0 flex items-center gap-1 ${
                                 !isEntitled ? 'bg-neutral-800 text-gray-500 border-neutral-700 cursor-not-allowed' : 'bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500 hover:text-black'
                             }`}
                         >
@@ -203,22 +205,22 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                 </div>
 
                 <div className="flex items-start justify-between relative z-10 mb-4">
-                    <div className="flex items-center gap-3.5">
-                        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shadow-inner ${
+                    <div className="flex items-center gap-3.5 min-w-0">
+                        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-inner ${
                             !isEntitled ? 'bg-neutral-800 border-neutral-700 text-gray-500' : 'bg-[#C5A059]/15 border-[#C5A059]/40 text-[#C5A059]'
                         }`}>
                             {isEntitled ? <Activity className="w-6 h-6 animate-pulse" /> : <Lock className="w-6 h-6" />}
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                                <h3 className="text-xl font-extrabold text-white tracking-wide">BRASA Pulse</h3>
-                                <span className={`text-[10px] font-mono font-bold tracking-widest px-2 py-0.5 rounded-full border uppercase ${
+                                <h3 className="text-xl font-extrabold text-white tracking-wide whitespace-nowrap">BRASA Pulse</h3>
+                                <span className={`text-[10px] font-mono font-bold tracking-widest px-2 py-0.5 rounded-full border uppercase shrink-0 whitespace-nowrap ${
                                     !isEntitled ? 'bg-neutral-800 text-gray-400 border-neutral-700' : 'bg-[#C5A059]/20 text-[#C5A059] border-[#C5A059]/40'
                                 }`}>
                                     {isEntitled ? 'Guest AI' : 'Not Enabled'}
                                 </span>
                             </div>
-                            <p className="text-sm text-[#C5A059]/80 font-medium">
+                            <p className="text-sm text-[#C5A059]/80 font-medium truncate">
                                 {isEntitled ? 'Reputation & Guest Intelligence' : 'Not enabled for this organization'}
                             </p>
                         </div>
