@@ -40,7 +40,6 @@ COPY --from=server-build /app/server/dist ./server/dist
 COPY --from=server-build /app/server/package*.json ./server/
 COPY --from=server-build /app/server/node_modules ./server/node_modules
 COPY --from=server-build /app/server/prisma ./server/prisma
-COPY server/.env ./server/.env
 
 # Copy built client to root /app/client/dist
 # This matches path.join(__dirname, '../../../client/dist') in server/dist/src/index.js
