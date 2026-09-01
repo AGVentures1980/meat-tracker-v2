@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { storeAdapters, RawDashboardPayload } from '../../../utils/dashboardAdapters';
+import { BrandPulseTile } from '../../BrandPulseTile';
 
 export const StoreDashboardContainer = () => {
     const navigate = useNavigate();
@@ -67,6 +68,9 @@ export const StoreDashboardContainer = () => {
     return (
         <div className="store-scope p-6 bg-[#121212] min-h-screen text-white isolation-boundary">
             <h1 className="text-3xl font-bold mb-8 text-[#FF9F1C]">Store Shift Command</h1>
+
+            {/* BRASA Pulse - Reputation & Guest Intelligence */}
+            <BrandPulseTile variant="card" className="mb-8" />
 
             {/* BLOCO A — Today Snapshot */}
             <div className="grid grid-cols-5 gap-4 mb-8">

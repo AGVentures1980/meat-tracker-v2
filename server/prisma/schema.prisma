@@ -117,6 +117,7 @@ model Store {
   activated_at               DateTime?
   billing_active             Boolean                   @default(false)
   status                     String                    @default("INACTIVE")
+  data_type                  StoreDataType             @default(DEMO)
   AiYieldInsight             AiYieldInsight[]
   AuditLogs                  AuditLog[]
   BarcodeDecisionLog         BarcodeDecisionLog[]
@@ -2369,4 +2370,9 @@ enum FeedbackCategory {
   PERFORMANCE_ISSUE
   METRIC_CONFIDENCE_ISSUE
   ADOPTION_BARRIER
+}
+
+enum StoreDataType {
+  LIVE
+  DEMO
 }

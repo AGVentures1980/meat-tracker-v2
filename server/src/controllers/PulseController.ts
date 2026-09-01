@@ -4,7 +4,6 @@ import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
-const BRAND_PULSE_URL = process.env.BRAND_PULSE_URL || 'https://pulse.brasameat.com';
 
 export class PulseController {
     /**
@@ -15,6 +14,11 @@ export class PulseController {
      */
     static async generateHandoff(req: Request, res: Response) {
         try {
+            // Environment-aware Brand Pulse destination configuration (Requirement 7)
+            const pulseBaseUrl = process.env.PULSE_BASE_URL ||
+                process.env.BRAND_PULSE_URL ||
+                (process.env.NODE_ENV === 'production' ? 'https://pulse.brasameat.com' : 'http://localhost:3001');
+
             // Requirement 4: Dedicated SSO Secret ONLY (No generic JWT_SECRET fallback)
             const ssoSecret = process.env.PULSE_SSO_SECRET || (process.env.NODE_ENV === 'test' ? 'brasa-pulse-sso-secret-key-change-me' : null);
             if (!ssoSecret) {
@@ -122,14 +126,15 @@ export class PulseController {
                 }
             }).catch(e => console.warn('[Audit Log Write Notice]:', e.message));
 
-            const isReceiverConnected = process.env.BRAND_PULSE_CONNECTED === 'true';
+            const isReceiverDisabled = process.env.BRAND_PULSE_DISABLED === 'true';
+            const ssoReceiverUrl = `${pulseBaseUrl}/api/auth/brasa-meat-sso?token=${handoffToken}`;
 
             return res.json({
                 success: true,
-                status: isReceiverConnected ? 'PULSE_SSO_READY' : 'PULSE_SSO_NOT_CONNECTED',
-                message: isReceiverConnected
-                    ? 'Secure handoff token with JTI generated for BRASA Pulse.'
-                    : 'PULSE_SSO_NOT_CONNECTED: BRASA Meat handoff token generated successfully. BRASA Pulse receiver module pending connection.',
+                status: isReceiverDisabled ? 'PULSE_SSO_DISABLED' : 'PULSE_SSO_READY',
+                message: isReceiverDisabled
+                    ? 'PULSE_SSO_DISABLED: Brand Pulse SSO is temporarily disabled.'
+                    : 'Secure handoff token with JTI generated for BRASA Pulse.',
                 handoff: {
                     jti,
                     userId,
@@ -142,8 +147,8 @@ export class PulseController {
                     expiresInSeconds
                 },
                 handoffToken,
-                destinationUrl: BRAND_PULSE_URL,
-                fullRedirectUrl: `${BRAND_PULSE_URL}/sso/callback?token=${handoffToken}`
+                destinationUrl: pulseBaseUrl,
+                fullRedirectUrl: ssoReceiverUrl
             });
 
         } catch (error: any) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { regionalAdapters, RawDashboardPayload } from '../../../utils/dashboardAdapters';
+import { BrandPulseTile } from '../../BrandPulseTile';
 
 export const RegionalDashboardContainer = () => {
     const { user, selectedCompany } = useAuth();
@@ -106,6 +107,9 @@ export const RegionalDashboardContainer = () => {
     return (
         <div className="regional-scope p-6 bg-[#121212] min-h-screen text-white isolation-boundary">
             <h1 className="text-3xl font-bold mb-8 text-[#00FF94]">Regional Performance Hub</h1>
+
+            {/* BRASA Pulse - Reputation & Guest Intelligence */}
+            <BrandPulseTile variant="card" className="mb-8" />
 
             {(payload as any).summary?.scoreState === 'DEGRADED' && (
                 <div className="mb-8 p-6 bg-yellow-500/10 border-2 border-yellow-500 rounded-lg backdrop-blur-md">

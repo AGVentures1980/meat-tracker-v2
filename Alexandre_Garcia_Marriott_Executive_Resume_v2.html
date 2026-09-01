@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alexandre Garcia — Marriott Executive Resume</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1A202C;
+      background-color: #FFFFFF;
+      line-height: 1.45;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .resume-container {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0.5in 0.4in;
+      box-sizing: border-box;
+    }
+
+    /* Typography & Headers */
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #0A192F;
+      padding-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 26pt;
+      font-weight: 700;
+      color: #0A192F;
+      margin: 0 0 4px 0;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 11.5pt;
+      font-weight: 600;
+      color: #C5A059;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 0 0 10px 0;
+    }
+
+    .contact-bar {
+      font-size: 8.5pt;
+      color: #4A5568;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+
+    .contact-bar a {
+      color: #4A5568;
+      text-decoration: none;
+    }
+
+    .contact-bar a:hover {
+      text-decoration: underline;
+    }
+
+    /* Sections */
+    h2 {
+      font-size: 12.5pt;
+      font-weight: 700;
+      color: #0A192F;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin: 22px 0 10px 0;
+      border-bottom: 1.5px solid #E2E8F0;
+      padding-bottom: 4px;
+      page-break-after: avoid;
+    }
+
+    .section-desc {
+      font-size: 9.5pt;
+      color: #2D3748;
+      margin: 0 0 12px 0;
+      text-align: justify;
+    }
+
+    /* Executive Metrics Section */
+    .metrics-container {
+      display: table;
+      width: 100%;
+      margin: 18px 0;
+      border-collapse: separate;
+      border-spacing: 8px 0;
+      page-break-inside: avoid;
+    }
+
+    .metric-card {
+      display: table-cell;
+      background-color: #F8FAFC;
+      border-left: 3.5px solid #C5A059;
+      padding: 10px 12px;
+      vertical-align: top;
+      width: 25%;
+    }
+
+    .metric-val {
+      font-size: 13.5pt;
+      font-weight: 700;
+      color: #0A192F;
+      margin-bottom: 2px;
+    }
+
+    .metric-label {
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: #4A5568;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+    }
+
+    /* Quote / Leadership Value */
+    .quote-box {
+      border-left: 3.5px solid #C5A059;
+      padding-left: 14px;
+      margin: 18px 0;
+      font-style: italic;
+      color: #4A5568;
+      font-size: 9.5pt;
+      line-height: 1.55;
+      page-break-inside: avoid;
+    }
+
+    /* Competencies Grid */
+    .competencies-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      page-break-inside: avoid;
+    }
+
+    .competencies-table td {
+      width: 33.33%;
+      font-size: 8.5pt;
+      color: #2D3748;
+      padding: 4px 6px;
+      vertical-align: middle;
+    }
+
+    .bullet-dot {
+      color: #C5A059;
+      font-size: 8pt;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* Experience Styling */
+    .experience-block {
+      margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+
+    .exp-header-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 4px;
+    }
+
+    .exp-title-company {
+      font-size: 10pt;
+      font-weight: 700;
+      color: #0A192F;
+      text-align: left;
+    }
+
+    .exp-location-date {
+      font-size: 8.5pt;
+      color: #718096;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .exp-desc {
+      font-size: 9pt;
+      font-style: italic;
+      color: #4A5568;
+      margin: 0 0 6px 0;
+      text-align: justify;
+    }
+
+    ul.exp-bullets {
+      margin: 0;
+      padding-left: 16px;
+    }
+
+    ul.exp-bullets li {
+      font-size: 9pt;
+      color: #2D3748;
+      margin-bottom: 4px;
+      text-align: justify;
+    }
+
+    /* Horizontal Openings Bar */
+    .openings-list {
+      font-size: 8.5pt;
+      color: #2D3748;
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+
+    /* Bottom Technical Columns */
+    .footer-columns-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      page-break-inside: avoid;
+    }
+
+    .footer-columns-table td {
+      width: 33.33%;
+      vertical-align: top;
+      padding: 0 10px 0 0;
+    }
+
+    .footer-columns-table td:last-child {
+      padding-right: 0;
+    }
+
+    .footer-subheading {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #0A192F;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 1px solid #E2E8F0;
+      padding-bottom: 3px;
+      margin-bottom: 8px;
+    }
+
+    .footer-text-list {
+      font-size: 8pt;
+      color: #4A5568;
+      line-height: 1.4;
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+    }
+
+    .footer-text-list li {
+      margin-bottom: 4px;
+    }
+
+    /* Page-break Controller */
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* Print & PDF Optimization */
+    @media print {
+      @page {
+        size: letter;
+        margin: 0.5in 0.4in;
+      }
+      body {
+        background-color: #FFFFFF;
+        color: #1A202C;
+      }
+      .resume-container {
+        padding: 0;
+        width: 100%;
+      }
+      .metric-card {
+        background-color: #F8FAFC !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="resume-container">
+
+    <!-- ================= PAGE 1 ================= -->
+    <table class="header-table">
+      <tr>
+        <td>
+          <h1>Alexandre Garcia</h1>
+          <div class="subtitle">Senior Hospitality & Food & Beverage Operations Executive</div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="contact-bar">
+      Tampa, Florida &nbsp;|&nbsp; 
+      Phone: (310) 308-7242 &nbsp;|&nbsp; 
+      Email: <a href="mailto:xande1980@gmail.com">xande1980@gmail.com</a> &nbsp;|&nbsp; 
+      LinkedIn: <a href="https://www.linkedin.com/in/alexandregarciaagv" target="_blank">linkedin.com/in/alexandregarciaagv</a>
+    </div>
+
+    <h2>Executive Summary</h2>
+    <div class="section-desc">
+      Strategic, performance-driven Senior Hospitality and Food & Beverage Operations Executive with over 20 years of leadership experience directing premium dining establishments, luxury guest service operations, and high-volume outlets in the United States and Brazil. Recognized for delivering outstanding guest experiences, optimizing outlet financial performance, and maintaining rigorous brand standards to drive guest satisfaction and asset profitability.
+    </div>
+    <div class="section-desc">
+      Expert in leading cross-functional teams of associates, cultivating high engagement, and spearheading grand openings and post-opening stabilization. A servant leader dedicated to talent development, operational consistency, and robust financial accountability, bridging day-to-day front-of-house and back-of-house excellence with corporate business goals.
+    </div>
+    <div class="section-desc">
+      Proven capability in guest recovery, revenue management, and continuous operational improvement in premium dining and banquet operations. Experienced in managing high-volume outlets serving 3,000+ weekly guests with over $14M in annual revenue exposure. Bilingual in English and Portuguese, with professional working proficiency in Spanish, bringing strong cross-cultural leadership to luxury hospitality environments.
+    </div>
+
+    <div class="metrics-container">
+      <div class="metric-card">
+        <div class="metric-val">20+ Years</div>
+        <div class="metric-label">Hospitality & F&B Leadership</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">$14M+</div>
+        <div class="metric-label">Annual Revenue Managed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">120+</div>
+        <div class="metric-label">Team Members Directed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">3,000+</div>
+        <div class="metric-label">Weekly Guests Served</div>
+      </div>
+    </div>
+
+    <div class="quote-box">
+      "I believe that taking care of our associates empowers them to take exceptional care of our guests, which naturally drives business performance. Outstanding hospitality is sustained by operational consistency, brand standards, and a culture of continuous improvement. True leadership is defined by service to the team, clear accountability, and a commitment to operational excellence."
+    </div>
+
+    <h2>Core Competencies</h2>
+    <table class="competencies-table">
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Multi-Unit Restaurant Operations</td>
+        <td><span class="bullet-dot">&#9632;</span>Labor Optimization & Scheduling</td>
+        <td><span class="bullet-dot">&#9632;</span>High-Profile Restaurant Openings</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Restaurant Operations Leadership</td>
+        <td><span class="bullet-dot">&#9632;</span>Food Cost Variance Optimization</td>
+        <td><span class="bullet-dot">&#9632;</span>FOH / BOH Alignment & Workflow</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Premium & Luxury Hospitality</td>
+        <td><span class="bullet-dot">&#9632;</span>Inventory Lifecycle Management</td>
+        <td><span class="bullet-dot">&#9632;</span>Private Events & Banquet Execution</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Guest Experience Excellence</td>
+        <td><span class="bullet-dot">&#9632;</span>Purchasing & Procurement</td>
+        <td><span class="bullet-dot">&#9632;</span>Compliance, Food Safety & Sanitation</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>P&L & Financial Accountability</td>
+        <td><span class="bullet-dot">&#9632;</span>Vendor Relations & Compliance</td>
+        <td><span class="bullet-dot">&#9632;</span>Tech-Enabled Operational Audits</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Team Leadership & Development</td>
+        <td><span class="bullet-dot">&#9632;</span>Menu Engineering & Yield Analysis</td>
+        <td><span class="bullet-dot">&#9632;</span>Executive Communication</td>
+      </tr>
+    </table>
+
+    <!-- ================= PAGE 2 ================= -->
+    <div class="page-break"></div>
+
+    <h2>Professional Experience</h2>
+
+    <div class="experience-block">
+      <table class="exp-header-table">
+        <tr>
+          <td class="exp-title-company">MANAGER &nbsp;|&nbsp; Texas de Brazil</td>
+          <td class="exp-location-date">Tampa, Florida &nbsp;|&nbsp; October 2025 – Present</td>
+        </tr>
+      </table>
+      <div class="exp-desc">
+        Direct comprehensive front-of-house (FOH) and back-of-house (BOH) operations for one of the company's highest-volume Brazilian steakhouses, overseeing daily restaurant execution while driving guest satisfaction, associate engagement, and operational consistency.
+      </div>
+      <ul class="exp-bullets">
+        <li>Direct daily FOH and BOH operations in a high-volume premium dining location, ensuring strict brand standards, guest satisfaction, and financial performance.</li>
+        <li>Command cross-functional teams of associates across service, culinary, bar, butcher shop, receiving, inventory, and guest relations to maintain luxury hospitality standards and operational consistency.</li>
+        <li>Optimize labor productivity, food cost variance, and inventory margins to drive outlet financial performance and achieve corporate profitability goals.</li>
+        <li>Cultivate associate engagement and a high-performance culture by coaching, mentoring, and developing supervisors and team members in operational accountability.</li>
+        <li>Collaborate with corporate executive leadership to execute operational improvements, standardize kitchen workflows, and execute strategic revenue-growth plans.</li>
+        <li>Manage high-value private dining, VIP guest relations, banquet coordination, and beverage programs to enhance guest experience and generate incremental sales.</li>
+        <li>Oversee associate recruitment, onboarding, scheduling, payroll controls, and talent development pipelines.</li>
+        <li>Perform rigorous operational audits covering food safety, sanitation, brand service standards, inventory controls, and local regulatory compliance.</li>
+        <li>Optimize inventory controls and supplier verification processes to increase management visibility and protect outlet margins.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block">
+      <table class="exp-header-table">
+        <tr>
+          <td class="exp-title-company">ASSISTANT GENERAL MANAGER &nbsp;|&nbsp; Fogo de Chão Brazilian Steakhouse</td>
+          <td class="exp-location-date">Irvine, California &nbsp;|&nbsp; June 2022 – October 2025</td>
+        </tr>
+      </table>
+      <div class="exp-desc">
+        Served as operational leader for one of the company's highest-volume locations, managing premium hospitality operations and outlet financial performance with annual revenue exposure exceeding $14 million while serving more than 3,000 guests weekly.
+      </div>
+      <ul class="exp-bullets">
+        <li>Directed comprehensive daily operations across FOH and BOH departments, ensuring exceptional guest satisfaction and strict brand standards execution for a $14M+ unit.</li>
+        <li>Managed and developed a high-performing team of up to 120 associates, fostering a culture of servant leadership, teamwork, and operational discipline.</li>
+        <li>Optimized labor scheduling, associate productivity, and payroll controls to align operational staffing with daily guest covers.</li>
+        <li>Governed food cost, purchasing, receiving procedures, and vendor compliance to ensure product quality and minimize yield waste.</li>
+        <li>Partnered with corporate executive leadership to drive outlet profitability through operational consistency and financial accountability.</li>
+        <li>Directed high-profile private dining, VIP guest relations, premium wine dinners, and banquet execution.</li>
+        <li>Oversaw associate recruitment, onboarding, coaching, performance evaluations, and succession planning.</li>
+        <li>Enforced strict compliance with food safety regulations, sanitation standards, liquor licensing, and corporate procedures.</li>
+        <li>Collaborated with culinary directors to align kitchen-to-table consistency, prep line workflows, and guest experience standards.</li>
+        <li>Drove strategic operational initiatives focused on service quality, reducing labor variance, and driving continuous improvement in outlet profitability.</li>
+        <li>Established extensive expertise in high-value asset inventory controls, supplier weight verification, and operational audits.</li>
+      </ul>
+    </div>
+
+    <!-- ================= PAGE 3 ================= -->
+    <div class="page-break"></div>
+
+    <div class="experience-block">
+      <table class="exp-header-table">
+        <tr>
+          <td class="exp-title-company">MANAGER &nbsp;|&nbsp; Texas de Brazil</td>
+          <td class="exp-location-date">United States &nbsp;|&nbsp; November 2004 – December 2009</td>
+        </tr>
+      </table>
+      <div class="exp-desc">
+        Played an instrumental role in supporting restaurant openings, operational stabilization, leadership development, and brand standard implementation across U.S. locations during one of the company's major expansion phases.
+      </div>
+      <ul class="exp-bullets">
+        <li>Directed grand openings and post-opening stabilization of multiple U.S. locations, including Las Vegas, Richmond, Fairfax, Hallandale Beach, and Miami Beach.</li>
+        <li>Coordinated recruitment, hiring, onboarding, operational training, and store readiness for expansion locations.</li>
+        <li>Enforced corporate operating standards across dining rooms, kitchen operations, food safety, and inventory management.</li>
+        <li>Collaborated directly with General Managers and Regional Leadership to align store-level execution with corporate standards.</li>
+        <li>Executed operational audits, process improvements, leadership coaching, and cross-functional team development.</li>
+        <li>Established a robust operational foundation that supported high-volume leadership positions in premium restaurant organizations.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block" style="margin-bottom: 12px;">
+      <table class="exp-header-table" style="margin-bottom: 2px;">
+        <tr>
+          <td class="exp-title-company">GENERAL MANAGER &nbsp;|&nbsp; NOMA Group</td>
+          <td class="exp-location-date">Florianópolis, Brazil</td>
+        </tr>
+      </table>
+      <div class="exp-desc" style="margin-bottom: 4px;">
+        Managed luxury Japanese dining operations with emphasis on guest experience, operational precision, premium service standards, and team coordination.
+      </div>
+      <ul class="exp-bullets">
+        <li>Directed daily restaurant operations while maintaining upscale hospitality standards for a luxury Japanese dining concept.</li>
+        <li>Aligned FOH and BOH teams to ensure seamless service execution and guest satisfaction.</li>
+        <li>Sustained the brand's position as one of the region's premier luxury dining destinations through strict service controls and guest engagement strategies.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block" style="margin-bottom: 12px;">
+      <table class="exp-header-table" style="margin-bottom: 2px;">
+        <tr>
+          <td class="exp-title-company">GENERAL MANAGER &nbsp;|&nbsp; Pecorino Italian Restaurant</td>
+          <td class="exp-location-date">Balneario Camboriu, Brazil</td>
+        </tr>
+      </table>
+      <div class="exp-desc" style="margin-bottom: 4px;">
+        Supported operational leadership across premium Italian dining concepts with emphasis on culinary execution, menu consistency, supplier coordination, and operational excellence.
+      </div>
+      <ul class="exp-bullets">
+        <li>Coordinated with culinary and operational directors to align menus, optimize purchasing, and standardize workflows across multiple units.</li>
+        <li>Standardized menu execution, purchasing controls, inventory organization, and kitchen workflow improvements.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block" style="margin-bottom: 12px;">
+      <table class="exp-header-table" style="margin-bottom: 2px;">
+        <tr>
+          <td class="exp-title-company">GENERAL MANAGER &nbsp;|&nbsp; Olivia Cucina</td>
+          <td class="exp-location-date">Florianópolis, Brazil</td>
+        </tr>
+      </table>
+      <div class="exp-desc" style="margin-bottom: 4px;">
+        Provided operational leadership supporting restaurant performance, service quality, team development, and guest satisfaction.
+      </div>
+      <ul class="exp-bullets">
+        <li>Directed daily restaurant execution across FOH and BOH operations.</li>
+        <li>Developed team members through coaching, training, and operational leadership.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block" style="margin-bottom: 15px;">
+      <table class="exp-header-table" style="margin-bottom: 2px;">
+        <tr>
+          <td class="exp-title-company">CHEF CHURRASQUEIRO &nbsp;|&nbsp; Fogo de Chão</td>
+          <td class="exp-location-date">São Paulo, Brazil</td>
+        </tr>
+      </table>
+      <div class="exp-desc" style="margin-bottom: 4px;">
+        Developed technical expertise in premium protein preparation, production standards, portion control, and culinary execution inside one of Brazil's most recognized steakhouse brands.
+      </div>
+      <ul class="exp-bullets">
+        <li>Established the operational foundation that would later evolve into restaurant leadership, inventory governance, and executive hospitality management.</li>
+      </ul>
+    </div>
+
+    <h2>Restaurant Openings</h2>
+    <div class="openings-list">
+      Successfully directed and supported grand openings, operational launches, and post-opening stabilization across multiple high-volume venues in the United States and Brazil, including:
+      <strong>Las Vegas, NV &nbsp;|&nbsp; Richmond, VA &nbsp;|&nbsp; Fairfax, VA &nbsp;|&nbsp; Hallandale Beach, FL &nbsp;|&nbsp; Miami Beach, FL &nbsp;|&nbsp; São Paulo, Brazil &nbsp;|&nbsp; Florianópolis, Brazil</strong>.
+    </div>
+
+    <table class="footer-columns-table">
+      <tr>
+        <td>
+          <div class="footer-subheading">Certifications & Development</div>
+          <ul class="footer-text-list">
+            <li><strong>ServSafe® Manager Certification</strong> (Valid through 2028)</li>
+            <li>Food Safety & Sanitation Compliance</li>
+            <li>Restaurant Operations Leadership</li>
+            <li>Hospitality Management</li>
+            <li>IBM AI Professional Certificate</li>
+            <li>Google AI & Prompt Engineering</li>
+          </ul>
+        </td>
+        <td>
+          <div class="footer-subheading">Technology & Systems</div>
+          <ul class="footer-text-list">
+            <li><strong>Restaurant Systems:</strong> NCR Aloha POS, Toast, Micros</li>
+            <li><strong>Inventory Systems:</strong> CrunchTime, Compeat, Purchase Controls</li>
+            <li><strong>Business Systems:</strong> Scheduling & Labor Management, Payroll Systems, KPI Analysis</li>
+            <li><strong>AI Productivity:</strong> Google AI, Prompt Engineering, Business Process Automation</li>
+            <li><strong>Office Tools:</strong> Microsoft Excel & Office Suite, Google Workspace</li>
+          </ul>
+        </td>
+        <td>
+          <div class="footer-subheading">Languages & Education</div>
+          <ul class="footer-text-list">
+            <li><strong>Portuguese</strong> (Native)</li>
+            <li><strong>English</strong> (Professional Working Proficiency)</li>
+            <li><strong>Spanish</strong> (Professional Working Proficiency)</li>
+            <li style="margin-top: 8px;"><strong>Studies in Computer Science</strong></li>
+            <li>Universidade de Santa Cruz do Sul (UNISC), Brazil</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+
+    <h2>Selected Career Achievements</h2>
+    <ul class="exp-bullets" style="margin-top: 8px; padding-left: 16px;">
+      <li>Over 20 years of progressive hospitality leadership across the United States and Brazil.</li>
+      <li>Leadership experience within internationally recognized premium restaurant brands.</li>
+      <li>Operational exposure exceeding $14 million in annual restaurant revenue.</li>
+      <li>Experience leading cross-functional teams of up to 120 associates.</li>
+      <li>Successfully supported multiple restaurant openings and operational stabilization projects.</li>
+      <li>Led an independent operational analytics and research project (BRASA) focused on food cost optimization and yield management systems for restaurant groups.</li>
+    </ul>
+
+    <h2>Leadership Philosophy</h2>
+    <div class="quote-box" style="margin: 10px 0 0 0;">
+      "I believe that taking care of our associates empowers them to take exceptional care of our guests, which naturally drives business performance. Outstanding hospitality is sustained by operational consistency, brand standards, and a culture of continuous improvement. True leadership is defined by service to the team, clear accountability, and a commitment to operational excellence."
+    </div>
+
+  </div>
+
+</body>
+</html>

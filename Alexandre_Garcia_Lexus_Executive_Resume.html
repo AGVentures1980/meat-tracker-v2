@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alexandre Garcia — Lexus Executive Resume</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1A202C;
+      background-color: #FFFFFF;
+      line-height: 1.45;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .resume-container {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0.5in 0.4in;
+      box-sizing: border-box;
+    }
+
+    /* Typography & Headers */
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #0A192F;
+      padding-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 26pt;
+      font-weight: 700;
+      color: #0A192F;
+      margin: 0 0 4px 0;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 11.5pt;
+      font-weight: 600;
+      color: #C5A059;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 0 0 10px 0;
+    }
+
+    .contact-bar {
+      font-size: 8.5pt;
+      color: #4A5568;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+
+    .contact-bar a {
+      color: #4A5568;
+      text-decoration: none;
+    }
+
+    .contact-bar a:hover {
+      text-decoration: underline;
+    }
+
+    /* Sections */
+    h2 {
+      font-size: 12.5pt;
+      font-weight: 700;
+      color: #0A192F;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin: 22px 0 10px 0;
+      border-bottom: 1.5px solid #E2E8F0;
+      padding-bottom: 4px;
+      page-break-after: avoid;
+    }
+
+    .section-desc {
+      font-size: 9.5pt;
+      color: #2D3748;
+      margin: 0 0 12px 0;
+      text-align: justify;
+    }
+
+    /* Executive Metrics Section */
+    .metrics-container {
+      display: table;
+      width: 100%;
+      margin: 18px 0;
+      border-collapse: separate;
+      border-spacing: 8px 0;
+      page-break-inside: avoid;
+    }
+
+    .metric-card {
+      display: table-cell;
+      background-color: #F8FAFC;
+      border-left: 3.5px solid #C5A059;
+      padding: 10px 12px;
+      vertical-align: top;
+      width: 25%;
+    }
+
+    .metric-val {
+      font-size: 13.5pt;
+      font-weight: 700;
+      color: #0A192F;
+      margin-bottom: 2px;
+    }
+
+    .metric-label {
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: #4A5568;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+    }
+
+    /* Quote / Leadership Value */
+    .quote-box {
+      border-left: 3.5px solid #C5A059;
+      padding-left: 14px;
+      margin: 18px 0;
+      font-style: italic;
+      color: #4A5568;
+      font-size: 9.5pt;
+      line-height: 1.55;
+      page-break-inside: avoid;
+    }
+
+    /* Competencies Grid */
+    .competencies-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      page-break-inside: avoid;
+    }
+
+    .competencies-table td {
+      width: 33.33%;
+      font-size: 8.5pt;
+      color: #2D3748;
+      padding: 4px 6px;
+      vertical-align: middle;
+    }
+
+    .bullet-dot {
+      color: #C5A059;
+      font-size: 8pt;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* Experience Styling */
+    .experience-block {
+      margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+
+    .exp-header-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 4px;
+    }
+
+    .exp-title-company {
+      font-size: 10pt;
+      font-weight: 700;
+      color: #0A192F;
+      text-align: left;
+    }
+
+    .exp-location-date {
+      font-size: 8.5pt;
+      color: #718096;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .exp-desc {
+      font-size: 9pt;
+      font-style: italic;
+      color: #4A5568;
+      margin: 0 0 6px 0;
+      text-align: justify;
+    }
+
+    ul.exp-bullets {
+      margin: 0;
+      padding-left: 16px;
+    }
+
+    ul.exp-bullets li {
+      font-size: 9pt;
+      color: #2D3748;
+      margin-bottom: 4px;
+      text-align: justify;
+    }
+
+    /* Horizontal Openings Bar */
+    .openings-list {
+      font-size: 8.5pt;
+      color: #2D3748;
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+
+    /* Bottom Technical Columns */
+    .footer-columns-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      page-break-inside: avoid;
+    }
+
+    .footer-columns-table td {
+      width: 33.33%;
+      vertical-align: top;
+      padding: 0 10px 0 0;
+    }
+
+    .footer-columns-table td:last-child {
+      padding-right: 0;
+    }
+
+    .footer-subheading {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #0A192F;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 1px solid #E2E8F0;
+      padding-bottom: 3px;
+      margin-bottom: 8px;
+    }
+
+    .footer-text-list {
+      font-size: 8pt;
+      color: #4A5568;
+      line-height: 1.4;
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+    }
+
+    .footer-text-list li {
+      margin-bottom: 4px;
+    }
+
+    /* Page-break Controller */
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* Print & PDF Optimization */
+    @media print {
+      @page {
+        size: letter;
+        margin: 0.5in 0.4in;
+      }
+      body {
+        background-color: #FFFFFF;
+        color: #1A202C;
+      }
+      .resume-container {
+        padding: 0;
+        width: 100%;
+      }
+      .metric-card {
+        background-color: #F8FAFC !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="resume-container">
+
+    <!-- ================= PAGE 1 ================= -->
+    <table class="header-table">
+      <tr>
+        <td>
+          <h1>Alexandre Garcia</h1>
+          <div class="subtitle">Senior Luxury Client Experience & Sales Executive</div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="contact-bar">
+      Tampa, Florida &nbsp;|&nbsp; 
+      Phone: (310) 308-7242 &nbsp;|&nbsp; 
+      Email: <a href="mailto:xande1980@gmail.com">xande1980@gmail.com</a> &nbsp;|&nbsp; 
+      LinkedIn: <a href="https://www.linkedin.com/in/alexandregarciaagv" target="_blank">linkedin.com/in/alexandregarciaagv</a>
+    </div>
+
+    <h2>Executive Summary</h2>
+    <div class="section-desc">
+      Strategic, performance-driven Luxury Client Experience and Relationship Sales Executive with over 20 years of leadership experience directing premium hospitality, high-end guest services, and consultative sales environments in the United States and Brazil. Recognized for delivering world-class client experiences, cultivating deep customer loyalty, and representing premium international brands to drive revenue growth and operational excellence.
+    </div>
+    <div class="section-desc">
+      Expert in building high-performing teams of associates, training them in upscale service standards, consultative relationship building, and VIP client service. Dedicated to high-end client interaction, conflict resolution, and premium brand representation, aligning daily operations with elite customer satisfaction (CS) metrics and customer retention goals.
+    </div>
+    <div class="section-desc">
+      Adept at designing personalized client journeys, executing high-value private events, and conducting premium brand presentations that foster trust and secure repeat business. Bilingual in English and Portuguese, with professional working proficiency in Spanish, bringing a strong cross-cultural perspective to luxury sales and client relations management.
+    </div>
+
+    <div class="metrics-container">
+      <div class="metric-card">
+        <div class="metric-val">20+ Years</div>
+        <div class="metric-label">Luxury Experience & Sales</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">$14M+</div>
+        <div class="metric-label">Annual Revenue Managed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">120+</div>
+        <div class="metric-label">Associates Led & Coached</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val">3,000+</div>
+        <div class="metric-label">Weekly Clients Served</div>
+      </div>
+    </div>
+
+    <div class="quote-box">
+      "I believe that trust is the foundation of every long-term client relationship, and integrity is the only way to build lasting brand value. Outstanding service and business performance are directly linked: when we empower our team to deliver an exceptional client journey, customer loyalty and sales growth follow naturally."
+    </div>
+
+    <h2>Core Competencies</h2>
+    <table class="competencies-table">
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Luxury Client Experience</td>
+        <td><span class="bullet-dot">&#9632;</span>Presentation Skills</td>
+        <td><span class="bullet-dot">&#9632;</span>Sales Leadership & Culture</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Consultative Sales</td>
+        <td><span class="bullet-dot">&#9632;</span>Conflict Resolution</td>
+        <td><span class="bullet-dot">&#9632;</span>Team Development & Training</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Relationship Building</td>
+        <td><span class="bullet-dot">&#9632;</span>VIP Guest Relations</td>
+        <td><span class="bullet-dot">&#9632;</span>Customer Satisfaction (CS)</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Negotiation & Closing</td>
+        <td><span class="bullet-dot">&#9632;</span>Brand Representation & Image</td>
+        <td><span class="bullet-dot">&#9632;</span>Upselling & Premium Sales</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Customer Retention & Loyalty</td>
+        <td><span class="bullet-dot">&#9632;</span>Private Events & High-Value Sales</td>
+        <td><span class="bullet-dot">&#9632;</span>Cross-Functional Leadership</td>
+      </tr>
+      <tr>
+        <td><span class="bullet-dot">&#9632;</span>Executive Communication</td>
+        <td><span class="bullet-dot">&#9632;</span>Strategic Customer Journeys</td>
+        <td><span class="bullet-dot">&#9632;</span>Grand Openings & Promotions</td>
+      </tr>
+    </table>
+
+    <!-- ================= PAGE 2 ================= -->
+    <div class="page-break"></div>
+
+    <h2>Professional Experience</h2>
+
+    <div class="experience-block">
+      <table class="exp-header-table">
+        <tr>
+          <td class="exp-title-company">MANAGER &nbsp;|&nbsp; Texas de Brazil</td>
+          <td class="exp-location-date">Tampa, Florida &nbsp;|&nbsp; October 2025 – Present</td>
+        </tr>
+      </table>
+      <div class="exp-desc">
+        Direct comprehensive front-of-house (FOH) and back-of-house (BOH) client experience operations for a premium, high-volume brand location, driving relationship selling, repeat business, and luxury service execution.
+      </div>
+      <ul class="exp-bullets">
+        <li>Direct daily luxury client experience operations in a high-volume premier venue, ensuring service consistency, elite client relations, and brand reputation.</li>
+        <li>Command cross-functional teams of associates across client services, hospitality, guest relations, and VIP programs to maintain premium brand representation.</li>
+        <li>Drive consultative sales performance, premium upselling initiatives (beverage/VIP packages), and customer retention strategies to achieve revenue goals.</li>
+        <li>Cultivate associate engagement and a high-performance customer service culture by coaching, mentoring, and developing supervisors and team members.</li>
+        <li>Collaborate with corporate executive leadership to execute operational improvements, standardize client service workflows, and drive local marketing support.</li>
+        <li>Manage high-value private client bookings, VIP relations, group presentations, and premium dinners to enhance guest loyalty and generate incremental sales.</li>
+        <li>Oversee associate recruitment, onboarding, customer relations training, scheduling, and leadership development pipelines.</li>
+        <li>Perform rigorous quality audits covering service standards, customer satisfaction (CS), brand compliance, and local regulatory guidelines.</li>
+        <li>Establish strong client relationships and execute prompt guest recovery solutions to resolve service friction and secure customer loyalty.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block">
+      <table class="exp-header-table">
+        <tr>
+          <td class="exp-title-company">ASSISTANT GENERAL MANAGER &nbsp;|&nbsp; Fogo de Chão Brazilian Steakhouse</td>
+          <td class="exp-location-date">Irvine, California &nbsp;|&nbsp; June 2022 – October 2025</td>
+        </tr>
+      </table>
+      <div class="exp-desc">
+        Served as operations and client experience leader for one of the brand's highest-volume locations, managing premium hospitality operations and outlet financial performance with annual revenue exposure exceeding $14 million while serving more than 3,000 guests weekly.
+      </div>
+      <ul class="exp-bullets">
+        <li>Directed daily guest service operations across all FOH and BOH departments, ensuring exceptional client experience and strict brand standards execution for a $14M+ unit.</li>
+        <li>Managed and developed a high-performing team of up to 120 associates, fostering a culture of relationship selling, teamwork, and premium hospitality.</li>
+        <li>Optimized staffing levels and associate scheduling to align guest relations capacity with peak volume customer counts.</li>
+        <li>Governed procurement, receiving quality checks, and vendor compliance to ensure product excellence and brand alignment.</li>
+        <li>Partnered with corporate executive leadership to drive outlet financial performance through guest satisfaction and service consistency.</li>
+        <li>Directed high-profile private dining, VIP guest relations, premium wine dinners, and banquet execution.</li>
+        <li>Oversaw associate recruitment, customer journey training, coaching, performance evaluations, and succession planning.</li>
+        <li>Enforced strict compliance with food safety regulations, sanitation standards, liquor licensing, and corporate procedures.</li>
+        <li>Collaborated with culinary teams to elevate product consistency, service workflow, and guest experience standards.</li>
+        <li>Drove strategic client service initiatives focused on reducing service variance, enhancing guest satisfaction, and strengthening customer retention.</li>
+        <li>Developed extensive expertise in high-value asset inventory controls, supplier compliance audits, and business process optimizations.</li>
+      </ul>
+    </div>
+
+    <!-- ================= PAGE 3 ================= -->
+    <div class="page-break"></div>
+
+    <div class="experience-block">
+      <table class="exp-header-table">
+        <tr>
+          <td class="exp-title-company">MANAGER &nbsp;|&nbsp; Texas de Brazil</td>
+          <td class="exp-location-date">United States &nbsp;|&nbsp; November 2004 – December 2009</td>
+        </tr>
+      </table>
+      <div class="exp-desc">
+        Played an instrumental role in supporting new store openings, post-opening stabilization, brand standard implementation, and sales culture development across multiple premium locations during a major national expansion phase.
+      </div>
+      <ul class="exp-bullets">
+        <li>Directed grand openings and post-opening client experience stabilization of multiple locations, including Las Vegas, Richmond, Fairfax, Hallandale Beach, and Miami Beach.</li>
+        <li>Coordinated recruitment, onboarding, customer experience training, and store readiness for expansion locations.</li>
+        <li>Enforced corporate operating standards across front-of-house operations, client relations, and inventory controls.</li>
+        <li>Collaborated directly with General Managers and Regional Leadership to align store-level service execution with brand guidelines.</li>
+        <li>Executed quality audits, process improvements, associate coaching, and cross-functional team development.</li>
+        <li>Established a robust hospitality foundation that supported high-volume leadership positions in premium brand organizations.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block" style="margin-bottom: 12px;">
+      <table class="exp-header-table" style="margin-bottom: 2px;">
+        <tr>
+          <td class="exp-title-company">GENERAL MANAGER &nbsp;|&nbsp; NOMA Group</td>
+          <td class="exp-location-date">Florianópolis, Brazil</td>
+        </tr>
+      </table>
+      <div class="exp-desc" style="margin-bottom: 4px;">
+        Managed luxury Japanese dining operations with emphasis on guest experience, operational precision, premium service standards, and team coordination.
+      </div>
+      <ul class="exp-bullets">
+        <li>Directed daily restaurant operations while maintaining upscale hospitality standards for a luxury Japanese dining concept.</li>
+        <li>Aligned FOH and BOH teams to ensure seamless service execution and guest satisfaction.</li>
+        <li>Sustained the brand's position as one of the region's premier luxury dining destinations through strict service controls and guest engagement strategies.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block" style="margin-bottom: 12px;">
+      <table class="exp-header-table" style="margin-bottom: 2px;">
+        <tr>
+          <td class="exp-title-company">GENERAL MANAGER &nbsp;|&nbsp; Pecorino Italian Restaurant</td>
+          <td class="exp-location-date">Balneario Camboriu, Brazil</td>
+        </tr>
+      </table>
+      <div class="exp-desc" style="margin-bottom: 4px;">
+        Supported operational leadership across premium Italian dining concepts with emphasis on culinary execution, menu consistency, supplier coordination, and operational excellence.
+      </div>
+      <ul class="exp-bullets">
+        <li>Coordinated with culinary and operational directors to align menus, optimize purchasing, and standardize workflows across multiple units.</li>
+        <li>Standardized menu execution, purchasing controls, inventory organization, and kitchen workflow improvements.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block" style="margin-bottom: 12px;">
+      <table class="exp-header-table" style="margin-bottom: 2px;">
+        <tr>
+          <td class="exp-title-company">GENERAL MANAGER &nbsp;|&nbsp; Olivia Cucina</td>
+          <td class="exp-location-date">Florianópolis, Brazil</td>
+        </tr>
+      </table>
+      <div class="exp-desc" style="margin-bottom: 4px;">
+        Provided operational leadership supporting restaurant performance, service quality, team development, and guest satisfaction.
+      </div>
+      <ul class="exp-bullets">
+        <li>Directed daily restaurant execution across FOH and BOH operations.</li>
+        <li>Developed team members through coaching, training, and operational leadership.</li>
+      </ul>
+    </div>
+
+    <div class="experience-block" style="margin-bottom: 15px;">
+      <table class="exp-header-table" style="margin-bottom: 2px;">
+        <tr>
+          <td class="exp-title-company">CHEF CHURRASQUEIRO &nbsp;|&nbsp; Fogo de Chão</td>
+          <td class="exp-location-date">São Paulo, Brazil</td>
+        </tr>
+      </table>
+      <div class="exp-desc" style="margin-bottom: 4px;">
+        Developed technical expertise in premium protein preparation, production standards, portion control, and culinary execution inside one of Brazil's most recognized steakhouse brands.
+      </div>
+      <ul class="exp-bullets">
+        <li>Established the operational foundation that would later evolve into restaurant leadership, inventory governance, and executive hospitality management.</li>
+      </ul>
+    </div>
+
+    <h2>Restaurant Openings</h2>
+    <div class="openings-list">
+      Successfully directed and supported grand openings, operational launches, and post-opening stabilization across multiple high-volume venues in the United States and Brazil, including:
+      <strong>Las Vegas, NV &nbsp;|&nbsp; Richmond, VA &nbsp;|&nbsp; Fairfax, VA &nbsp;|&nbsp; Hallandale Beach, FL &nbsp;|&nbsp; Miami Beach, FL &nbsp;|&nbsp; São Paulo, Brazil &nbsp;|&nbsp; Florianópolis, Brazil</strong>.
+    </div>
+
+    <table class="footer-columns-table">
+      <tr>
+        <td>
+          <div class="footer-subheading">Certifications & Development</div>
+          <ul class="footer-text-list">
+            <li><strong>ServSafe® Manager Certification</strong> (Valid through 2028)</li>
+            <li>Food Safety & Sanitation Compliance</li>
+            <li>Restaurant Operations Leadership</li>
+            <li>Hospitality Management</li>
+            <li>IBM AI Professional Certificate</li>
+            <li>Google AI & Prompt Engineering</li>
+          </ul>
+        </td>
+        <td>
+          <div class="footer-subheading">Technology & Systems</div>
+          <ul class="footer-text-list">
+            <li><strong>Restaurant Systems:</strong> NCR Aloha POS, Toast, Micros</li>
+            <li><strong>Inventory Systems:</strong> CrunchTime, Compeat, Purchase Controls</li>
+            <li><strong>Business Systems:</strong> Scheduling & Labor Management, Payroll Systems, KPI Analysis</li>
+            <li><strong>AI Productivity:</strong> Google AI, Prompt Engineering, Business Process Automation</li>
+            <li><strong>Office Tools:</strong> Microsoft Excel & Office Suite, Google Workspace</li>
+          </ul>
+        </td>
+        <td>
+          <div class="footer-subheading">Languages & Education</div>
+          <ul class="footer-text-list">
+            <li><strong>Portuguese</strong> (Native)</li>
+            <li><strong>English</strong> (Professional Working Proficiency)</li>
+            <li><strong>Spanish</strong> (Professional Working Proficiency)</li>
+            <li style="margin-top: 8px;"><strong>Studies in Computer Science</strong></li>
+            <li>Universidade de Santa Cruz do Sul (UNISC), Brazil</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+
+    <h2>Selected Career Achievements</h2>
+    <ul class="exp-bullets" style="margin-top: 8px; padding-left: 16px;">
+      <li>Over 20 years of progressive hospitality leadership across the United States and Brazil.</li>
+      <li>Leadership experience within internationally recognized premium restaurant brands.</li>
+      <li>Operational exposure exceeding $14 million in annual restaurant revenue.</li>
+      <li>Experience leading cross-functional teams of up to 120 associates.</li>
+      <li>Successfully supported multiple restaurant openings and operational stabilization projects.</li>
+      <li>Led an independent operational research and analytics project (BRASA) focused on yield optimization, business intelligence, and process modeling for premium brand groups.</li>
+    </ul>
+
+    <h2>Leadership Philosophy</h2>
+    <div class="quote-box" style="margin: 10px 0 0 0;">
+      "I believe that trust is the foundation of every long-term client relationship, and integrity is the only way to build lasting brand value. Outstanding service and business performance are directly linked: when we empower our team to deliver an exceptional client journey, customer loyalty and sales growth follow naturally."
+    </div>
+
+  </div>
+
+</body>
+</html>

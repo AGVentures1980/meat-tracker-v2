@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BRASA Meat Intelligence™ — Executive Operating Briefing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Core Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #e4e2dd; /* Elegant graphite/ivory viewport contrast */
+      color: #2d2f31; /* Graphite text */
+      line-height: 1.32;
+      font-size: 10px;
+      -webkit-font-smoothing: antialiased;
+      width: 100%;
+      padding: 20px 0;
+    }
+    
+    /* Layout Container for US Letter (8.5" x 11") */
+    .one-pager-container {
+      width: 8.5in;
+      height: 11.0in;
+      padding: 0.35in 0.4in;
+      margin: 0 auto;
+      background-color: #faf9f6; /* Premium Ivory */
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08); /* Clean institutional shadow */
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 500;
+      color: #1c1d1f;
+    }
+    h1 {
+      font-size: 21px;
+      letter-spacing: 0.8px;
+      margin-bottom: 2px;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+    .subtitle {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 8.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #c5a059; /* Muted Gold */
+      margin-bottom: 2px;
+    }
+    
+    /* Section Headings */
+    .section-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #1c1d1f;
+      border-bottom: 1px solid #c5a059;
+      padding-bottom: 2px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* Header Block */
+    header {
+      background-color: #1c1d1f; /* Graphite */
+      color: #ffffff;
+      padding: 10px 14px;
+      border-bottom: 3px solid #c5a059; /* Gold line */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .header-logo {
+      display: flex;
+      flex-direction: column;
+    }
+    .header-tagline {
+      text-align: right;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #faf9f6;
+      max-width: 250px;
+      line-height: 1.25;
+    }
+    .classification {
+      color: #c5a059;
+      font-size: 7.5px;
+      font-weight: 600;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* Hero Statement */
+    .hero-container {
+      background-color: #f5f4f0;
+      border-left: 3px solid #c5a059;
+      padding: 8px 14px; /* Calmer breathing room */
+      margin-bottom: 8px;
+      font-style: italic;
+      font-size: 10.5px;
+      color: #1c1d1f;
+      font-family: 'Lora', Georgia, serif;
+      text-align: center;
+      line-height: 1.45; /* Better text flow */
+    }
+
+    /* Grid Layouts */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    
+    .card {
+      background-color: #ffffff;
+      border: 1px solid #e8e6e1;
+      padding: 8px 10px;
+      border-radius: 0; /* Sharp formal borders */
+      height: 100%;
+    }
+    
+    p {
+      margin-bottom: 4px;
+      text-align: justify;
+      color: #3a3c3e;
+    }
+    p:last-child {
+      margin-bottom: 0;
+    }
+    
+    ul {
+      margin-left: 12px;
+      margin-bottom: 4px;
+    }
+    li {
+      margin-bottom: 2px;
+      color: #3a3c3e;
+    }
+    
+    /* Flow Visuals Styling */
+    .flow-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #c5a059;
+      font-weight: 700;
+      margin-bottom: 3px;
+      text-align: center;
+    }
+
+    .flow-container {
+      background-color: #1c1d1f;
+      padding: 6px 8px;
+      border-radius: 0;
+      margin-bottom: 6px;
+      width: 100%;
+    }
+
+    .flow-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .flow-step {
+      background-color: #2a2b2d;
+      color: #faf9f6;
+      padding: 4px 2px;
+      border-radius: 0;
+      font-size: 7px;
+      font-weight: 500;
+      text-align: center;
+      flex: 1 1 0px;
+      min-width: 0;
+      margin: 0 2px;
+      border: 1px solid #3c3d3f;
+      white-space: normal;
+      word-wrap: break-word;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      line-height: 1.15;
+    }
+
+    .flow-step.highlight {
+      border-color: #c5a059;
+      color: #c5a059;
+      font-weight: bold;
+    }
+
+    .flow-arrow {
+      color: #c5a059;
+      font-size: 9px;
+      font-weight: bold;
+      flex-shrink: 0;
+      margin: 0 1px;
+    }
+
+    /* Pilot Block Split */
+    .pilot-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    /* Footer / Sign-off */
+    footer {
+      border-top: 1px solid rgba(197,160,89,0.35); /* Thinner gold divider */
+      padding-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7.5px;
+      color: #6a6c6e;
+      letter-spacing: 0.3px; /* Enhanced letter spacing */
+    }
+    
+    .footer-thesis {
+      font-style: italic;
+      font-family: 'Lora', Georgia, serif;
+      color: #4a4c4e;
+      font-size: 8.5px;
+    }
+
+    /* Print Optimization Rules */
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #000000;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .one-pager-container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: auto;
+        box-shadow: none;
+      }
+      @page {
+        size: letter portrait;
+        margin: 0.4in;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="one-pager-container">
+    <div>
+      <!-- Header -->
+      <header>
+        <div class="header-logo">
+          <div class="subtitle">BRASA Meat Intelligence™</div>
+          <h1>EXECUTIVE OPERATING BRIEFING</h1>
+        </div>
+        <div class="header-tagline">
+          Margin Protection & Operational Governance<br>
+          <span class="classification">Confidential Executive Briefing</span>
+        </div>
+      </header>
+
+      <!-- Hero Statement -->
+      <div class="hero-container">
+        “Securing Enterprise EBITDA Through Real-Time Chain-of-Custody Telemetry”
+      </div>
+
+      <!-- Main Columns -->
+      <div class="grid-2col">
+        <!-- Left: The Exposure and Why Systems Fail -->
+        <div class="card">
+          <div class="section-title">The Executive Problem</div>
+          <p>In high-volume restaurant groups, food cost represents the largest variable expense (32–38%), with high-value proteins accounting for 60–80% of that total. Due to retrospective, self-reported entries, paper logs, and unvalidated operational data, enterprise operators are exposed to unverifiable operational entries, resulting in structural gross margin leakage. This variance directly impacts enterprise EBITDA.</p>
+          
+          <div class="section-title" style="margin-top: 6px;">The Operational Blindspot</div>
+          <p>Corporate headquarters review P&L sheets and inventory audits retrospectively, weeks after service occurs. They cannot verify:
+            <ul style="margin-top:2px; margin-bottom:3px;">
+              <li>If actual receiving weights matched invoice billing at the delivery dock.</li>
+              <li>If raw-to-trim preparation yields met portion guidelines at the butcher block.</li>
+              <li>Who authorized specification overrides and why.</li>
+            </ul>
+            Without moment-of-execution verification, corporate leadership manages historical interpretation rather than operational reality.
+          </p>
+
+          <div class="section-title" style="margin-top: 6px;">Why Current Systems Fail</div>
+          <p>
+            <strong>Traditional ERP & Inventory Software:</strong> Track counts retrospectively. They record *what* the cost percentages are, but cannot prevent leaks at ingestion.
+          </p>
+          <p>
+            <strong>Generic Dashboards:</strong> Display unvalidated operational data that is highly vulnerable to human error, forgetfulness, or unverified operational variation.
+          </p>
+          <p>
+            <strong>Supplier Agreements:</strong> Lack independent, scale-locked verification at the restaurant receiving dock, leaving operators exposed to billing discrepancy risk.
+          </p>
+        </div>
+
+        <!-- Right: The Solution and Governance -->
+        <div class="card">
+          <div class="section-title">What BRASA Does</div>
+          <p>BRASA is <strong>operational telemetry infrastructure</strong> that secures protein assets from dock arrival, through preparation trim, to table-service consumption. The platform establishes an auditable, real-time operational truth layer, reinforcing process compliance and strengthening auditability and reconciliation confidence.</p>
+
+          <div class="section-title" style="margin-top: 6px;">How BRASA Works</div>
+          <p>
+            <strong>1. Intake Telemetry:</strong> Clerks scan barcodes at the receiving dock. Out-of-spec weights trigger a warning gate requiring visual OCR confirmation.
+          </p>
+          <p>
+            <strong>2. Yield Telemetry:</strong> Kitchen scales capture block weights before and after preparation, identifying sub-spec supplier cuts and trim inefficiencies.
+          </p>
+          <p>
+            <strong>3. Governance Middleware:</strong> Access constraints are activated if compliance deadlines (e.g., Monday 11:00 AM inventory checks) are missed, requiring certified overrides with credentials and text justifications.
+          </p>
+
+          <div class="section-title" style="margin-top: 6px;">What Makes BRASA Different</div>
+          <ul style="margin-top:2px;">
+            <li><strong>Scale-Locked Ingestion:</strong> Enforces physical scanning and scale weights at the moment of execution, preventing the ingestion of unvalidated operational data.</li>
+            <li><strong>Domain Heuristics:</strong> Incorporates calibrated rules (bacon wrapper ratios, chicken target bounds, ribs unit filters) that generic tools cannot replicate.</li>
+            <li><strong>Auditable Evidence:</strong> Generates immutable, tenant-isolated logs tracking supplier discrepancies and supervisor overrides.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Telemetry Flow Visual -->
+      <div class="flow-container">
+        <div class="flow-title">Core Telemetry & Chain-of-Custody Stream</div>
+        <div class="flow-row">
+          <div class="flow-step">Distributor</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step highlight">Dock Receiving</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step highlight">Scale Verification</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Telemetry Capture</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Compliance Review</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Executive Visibility</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Margin Protection</div>
+        </div>
+      </div>
+
+      <!-- Pilot and Expected Outcomes -->
+      <div class="pilot-grid">
+        <div class="card">
+          <div class="section-title">Pilot: Stop-Loss Assessment</div>
+          <p>We propose a structured, low-friction pilot designed to identify and quantify recoverable operational exposure:
+            <ul style="margin-top:3px;">
+              <li><strong>Scope & Timeline:</strong> 3-store preferred pilot over a 30-day operational validation period (positioned as an operational assessment, not a SaaS trial).</li>
+              <li><strong>Execution:</strong> Week 1 operates in "Silent Mode" to capture the baseline anomaly rate. Weeks 2–4 activate active scanning, alert thresholds, and supervisor override tracking.</li>
+              <li><strong>Engagement Fee:</strong> $1,550 per store (one-time operational deployment and calibration fee).</li>
+            </ul>
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Expected Operational Outcomes</div>
+          <p>
+            <strong>EBITDA Protection:</strong> Structured to validate margin recovery opportunities (observed variance recovery may vary by compliance and supplier behavior).
+          </p>
+          <p>
+            <strong>Supplier Credit Verification:</strong> Documented weight discrepancies at receiving, providing the evidence required to support credit recovery from distributors.
+          </p>
+          <p>
+            <strong>Process Standardization:</strong> Improved operational consistency across locations via compliance lockouts.
+          </p>
+        </div>
+      </div>
+
+      <!-- Pilot Flow Visual -->
+      <div class="flow-container" style="margin-bottom: 6px;">
+        <div class="flow-title">Staged Pilot Validation Roadmap</div>
+        <div class="flow-row">
+          <div class="flow-step" style="flex: 1 1 0px; min-width: 0;">
+            <strong>Week 1</strong>
+            <span style="font-size:6.5px; opacity:0.85; margin-top:2px;">Silent Baseline</span>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step highlight" style="flex: 1.5 1 0px; min-width: 0;">
+            <strong>Weeks 2–4</strong>
+            <span style="font-size:6.5px; opacity:0.85; margin-top:2px;">Active Telemetry & Governance</span>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="flex: 1.8 1 0px; min-width: 0;">
+            <strong>Final Output</strong>
+            <span style="font-size:6.5px; opacity:0.85; margin-top:2px;">Executive Variance & Recovery Assessment</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enterprise Positioning Statement -->
+      <p style="text-align: center; font-size: 8.5px; color: #555; margin-bottom: 2px; padding: 0 10px;">
+        <strong>Enterprise Positioning Statement:</strong> BRASA is hospitality governance infrastructure and compliance telemetry. We do not operate under traditional per-seat SaaS economics. Our commercial model is aligned with the volume of assets protected, charging per tracked pound or per store, backed by a structured ROI validation framework. We minimize IT queue delays during pilot deployment.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>BRASA Meat Intelligence™ © 2026. Confidential Corporate Document.</div>
+      <div class="footer-thesis">“If telemetry is not captured at the operational moment, the organization is no longer managing reality — only historical interpretation.”</div>
+    </footer>
+  </div>
+
+</body>
+</html>

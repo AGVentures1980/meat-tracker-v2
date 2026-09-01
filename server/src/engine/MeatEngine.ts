@@ -336,6 +336,23 @@ export class MeatEngine {
         ];
     }
 
+    private static getWeekDateRange(year: number, week: number) {
+        const simple = new Date(year, 0, 1 + (week - 1) * 7);
+        const dow = simple.getDay();
+        const ISOweekStart = simple;
+        if (dow <= 4) {
+            ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+        } else {
+            ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+        }
+        const start = new Date(ISOweekStart);
+        start.setHours(0,0,0,0);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 7);
+        end.setMilliseconds(-1);
+        return { start, end };
+    }
+
     static async getNetworkBiStats(year?: number, week?: number, companyId?: string, user?: any) {
         const where: any = { };
         if (companyId) {
@@ -353,6 +370,18 @@ export class MeatEngine {
             where.region = user.director_region;
         }
 
+        // Apply DEMO/LIVE Data Isolation
+        if (!where.id) {
+            const liveCount = await prisma.store.count({
+                where: { ...where, data_type: 'LIVE' }
+            });
+            if (liveCount > 0) {
+                where.data_type = 'LIVE';
+            } else {
+                where.data_type = 'DEMO';
+            }
+        }
+
         const stores = await prisma.store.findMany({ where });
         const storeIds = stores.map(s => s.id);
 
@@ -364,11 +393,31 @@ export class MeatEngine {
             where: { store_id: { in: storeIds }, month: periodKey }
         });
 
+        // Compute Network Yield and Unaccounted Cost dynamically
+        const totalPurchased = await prisma.purchaseRecord.aggregate({
+            where: { store_id: { in: storeIds } },
+            _sum: { quantity: true }
+        });
+        const totalConsumed = await prisma.meatUsage.aggregate({
+            where: { store_id: { in: storeIds } },
+            _sum: { lbs_total: true }
+        });
+
+        const purchasedQty = totalPurchased._sum.quantity || 0;
+        const consumedQty = totalConsumed._sum.lbs_total || 0;
+        const networkYield = purchasedQty > 0 ? Number(((consumedQty / purchasedQty) * 100).toFixed(2)) : null;
+
+        const leakage = await prisma.financialLeakageEvent.aggregate({
+            where: { store_id: { in: storeIds } },
+            _sum: { estimated_loss_usd: true }
+        });
+        const unaccountedCost = leakage._sum.estimated_loss_usd || 0;
+
         return {
             totalStores: stores.length,
             activeReporting: reports.length,
-            networkYield: 98.4,
-            unaccountedCost: 45200.50
+            networkYield,
+            unaccountedCost
         };
     }
 
@@ -379,41 +428,156 @@ export class MeatEngine {
             if (company) operationType = company.operationType || 'RODIZIO';
         }
 
-        // Mock Data for Network Report Card to match Frontend Interface
+        const where: any = {};
+        if (companyId) {
+            where.company_id = companyId;
+        }
+
+        // Apply DEMO/LIVE Data Isolation
+        if (!where.id) {
+            const liveCount = await prisma.store.count({
+                where: { ...where, data_type: 'LIVE' }
+            });
+            if (liveCount > 0) {
+                where.data_type = 'LIVE';
+            } else {
+                where.data_type = 'DEMO';
+            }
+        }
+
+        const stores = await prisma.store.findMany({ where });
+        const storeIds = stores.map(s => s.id);
+        const periodKey = `${year}-W${week}`;
+
+        const reports = await prisma.report.findMany({
+            where: { store_id: { in: storeIds }, month: periodKey }
+        });
+
+        let totalLbs = 0;
+        let totalGuests = 0;
+        let totalDineInGuests = 0;
+        
+        reports.forEach(r => {
+            totalLbs += r.total_lbs || 0;
+            totalGuests += r.extra_customers || 0;
+            totalDineInGuests += r.dine_in_guests || r.extra_customers || 0;
+        });
+
+        // Dynamic cost estimation
+        const purchases = await prisma.purchaseRecord.findMany({
+            where: { store_id: { in: storeIds } }
+        });
+        let totalPurchaseLbs = 0;
+        let totalPurchaseCost = 0;
+        purchases.forEach(p => {
+            totalPurchaseLbs += p.quantity || 0;
+            totalPurchaseCost += p.cost_total || 0;
+        });
+        const avgCostPerLb = totalPurchaseLbs > 0 ? (totalPurchaseCost / totalPurchaseLbs) : 9.50;
+
+        const totalCost = totalLbs * avgCostPerLb;
+        const costPerGuest = totalGuests > 0 ? Number((totalCost / totalGuests).toFixed(2)) : null;
+        const lbsPerGuest = totalDineInGuests > 0 ? Number((totalLbs / totalDineInGuests).toFixed(2)) : null;
+
+        // Plan target average
+        let planLbsSum = 0;
+        stores.forEach(s => {
+            planLbsSum += s.target_lbs_guest || 1.76;
+        });
+        const planLbsPerGuest = stores.length > 0 ? Number((planLbsSum / stores.length).toFixed(2)) : null;
+
+        // Last 12 weeks average
+        const last12Reports = await prisma.report.findMany({
+            where: { store_id: { in: storeIds } },
+            orderBy: { month: 'desc' },
+            take: 12 * (storeIds.length || 1)
+        });
+        let last12Lbs = 0;
+        let last12DineInGuests = 0;
+        last12Reports.forEach(r => {
+            last12Lbs += r.total_lbs || 0;
+            last12DineInGuests += r.dine_in_guests || r.extra_customers || 0;
+        });
+        const lbsPerGuest12UkAvg = last12DineInGuests > 0 ? Number((last12Lbs / last12DineInGuests).toFixed(2)) : null;
+
+        // Period to date (PTD) average
+        const lbsPerGuestPTD = lbsPerGuest;
+
+        // Year to date (YTD) average
+        const ytdReports = await prisma.report.findMany({
+            where: {
+                store_id: { in: storeIds },
+                month: { startsWith: `${year}-W` }
+            }
+        });
+        let ytdLbs = 0;
+        let ytdGuests = 0;
+        let ytdDineInGuests = 0;
+        ytdReports.forEach(r => {
+            ytdLbs += r.total_lbs || 0;
+            ytdGuests += r.extra_customers || 0;
+            ytdDineInGuests += r.dine_in_guests || r.extra_customers || 0;
+        });
+        const lbsPerGuestYTD = ytdDineInGuests > 0 ? Number((ytdLbs / ytdDineInGuests).toFixed(2)) : null;
+        const planLbsPerGuestYTD = planLbsPerGuest;
+
+        const ytdLeakage = await prisma.financialLeakageEvent.aggregate({
+            where: {
+                store_id: { in: storeIds },
+                date: { gte: new Date(`${year}-01-01`), lte: new Date(`${year}-12-31`) }
+            },
+            _sum: { estimated_loss_usd: true }
+        });
+        const impactYTD = ytdLeakage._sum.estimated_loss_usd || 0;
+
+        // ALACARTE metrics
+        const isAlacarte = operationType === 'ALACARTE';
+        const boxPriceDrift = isAlacarte ? 0 : null; 
+        const trimYieldPct = isAlacarte ? 0 : null;
+        const specTargetYield = isAlacarte ? 0 : null;
+
         return {
             year,
             week,
-            costPerGuest: 11.20,
-            lbsPerGuest: 1.85,
-            planLbsPerGuest: 1.76,
-            lbsPerGuest12UkAvg: 1.82,
-            lbsPerGuestPTD: 1.84,
-            lbsPerGuestYTD: 1.83,
-            planLbsPerGuestYTD: 1.76,
-            impactYTD: -125000, // Negative means savings in this context? Or Loss? Frontend says: impactYTD < 0 ? '-' : '+'. 
-            // If impactYTD < 0, it renders with Red color?
-            // Frontend: data.impactYTD < 0 ? 'bg-[#FF2A6D]/10' : 'bg-[#00FF94]/10'
-            // Text: data.impactYTD < 0 ? 'text-[#FF2A6D]' : 'text-[#00FF94]' (Red vs Green)
-            // Usually Green is good. So Positive should be good?
-            // But logic says: Net Impact is Cost Variance.
-            // If I am OVER budget, variance is positive -> Bad -> Red.
-            // If I am UNDER budget, variance is negative -> Good -> Green.
-            // Let's return positive 45000 (Loss) to test or negative (Savings).
-            // Let's set it to valid number.
+            costPerGuest,
+            lbsPerGuest,
+            planLbsPerGuest,
+            lbsPerGuest12UkAvg,
+            lbsPerGuestPTD,
+            lbsPerGuestYTD,
+            planLbsPerGuestYTD,
+            impactYTD,
             operationType,
-            
-            // ALACARTE Payload
-            boxPriceDrift: 1.15,
-            trimYieldPct: 78.4,
-            specTargetYield: 85.0
+            boxPriceDrift,
+            trimYieldPct,
+            specTargetYield
         };
     }
 
     static async getCompanyAggregateStats(year: number, week: number) {
+        const { start, end } = this.getWeekDateRange(year, week);
+        const stores = await prisma.store.findMany({
+            where: { data_type: 'LIVE' }
+        });
+        const storeIds = stores.map(s => s.id);
+
+        const totalPurchasedSum = await prisma.purchaseRecord.aggregate({
+            where: { store_id: { in: storeIds }, date: { gte: start, lte: end } },
+            _sum: { quantity: true }
+        });
+        const totalConsumedSum = await prisma.meatUsage.aggregate({
+            where: { store_id: { in: storeIds }, date: { gte: start, lte: end } },
+            _sum: { lbs_total: true }
+        });
+
+        const totalPurchased = totalPurchasedSum._sum.quantity || 0;
+        const totalConsumed = totalConsumedSum._sum.lbs_total || 0;
+        const yieldPercentage = totalPurchased > 0 ? Number(((totalConsumed / totalPurchased) * 100).toFixed(2)) : null;
+
         return {
-            totalPurchased: 154000,
-            totalConsumed: 151500,
-            yieldPercentage: 98.37,
+            totalPurchased,
+            totalConsumed,
+            yieldPercentage,
             period: `W${week} ${year}`
         };
     }
@@ -440,6 +604,18 @@ export class MeatEngine {
         } else if (hasRole(user.role, DIRECTOR_ROLES) && user.director_region) {
             // Apply regional scope shield for Directors
             where.region = user.director_region;
+        }
+
+        // Apply DEMO/LIVE Data Isolation
+        if (!where.id) {
+            const liveCount = await prisma.store.count({
+                where: { ...where, data_type: 'LIVE' }
+            });
+            if (liveCount > 0) {
+                where.data_type = 'LIVE';
+            } else {
+                where.data_type = 'DEMO';
+            }
         }
 
         // Fetch Stores
@@ -498,17 +674,6 @@ export class MeatEngine {
             if (guests === 0) {
                 // Fallback if no report data
                 guests = Math.round(totalLbs / ((store as any).target_lbs_guest || 1.76));
-                // Add some noise to make it realistic if it's exact match
-                if (guests > 0) {
-                    const noise = (Math.random() - 0.5) * 0.1; // +/- 5%
-                    guests = Math.round(guests * (1 + noise));
-                }
-            }
-
-            // Add some noise to make it realistic if it's exact match
-            if (guests > 0) {
-                const noise = (Math.random() - 0.5) * 0.1; // +/- 5%
-                guests = Math.round(guests * (1 + noise));
             }
 
             if (guests === 0) guests = 1; // Avoid div by zero
@@ -591,11 +756,11 @@ export class MeatEngine {
                 status: Math.abs(lbsPerGuest - ((store as any).target_lbs_guest || 1.76)) < 0.1 ? 'Optimal' : 'Warning',
                 
                 // ALACARTE Props (Mocked for ALACARTE operationType)
-                actualYieldPct: 78.4 + (Math.random() * 5 - 2.5),
-                targetYieldPct: 85.0,
-                portionVariancePct: 3.5 + (Math.random() * 2 - 1),
-                priceDriftPerLb: 1.15 + (Math.random() * 0.5 - 0.25),
-                executionImpact: -4500 + (Math.random() * 2000 - 1000)
+                actualYieldPct: store.company.operationType === 'ALACARTE' ? 78.4 : null,
+                targetYieldPct: store.company.operationType === 'ALACARTE' ? 85.0 : null,
+                portionVariancePct: store.company.operationType === 'ALACARTE' ? 3.5 : null,
+                priceDriftPerLb: store.company.operationType === 'ALACARTE' ? 1.15 : null,
+                executionImpact: store.company.operationType === 'ALACARTE' ? -4500 : null
             });
         }
 
@@ -681,6 +846,18 @@ export class MeatEngine {
                 where.area_manager_id = getUserId(user);
             } else if (user.storeId) {
                 where.id = user.storeId;
+            }
+        }
+
+        // Apply DEMO/LIVE Data Isolation
+        if (!where.id) {
+            const liveCount = await prisma.store.count({
+                where: { ...where, data_type: 'LIVE' }
+            });
+            if (liveCount > 0) {
+                where.data_type = 'LIVE';
+            } else {
+                where.data_type = 'DEMO';
             }
         }
 

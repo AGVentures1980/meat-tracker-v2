@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BRASA Meat Intelligence™ — CEO Meeting Notes & Execution Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Core Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #e4e2dd; /* Viewport contrast background */
+      color: #2d2f31; /* Dark graphite text */
+      line-height: 1.35;
+      font-size: 10px;
+      -webkit-font-smoothing: antialiased;
+      width: 100%;
+      padding: 30px 0;
+    }
+    
+    /* Letter Size Page Layout (8.5" x 11") */
+    .page {
+      width: 8.5in;
+      height: 11.0in;
+      padding: 0.4in 0.45in;
+      margin: 0 auto 30px auto;
+      background-color: #faf9f6; /* Ivory paper */
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08); /* Clean institutional drop shadow */
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      page-break-after: always;
+    }
+    
+    /* Typography */
+    h1, h2, h3, h4 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 500;
+      color: #1c1d1f;
+    }
+    h1 {
+      font-size: 20px;
+      letter-spacing: 0.8px;
+      margin-bottom: 2px;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+    h2 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1c1d1f;
+      border-bottom: 1px solid #c5a059;
+      padding-bottom: 2px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    h3 {
+      font-size: 11px;
+      font-weight: 600;
+      color: #c5a059;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .subtitle {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #c5a059;
+      margin-bottom: 2px;
+    }
+    
+    /* Header Block */
+    header {
+      background-color: #1c1d1f;
+      color: #ffffff;
+      padding: 8px 12px;
+      border-bottom: 3px solid #c5a059;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .header-logo {
+      display: flex;
+      flex-direction: column;
+    }
+    .header-tagline {
+      text-align: right;
+      font-size: 7.5px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #faf9f6;
+      line-height: 1.2;
+    }
+    .classification {
+      color: #c5a059;
+      font-size: 7px;
+      font-weight: 600;
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* Layout Grids */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .card {
+      background-color: #ffffff;
+      border: 1px solid #e8e6e1;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+    .card:last-child {
+      margin-bottom: 0;
+    }
+    
+    p {
+      margin-bottom: 4px;
+      color: #3a3c3e;
+      font-size: 9px;
+    }
+    p strong {
+      color: #1c1d1f;
+    }
+    
+    /* Checklists and Lists */
+    ul {
+      margin-left: 10px;
+      margin-bottom: 4px;
+    }
+    li {
+      margin-bottom: 2px;
+      color: #3a3c3e;
+      font-size: 9px;
+      list-style-type: square;
+    }
+    .checkbox-list {
+      list-style-type: none;
+      margin-left: 0;
+    }
+    .checkbox-list li {
+      position: relative;
+      padding-left: 12px;
+      margin-bottom: 3px;
+    }
+    .checkbox-list li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: #c5a059;
+      font-weight: bold;
+    }
+
+    /* Flow / Process Chart */
+    .flow-container {
+      background-color: #1c1d1f;
+      padding: 6px 8px;
+      margin-bottom: 8px;
+    }
+    .flow-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 7.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #c5a059;
+      font-weight: 700;
+      margin-bottom: 3px;
+      text-align: center;
+    }
+    .flow-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .flow-step {
+      background-color: #2a2b2d;
+      color: #faf9f6;
+      padding: 3px 4px;
+      font-size: 7px;
+      font-weight: 500;
+      text-align: center;
+      flex: 1 1 0px;
+      margin: 0 2px;
+      border: 1px solid #3c3d3f;
+      text-transform: uppercase;
+      line-height: 1.1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 24px;
+    }
+    .flow-step.highlight {
+      border-color: #c5a059;
+      color: #c5a059;
+      font-weight: 600;
+    }
+    .flow-arrow {
+      color: #c5a059;
+      font-size: 8px;
+      font-weight: bold;
+    }
+
+    /* Form Fields for Debrief & Notes */
+    .form-row {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 4px;
+    }
+    .form-label {
+      font-size: 8.5px;
+      font-weight: 600;
+      color: #1c1d1f;
+      width: 140px;
+      flex-shrink: 0;
+    }
+    .form-line {
+      flex-grow: 1;
+      border-bottom: 1px dashed #c5a059;
+      height: 10px;
+    }
+    .form-textarea {
+      border-bottom: 1px dashed #c5a059;
+      height: 14px;
+      margin-top: 4px;
+    }
+
+    /* One Page Sheet Details */
+    .printable-sheet {
+      border: 2px solid #1c1d1f;
+      padding: 12px;
+      background-color: #ffffff;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sheet-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1c1d1f;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 2px solid #c5a059;
+      padding-bottom: 2px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sheet-section {
+      border: 1px solid #e8e6e1;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+    }
+    .sheet-section-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #ffffff;
+      background-color: #1c1d1f;
+      padding: 2px 6px;
+      margin-bottom: 4px;
+    }
+    .flex-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .flex-col {
+      flex: 1;
+    }
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+    .checkbox-item {
+      font-size: 8px;
+      color: #3a3c3e;
+      display: flex;
+      align-items: center;
+    }
+    .checkbox-box {
+      width: 8px;
+      height: 8px;
+      border: 1px solid #c5a059;
+      margin-right: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Footer styling */
+    footer {
+      border-top: 1px solid rgba(197,160,89,0.3);
+      padding-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7px;
+      color: #6a6c6e;
+    }
+    .footer-thesis {
+      font-style: italic;
+      font-family: 'Lora', Georgia, serif;
+      color: #4a4c4e;
+      font-size: 7.5px;
+    }
+
+    /* Print Optimization Rules */
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #000000;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .page {
+        margin: 0;
+        padding: 0.4in 0.4in;
+        width: 100%;
+        height: 100vh;
+        box-shadow: none;
+        page-break-after: always;
+      }
+      @page {
+        size: letter portrait;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1: PREPARATION & DIAGNOSTIC FRAMEWORKS -->
+  <div class="page">
+    <div>
+      <!-- Header -->
+      <header>
+        <div class="header-logo">
+          <div class="subtitle">BRASA Meat Intelligence™</div>
+          <h1>CEO FIRST MEETING NOTES — PREPARATION</h1>
+        </div>
+        <div class="header-tagline">
+          Executive Discovery & Live Pacing<br>
+          <span class="classification">Confidential Strategy Document</span>
+        </div>
+      </header>
+
+      <div class="grid-2col" style="margin-top: 6px;">
+        <!-- Left: Meeting Prep Checklist -->
+        <div class="card">
+          <div class="sheet-section-title" style="background-color: #c5a059; color: #1c1d1f;">1. Meeting Preparation Checklist</div>
+          <ul class="checkbox-list" style="margin-top: 4px;">
+            <li>Validate target store count, average unit volume (AUV), and estimated premium protein spend.</li>
+            <li>Confirm cellular-enabled telemetry terminals are configured and packed (zero network clearance needed).</li>
+            <li>Verify Whitelabeled Stamford baseline yield and shortage reports are printed/bound.</li>
+            <li>Align team: The objective is to secure direct introduction to COO/VP Ops for a 30-Day Margin Recovery Audit.</li>
+            <li>Deconstruct Technology: Ensure zero usage of "AI," "ML," "OCR," "apps," or "dashboards" in delivery.</li>
+          </ul>
+        </div>
+        
+        <!-- Right: Executive Research Checklist -->
+        <div class="card">
+          <div class="sheet-section-title" style="background-color: #c5a059; color: #1c1d1f;">2. Executive Research Checklist</div>
+          <ul class="checkbox-list" style="margin-top: 4px;">
+            <li>Corporate Store Count: Define total corporate units (e.g., Fogo has 70+ units) vs. franchisee locations.</li>
+            <li>Primary Distributor Contract: Identify if the brand utilizes Sysco, US Foods, or a specialty purveyor.</li>
+            <li>Target Profile: Map target's specific operational focus (CEO: EBITDA; COO: Dock compliance; F&B: POS mapping).</li>
+            <li>Historical Performance: Scan for recent margin pressure or supply chain issues.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Section: Executive Pain Discovery Framework -->
+      <div class="card" style="margin-bottom: 8px;">
+        <h2>3. Executive Pain Discovery Framework</h2>
+        <p style="margin-bottom: 6px;">Traditional restaurant groups lose 2% to 4% of premium protein margins due to unmonitored back-of-house (BOH) variance. BRASA maps operational leaks across the chain-of-custody:</p>
+        
+        <div class="flow-container">
+          <div class="flow-title">Physical Protein Chain-of-Custody Loss Vector Map</div>
+          <div class="flow-row">
+            <div class="flow-step">1. Inbound Dock<br><span style="font-size: 5.5px; opacity:0.8;">Invoice short-shipping</span></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">2. Prep Block<br><span style="font-size: 5.5px; opacity:0.8;">Fat cap & trim variance</span></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step highlight">3. Carver Line<br><span style="font-size: 5.5px; opacity:0.8;">Dining portion overages</span></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">4. Ledger Lag<br><span style="font-size: 5.5px; opacity:0.8;">Retrospective post-mortem</span></div>
+          </div>
+        </div>
+
+        <ul style="margin-top: 4px;">
+          <li><strong>Dock Ingestion Pain:</strong> Paying for invoices based on supplier labels, unaware of actual boxed weight discrepancies.</li>
+          <li><strong>Trim Yield Pain:</strong> Supplier fat-cap drift forces kitchen trim overages, which are masked as standard operational loss.</li>
+          <li><strong>Portion Compliance Pain:</strong> Carvers over-portioning by 0.1 lb per plate, multiplying into thousands of lost dollars weekly.</li>
+          <li><strong>Ledger Lag Pain:</strong> Legacy inventory ERPs only report variance retrospectively, weeks after consumption occurs.</li>
+        </ul>
+      </div>
+
+      <!-- Section: Political Risk Mapping -->
+      <div class="card">
+        <h2>4. Political Risk Mapping & Stakeholder Targets</h2>
+        <div class="grid-2col" style="margin-top: 4px;">
+          <div>
+            <h3>Potential Deal Blockers</h3>
+            <p><strong>Store General Managers:</strong> Will argue that inventory deadlines are too strict. <em>Mitigation:</em> Prove scan logs save time compared to paper clipboards.</p>
+            <p><strong>Purchasing Managers:</strong> May downplay weight variance to protect vendor relationships. <em>Mitigation:</em> Frame BRASA as a validator of contract compliance.</p>
+          </div>
+          <div>
+            <h3>Deal Accelerators (Champions)</h3>
+            <p><strong>COOs / VP of Operations:</strong> Directly own the P&L and regional food cost metrics. They value continuous operational visibility.</p>
+            <p><strong>Regional Area Directors:</strong> Struggle with GM reporting consistency and benefit from compliance lockouts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>BRASA Meat Intelligence™ © 2026. Confidential Corporate Document.</div>
+      <div class="footer-thesis">“If telemetry is not captured at the operational moment, the organization is no longer managing reality.”</div>
+    </footer>
+  </div>
+
+  <!-- PAGE 2: DISCOVERY SCRIPTS & PILOT ALIGNMENT -->
+  <div class="page">
+    <div>
+      <!-- Header -->
+      <header>
+        <div class="header-logo">
+          <div class="subtitle">BRASA Meat Intelligence™</div>
+          <h1>CEO FIRST MEETING NOTES — DISCOVERY</h1>
+        </div>
+        <div class="header-tagline">
+          Objection Handling & Pilot Readiness<br>
+          <span class="classification">Confidential Strategy Document</span>
+        </div>
+      </header>
+
+      <!-- Discovery Questions -->
+      <div class="card" style="margin-top: 6px;">
+        <h2>5. Discovery Questions To Ask (Focus: EBITDA & Governance)</h2>
+        <p style="font-style: italic; font-family: 'Lora', Georgia, serif; margin-bottom: 6px; color: #1c1d1f;">
+          "Procurement and inventory teams are excellent at auditing the financial ledger, but we consistently identify unmanaged physical margin leakage between vendor invoices, prep blocks, and POS registers."
+        </p>
+        <ul style="margin-bottom: 6px;">
+          <li><strong>Verify Dock Reconciliation:</strong> <em>"How does your corporate procurement team verify that your suppliers are shipping exactly the boxed weights billed on the invoice, rather than trusting label weights?"</em></li>
+          <li><strong>Isolate Yield Factors:</strong> <em>"When your regional controllers review monthly food cost variance, how do you verify if a 2.5% premium protein shortage in a store is caused by supplier short-shipping, prep trim waste, or carver over-portioning?"</em></li>
+          <li><strong>Quantify EBITDA Impact:</strong> <em>"What does a 1% reduction in raw protein variance represent in annual EBITDA across your network?"</em></li>
+          <li><strong>Verify Operationaldeadlines:</strong> <em>"How do you enforce on-time inventory reporting from GMs, and what is your protocol when deadlines are missed?"</em></li>
+        </ul>
+      </div>
+
+      <!-- Questions to Avoid -->
+      <div class="card">
+        <h2>6. Questions Not To Ask (Avoid Technical Traps)</h2>
+        <p>Avoid triggering IT security reviews, budget blocks, or devaluing the solution:</p>
+        <ul style="margin-top: 4px;">
+          <li><strong>Do NOT ask about legacy databases/ERPs:</strong> Triggers concerns over IT integration queues. Instead, state: <em>"Our pilot operates in standalone mode, requiring zero write-backs to your corporate database."</em></li>
+          <li><strong>Do NOT ask if they have budget:</strong> Prompts budget freezes. Instead, ask: <em>"If we identify verified supplier short-shipping, do those credits recover directly back into your store operating accounts?"</em></li>
+          <li><strong>Do NOT ask if managers want a dashboard:</strong> Devalues BRASA to a software utility. Instead, ask: <em>"How do you enforce physical weight compliance at the receiving dock during busy delivery windows?"</em></li>
+        </ul>
+      </div>
+
+      <!-- Pilot Readiness & Debrief -->
+      <div class="grid-2col" style="margin-top: 4px;">
+        <!-- Pilot Readiness Assessment -->
+        <div class="card">
+          <h3>7. Pilot Readiness Assessment</h3>
+          <ul class="checkbox-list" style="margin-top: 4px;">
+            <li><strong>Volume:</strong> Premium protein spend >8,000 lbs per month.</li>
+            <li><strong>Connectivity:</strong> Active cellular signal at dock.</li>
+            <li><strong>Hardware:</strong> Existing functional dock scale.</li>
+            <li><strong>GM Openness:</strong> General Manager willing to support clerk scan protocols.</li>
+            <li><strong>POS Exports:</strong> Ability to export daily check item reports to CSV.</li>
+          </ul>
+        </div>
+        
+        <!-- Next Steps Tracker -->
+        <div class="card">
+          <h3>8. Next Steps Tracker</h3>
+          <ul class="checkbox-list" style="margin-top: 4px;">
+            <li>Select flagship store for 30-Day Audit.</li>
+            <li>Schedule 15-minute intro call with store GM.</li>
+            <li>Establish kickoff date for Week 1 Silent Baseline.</li>
+            <li>Agree on success metric threshold for regional rollout review.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Post-Meeting Debrief Template -->
+      <div class="card" style="margin-top: 4px;">
+        <h2>9. Meeting Debrief Template</h2>
+        <div class="form-row"><div class="form-label">Account Name:</div><div class="form-line"></div></div>
+        <div class="form-row"><div class="form-label">Key Executives Met:</div><div class="form-line"></div></div>
+        <div class="form-row"><div class="form-label">Primary Protein Pain Points:</div><div class="form-line"></div></div>
+        <div class="form-row"><div class="form-label">Pilot Location Selected:</div><div class="form-line"></div></div>
+        <div class="form-row"><div class="form-label">Week 1 Silent Baseline Kickoff Date:</div><div class="form-line"></div></div>
+        <div class="form-textarea">Notes / Follow-up Actions:</div>
+        <div class="form-textarea"></div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>BRASA Meat Intelligence™ © 2026. Confidential Corporate Document.</div>
+      <div class="footer-thesis">“If telemetry is not captured at the operational moment, the organization is no longer managing reality.”</div>
+    </footer>
+  </div>
+
+  <!-- PAGE 3: ONE-PAGE PRINTABLE MEETING SHEET -->
+  <div class="page">
+    <div class="printable-sheet">
+      <div>
+        <div class="sheet-title">
+          <span>BRASA Executive Discovery Briefing Sheet</span>
+          <span style="font-size: 8px; font-weight: normal; color: #555;">PRINT & BRING TO MEETING</span>
+        </div>
+        
+        <div class="flex-grid" style="margin-bottom: 6px;">
+          <div class="flex-col" style="flex: 1.5;">
+            <div class="form-row"><div class="form-label" style="width: 50px;">Account:</div><div class="form-line"></div></div>
+            <div class="form-row"><div class="form-label" style="width: 50px;">Date/Time:</div><div class="form-line"></div></div>
+          </div>
+          <div class="flex-col" style="flex: 2;">
+            <div class="form-row"><div class="form-label" style="width: 70px;">Attendees:</div><div class="form-line"></div></div>
+            <div class="form-row"><div class="form-label" style="width: 70px;">Target Location:</div><div class="form-line"></div></div>
+          </div>
+        </div>
+
+        <!-- 1. Key Metrics & Reconciliation Audit -->
+        <div class="sheet-section">
+          <div class="sheet-section-title">1. Key Metrics & Reconciliation Audit</div>
+          <div class="flex-grid" style="margin-top: 4px;">
+            <div class="flex-col">
+              <div class="form-row"><div class="form-label" style="width: 130px;">Monthly Premium Spend ($):</div><div class="form-line"></div></div>
+              <div class="form-row"><div class="form-label" style="width: 130px;">Acceptable Variance Target (%):</div><div class="form-line"></div></div>
+            </div>
+            <div class="flex-col">
+              <p style="font-size: 8px; font-weight: 600; margin-bottom: 2px;">Supplier Billing Weights Verification Mode:</p>
+              <div class="checkbox-grid">
+                <div class="checkbox-item"><div class="checkbox-box"></div> Box Label Trust</div>
+                <div class="checkbox-item"><div class="checkbox-box"></div> Spot Scale Checks</div>
+                <div class="checkbox-item"><div class="checkbox-box"></div> No Verification</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Operational Pain Identification -->
+        <div class="sheet-section">
+          <div class="sheet-section-title">2. Operational Pain Identification</div>
+          <div class="checkbox-grid" style="margin-top: 4px; grid-template-columns: 1fr 1fr;">
+            <div class="checkbox-item" style="font-size: 8.5px; margin-bottom: 4px;">
+              <div class="checkbox-box" style="width: 10px; height: 10px;"></div> 
+              <div><strong>Dock Ingestion:</strong> Unverified box weights, supplier invoices accepted blindly</div>
+            </div>
+            <div class="checkbox-item" style="font-size: 8.5px; margin-bottom: 4px;">
+              <div class="checkbox-box" style="width: 10px; height: 10px;"></div> 
+              <div><strong>Butcher Prep Room:</strong> Trim yield variance, fat-cap thickness off-spec</div>
+            </div>
+            <div class="checkbox-item" style="font-size: 8.5px; margin-bottom: 4px;">
+              <div class="checkbox-box" style="width: 10px; height: 10px;"></div> 
+              <div><strong>Carver Plate Line:</strong> Over-portioning of Picanha, Tenderloin, Lamb</div>
+            </div>
+            <div class="checkbox-item" style="font-size: 8.5px; margin-bottom: 4px;">
+              <div class="checkbox-box" style="width: 10px; height: 10px;"></div> 
+              <div><strong>Compliance Deadlines:</strong> GMs reporting late; no supervisor override logs</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Political Stakeholder Mapping -->
+        <div class="sheet-section">
+          <div class="sheet-section-title">3. Political Stakeholder Mapping</div>
+          <div class="form-row"><div class="form-label" style="width: 120px;">Operational Champion:</div><div class="form-line"></div></div>
+          <div class="form-row"><div class="form-label" style="width: 120px;">Economic Buyer (P&L Owner):</div><div class="form-line"></div></div>
+          <div class="form-row"><div class="form-label" style="width: 120px;">Potential Blocker (IT/Procurement):</div><div class="form-line"></div></div>
+        </div>
+
+        <!-- 4. Pilot Readiness Check -->
+        <div class="sheet-section">
+          <div class="sheet-section-title">4. Pilot Readiness Check</div>
+          <div class="flex-grid" style="margin-top: 4px;">
+            <div class="checkbox-item"><div class="checkbox-box"></div> Spend >8,000 lbs/mo</div>
+            <div class="checkbox-item"><div class="checkbox-box"></div> Scale installed on dock</div>
+            <div class="checkbox-item"><div class="checkbox-box"></div> Cell signal at dock</div>
+            <div class="checkbox-item"><div class="checkbox-box"></div> GM cooperative</div>
+            <div class="checkbox-item"><div class="checkbox-box"></div> POS CSV exports ok</div>
+          </div>
+        </div>
+
+        <!-- 5. Commitments & Next Steps -->
+        <div class="sheet-section">
+          <div class="sheet-section-title">5. Commitments & Next Steps</div>
+          <div class="form-row"><div class="form-label" style="width: 140px;">Pilot Store Location Selected:</div><div class="form-line"></div></div>
+          <div class="form-row"><div class="form-label" style="width: 140px;">Intro Call to Store GM:</div><div class="form-line"></div></div>
+          <div class="form-row"><div class="form-label" style="width: 140px;">Week 1 Silent Baseline Start Date:</div><div class="form-line"></div></div>
+          <div class="form-row"><div class="form-label" style="width: 140px;">Target cost-recovery threshold to trigger rollout review ($):</div><div class="form-line"></div></div>
+        </div>
+
+        <!-- Notes / Observations Area -->
+        <div class="sheet-section" style="flex-grow: 1; margin-bottom: 0;">
+          <div class="sheet-section-title">6. Conversation Notes & Observed Yield Discrepancies</div>
+          <div style="height: 18px; border-bottom: 1px dashed #e8e6e1; margin-top: 6px;"></div>
+          <div style="height: 18px; border-bottom: 1px dashed #e8e6e1;"></div>
+          <div style="height: 18px; border-bottom: 1px dashed #e8e6e1;"></div>
+          <div style="height: 18px; border-bottom: 1px dashed #e8e6e1;"></div>
+          <div style="height: 18px; border-bottom: 1px dashed #e8e6e1;"></div>
+          <div style="height: 18px; border-bottom: 1px dashed #e8e6e1;"></div>
+          <div style="height: 18px; border-bottom: 1px dashed #e8e6e1;"></div>
+          <div style="height: 18px; border-bottom: 1px dashed #e8e6e1;"></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer style="margin-top: 10px;">
+        <div>BRASA Meat Intelligence™ © 2026. Confidential Corporate Document.</div>
+        <div class="footer-thesis">“Objective, scale-locked telemetry is the foundation of protein margin governance.”</div>
+      </footer>
+    </div>
+  </div>
+
+</body>
+</html>

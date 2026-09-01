@@ -302,8 +302,8 @@ async function main() {
                     store_name: storeName
                 }
             },
-            update: { target_lbs_guest: targetLbs },
-            create: { id: storeId, company_id: tdb.id, store_name: storeName, location: 'USA', target_lbs_guest: targetLbs }
+            update: { target_lbs_guest: targetLbs, data_type: 'DEMO' },
+            create: { id: storeId, company_id: tdb.id, store_name: storeName, location: 'USA', target_lbs_guest: targetLbs, data_type: 'DEMO' }
         });
 
         await prisma.user.upsert({

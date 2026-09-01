@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BRASA Meat Intelligence™ — Executive Communication Suite Summary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Core Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #e4e2dd; /* Viewport background contrast */
+      color: #2d2f31; /* Dark graphite text */
+      line-height: 1.32;
+      font-size: 10px;
+      -webkit-font-smoothing: antialiased;
+      width: 100%;
+      padding: 30px 0;
+    }
+    
+    /* US Letter (8.5" x 11") Page Container */
+    .one-pager-container {
+      width: 8.5in;
+      height: 11.0in;
+      padding: 0.35in 0.4in;
+      margin: 0 auto;
+      background-color: #faf9f6; /* Ivory paper */
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08); /* Clean drop shadow */
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 500;
+      color: #1c1d1f;
+    }
+    h1 {
+      font-size: 21px;
+      letter-spacing: 0.8px;
+      margin-bottom: 2px;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+    .subtitle {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 8.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #c5a059; /* Gold accent */
+      margin-bottom: 2px;
+    }
+    
+    /* Section Headings */
+    .section-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #1c1d1f;
+      border-bottom: 1px solid #c5a059;
+      padding-bottom: 2px;
+      margin-bottom: 5px;
+      margin-top: 6px;
+    }
+    .section-title:first-of-type {
+      margin-top: 0;
+    }
+    
+    /* Header Block */
+    header {
+      background-color: #1c1d1f;
+      color: #ffffff;
+      padding: 10px 14px;
+      border-bottom: 3px solid #c5a059;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .header-logo {
+      display: flex;
+      flex-direction: column;
+    }
+    .header-tagline {
+      text-align: right;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #faf9f6;
+      line-height: 1.25;
+    }
+    .classification {
+      color: #c5a059;
+      font-size: 7.5px;
+      font-weight: 600;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* Hero Thesis Block */
+    .hero-container {
+      background-color: #f5f4f0;
+      border-left: 3px solid #c5a059;
+      padding: 6px 12px;
+      margin-bottom: 6px;
+      font-style: italic;
+      font-size: 10px;
+      color: #1c1d1f;
+      font-family: 'Lora', Georgia, serif;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* Tables & Grids */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 6px;
+      font-size: 8.5px;
+    }
+    th, td {
+      border: 1px solid #e8e6e1;
+      padding: 5px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: #1c1d1f;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      text-transform: uppercase;
+      font-size: 8px;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+    }
+    td strong {
+      color: #1c1d1f;
+      display: block;
+      font-family: 'Inter', sans-serif;
+      font-size: 8.5px;
+      margin-bottom: 2px;
+    }
+    
+    .grid-3col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .card {
+      background-color: #ffffff;
+      border: 1px solid #e8e6e1;
+      padding: 6px 8px;
+    }
+    .card h3 {
+      font-family: 'Inter', sans-serif;
+      font-size: 8.5px;
+      font-weight: 700;
+      color: #c5a059;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+      border-bottom: 1px solid #e8e6e1;
+      padding-bottom: 2px;
+    }
+
+    p {
+      margin-bottom: 4px;
+      color: #3a3c3e;
+      font-size: 8.5px;
+      text-align: justify;
+    }
+    p:last-child {
+      margin-bottom: 0;
+    }
+    
+    /* Footer Styling */
+    footer {
+      border-top: 1px solid rgba(197,160,89,0.3);
+      padding-top: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7.5px;
+      color: #6a6c6e;
+      margin-top: 6px;
+    }
+    .footer-thesis {
+      font-style: italic;
+      font-family: 'Lora', Georgia, serif;
+      color: #4a4c4e;
+      font-size: 8px;
+    }
+
+    /* Print settings */
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #000000;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .one-pager-container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: auto;
+        box-shadow: none;
+      }
+      @page {
+        size: letter portrait;
+        margin: 0.4in;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="one-pager-container">
+    <div>
+      <!-- Header -->
+      <header>
+        <div class="header-logo">
+          <div class="subtitle">BRASA Meat Intelligence™</div>
+          <h1>EXECUTIVE COMMUNICATION SUITE</h1>
+        </div>
+        <div class="header-tagline">
+          C-Suite Engagement System Summary<br>
+          <span class="classification">Confidential Strategic Briefing</span>
+        </div>
+      </header>
+
+      <!-- Hero Thesis -->
+      <div class="hero-container">
+        “Converting raw protein margin exposure into verified EBITDA recovery through a standardized C-suite engagement methodology.”
+      </div>
+
+      <!-- Core Objective Section -->
+      <div class="section-title">1. System Objective & Philosophy</div>
+      <p style="margin-bottom: 6px;">
+        The BRASA C-Suite Engagement System is designed to guide Alexandre Garcia through C-level meetings without triggering standard technology roadblocks (such as IT integration queues, security reviews, or budget freezes). By focusing on <strong>EBITDA Protection, Distributor Accountability, and Protein Margin Governance</strong>, we establish peer-level operational authority and secure low-risk, standalone flagship store pilots.
+      </p>
+
+      <!-- Document Suite Matrix Table -->
+      <div class="section-title">2. Document Suite Matrix</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Asset Name</th>
+            <th style="width: 28%;">Purpose & Decision Supported</th>
+            <th style="width: 25%;">When & How to Use</th>
+            <th style="width: 22%;">Prevented Mistake</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Live Conversation Framework</strong><br>(CEO_10_MINUTE_CONVERSATION.md)</td>
+            <td>Deliver the opening margin thesis and hook the CEO's interest. Supports the decision to introduce Alexandre to the COO/VP of Operations.</td>
+            <td>Use in initial executive calls, introductions, or networking events. Lead with the "Core Question" on protein variance.</td>
+            <td>Prevents entering software pitch traps, talking features, or mentioning "dashboards".</td>
+          </tr>
+          <tr>
+            <td><strong>2. Boardroom Deck Blueprint</strong><br>(CEO_5_SLIDE_BOARDROOM_DECK.md)</td>
+            <td>Provide a 5-slide visual breakdown of margin exposure points and pilot design. Supports the decision to authorize a 30-day pilot store audit.</td>
+            <td>Use in scheduled C-suite video calls or formal boardroom reviews. Read the designated "What to Say" script.</td>
+            <td>Prevents IT departments blocking discussion by highlighting cellular standalone deployment.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Objection Handling Playbook</strong><br>(CEO_QA_PLAYBOOK.md)</td>
+            <td>Answer exactly 50 objections across Financial, Operational, IT, Security, and legal categories. Supports risk mitigation and pilot approvals.</td>
+            <td>Use to prepare before a meeting or to address specific post-meeting procurement reviews. Deliver the EBITDA-focused ideal answers.</td>
+            <td>Prevents defensive answers regarding ROI, pricing, or custom database write-backs during the pilot.</td>
+          </tr>
+          <tr>
+            <td><strong>4. First Meeting notes & Guide</strong><br>(CEO_FIRST_MEETING_NOTES.md)</td>
+            <td>Live checklist, pain discovery, stakeholder mapping, and printable discovery note sheet. Supports final pilot store site selection.</td>
+            <td>Print the "One-Page Briefing Sheet" and use to record metrics and map out political risks during the live conversation.</td>
+            <td>Prevents exiting a C-suite meeting without a committed next step or walking in unprepared.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Recommended Sequence Section -->
+      <div class="section-title">3. Recommended Engagement Sequence</div>
+      <div class="grid-3col">
+        <div class="card">
+          <h3>Phase I: Preparation</h3>
+          <p>Analyze target store counts, distributor agreements, and estimated premium protein spend using the checklists. Review the 50 objections to align answers.</p>
+        </div>
+        <div class="card">
+          <h3>Phase II: Live Execution</h3>
+          <p>Hook the CEO using the 1-minute script. Visualise margin leaks via the 5 slides. Capture metrics and map blockers using the printable notes sheet.</p>
+        </div>
+        <div class="card">
+          <h3>Phase III: Post-Meeting</h3>
+          <p>Fill out the debrief template immediately. Follow up within 24 hours with whitelabeled scan-speed proofs. Coordinate with the GM to ship the terminal.</p>
+        </div>
+      </div>
+
+      <!-- Governance Warning Statement -->
+      <p style="text-align: center; font-size: 8px; color: #555; margin-top: 4px; padding: 0 10px;">
+        <strong>Strategic Directive:</strong> Always position BRASA as physical operational governance and margin telemetry. Do not sell under SaaS subscription aesthetics. Charge based on the volume of assets protected, supported by a structured ROI pilot validation. Bypassing database write-backs during pilot is a mandatory requirement.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>BRASA Meat Intelligence™ © 2026. Confidential Corporate Document.</div>
+      <div class="footer-thesis">“If telemetry is not captured at the operational moment, the organization is no longer managing reality.”</div>
+    </footer>
+  </div>
+
+</body>
+</html>

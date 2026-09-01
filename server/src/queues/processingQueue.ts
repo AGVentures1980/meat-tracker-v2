@@ -1,15 +1,9 @@
 import { Queue } from 'bullmq';
-import Redis from 'ioredis';
-
-const hasRedis = !!process.env.REDIS_URL;
-let connection: any;
-if (hasRedis) {
-    connection = new Redis(process.env.REDIS_URL as string);
-}
+import { hasRedis, redisConnection } from '../utils/redis';
 
 const createQueue = (name: string) => {
-    if (hasRedis) {
-        return new Queue(name, { connection });
+    if (hasRedis && redisConnection) {
+        return new Queue(name, { connection: redisConnection });
     }
     // Mock queue for local development without Redis
     return {

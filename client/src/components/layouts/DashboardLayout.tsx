@@ -159,6 +159,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         }
 
         navItems.push({
+            section: 'INTELLIGENCE SUITE',
+            items: [
+                { icon: Activity, label: 'BRASA Pulse', subtitle: 'Reputation & Guest Intelligence', isPulseTile: true, path: '/pulse-sso' }
+            ]
+        });
+
+        navItems.push({
             section: t('nav.section_learn') || 'LEARN (L&D)', items: [
                 { icon: GraduationCap, label: t('nav.training') || 'Training Center', path: '/training' },
                 { icon: FileText, label: 'AGV Support Hub', path: '/support' },
@@ -382,6 +389,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div key={section.section} className={`space-y-1 ${section.hideOnMobile ? 'hidden md:block' : ''}`}>
                                 <h3 className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{section.section}</h3>
                                 {section.items.map((item: any) => {
+                                    if (item.isPulseTile) {
+                                        return <BrandPulseTile key="pulse-nav-tile" variant="nav_button" />;
+                                    }
+
                                     const active = location.pathname === item.path || (item.path === '/settings/company' && location.pathname.startsWith('/settings/'));
                                     const isGlobalExecutivePath = item.path === '/procurement' || item.path === '/intelligence/procurement-shadow';
                                     const isLocked = !selectedCompany && item.path !== '/dashboard' && !isGlobalExecutivePath;
@@ -447,15 +458,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             )}
                         </>
                     )}
-
-
-                    {/* BRASA Pulse Entry Point (Phase 1 Integration) */}
-                    <div className="mt-4 px-1 border-t border-[#333]/50 pt-3">
-                        <div className="text-[10px] text-amber-500/80 font-mono font-bold tracking-widest uppercase mb-1.5 px-2">
-                            INTELLIGENCE SUITE
-                        </div>
-                        <BrandPulseTile variant="nav_button" />
-                    </div>
 
                     {/* Switch Company (Master Owner Only) */}
                     {isMaster && (

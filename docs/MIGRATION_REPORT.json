@@ -1,0 +1,446 @@
+[
+  {
+    "file": "AGV_VENTURES_CONTEXT_SYNC.md",
+    "from": "AGV_VENTURES_CONTEXT_SYNC.md",
+    "to": "docs/01_EXECUTIVE/AGV_VENTURES_CONTEXT_SYNC.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "AGV_VENTURES_IP_MANUAL.md",
+    "from": "AGV_VENTURES_IP_MANUAL.md",
+    "to": "docs/14_SECURITY/AGV_VENTURES_IP_MANUAL.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "AGV_VENTURES_ONBOARDING_CHECKLIST.md",
+    "from": "AGV_VENTURES_ONBOARDING_CHECKLIST.md",
+    "to": "docs/13_OPERATIONS/AGV_VENTURES_ONBOARDING_CHECKLIST.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "AGV_VENTURES_PITCH_DECK.md",
+    "from": "AGV_VENTURES_PITCH_DECK.md",
+    "to": "docs/11_INVESTORS/AGV_VENTURES_PITCH_DECK.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PITCH_GUIDE_CARLOS.md",
+    "from": "PITCH_GUIDE_CARLOS.md",
+    "to": "docs/11_INVESTORS/PITCH_GUIDE_CARLOS.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "pitch_rodrigo_metrics.md",
+    "from": "pitch_rodrigo_metrics.md",
+    "to": "docs/11_INVESTORS/pitch_rodrigo_metrics.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "RUNBOOK_PRODUCTION_INCIDENT.md",
+    "from": "RUNBOOK_PRODUCTION_INCIDENT.md",
+    "to": "docs/13_OPERATIONS/RUNBOOK_PRODUCTION_INCIDENT.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "EULA.md",
+    "from": "EULA.md",
+    "to": "docs/14_SECURITY/EULA.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "COPYRIGHT.txt",
+    "from": "COPYRIGHT.txt",
+    "to": "docs/14_SECURITY/COPYRIGHT.txt",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "Restaurantes_Brasil_KDP_FORMATADO.pdf",
+    "from": "Restaurantes_Brasil_KDP_FORMATADO.pdf",
+    "to": "docs/15_RESEARCH/Restaurantes_Brasil_KDP_FORMATADO.pdf",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "We_Are_Open_KDP_FORMATADO.pdf",
+    "from": "We_Are_Open_KDP_FORMATADO.pdf",
+    "to": "docs/15_RESEARCH/We_Are_Open_KDP_FORMATADO.pdf",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "Livro_Completo.txt",
+    "from": "Livro_Completo.txt",
+    "to": "docs/15_RESEARCH/Livro_Completo.txt",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "ARCHITECTURE.md",
+    "from": "docs/ARCHITECTURE.md",
+    "to": "docs/03_ENGINEERING/ARCHITECTURE.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "DEPLOYMENT_REALITY.md",
+    "from": "docs/DEPLOYMENT_REALITY.md",
+    "to": "docs/04_PLATFORM/DEPLOYMENT_REALITY.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "ENTERPRISE_POSITIONING.md",
+    "from": "docs/ENTERPRISE_POSITIONING.md",
+    "to": "docs/08_SALES/ENTERPRISE_POSITIONING.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "FOUNDER_KNOWLEDGE_MAP.md",
+    "from": "docs/FOUNDER_KNOWLEDGE_MAP.md",
+    "to": "docs/06_GOVERNANCE/FOUNDER_KNOWLEDGE_MAP.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "GOVERNANCE_INVARIANTS.md",
+    "from": "docs/GOVERNANCE_INVARIANTS.md",
+    "to": "docs/06_GOVERNANCE/GOVERNANCE_INVARIANTS.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "LIABILITY_AND_IP.md",
+    "from": "docs/LIABILITY_AND_IP.md",
+    "to": "docs/14_SECURITY/LIABILITY_AND_IP.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "MOCK_DATA_REGISTRY.md",
+    "from": "docs/MOCK_DATA_REGISTRY.md",
+    "to": "docs/06_GOVERNANCE/MOCK_DATA_REGISTRY.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "TELEMETRY_LIFECYCLE.md",
+    "from": "docs/TELEMETRY_LIFECYCLE.md",
+    "to": "docs/06_GOVERNANCE/TELEMETRY_LIFECYCLE.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "TdB_COMMERCIAL_AGREEMENT_DRAFT.md",
+    "from": "docs/TdB_COMMERCIAL_AGREEMENT_DRAFT.md",
+    "to": "docs/09_CUSTOMERS/TdB_COMMERCIAL_AGREEMENT_DRAFT.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "checklist-loja-pronta.html",
+    "from": "docs/checklist-loja-pronta.html",
+    "to": "docs/10_PILOTS/checklist-loja-pronta.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "manual-operacional.html",
+    "from": "docs/manual-operacional.html",
+    "to": "docs/13_OPERATIONS/manual-operacional.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "onboarding-sop.html",
+    "from": "docs/onboarding-sop.html",
+    "to": "docs/13_OPERATIONS/onboarding-sop.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "plano-de-ondas.html",
+    "from": "docs/plano-de-ondas.html",
+    "to": "docs/10_PILOTS/plano-de-ondas.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "sla.html",
+    "from": "docs/sla.html",
+    "to": "docs/13_OPERATIONS/sla.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "AI_ROLE_SEGMENTATION.md",
+    "from": "docs/hq/AI_ROLE_SEGMENTATION.md",
+    "to": "docs/05_AI/AI_ROLE_SEGMENTATION.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "ALBERTO_MEETING_FLOW.md",
+    "from": "docs/hq/ALBERTO_MEETING_FLOW.md",
+    "to": "docs/08_SALES/ALBERTO_MEETING_FLOW.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "BRASA_EXECUTIVE_CONTENT_SYSTEM.md",
+    "from": "docs/hq/BRASA_EXECUTIVE_CONTENT_SYSTEM.md",
+    "to": "docs/07_OBSERVATIONS/BRASA_EXECUTIVE_CONTENT_SYSTEM.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "BRASA_LINKEDIN_CONTENT_STANDARD.md",
+    "from": "docs/hq/BRASA_LINKEDIN_CONTENT_STANDARD.md",
+    "to": "docs/07_OBSERVATIONS/BRASA_LINKEDIN_CONTENT_STANDARD.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "BRASA_REPOSITIONING_INITIATIVE.md",
+    "from": "docs/hq/BRASA_REPOSITIONING_INITIATIVE.md",
+    "to": "docs/10_PILOTS/BRASA_REPOSITIONING_INITIATIVE.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "CEO_10_MINUTE_CONVERSATION.md",
+    "from": "docs/hq/CEO_10_MINUTE_CONVERSATION.md",
+    "to": "docs/01_EXECUTIVE/CEO_10_MINUTE_CONVERSATION.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "CEO_5_SLIDE_BOARDROOM_DECK.md",
+    "from": "docs/hq/CEO_5_SLIDE_BOARDROOM_DECK.md",
+    "to": "docs/01_EXECUTIVE/CEO_5_SLIDE_BOARDROOM_DECK.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "CEO_EXECUTIVE_COMMUNICATION_SUITE_SUMMARY.html",
+    "from": "docs/hq/CEO_EXECUTIVE_COMMUNICATION_SUITE_SUMMARY.html",
+    "to": "docs/01_EXECUTIVE/CEO_EXECUTIVE_COMMUNICATION_SUITE_SUMMARY.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "CEO_EXECUTIVE_COMMUNICATION_SUITE_SUMMARY.md",
+    "from": "docs/hq/CEO_EXECUTIVE_COMMUNICATION_SUITE_SUMMARY.md",
+    "to": "docs/01_EXECUTIVE/CEO_EXECUTIVE_COMMUNICATION_SUITE_SUMMARY.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "CEO_FIRST_MEETING_NOTES.html",
+    "from": "docs/hq/CEO_FIRST_MEETING_NOTES.html",
+    "to": "docs/01_EXECUTIVE/CEO_FIRST_MEETING_NOTES.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "CEO_FIRST_MEETING_NOTES.md",
+    "from": "docs/hq/CEO_FIRST_MEETING_NOTES.md",
+    "to": "docs/01_EXECUTIVE/CEO_FIRST_MEETING_NOTES.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "CEO_QA_PLAYBOOK.md",
+    "from": "docs/hq/CEO_QA_PLAYBOOK.md",
+    "to": "docs/10_PILOTS/CEO_QA_PLAYBOOK.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "DEAL_STRATEGY_SYSTEM.md",
+    "from": "docs/hq/DEAL_STRATEGY_SYSTEM.md",
+    "to": "docs/08_SALES/DEAL_STRATEGY_SYSTEM.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "ENTERPRISE_READINESS.md",
+    "from": "docs/hq/ENTERPRISE_READINESS.md",
+    "to": "docs/10_PILOTS/ENTERPRISE_READINESS.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "ENTERPRISE_SALES_OPERATING_SYSTEM.md",
+    "from": "docs/hq/ENTERPRISE_SALES_OPERATING_SYSTEM.md",
+    "to": "docs/08_SALES/ENTERPRISE_SALES_OPERATING_SYSTEM.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "EVIDENCE_ENGINE.md",
+    "from": "docs/hq/EVIDENCE_ENGINE.md",
+    "to": "docs/03_ENGINEERING/EVIDENCE_ENGINE.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "EXECUTIVE_5_SLIDE_DECK.md",
+    "from": "docs/hq/EXECUTIVE_5_SLIDE_DECK.md",
+    "to": "docs/01_EXECUTIVE/EXECUTIVE_5_SLIDE_DECK.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "EXECUTIVE_OBJECTION_MAP.md",
+    "from": "docs/hq/EXECUTIVE_OBJECTION_MAP.md",
+    "to": "docs/08_SALES/EXECUTIVE_OBJECTION_MAP.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "EXECUTIVE_ONE_PAGER.md",
+    "from": "docs/hq/EXECUTIVE_ONE_PAGER.md",
+    "to": "docs/01_EXECUTIVE/EXECUTIVE_ONE_PAGER.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "EXECUTIVE_OPERATIONS_HUB.md",
+    "from": "docs/hq/EXECUTIVE_OPERATIONS_HUB.md",
+    "to": "docs/01_EXECUTIVE/EXECUTIVE_OPERATIONS_HUB.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "FIRST_EVIDENCE_ACQUISITION_PLAN.md",
+    "from": "docs/hq/FIRST_EVIDENCE_ACQUISITION_PLAN.md",
+    "to": "docs/10_PILOTS/FIRST_EVIDENCE_ACQUISITION_PLAN.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "FIRST_PILOT_EXECUTION_PLAYBOOK.md",
+    "from": "docs/hq/FIRST_PILOT_EXECUTION_PLAYBOOK.md",
+    "to": "docs/10_PILOTS/FIRST_PILOT_EXECUTION_PLAYBOOK.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "FOUNDER_DEPENDENCY.md",
+    "from": "docs/hq/FOUNDER_DEPENDENCY.md",
+    "to": "docs/06_GOVERNANCE/FOUNDER_DEPENDENCY.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "GOVERNANCE_LANGUAGE.md",
+    "from": "docs/hq/GOVERNANCE_LANGUAGE.md",
+    "to": "docs/06_GOVERNANCE/GOVERNANCE_LANGUAGE.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "MASTER_CONTEXT.md",
+    "from": "docs/hq/MASTER_CONTEXT.md",
+    "to": "docs/02_PRODUCT/MASTER_CONTEXT.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "NORTH_STAR.md",
+    "from": "docs/hq/NORTH_STAR.md",
+    "to": "docs/01_EXECUTIVE/NORTH_STAR.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PILOT_DATA_CLASSIFICATION_NOTES.md",
+    "from": "docs/hq/PILOT_DATA_CLASSIFICATION_NOTES.md",
+    "to": "docs/03_ENGINEERING/PILOT_DATA_CLASSIFICATION_NOTES.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PILOT_DEPLOYMENT_FLOW.md",
+    "from": "docs/hq/PILOT_DEPLOYMENT_FLOW.md",
+    "to": "docs/10_PILOTS/PILOT_DEPLOYMENT_FLOW.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PILOT_ECONOMICS_FRAMEWORK.md",
+    "from": "docs/hq/PILOT_ECONOMICS_FRAMEWORK.md",
+    "to": "docs/10_PILOTS/PILOT_ECONOMICS_FRAMEWORK.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PILOT_PLAYBOOK.md",
+    "from": "docs/hq/PILOT_PLAYBOOK.md",
+    "to": "docs/10_PILOTS/PILOT_PLAYBOOK.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PILOT_READINESS_BLOCKER_REMEDIATION_PLAN.md",
+    "from": "docs/hq/PILOT_READINESS_BLOCKER_REMEDIATION_PLAN.md",
+    "to": "docs/10_PILOTS/PILOT_READINESS_BLOCKER_REMEDIATION_PLAN.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PILOT_READINESS_REASSESSMENT.md",
+    "from": "docs/hq/PILOT_READINESS_REASSESSMENT.md",
+    "to": "docs/10_PILOTS/PILOT_READINESS_REASSESSMENT.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "POST_REMEDIATION_RANDOMNESS_AUDIT.md",
+    "from": "docs/hq/POST_REMEDIATION_RANDOMNESS_AUDIT.md",
+    "to": "docs/03_ENGINEERING/POST_REMEDIATION_RANDOMNESS_AUDIT.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PRE_IMPLEMENTATION_STORE_AUDIT.md",
+    "from": "docs/hq/PRE_IMPLEMENTATION_STORE_AUDIT.md",
+    "to": "docs/10_PILOTS/PRE_IMPLEMENTATION_STORE_AUDIT.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "PRE_REMEDIATION_BASELINE.md",
+    "from": "docs/hq/PRE_REMEDIATION_BASELINE.md",
+    "to": "docs/10_PILOTS/PRE_REMEDIATION_BASELINE.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "SALES_MEMORY.md",
+    "from": "docs/hq/SALES_MEMORY.md",
+    "to": "docs/08_SALES/SALES_MEMORY.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "TELEMETRY_ARCHITECTURE_VISUAL.md",
+    "from": "docs/hq/TELEMETRY_ARCHITECTURE_VISUAL.md",
+    "to": "docs/03_ENGINEERING/TELEMETRY_ARCHITECTURE_VISUAL.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "VALUE_DISCOVERY_ANALYSIS.md",
+    "from": "docs/hq/VALUE_DISCOVERY_ANALYSIS.md",
+    "to": "docs/08_SALES/VALUE_DISCOVERY_ANALYSIS.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "WE_ARE_OPEN_EXECUTIVE_EDITION_EXECUTIVE_CASE_LIBRARY.md",
+    "from": "docs/hq/WE_ARE_OPEN_EXECUTIVE_EDITION_EXECUTIVE_CASE_LIBRARY.md",
+    "to": "docs/09_CUSTOMERS/WE_ARE_OPEN_EXECUTIVE_EDITION_EXECUTIVE_CASE_LIBRARY.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "WE_ARE_OPEN_EXECUTIVE_EDITION_KNOWLEDGE_MAP.md",
+    "from": "docs/hq/WE_ARE_OPEN_EXECUTIVE_EDITION_KNOWLEDGE_MAP.md",
+    "to": "docs/09_CUSTOMERS/WE_ARE_OPEN_EXECUTIVE_EDITION_KNOWLEDGE_MAP.md",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "alexandre-garcia-portfolio.html",
+    "from": "docs/hq/alexandre-garcia-portfolio.html",
+    "to": "docs/01_EXECUTIVE/alexandre-garcia-portfolio.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "brasa-executive-one-pager-final-pt.html",
+    "from": "docs/hq/brasa-executive-one-pager-final-pt.html",
+    "to": "docs/01_EXECUTIVE/brasa-executive-one-pager-final-pt.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "brasa-executive-one-pager-final.html",
+    "from": "docs/hq/brasa-executive-one-pager-final.html",
+    "to": "docs/01_EXECUTIVE/brasa-executive-one-pager-final.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "brasa-executive-one-pager.html",
+    "from": "docs/hq/brasa-executive-one-pager.html",
+    "to": "docs/01_EXECUTIVE/brasa-executive-one-pager.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "brasa_observation_004.html",
+    "from": "docs/hq/brasa_observation_004.html",
+    "to": "docs/07_OBSERVATIONS/brasa_observation_004.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "brasa_observation_005.html",
+    "from": "docs/hq/brasa_observation_005.html",
+    "to": "docs/07_OBSERVATIONS/brasa_observation_005.html",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "Livro (Directory)",
+    "from": "Livro",
+    "to": "docs/15_RESEARCH/Livro",
+    "status": "SUCCESS"
+  },
+  {
+    "file": "Livro Completo..docx",
+    "from": "Livro Completo..docx",
+    "to": "docs/15_RESEARCH/Livro Completo..docx",
+    "status": "SUCCESS"
+  }
+]

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import { BrandPulseTile } from '../../BrandPulseTile';
 
 export type PrimaryDriver =
   | "YIELD_VARIANCE"
@@ -144,6 +145,9 @@ export const ExecutiveDashboardContainer = () => {
             <p className="text-xs text-gray-500 font-mono tracking-widest uppercase mb-8">
                 // Zero-Trust Frontend • C-Level Display Only
             </p>
+
+            {/* BRASA Pulse - Reputation & Guest Intelligence */}
+            <BrandPulseTile variant="card" className="mb-8" />
             
             {/* BLOCO A — C-Level Health Indicators */}
             <div className="grid grid-cols-2 gap-4 mb-8 max-w-2xl">

@@ -322,7 +322,7 @@ export const getOutletKPI = async (req: Request, res: Response) => {
         
         const trend = Array.from({ length: 7 }).map((_, i) => ({
             day: i,
-            lbsGuest: currentLbsGuest * (0.9 + Math.random() * 0.2) // Mocked historical for UI
+            lbsGuest: currentLbsGuest * (0.9 + (i * 0.03)) // Deterministic mock series to prevent UI jitter
         }));
 
         const flags = [];

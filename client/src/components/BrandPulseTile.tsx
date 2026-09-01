@@ -15,13 +15,15 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
         title: string;
         status: string;
         message: string;
-        handoff?: any;
-        handoffToken?: string;
         fullRedirectUrl?: string;
     } | null>(null);
 
-    const handleHandoff = async () => {
-        if (!user?.token) return;
+    const handleHandoff = async (e?: React.MouseEvent) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if (!user?.token || loading) return;
         setLoading(true);
 
         try {
@@ -36,28 +38,17 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
 
             const data = await res.json();
 
-            if (res.ok && data.success) {
-                if (data.status === 'PULSE_SSO_READY' && data.fullRedirectUrl) {
-                    // Launch BRASA Pulse in new browser tab (No iframe)
-                    window.open(data.fullRedirectUrl, '_blank', 'noopener,noreferrer');
-                } else {
-                    // Controlled response when Pulse SSO Receiver is not yet connected
-                    setModalInfo({
-                        open: true,
-                        title: 'BRASA Pulse — Secure SSO Handoff',
-                        status: data.status || 'PULSE_SSO_NOT_CONNECTED',
-                        message: data.message || 'PULSE_SSO_NOT_CONNECTED: Handoff token generated successfully. Receiver module pending connection.',
-                        handoff: data.handoff,
-                        handoffToken: data.handoffToken,
-                        fullRedirectUrl: data.fullRedirectUrl
-                    });
-                }
+            if (res.ok && data.success && data.fullRedirectUrl) {
+                // Requirement 6: DIRECT LIVE SSO REDIRECT TO BRAND PULSE RECEIVER
+                window.open(data.fullRedirectUrl, '_blank', 'noopener,noreferrer');
             } else {
+                // Requirement 12: Controlled user-facing error message without exposing secrets
                 setModalInfo({
                     open: true,
-                    title: 'Handoff Authorization Check Failed',
-                    status: 'AUTHORIZATION_DENIED',
-                    message: data.error || data.message || 'Could not verify Meat identity scope for BRASA Pulse.'
+                    title: 'BRASA Pulse Access Notice',
+                    status: data.status || 'SERVICE_UNAVAILABLE',
+                    message: data.message || 'BRASA Pulse service is temporarily unavailable. Please try again or contact your administrator.',
+                    fullRedirectUrl: data.fullRedirectUrl
                 });
             }
         } catch (err: any) {
@@ -66,7 +57,7 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                 open: true,
                 title: 'Connection Error',
                 status: 'NETWORK_ERROR',
-                message: 'Failed to communicate with BRASA Meat authentication gateway.'
+                message: 'BRASA Pulse service is temporarily unreachable. Please check network connection.'
             });
         } finally {
             setLoading(false);
@@ -91,7 +82,7 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                             <div className="font-bold text-sm text-white flex items-center gap-1.5">
                                 BRASA Pulse
                                 <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                                    Module
+                                    Guest AI
                                 </span>
                             </div>
                             <div className="text-[11px] text-gray-400 font-normal">
@@ -128,7 +119,7 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                             disabled={loading}
                             className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all flex items-center gap-1"
                         >
-                            {loading ? 'Deriving Scope...' : 'Access Pulse'}
+                            {loading ? 'Authenticating...' : 'Open Pulse'}
                             <ArrowUpRight className="w-3.5 h-3.5" />
                         </button>
                     </div>
@@ -139,7 +130,7 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
         );
     }
 
-    // Default 'card' variant for Dashboard Integration
+    // Default 'card' variant for Main Dashboard Integration (Requirement 4)
     return (
         <>
             <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#141414] via-[#1a1813] to-[#241c0e] border border-[#C5A059]/30 p-6 shadow-2xl transition-all hover:border-[#C5A059]/60 ${className}`}>
@@ -167,7 +158,7 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                 </div>
 
                 <p className="text-xs text-gray-400 mb-6 relative z-10 leading-relaxed">
-                    Seamless Single Sign-On entry point. Derives your current BRASA Meat identity, organization context, and store location permissions for reputation and sentiment analytics.
+                    Direct single sign-on access to guest sentiment, Google/Yelp reviews, competitive intelligence, and reputation analytics. Automatically scoped to your assigned stores.
                 </p>
 
                 <div className="flex items-center justify-between pt-4 border-t border-[#333]/60 relative z-10">
@@ -182,10 +173,10 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
                         className="px-5 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#E5C158] hover:from-[#d4b068] hover:to-[#f5d168] text-black font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg hover:shadow-[#C5A059]/20 flex items-center gap-2 disabled:opacity-50"
                     >
                         {loading ? (
-                            <span>Generating Handoff Token...</span>
+                            <span>Generating SSO Token...</span>
                         ) : (
                             <>
-                                <span>Launch BRASA Pulse</span>
+                                <span>Open Pulse</span>
                                 <ArrowUpRight className="w-4 h-4" />
                             </>
                         )}
@@ -203,43 +194,13 @@ const HandoffModal: React.FC<{ info: any; onClose: () => void }> = ({ info, onCl
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-[#121212] border border-[#C5A059]/40 p-6 shadow-2xl text-white">
                 <div className="flex items-center gap-3 mb-4">
-                    {info.status === 'PULSE_SSO_READY' ? (
-                        <CheckCircle2 className="w-6 h-6 text-green-400" />
-                    ) : (
-                        <AlertCircle className="w-6 h-6 text-[#C5A059]" />
-                    )}
+                    <AlertCircle className="w-6 h-6 text-[#C5A059]" />
                     <h3 className="text-lg font-bold tracking-wide">{info.title}</h3>
                 </div>
 
-                <div className="mb-4 p-3 rounded-lg bg-black/50 border border-neutral-800 font-mono text-xs text-amber-300">
-                    STATUS: <span className="font-bold text-white">{info.status}</span>
-                </div>
-
-                <p className="text-xs text-gray-300 mb-4 leading-relaxed">
+                <p className="text-xs text-gray-300 mb-6 leading-relaxed">
                     {info.message}
                 </p>
-
-                {info.handoff && (
-                    <div className="mb-4 p-3 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1 text-[11px] font-mono text-gray-300">
-                        <div><strong className="text-gray-500">User ID:</strong> {info.handoff.userId}</div>
-                        <div><strong className="text-gray-500">Org ID:</strong> {info.handoff.organizationId || 'N/A'}</div>
-                        <div><strong className="text-gray-500">Role:</strong> {info.handoff.role}</div>
-                        <div><strong className="text-gray-500">Primary Location:</strong> {info.handoff.primaryLocationId || 'N/A'}</div>
-                        <div><strong className="text-gray-500">Allowed Locations:</strong> [{info.handoff.allowedLocationIds?.join(', ')}]</div>
-                        <div><strong className="text-gray-500">Token Expiration:</strong> {info.handoff.expiresInSeconds}s (5 minutes)</div>
-                    </div>
-                )}
-
-                {info.handoffToken && (
-                    <div className="mb-6">
-                        <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1">
-                            Cryptographic Handoff Token (JWT/HMAC):
-                        </label>
-                        <div className="p-2.5 rounded bg-black border border-neutral-800 font-mono text-[10px] text-amber-400/90 break-all select-all max-h-24 overflow-y-auto">
-                            {info.handoffToken}
-                        </div>
-                    </div>
-                )}
 
                 <div className="flex justify-end gap-3 pt-2 border-t border-neutral-800">
                     <button
@@ -255,7 +216,7 @@ const HandoffModal: React.FC<{ info: any; onClose: () => void }> = ({ info, onCl
                             rel="noopener noreferrer"
                             className="px-5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg bg-[#C5A059] text-black hover:bg-[#d4b068] transition-all flex items-center gap-1.5"
                         >
-                            <span>Open Destination</span>
+                            <span>Retry Connection</span>
                             <ArrowUpRight className="w-3.5 h-3.5" />
                         </a>
                     )}

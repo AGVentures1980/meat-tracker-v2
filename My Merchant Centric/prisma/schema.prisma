@@ -1,0 +1,1465 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// ENUMS & TYPES
+// ==========================================
+
+enum Role {
+  CORPORATE_ADMIN
+  EXECUTIVE
+  DIRECTOR
+  AREA_MANAGER
+  GENERAL_MANAGER
+}
+
+enum ScopeType {
+  GLOBAL
+  DIVISION
+  REGION
+  DISTRICT
+  LOCATION
+}
+
+enum ContentType {
+  REVIEW
+  SOCIAL_POST
+  COMMENT
+  VIDEO
+  ARTICLE
+  SURVEY
+  OTHER
+}
+
+enum ProcessingStatus {
+  INGESTED
+  NORMALIZED
+  ENTITY_RESOLVED
+  AI_PROCESSED
+  SCORED
+  PROCESSING_FAILED
+  NEEDS_REVIEW
+}
+
+enum SentimentValue {
+  VERY_POSITIVE
+  POSITIVE
+  NEUTRAL
+  MIXED
+  NEGATIVE
+  VERY_NEGATIVE
+}
+
+enum CaseStatus {
+  OPEN
+  ASSIGNED
+  CONTACTED
+  RESOLVED
+  ESCALATED
+  CLOSED
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  ASSIGNED
+  RESOLVED
+  DISMISSED
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ==========================================
+// CORE TENANT & HIERARCHY MODELS
+// ==========================================
+
+model Organization {
+  id                  String   @id @default(uuid())
+  brasaOrganizationId String?  @unique
+  name                String
+
+  slug            String   @unique
+  status          String   @default("ACTIVE")
+  timezone        String   @default("UTC")
+  defaultLanguage String   @default("en")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  users                   User[]
+  divisions               Division[]
+  regions                 Region[]
+  districts               District[]
+  brands                  Brand[]
+  locations               Location[]
+  competitorBrands        CompetitorBrand[]
+  competitorLocations     CompetitorLocation[]
+  competitorMatches       CompetitiveMatch[]
+  competitiveSets         CompetitiveSet[]
+  menuItems               MenuItem[]
+  employees               Employee[]
+  integrations            Integration[]
+  contentItems            ContentItem[]
+  scoreSnapshots          ScoreSnapshot[]
+  rankingSnapshots        RankingSnapshot[]
+  recoveryCases           RecoveryCase[]
+  alerts                  Alert[]
+  scoringConfigs          ScoringConfiguration[]
+  auditLogs               AuditLog[]
+  markets                 Market[]
+  marketMembers           MarketMember[]
+  discoveryRuns           CompetitiveDiscoveryRun[]
+  reviewQueueItems        ReviewQueueItem[]
+  notificationPreferences NotificationPreference[]
+  actionItems             ActionItem[]
+  reputationEvents        ReputationEvent[]
+  aiInsights              AIInsight[]
+  socialMonitoredQueries  SocialMonitoredQuery[]
+  competitorSuggestions   CompetitorSuggestion[]
+  externalSources         ExternalSource[]
+  sourceSnapshots         SourceSnapshot[]
+  ingestionRuns           IngestionRun[]
+  dataCoverages           DataCoverage[]
+  reviewDatasets          ReviewDataset[]
+  externalLocationIdentities     ExternalLocationIdentity[]
+  externalUserIdentities         ExternalUserIdentity[]
+  externalOrganizationIdentities ExternalOrganizationIdentity[]
+}
+
+model Division {
+  id             String       @id @default(uuid())
+  organizationId String
+  name           String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  regions        Region[]
+  locations      Location[]
+}
+
+model Region {
+  id             String       @id @default(uuid())
+  organizationId String
+  divisionId     String?
+  name           String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  division       Division?    @relation(fields: [divisionId], references: [id])
+  districts      District[]
+  locations      Location[]
+}
+
+model District {
+  id             String       @id @default(uuid())
+  organizationId String
+  regionId       String
+  name           String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  region         Region       @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  locations      Location[]
+}
+
+model Brand {
+  id             String       @id @default(uuid())
+  organizationId String
+  name           String
+  website        String?
+  description    String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  locations      Location[]
+  menuItems      MenuItem[]
+}
+
+model Location {
+  id                  String       @id @default(uuid())
+  brasaLocationId     String?      @unique
+  organizationId      String
+
+  divisionId     String?
+  regionId       String?
+  districtId     String?
+  brandId        String
+  name           String
+  locationCode   String?
+  address        String
+  city           String
+  state          String
+  country        String
+  latitude       Float?
+  longitude      Float?
+  timezone       String       @default("America/New_York")
+  phone          String?
+  website        String?
+  postalCode         String?
+  googlePlaceId      String?
+  businessStatus     String?      @default("OPERATIONAL") // OPERATIONAL, TEMPORARILY_CLOSED, PERMANENTLY_CLOSED, UNKNOWN
+  verificationStatus String?      @default("VERIFIED")    // VERIFIED, UNVERIFIED, LOCATION_IDENTITY_CONFLICT
+  lastVerifiedAt     DateTime?
+  market             String?
+  status             String       @default("ACTIVE") // ACTIVE, CLOSED
+  openedAt           DateTime?
+  closedAt           DateTime?
+  provenanceMode     String       @default("LIVE") // LIVE, IMPORTED, DEMO
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  division       Division?    @relation(fields: [divisionId], references: [id])
+  region         Region?      @relation(fields: [regionId], references: [id])
+  district       District?    @relation(fields: [districtId], references: [id])
+  brand          Brand        @relation(fields: [brandId], references: [id])
+
+  classifications    LocationClassification[]
+  competitiveSets    CompetitiveSet[]
+  contentItems       ContentItem[]
+  employees          Employee[]
+  recoveryCases      RecoveryCase[]
+  alerts             Alert[]
+  scoreSnapshots     ScoreSnapshot[]
+  managerAssignments ManagerAssignment[]
+  marketMembers      MarketMember[]
+  actionItems        ActionItem[]
+  socialMonitoredQueries  SocialMonitoredQuery[]
+  competitorSuggestions   CompetitorSuggestion[]
+  externalSources         ExternalSource[]
+  sourceSnapshots         SourceSnapshot[]
+  ingestionRuns           IngestionRun[]
+  dataCoverages           DataCoverage[]
+  reputationEvents        ReputationEvent[]
+  reviewDatasets          ReviewDataset[]
+  discoveryRuns           CompetitiveDiscoveryRun[]
+  externalLocationIdentities ExternalLocationIdentity[]
+}
+
+// ==========================================
+// USER & SCOPING MODELS
+// ==========================================
+
+model User {
+  id             String       @id @default(uuid())
+  organizationId String
+  firstName      String
+  lastName       String
+  email          String       @unique
+  passwordHash   String
+  status         String       @default("ACTIVE") // ACTIVE, INACTIVE
+  language       String       @default("en")
+  timezone       String       @default("UTC")
+  lastLoginAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roles          UserRole[]
+  scopes         UserScope[]
+  recoveryCases  RecoveryCase[]
+  alertsAssigned Alert[]      @relation("AlertsAssigned")
+  reportSubs     ReportSubscription[]
+  aiConversations AIConversation[]
+  auditLogs      AuditLog[]
+  actionItems    ActionItem[]
+  preferences    NotificationPreference[]
+  externalUserIdentities ExternalUserIdentity[]
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String
+  role   Role
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+}
+
+model UserScope {
+  id        String    @id @default(uuid())
+  userId    String
+  scopeType ScopeType
+  scopeId   String    // ID of Division, Region, District, or Location (null or "*" for GLOBAL)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// TAXONOMY REGISTRIES (GLOBAL/SHARED)
+// ==========================================
+// System-wide standard taxonomy definitions, shared read-only across all tenants.
+
+model RestaurantSegment {
+  id              String   @id @default(uuid())
+  parentSegmentId String?
+  name            String
+  level           Int      @default(0)
+  description     String?
+  createdAt       DateTime @default(now())
+}
+
+model Topic {
+  id              String   @id
+  parentTopicId   String?
+  name            String
+  description     String?
+  topicMentions   TopicMention[]
+}
+
+// ==========================================
+// CUSTOMER RESTAURANT CLASSIFICATIONS
+// ==========================================
+
+model LocationClassification {
+  id               String   @id @default(uuid())
+  locationId       String
+  primarySegmentId String
+  cuisineType      String
+  serviceModel     String
+  priceTier        String
+  occasionType     String?
+  location         Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// COMPETITORS (SHARED SYSTEM SUGGESTED & CUSTOM TENANT)
+// ==========================================
+
+model CompetitorBrand {
+  id               String   @id @default(uuid())
+  organizationId   String?  // NULL = Global system competitor; NOT NULL = Tenant custom competitor
+  name             String
+  website          String?
+  primarySegmentId String?
+
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  competitors      CompetitorLocation[]
+}
+
+model CompetitorLocation {
+  id                    String   @id @default(uuid())
+  organizationId        String?  // NULL = Global system competitor; NOT NULL = Tenant custom competitor
+  competitorBrandId     String
+  name                  String
+  address               String
+  city                  String
+  state                 String
+  country               String
+  latitude              Float?
+  longitude             Float?
+  segmentId             String?
+  serviceModel          String?
+  priceTier             String?
+  googlePlaceId         String?
+  googleRating          Float?
+  userRatingCount       Int?
+  priceLevel            Int?
+  businessStatus        String?  // OPERATIONAL, CLOSED_TEMPORARILY, CLOSED_PERMANENTLY
+  identityStatus        String?  @default("VERIFIED") // VERIFIED, UNRESOLVED
+  primaryCategory       String?
+  lastMetadataLookupAt  DateTime?
+  provenanceMode        String   @default("LIVE") // LIVE, IMPORTED, DEMO
+
+  organization          Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  brand                 CompetitorBrand @relation(fields: [competitorBrandId], references: [id], onDelete: Cascade)
+  setMembers            CompetitiveSetMember[]
+  contentItems          ContentItem[]
+  scoreSnapshots        ScoreSnapshot[]
+  marketMembers         MarketMember[]
+  externalSources       ExternalSource[]
+  sourceSnapshots       SourceSnapshot[]
+  ingestionRuns         IngestionRun[]
+  dataCoverages         DataCoverage[]
+  reputationEvents      ReputationEvent[]
+}
+
+// ==========================================
+// COMPETITIVE SET & MATCH
+// ==========================================
+
+model CompetitiveSet {
+  id             String       @id @default(uuid())
+  organizationId String
+  locationId     String
+  name           String
+  status         String       @default("ACTIVE") // ACTIVE, ARCHIVED
+  createdBy      String
+  approvedBy     String?
+  approvedAt     DateTime?
+  provenanceMode String       @default("LIVE") // LIVE, IMPORTED, DEMO
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location       Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  members        CompetitiveSetMember[]
+}
+
+model CompetitiveSetMember {
+  id                      String             @id @default(uuid())
+  competitiveSetId        String
+  competitorLocationId    String
+  matchScore              Float              @default(0.0)
+  tier                    String             @default("DIRECT") // DIRECT, ADJACENT, MARKET
+  status                  String             @default("PENDING") // PENDING, APPROVED, REJECTED, WATCHLIST
+  suggestedByAI           Boolean            @default(true)
+  approvedByUser          Boolean            @default(false)
+  approvedBy              String?
+  approvedAt              DateTime?
+  approvalReason          String?
+  competitiveRole         String?            @default("DIRECT") // DIRECT, SECONDARY, WATCHLIST
+
+  // Competitive Relevance Engine metrics
+  relevanceScore          Float?
+  relevanceClassification String?            // DIRECT_CANDIDATE, SECONDARY_CANDIDATE, WATCHLIST_CANDIDATE, LOW_RELEVANCE, IDENTITY_UNVERIFIED
+  proposedTier            String?            // DIRECT_CANDIDATE, SECONDARY_CANDIDATE, WATCHLIST_CANDIDATE, LOW_RELEVANCE, IDENTITY_UNVERIFIED
+  confidence              String?            // HIGH, MEDIUM, LOW
+  serviceModelSimilarity  String?            // HIGH, MEDIUM, LOW
+  cuisineSimilarity       String?            // HIGH, MEDIUM, LOW
+  pricePositioningSimilarity String?         // HIGH, MEDIUM, LOW
+  occasionSimilarity      String?            // HIGH, MEDIUM, LOW
+  marketRelevance         String?            // HIGH, MEDIUM, LOW
+  serviceModelFitScore    Float?
+  cuisineFitScore         Float?
+  priceTierFitScore       Float?
+  occasionFitScore        Float?
+  proximityScore          Float?
+  brandFitScore           Float?
+  marketScaleScore        Float?
+  distanceMiles           Float?
+  explanation             String?
+  evidence                Json?
+  provenanceMode          String             @default("LIVE") // LIVE, IMPORTED, DEMO
+
+  set                     CompetitiveSet     @relation(fields: [competitiveSetId], references: [id], onDelete: Cascade)
+  competitor              CompetitorLocation @relation(fields: [competitorLocationId], references: [id], onDelete: Cascade)
+}
+
+model CompetitiveDiscoveryRun {
+  id                        String    @id @default(uuid())
+  organizationId            String
+  locationId                String
+  radiusMiles               Float
+  candidatesFoundCount      Int       @default(0)
+  directCandidatesCount     Int       @default(0)
+  secondaryCandidatesCount  Int       @default(0)
+  watchlistCandidatesCount  Int       @default(0)
+  lowRelevanceCount         Int       @default(0)
+  unresolvedIdentitiesCount Int       @default(0)
+  noDirectCompetitors       Boolean   @default(false)
+  status                    String    @default("COMPLETED") // COMPLETED, DISCOVERY_BLOCKED_LOCATION_IDENTITY, FAILED
+  blockReason               String?
+  startedAt                 DateTime  @default(now())
+  completedAt               DateTime?
+  provenanceMode            String    @default("LIVE")
+
+  organization              Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location                  Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model CompetitiveMatch {
+  id                   String   @id @default(uuid())
+  organizationId       String
+  locationId           String
+  competitorLocationId String
+  segmentScore         Float
+  cuisineScore         Float
+  serviceModelScore    Float
+  priceScore           Float
+  geographyScore       Float
+  totalScore           Float
+  modelVersion         String
+  createdAt            DateTime @default(now())
+
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// INGESTION & DATA SOURCES
+// ==========================================
+
+model DataSource {
+  id                String        @id // GOOGLE, YELP, TRIPADVISOR, TIKTOK, INSTAGRAM, REDDIT, X, CSV, MANUAL (System defined)
+  name              String
+  sourceType        String 
+  status            String        @default("ACTIVE")
+  supportsReviews   Boolean       @default(false)
+  supportsSocial    Boolean       @default(false)
+  supportsResponses Boolean       @default(false)
+  integrations      Integration[]
+  contentItems      ContentItem[]
+}
+
+model Integration {
+  id                   String       @id @default(uuid())
+  organizationId       String
+  dataSourceId         String
+  status               String       @default("ACTIVE") // ACTIVE, SUSPENDED, ERROR
+  credentialsReference String?      // Encrypted credentials key
+  lastSyncAt           DateTime?
+  nextSyncAt           DateTime?
+  syncFrequency        String       @default("DAILY") // HOURLY, DAILY, WEEKLY
+  errorState           String?
+  allowResponsePublishing Boolean  @default(false)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  dataSource           DataSource   @relation(fields: [dataSourceId], references: [id], onDelete: Cascade)
+  syncHistories        SyncHistory[]
+}
+
+model SourceEntityMapping {
+  id               String   @id @default(uuid())
+  organizationId   String
+  dataSourceId     String
+  externalEntityId String
+  entityType       String   // LOCATION, COMPETITOR
+  entityId         String   // Local LocationId or CompetitorLocationId
+  confidence       Float
+  verified         Boolean  @default(false)
+}
+
+// ==========================================
+// CONTENT ENTITIES (REVIEWS, SOCIALS)
+// ==========================================
+
+model ContentItem {
+  id                   String           @id @default(uuid())
+  organizationId       String
+  dataSourceId         String
+  externalId           String?
+  contentType          ContentType      @default(REVIEW)
+  brandId              String?
+  locationId           String?
+  competitorLocationId String?
+  authorExternalId     String?
+  authorName           String?
+  title                String?
+  text                 String
+  url                  String?
+  publishedAt          DateTime
+  ingestedAt           DateTime         @default(now())
+  language             String           @default("en")
+  rating               Float?           // For reviews (1-5 stars)
+  rawPayload           Json?
+  status               String           @default("ACTIVE") // ACTIVE, SOURCE_DELETED
+  processingStatus     ProcessingStatus @default(INGESTED)
+  provenanceMode       String           @default("DEMO") // LIVE, IMPORTED, DEMO
+  provenanceConnector  String?
+  provenanceConfidence Float?
+  acquisitionMethod    AcquisitionMethod @default(PUBLIC_METADATA)
+  coverageType        CoverageType      @default(METADATA_ONLY)
+
+  datasetId            String?
+  contentHash          String?
+  verificationStatus   String           @default("VERIFIED") // VERIFIED, VERIFIED_BY_OPERATOR, UNVERIFIED
+  activationStatus     String           @default("IMPORTED_PENDING_VALIDATION") // IMPORTED_PENDING_VALIDATION, ANALYTICS_ACTIVE, REJECTED
+  rowSource            String?          // e.g. "Google" declared inside OpenTable report
+  restaurantReply      String?          // Separate restaurant reply text
+
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  dataSource           DataSource       @relation(fields: [dataSourceId], references: [id], onDelete: Cascade)
+  location             Location?        @relation(fields: [locationId], references: [id])
+  competitorLocation   CompetitorLocation? @relation(fields: [competitorLocationId], references: [id])
+  dataset              ReviewDataset?   @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+
+  datasetItems         ReviewDatasetItem[]
+  metricSnapshots      ContentMetricSnapshot[]
+  sentimentAnalysis    SentimentAnalysis?
+  topicMentions        TopicMention[]
+  menuMentions         MenuMention[]
+  employeeMentions     EmployeeMention[]
+  competitorMentions   CompetitorMention[]
+  recoveryCases        RecoveryCase[]
+  reviewResponses      ReviewResponse[]
+  alertEvidences       AlertEvidence[]
+  reputationEvents     ReputationEventContent[]
+}
+
+model ReviewDataset {
+  id                   String            @id @default(uuid())
+  organizationId       String
+  locationId           String?
+  provider             String            // GOOGLE, YELP, OPENTABLE, FACEBOOK, INTERNAL_SURVEY, OTHER
+  reportChannel        String?           // OPENTABLE_DAILY_REVIEW_REPORT, OPENTABLE_WEEKLY_REVIEW_REPORT
+  reportType           String?           // DAILY, WEEKLY
+  coverageScope        String?           // OPENTABLE_DAILY_REVIEW_REPORT, OPENTABLE_WEEKLY_REVIEW_REPORT
+  fileHash             String?
+  restaurantId         String?           // e.g. "60256"
+  reportDate           DateTime?
+  reportSchemaVersion  String?           @default("1.0")
+  pipelineStatus       String?           @default("INGESTED") // REPORT_RECEIVED, ATTACHMENT_VALIDATED, INGESTED, DUPLICATE, SCHEMA_CHANGED, FAILED
+  acquisitionMethod    AcquisitionMethod @default(CLIENT_IMPORT)
+  coverageType         CoverageType      @default(UNKNOWN)
+  coverageStart        DateTime?
+  coverageEnd          DateTime?
+  declaredTotalRecords Int?
+  importedRecordCount  Int               @default(0)
+  duplicateCount       Int               @default(0)
+  rejectedCount        Int               @default(0)
+  uploadedBy           String
+  uploadedAt           DateTime          @default(now())
+  sourceFileName       String?
+  provenanceMode       String            @default("IMPORTED") // LIVE, IMPORTED, DEMO
+  dataQualityStatus    String            @default("HIGH") // HIGH, MEDIUM, LOW
+  notes                String?
+  verificationStatus   String            @default("VERIFIED") // VERIFIED, VERIFIED_BY_OPERATOR, UNVERIFIED
+  activationStatus     String            @default("IMPORTED_PENDING_VALIDATION") // IMPORTED_PENDING_VALIDATION, ANALYTICS_ACTIVE, REJECTED
+  approvedForAnalyticsAt DateTime?
+  approvedForAnalyticsBy String?
+
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location             Location?         @relation(fields: [locationId], references: [id])
+  contentItems         ContentItem[]
+  datasetItems         ReviewDatasetItem[]
+}
+
+model ReviewDatasetItem {
+  id            String        @id @default(uuid())
+  datasetId     String
+  contentItemId String
+  createdAt     DateTime      @default(now())
+
+  dataset       ReviewDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  contentItem   ContentItem   @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+
+  @@unique([datasetId, contentItemId])
+}
+
+model ContentMetricSnapshot {
+  id            String      @id @default(uuid())
+  contentItemId String
+  capturedAt    DateTime    @default(now())
+  views         Int?
+  likes         Int?
+  comments      Int?
+  shares        Int?
+  saves         Int?
+  followers     Int?
+
+  contentItem   ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// AI INTERPRETATION & NLP ENTITIES
+// ==========================================
+
+model SentimentAnalysis {
+  contentItemId    String         @id
+  overallSentiment SentimentValue
+  positiveScore    Float
+  neutralScore     Float
+  negativeScore    Float
+  confidence       Float
+  modelVersion     String
+  analyzedAt       DateTime       @default(now())
+
+  contentItem      ContentItem    @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+}
+
+model TopicMention {
+  id              String         @id @default(uuid())
+  contentItemId   String
+  topicId         String
+  sentiment       SentimentValue
+  confidence      Float
+  evidenceText    String?
+  taxonomyVersion String
+
+  contentItem    ContentItem    @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  topic          Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  alertEvidences AlertEvidence[]
+}
+
+model MenuItem {
+  id             String       @id @default(uuid())
+  organizationId String
+  brandId        String
+  name           String
+  category       String       // DESSERT, MEAT, APPETIZER, etc.
+  active         Boolean      @default(true)
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  brand          Brand        @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  aliases        MenuItemAlias[]
+  menuMentions   MenuMention[]
+}
+
+model MenuItemAlias {
+  id         String   @id @default(uuid())
+  menuItemId String
+  alias      String   @unique
+  verified   Boolean  @default(true)
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+}
+
+model MenuMention {
+  id            String         @id @default(uuid())
+  contentItemId String
+  menuItemId    String
+  sentiment     SentimentValue
+  confidence    Float
+  attribute     String?        // FLAVOR, TEMPERATURE, TENDERNESS, DRY, etc.
+  evidenceText  String?
+
+  contentItem   ContentItem    @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  menuItem      MenuItem       @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+}
+
+model Employee {
+  id             String       @id @default(uuid())
+  organizationId String
+  locationId     String
+  firstName      String
+  lastName       String
+  displayName    String
+  roleName       String?
+  active         Boolean      @default(true)
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location       Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  aliases        EmployeeAlias[]
+  mentions       EmployeeMention[]
+  assignments    ManagerAssignment[]
+}
+
+model EmployeeAlias {
+  id         String   @id @default(uuid())
+  employeeId String
+  alias      String   @unique
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model EmployeeMention {
+  id            String         @id @default(uuid())
+  contentItemId String
+  employeeId    String?        // Null if ambiguous
+  rawName       String
+  sentiment     SentimentValue
+  confidence    Float
+  verified      Boolean        @default(false)
+  evidenceText  String?
+
+  contentItem   ContentItem    @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  employee      Employee?      @relation(fields: [employeeId], references: [id])
+}
+
+model CompetitorMention {
+  id                    String         @id @default(uuid())
+  contentItemId         String
+  rawCompetitorPhrase   String
+  normalizedCompetitor  String?
+  sentiment             SentimentValue
+  confidence            Float
+  evidenceText          String?
+
+  contentItem           ContentItem    @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+}
+
+model ManagerAssignment {
+  id         String    @id @default(uuid())
+  employeeId String
+  locationId String
+  role       String    // GENERAL_MANAGER, REGIONAL_DIRECTOR
+  startDate  DateTime
+  endDate    DateTime?
+
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  location   Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// HUMAN INTERVENTION & REVIEW QUEUE
+// ==========================================
+
+model ReviewQueueItem {
+  id             String   @id @default(uuid())
+  organizationId String
+  entityType     String   // LOCATION, COMPETITOR, EMPLOYEE, MENU_ITEM, TOPIC
+  entityId       String?
+  contentItemId  String
+  reason         String   // LOW_CONFIDENCE, AMBIGUOUS_MATCH
+  status         String   @default("PENDING") // PENDING, RESOLVED, REJECTED
+  action         String?  // APPROVE, CORRECT, REJECT
+  createdAt      DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// SCORING SNAPSHOTS
+// ==========================================
+
+model ScoreSnapshot {
+  id                   String       @id @default(uuid())
+  organizationId       String
+  locationId           String?
+  competitorLocationId String?
+  scoreType            String       // BRAND_PULSE, REPUTATION, SENTIMENT, etc.
+  periodStart          DateTime
+  periodEnd            DateTime
+  score                Float?
+  previousScore        Float?
+  delta                Float?
+  algorithmVersion     String
+  calculatedAt         DateTime     @default(now())
+  dataConfidence       Float        @default(1.0)
+  provenanceMode       String       @default("LIVE") // LIVE, IMPORTED, DEMO
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location       Location?    @relation(fields: [locationId], references: [id])
+  competitorLocation CompetitorLocation? @relation(fields: [competitorLocationId], references: [id])
+  components     ScoreComponent[]
+  alertEvidences AlertEvidence[]
+}
+
+model ScoreComponent {
+  id             String        @id @default(uuid())
+  scoreSnapshotId String
+  componentName  String
+  rawValue       Float
+  normalizedValue Float
+  weight         Float
+  contribution   Float
+
+  snapshot       ScoreSnapshot @relation(fields: [scoreSnapshotId], references: [id], onDelete: Cascade)
+}
+
+model RankingSnapshot {
+  id             String       @id @default(uuid())
+  organizationId String
+  scopeType      ScopeType
+  scopeId        String
+  period         String       // DAILY, WEEKLY, MONTHLY
+  rankType       String       // OVERALL, MOST_IMPROVED, etc.
+  entityId       String       // LocationId
+  position       Int
+  previousPosition Int?
+  score          Float
+  capturedAt     DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// MARKETS
+// ==========================================
+
+model Market {
+  id             String       @id @default(uuid())
+  organizationId String
+  name           String
+  geographicType String       // CITY, COUNTY, RADIUS
+  city           String?
+  state          String?
+  radius         Float?       // in miles
+  segmentId      String
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members        MarketMember[]
+}
+
+model MarketMember {
+  id                   String   @id @default(uuid())
+  organizationId       String
+  marketId             String
+  locationId           String?
+  competitorLocationId String?
+
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  market               Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  location             Location? @relation(fields: [locationId], references: [id])
+  competitorLocation   CompetitorLocation? @relation(fields: [competitorLocationId], references: [id])
+}
+
+// ==========================================
+// GUEST RECOVERY WORKFLOWS
+// ==========================================
+
+model RecoveryCase {
+  id             String       @id @default(uuid())
+  organizationId String
+  locationId     String
+  contentItemId  String
+  severity       Severity     @default(LOW)
+  status         CaseStatus   @default(OPEN)
+  ownerUserId    String?
+  openedAt       DateTime     @default(now())
+  dueAt          DateTime
+  contactedAt    DateTime?
+  resolvedAt     DateTime?
+  resolutionType String?      // REFUND, APOLOGY, GIFT_CARD, DISMISSED
+  notes          String?
+  provenanceMode String       @default("LIVE") // LIVE, IMPORTED, DEMO
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location       Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  contentItem    ContentItem  @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  owner          User?        @relation(fields: [ownerUserId], references: [id])
+  activities     RecoveryActivity[]
+}
+
+model RecoveryActivity {
+  id             String      @id @default(uuid())
+  recoveryCaseId String
+  type           String      // STATUS_CHANGE, COMMENT, OUTBOUND_EMAIL, etc.
+  description    String
+  userId         String?
+  createdAt      DateTime    @default(now())
+
+  case           RecoveryCase @relation(fields: [recoveryCaseId], references: [id], onDelete: Cascade)
+}
+
+model ReviewResponse {
+  id                   String      @id @default(uuid())
+  contentItemId        String      @unique
+  suggestedResponse    String?
+  finalResponse        String?
+  generatedByAI        Boolean     @default(true)
+  approvedBy           String?     // UserId
+  publishedAt          DateTime?
+  status               String      @default("PENDING_APPROVAL") // PENDING_APPROVAL, APPROVED, PUBLISHED
+  responseTimeMinutes  Int?
+  externalApiResponse  String?
+
+  contentItem          ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// ACTIONS & ALERT ENGINE
+// ==========================================
+
+model Alert {
+  id                   String       @id @default(uuid())
+  organizationId       String
+  locationId           String?
+  competitorLocationId String?
+  alertType            String       // SCORE_DROP, NEGATIVE_REVIEW_SPIKE, etc.
+  severity             Severity     @default(LOW)
+  title                String
+  description          String
+  detectedAt           DateTime     @default(now())
+  status               AlertStatus  @default(OPEN)
+  assignedTo           String?
+  resolvedAt           DateTime?
+  provenanceMode       String       @default("LIVE") // LIVE, IMPORTED, DEMO
+
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location             Location?    @relation(fields: [locationId], references: [id])
+  assignee             User?        @relation("AlertsAssigned", fields: [assignedTo], references: [id])
+  evidences            AlertEvidence[]
+}
+
+model AlertEvidence {
+  id              String         @id @default(uuid())
+  alertId         String
+  contentItemId   String?
+  topicMentionId  String?
+  scoreSnapshotId String?
+
+  alert           Alert          @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  contentItem     ContentItem?   @relation(fields: [contentItemId], references: [id])
+  topicMention    TopicMention?  @relation(fields: [topicMentionId], references: [id])
+  scoreSnapshot   ScoreSnapshot? @relation(fields: [scoreSnapshotId], references: [id])
+}
+
+model ActionItem {
+  id             String       @id @default(uuid())
+  organizationId String
+  locationId     String?
+  alertId        String?
+  title          String
+  description    String?
+  ownerId        String?
+  priority       String       @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  dueAt          DateTime?
+  status         String       @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED, CANCELLED
+  completedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location       Location?    @relation(fields: [locationId], references: [id])
+  owner          User?        @relation(fields: [ownerId], references: [id])
+}
+
+model ReputationEvent {
+  id                   String              @id @default(uuid())
+  organizationId       String
+  locationId           String?
+  competitorLocationId String?
+  externalSourceId     String
+  provider             String              // GOOGLE, YELP, OPENTABLE, etc.
+  eventType            String              // RATING_INCREASED, RATING_DECREASED, REVIEW_COUNT_INCREASED, REVIEW_VELOCITY_SPIKE, REVIEW_VELOCITY_DROP, BUSINESS_STATUS_CHANGED, SOURCE_UNAVAILABLE
+  severity             String              // INFO, WATCH, ALERT
+  previousValue        Json?
+  currentValue         Json?
+  delta                Json?
+  evidenceSnapshotId   String?
+  detectedAt           DateTime            @default(now())
+  acknowledgedAt       DateTime?
+  metadata             Json?
+
+  organization         Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location             Location?           @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  competitorLocation   CompetitorLocation? @relation(fields: [competitorLocationId], references: [id], onDelete: Cascade)
+  externalSource       ExternalSource      @relation(fields: [externalSourceId], references: [id], onDelete: Cascade)
+  evidenceSnapshot     SourceSnapshot?     @relation(fields: [evidenceSnapshotId], references: [id], onDelete: SetNull)
+  contents             ReputationEventContent[]
+
+  @@index([organizationId, detectedAt])
+  @@index([externalSourceId, detectedAt])
+}
+
+model ReputationEventContent {
+  id                 String          @id @default(uuid())
+  reputationEventId  String
+  contentItemId      String
+  event              ReputationEvent @relation(fields: [reputationEventId], references: [id], onDelete: Cascade)
+  content            ContentItem     @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// INSIGHTS & ASK BRASA
+// ==========================================
+
+model AIInsight {
+  id             String       @id @default(uuid())
+  organizationId String
+  scopeType      ScopeType
+  scopeId        String
+  periodStart    DateTime
+  periodEnd      DateTime
+  type           String       // WHY_CHANGED, EXECUTIVE_SUMMARY, etc.
+  title          String
+  summary        String
+  confidence     Float
+  modelVersion   String
+  generatedAt    DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model AIConversation {
+  id             String       @id @default(uuid())
+  userId         String
+  scopeType      ScopeType    @default(GLOBAL)
+  scopeId        String       @default("*")
+  title          String       @default("New Conversation")
+  createdAt      DateTime     @default(now())
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages       AIMessage[]
+}
+
+model AIMessage {
+  id             String       @id @default(uuid())
+  conversationId String
+  role           String       // USER, ASSISTANT
+  content        String
+  createdAt      DateTime     @default(now())
+
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  evidences      AIMessageEvidence[]
+}
+
+model AIMessageEvidence {
+  id             String    @id @default(uuid())
+  messageId      String
+  entityType     String    // CONTENT_ITEM, SCORE_SNAPSHOT
+  entityId       String
+
+  message        AIMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// REPORTS & PREFERENCES
+// ==========================================
+
+model ReportSubscription {
+  id             String       @id @default(uuid())
+  userId         String
+  reportType     String       // DAILY_PULSE, WEEKLY_PULSE, MONTHLY_PULSE
+  scopeType      ScopeType
+  scopeId        String?
+  frequency      String       @default("DAILY")
+  deliveryTime   String       @default("08:00") // Local HH:MM
+  timezone       String       @default("UTC")
+  enabled        Boolean      @default(true)
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries     ReportDelivery[]
+}
+
+model ReportDelivery {
+  id             String             @id @default(uuid())
+  subscriptionId String
+  generatedAt    DateTime           @default(now())
+  sentAt         DateTime?
+  status         String             @default("PENDING") // PENDING, SENT, FAILED
+  recipient      String
+  subject        String
+  error          String?
+
+  subscription   ReportSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+model NotificationPreference {
+  id             String       @id @default(uuid())
+  organizationId String
+  userId         String
+  channel        String       // EMAIL, IN_APP
+  alertType      String       // ALL, CRITICAL_ONLY, etc.
+  enabled        Boolean      @default(true)
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// CONFIGURATIONS & AUDITS
+// ==========================================
+
+model ScoringConfiguration {
+  id                String       @id @default(uuid())
+  organizationId    String
+  scoringVersion    String
+  reputationWeight  Float        @default(0.35)
+  sentimentWeight   Float        @default(0.25)
+  competitiveWeight Float        @default(0.15)
+  momentumWeight    Float        @default(0.10)
+  responseWeight    Float        @default(0.10)
+  recoveryWeight    Float        @default(0.05)
+  effectiveFrom     DateTime     @default(now())
+
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model TaxonomyVersion {
+  id             String   @id @default(uuid())
+  version        String
+  active         Boolean  @default(true)
+  rulesPayload   Json
+  createdAt      DateTime @default(now())
+}
+
+model AuditLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  userId         String?
+  action         String
+  entityType     String
+  entityId       String
+  oldValue       Json?
+  newValue       Json?
+  createdAt      DateTime     @default(now())
+  metadata       Json?
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id])
+}
+
+// ==========================================
+// BACKGROUND JOBS QUEUE (GLOBAL SYSTEM STATE)
+// ==========================================
+
+model Job {
+  id             String    @id @default(uuid())
+  type           String    // syncSource, normalizeContent, resolveEntities, analyzeContent, calculateScores, detectAlerts, sendEmail
+  status         JobStatus @default(PENDING)
+  payload        Json      // Can store organizationId, locationId, contentItemId, etc.
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(3)
+  errorLog       String?
+  runAt          DateTime  @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model SyncHistory {
+  id             String    @id @default(uuid())
+  integrationId  String
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  status         String    // RUNNING, SUCCESS, FAILED
+  itemsFetched   Int       @default(0)
+  itemsCreated   Int       @default(0)
+  itemsUpdated   Int       @default(0)
+  itemsSkipped   Int       @default(0)
+  failures       Int       @default(0)
+  errorSummary   String?
+  createdAt      DateTime  @default(now())
+
+  integration    Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+}
+
+model SocialMonitoredQuery {
+  id             String    @id @default(uuid())
+  organizationId String
+  locationId     String?
+  queryType      String    // BRAND, LOCATION, COMPETITOR, MENU
+  queryText      String
+  enabled        Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location       Location?    @relation(fields: [locationId], references: [id])
+}
+
+model CompetitorSuggestion {
+  id                   String   @id @default(uuid())
+  organizationId       String
+  locationId           String
+  competitorName       String
+  segment              String
+  cuisine              String
+  serviceModel         String
+  priceTier            String
+  geography            String
+  matchScore           Float
+  status               String   @default("SUGGESTED") // SUGGESTED, APPROVED, REJECTED
+  externalPlaceId      String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location             Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+enum AcquisitionMethod {
+  OFFICIAL_API
+  CLIENT_IMPORT
+  LICENSED_FEED
+  PUBLIC_METADATA
+  MANUAL
+}
+
+enum CoverageType {
+  COMPLETE
+  PARTIAL
+  SAMPLE
+  METADATA_ONLY
+  DISCOVERY_ONLY
+  UNKNOWN
+}
+
+model ExternalSource {
+  id                   String              @id @default(uuid())
+  organizationId       String
+  locationId           String?
+  competitorLocationId String?
+  provider             String              // GOOGLE, YELP, OPENTABLE, etc.
+  externalLocationId   String?
+  sourceUrl            String
+  displayName          String?
+  status               String              @default("DISCOVERED") // DISCOVERED, PENDING_CONFIRMATION, CONFIRMED, REJECTED, MONITORING, UNAVAILABLE, DISABLED
+  confidence           String              @default("HIGH") // HIGH, MEDIUM, LOW
+  isCompetitor         Boolean             @default(false)
+  lastCheckedAt        DateTime?
+  lastChangedAt        DateTime?
+  discoveryMethod      String?             @default("DETERMINISTIC_MATCH")
+  verifiedBy           String?
+  verifiedAt           DateTime?
+  verificationMethod   String?
+  adapterUsed          String?
+  monitoringEnabled    Boolean             @default(true)
+  monitoringFrequencyHours Int             @default(12)
+  monitoringStatus     String              @default("ACTIVE") // ACTIVE, PAUSED, WAITING_FOR_BASELINE, ADAPTER_UNAVAILABLE, SOURCE_UNAVAILABLE, RATE_LIMITED, ERROR
+  nextCheckAt          DateTime?
+  lastSuccessfulCheckAt DateTime?
+  lastAttemptAt        DateTime?
+  consecutiveFailures  Int                 @default(0)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  organization         Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location             Location?           @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  competitorLocation   CompetitorLocation? @relation(fields: [competitorLocationId], references: [id], onDelete: Cascade)
+  snapshots            SourceSnapshot[]
+  ingestionRuns        IngestionRun[]
+  reputationEvents     ReputationEvent[]
+
+  @@unique([locationId, provider])
+  @@unique([competitorLocationId, provider])
+}
+
+model SourceSnapshot {
+  id                   String            @id @default(uuid())
+  organizationId       String
+  locationId           String?
+  competitorLocationId String?
+  externalSourceId     String
+  rating               Float?
+  reviewCount          Int?
+  followerCount        Int?
+  businessStatus       String?
+  adapter              String?
+  additionalMetrics    Json?
+  acquisitionMethod    AcquisitionMethod @default(PUBLIC_METADATA)
+  coverageType         CoverageType      @default(METADATA_ONLY)
+  capturedAt           DateTime          @default(now())
+  createdAt            DateTime          @default(now())
+
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location             Location?         @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  competitorLocation   CompetitorLocation? @relation(fields: [competitorLocationId], references: [id], onDelete: Cascade)
+  externalSource       ExternalSource    @relation(fields: [externalSourceId], references: [id], onDelete: Cascade)
+  reputationEvents     ReputationEvent[]
+}
+
+model IngestionRun {
+  id                   String            @id @default(uuid())
+  organizationId       String
+  locationId           String?
+  competitorLocationId String?
+  externalSourceId     String?
+  provider             String
+  acquisitionMethod    AcquisitionMethod
+  coverageType         CoverageType
+  status               String            // QUEUED, RUNNING, COMPLETED, PARTIAL, FAILED, BLOCKED
+  rawItemsReceived     Int               @default(0)
+  normalizedItems      Int               @default(0)
+  deduplicatedItems    Int               @default(0)
+  acceptedItems        Int               @default(0)
+  rejectedItems        Int               @default(0)
+  startedAt            DateTime          @default(now())
+  completedAt          DateTime?
+  errorCode            String?
+  errorMessage         String?
+  metadata             Json?
+  createdAt            DateTime          @default(now())
+
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location             Location?         @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  competitorLocation   CompetitorLocation? @relation(fields: [competitorLocationId], references: [id], onDelete: Cascade)
+  externalSource       ExternalSource?   @relation(fields: [externalSourceId], references: [id], onDelete: Cascade)
+}
+
+model SourcePolicy {
+  id                             String   @id @default(uuid())
+  provider                       String   @unique // GOOGLE, YELP, OPENTABLE, etc.
+  allowDiscovery                 Boolean  @default(true)
+  allowPublicMetadata            Boolean  @default(true)
+  allowAutomatedMonitoring       Boolean  @default(true)
+  allowAutomatedContentIngestion Boolean  @default(false)
+  allowOfficialApi               Boolean  @default(true)
+  allowClientImport              Boolean  @default(true)
+  allowManualImport              Boolean  @default(true)
+  notes                          String?
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+}
+
+model DataCoverage {
+  id                   String       @id @default(uuid())
+  organizationId       String
+  locationId           String?
+  competitorLocationId String?
+  provider             String       // GOOGLE, YELP, OPENTABLE, etc.
+  coverageType         CoverageType @default(UNKNOWN)
+  sampleSize           Int?
+  knownTotalCount      Int?
+  oldestCapturedAt     DateTime?
+  newestCapturedAt     DateTime?
+  confidence           Float        @default(1.0)
+  updatedAt            DateTime     @updatedAt
+
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location             Location?    @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  competitorLocation   CompetitorLocation? @relation(fields: [competitorLocationId], references: [id], onDelete: Cascade)
+
+  @@unique([locationId, provider])
+  @@unique([competitorLocationId, provider])
+}
+
+model CompetitiveMetricSnapshot {
+  id                 String   @id @default(uuid())
+  organizationId     String
+  subjectLocationId  String
+  entityType         String   // "SUBJECT" | "COMPETITOR"
+  entityId           String   // Location.id or CompetitorLocation.id
+  entityName         String
+  entityRole         String?  // "SUBJECT" | "DIRECT" | "SECONDARY"
+  provider           String   @default("GOOGLE")
+  googleRating       Float?
+  googleReviewCount  Int?
+  provenanceMode     String   @default("LIVE") // "LIVE" | "IMPORTED"
+  capturedAt         DateTime @default(now())
+
+  @@index([organizationId, subjectLocationId, capturedAt])
+  @@index([entityId, capturedAt])
+}
+
+// ==========================================
+// CROSS-APPLICATION EXTERNAL IDENTITY MAPPINGS (SSO)
+// ==========================================
+
+model ExternalLocationIdentity {
+  id                 String       @id @default(uuid())
+  provider           String       @default("BRASA_MEAT")
+  externalLocationId String
+  pulseLocationId    String
+  organizationId     String
+  verifiedAt         DateTime     @default(now())
+  active             Boolean      @default(true)
+
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pulseLocation      Location     @relation(fields: [pulseLocationId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, externalLocationId])
+}
+
+model ExternalUserIdentity {
+  id             String       @id @default(uuid())
+  provider       String       @default("BRASA_MEAT")
+  externalUserId String
+  pulseUserId    String
+  organizationId String
+  linkedAt       DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pulseUser      User         @relation(fields: [pulseUserId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, externalUserId])
+}
+
+model ExternalOrganizationIdentity {
+  id                  String       @id @default(uuid())
+  provider            String       @default("BRASA_MEAT")
+  externalOrgId       String
+  pulseOrganizationId String
+  verifiedAt          DateTime     @default(now())
+
+  pulseOrganization   Organization @relation(fields: [pulseOrganizationId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, externalOrgId])
+}
+
+model ConsumedSsoHandoff {
+  id                     String    @id @default(uuid())
+  issuer                 String    @default("brasa-meat-intelligence")
+  jti                    String
+  externalUserId         String?
+  pulseUserId            String?
+  organizationId         String?
+  primaryBrasaLocationId String?
+  issuedAt               DateTime?
+  expiresAt              DateTime?
+  consumedAt             DateTime  @default(now())
+  outcome                String    @default("SUCCESS")
+
+  @@unique([issuer, jti])
+  @@index([expiresAt])
+}
+
+
+

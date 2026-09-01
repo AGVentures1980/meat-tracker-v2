@@ -1,0 +1,10 @@
+{
+  "InvoiceRecord": 0,
+  "Order": 0,
+  "InventoryRecord": 0,
+  "PurchaseRecord": 0,
+  "MeatUsage": 0,
+  "ReceivingEvent": 0,
+  "AuditLog": 0,
+  "SystemAlert": 0
+}

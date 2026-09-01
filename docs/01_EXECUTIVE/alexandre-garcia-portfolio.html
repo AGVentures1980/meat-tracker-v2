@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Alexandre Garcia — Hospitality Operations Executive Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Core Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #e4e2dd; /* Workspace background */
+      color: #2d3142; /* Graphite body text */
+      line-height: 1.45;
+      font-size: 10px;
+      -webkit-font-smoothing: antialiased;
+      width: 100%;
+      padding: 30px 0;
+    }
+    
+    /* Paginated Layout Container (US Letter Portrait) */
+    .page-box {
+      width: 8.5in;
+      height: 11.0in;
+      padding: 0.45in 0.5in;
+      margin: 0 auto 30px auto;
+      background-color: #f9f8f4; /* Warm Alabaster background */
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.09);
+      page-break-after: always;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* Print Specific Overrides */
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #111111;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .page-box {
+        margin: 0;
+        padding: 0.45in 0.5in;
+        box-shadow: none;
+        width: 100%;
+        height: 11.0in;
+      }
+      @page {
+        size: letter portrait;
+        margin: 0;
+      }
+    }
+
+    /* Typography & Hierarchy */
+    h1, h2, h3, h4 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 500;
+      color: #0f1e36; /* Deep Navy primary */
+      line-height: 1.15;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      letter-spacing: 0.5px;
+      color: #0f1e36;
+      text-transform: uppercase;
+      border-bottom: 2px solid #c5a059; /* Gold divider */
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+      font-weight: 400;
+    }
+
+    p {
+      color: #2d3142;
+      text-align: justify;
+    }
+
+    /* Header & Footer Components */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #6a6c6e;
+      border-bottom: 1px solid #e8e6e1;
+      padding-bottom: 6px;
+      margin-bottom: 15px;
+    }
+    .page-header-title {
+      font-weight: 700;
+      color: #0f1e36;
+    }
+    .page-header-class {
+      color: #c5a059;
+      font-weight: 700;
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8a8c8e;
+      border-top: 1px solid rgba(197, 160, 89, 0.35);
+      padding-top: 6px;
+      margin-top: 15px;
+    }
+    .page-num {
+      font-weight: 700;
+      color: #c5a059;
+    }
+
+    /* Common Layout Utilities */
+    .content-body {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .section-intro {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 11.5px;
+      font-style: italic;
+      color: #0f1e36;
+      margin-bottom: 18px;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    /* Premium Gallery Frame Image Box */
+    .image-frame {
+      border: 1px solid #d6d2c4;
+      padding: 6px;
+      background-color: #ffffff;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .image-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Custom Page Styles */
+    
+    /* Cover Page (Page 1) */
+    .cover-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 0.3in 0;
+    }
+    .cover-top {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .cover-title {
+      font-size: 38px;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: #0f1e36;
+      margin-bottom: 8px;
+      font-weight: 300;
+      line-height: 1.2;
+    }
+    .cover-subtitle {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #c5a059;
+      margin-bottom: 15px;
+    }
+    .cover-divider {
+      width: 100px;
+      height: 2px;
+      background-color: #c5a059;
+      margin: 12px auto;
+    }
+    .cover-pillars {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 12px;
+      color: #2d3142;
+      font-style: italic;
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+    .cover-image-container {
+      width: 100%;
+      height: 480px;
+      margin: 25px 0;
+    }
+    .cover-image-container img {
+      object-fit: contain !important;
+    }
+    .cover-bottom {
+      text-align: center;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #8a8c8e;
+      font-weight: 600;
+    }
+
+    /* Profile Page (Page 2) */
+    .profile-text {
+      font-size: 10.5px;
+      line-height: 1.6;
+      color: #2d3142;
+    }
+    .profile-text p {
+      margin-bottom: 14px;
+    }
+    .profile-bullets {
+      margin-top: 20px;
+    }
+    .profile-bullet-item {
+      border-left: 2px solid #c5a059;
+      padding-left: 12px;
+      margin-bottom: 16px;
+    }
+    .profile-bullet-title {
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      color: #0f1e36;
+      margin-bottom: 3px;
+    }
+    .profile-bullet-desc {
+      font-size: 9.5px;
+      color: #4a4c4e;
+      line-height: 1.45;
+    }
+
+    /* Journey Page (Page 3) */
+    .journey-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-grow: 1;
+      padding: 10px 0;
+    }
+    .journey-step {
+      border-bottom: 1px solid #e8e6e1;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+    .journey-step:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+    .journey-step-header {
+      border-left: 3px solid #c5a059;
+      padding-left: 12px;
+      margin-bottom: 6px;
+    }
+    .journey-step-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f1e36;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .journey-step-desc {
+      font-size: 9.5px;
+      line-height: 1.5;
+      color: #2d3142;
+    }
+
+    /* Openings Page (Page 5) */
+    .openings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .opening-item {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      border-bottom: 1.5px solid #f4f2ee;
+      padding-bottom: 6px;
+    }
+    .opening-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .opening-city {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0f1e36;
+    }
+    .opening-desc {
+      font-size: 9.5px;
+      line-height: 1.4;
+      color: #2d3142;
+    }
+    
+    .competencies-section {
+      margin-top: 15px;
+      border-top: 1px solid #e8e6e1;
+      padding-top: 12px;
+    }
+    .competencies-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f1e36;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .competencies-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 20px;
+    }
+    .competency-li {
+      position: relative;
+      padding-left: 12px;
+      font-size: 9.5px;
+      line-height: 1.4;
+      color: #2d3142;
+    }
+    .competency-li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #c5a059;
+      font-weight: bold;
+    }
+
+    /* Page 6 Card Layout */
+    .ops-card {
+      background-color: #ffffff;
+      border: 1px solid #d6d2c4;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .ops-image-box {
+      width: 100%;
+      height: 220px;
+      margin-bottom: 14px;
+    }
+    .ops-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f1e36;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1.5px solid #e8e6e1;
+      padding-bottom: 4px;
+    }
+    .ops-bullets {
+      list-style: none;
+    }
+    .ops-bullet-li {
+      position: relative;
+      padding-left: 12px;
+      margin-bottom: 8px;
+      font-size: 9.5px;
+      line-height: 1.45;
+      color: #2d3142;
+    }
+    .ops-bullet-li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #c5a059;
+      font-weight: bold;
+    }
+
+    /* Column Cards for Page 7 */
+    .col-card {
+      background-color: #ffffff;
+      border: 1px solid #d6d2c4;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .col-image-box {
+      width: 100%;
+      height: 120px;
+      margin-bottom: 10px;
+    }
+    .col-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #0f1e36;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #e8e6e1;
+      padding-bottom: 3px;
+    }
+    .col-card-desc {
+      font-size: 9px;
+      line-height: 1.45;
+      color: #2d3142;
+    }
+
+    /* Career Highlights (Page 8) */
+    .milestones-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-grow: 1;
+      padding: 3px 0;
+    }
+    .milestone-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 20px;
+      border-bottom: 1px solid #e8e6e1;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .milestone-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border-left: 3px solid #c5a059;
+      padding-left: 12px;
+    }
+    .milestone-company {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #0f1e36;
+      line-height: 1.2;
+    }
+    .milestone-role {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 9px;
+      font-style: italic;
+      color: #c5a059;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .milestone-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .milestone-summary {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #0f1e36;
+      margin-bottom: 4px;
+      line-height: 1.35;
+    }
+    .milestones-points {
+      list-style: none;
+    }
+    .milestone-point-li {
+      position: relative;
+      padding-left: 12px;
+      margin-bottom: 3px;
+      font-size: 9px;
+      line-height: 1.4;
+      color: #2d3142;
+    }
+    .milestone-point-li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #c5a059;
+    }
+    
+    .strengths-section {
+      border-top: 1px solid rgba(197, 160, 89, 0.35);
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    .strengths-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f1e36;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .strengths-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px 15px;
+      text-align: center;
+    }
+    .strength-tag {
+      font-size: 8.5px;
+      font-weight: 700;
+      color: #2d3142;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .closing-block {
+      border-top: 1px solid rgba(197, 160, 89, 0.25);
+      padding-top: 8px;
+      margin-top: 8px;
+      text-align: center;
+    }
+    .closing-quote {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 11px;
+      line-height: 1.45;
+      color: #0f1e36;
+      font-style: italic;
+      max-width: 520px;
+      margin: 0 auto 8px auto;
+    }
+    .closing-author-block {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f1e36;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .closing-tagline {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #c5a059;
+      font-weight: 700;
+    }
+
+    .bottom-logo-frame {
+      width: 100%;
+      height: 60px;
+      margin-top: 6px;
+    }
+    .bottom-logo-frame img {
+      object-fit: contain !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1: EXECUTIVE COVER -->
+  <div class="page-box">
+    <div class="page-header">
+      <span class="page-header-title">Executive Leadership Portfolio</span>
+      <span class="page-header-class">Confidential Briefing</span>
+    </div>
+    
+    <div class="cover-content">
+      <div class="cover-top">
+        <h1 class="cover-title">ALEXANDRE GARCIA</h1>
+        <div class="cover-subtitle">HOSPITALITY & FOOD & BEVERAGE OPERATIONS EXECUTIVE</div>
+        <div class="cover-divider"></div>
+        <div class="cover-pillars">
+          Hospitality Leadership &bull; Operational Excellence &bull; Team Development
+        </div>
+      </div>
+      
+      <div class="cover-image-container image-frame">
+        <img src="../../linkedin_assets/Culinary1.png" alt="Hospitality Operations Leadership">
+      </div>
+      
+      <div class="cover-bottom">
+        EXECUTIVE PORTFOLIO | HOSPITALITY LEADERSHIP | OPERATIONS EXCELLENCE
+      </div>
+    </div>
+    
+    <div class="page-footer">
+      <span>Alexandre Garcia Portfolio</span>
+      <span class="page-num">01</span>
+    </div>
+  </div>
+
+  <!-- PAGE 2: EXECUTIVE PROFILE -->
+  <div class="page-box">
+    <div class="page-header">
+      <span class="page-header-title">Executive Profile</span>
+      <span class="page-header-class">Alexandre Garcia</span>
+    </div>
+    
+    <div class="content-body">
+      <h2 class="page-title">Executive Profile</h2>
+      <div class="grid-2col" style="align-items: stretch;">
+        <div>
+          <p class="section-intro">
+            Hospitality operations leader with over 15 years of experience across upscale dining, luxury hospitality, restaurant openings, team development, and high-volume operations in the United States and Brazil.
+          </p>
+          <div class="profile-text">
+            <p>
+              Alexandre Garcia has established a reputation for operational excellence in high-volume, premium hospitality environments. He brings a proven history of managing operations with annual revenue exposure exceeding $14M, directing cross-functional teams of up to 120 employees, and delivering consistent service to over 3,000 weekly guests.
+            </p>
+            <p>
+              He combines deep culinary knowledge, guest experience leadership, and operational discipline to align people, processes, and financial performance. By focusing on practical systems, labor scheduling adjustments, and food cost protections, he ensures that daily kitchen operations maintain strict margin compliance without compromising the guest journey.
+            </p>
+          </div>
+          
+          <div class="profile-bullets">
+            <div class="profile-bullet-item">
+              <div class="profile-bullet-title">High-Volume Operational Leadership</div>
+              <div class="profile-bullet-desc">Directing FOH and BOH operations, supervising large staffs, and aligning daily service flows with brand standards.</div>
+            </div>
+            <div class="profile-bullet-item">
+              <div class="profile-bullet-title">Hands-On Financial Stewardship</div>
+              <div class="profile-bullet-desc">Managing labor, food cost controls, inventory accountability, purchasing oversight, and operational performance metrics to support profitability and financial discipline.</div>
+            </div>
+            <div class="profile-bullet-item">
+              <div class="profile-bullet-title">Expansion & Openings Competence</div>
+              <div class="profile-bullet-desc">Managing store opening processes, hiring and training personnel, organizing suppliers, and standardizing local layouts.</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="image-frame" style="height: 480px;">
+          <img src="../../linkedin_assets/Culinary20.JPG" alt="Alexandre Garcia - High-Volume GM">
+        </div>
+      </div>
+    </div>
+    
+    <div class="page-footer">
+      <span>Alexandre Garcia Portfolio</span>
+      <span class="page-num">02</span>
+    </div>
+  </div>
+
+  <!-- PAGE 3: LEADERSHIP JOURNEY -->
+  <div class="page-box">
+    <div class="page-header">
+      <span class="page-header-title">Leadership Journey</span>
+      <span class="page-header-class">Alexandre Garcia</span>
+    </div>
+    
+    <div class="content-body">
+      <h2 class="page-title">Leadership Journey</h2>
+      <p class="section-intro">
+        A chronological progression detailing the transition from hands-on culinary operations to integrated hospitality leadership.
+      </p>
+      
+      <div class="journey-container">
+        <!-- Step 1 -->
+        <div class="journey-step">
+          <div class="journey-step-header">
+            <h3 class="journey-step-title">Culinary Operations & BOH Foundation</h3>
+          </div>
+          <p class="journey-step-desc">
+            Began in culinary operations, establishing a deep technical foundation in kitchen management, portion-trim weight constraints, and production workflows. This phase established the practical operational standards required to manage raw materials and control food cost variances at the source.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="journey-step">
+          <div class="journey-step-header">
+            <h3 class="journey-step-title">Service Leadership & FOH Integration</h3>
+          </div>
+          <p class="journey-step-desc">
+            Expanded operational responsibility into Front-of-House (FOH) operations, standardizing guest relations, table service steps, and beverage pairing programs. This transition integrated BOH quality consistency with high-touch service choreography to optimize guest satisfaction.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="journey-step">
+          <div class="journey-step-header">
+            <h3 class="journey-step-title">Restaurant Management & Core Systems</h3>
+          </div>
+          <p class="journey-step-desc">
+            Advanced into unit-level management, taking complete accountability for daily restaurant operations, staff scheduling, local supplier procurement, and safety compliance. Designed and executed store-level checklists to align FOH and BOH teams behind unified performance targets.
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="journey-step">
+          <div class="journey-step-header">
+            <h3 class="journey-step-title">High-Volume Operations Leadership</h3>
+          </div>
+          <p class="journey-step-desc">
+            Matured into directing high-volume restaurant operations, managing teams of up to 120 employees and supporting operations with annual revenue exposure exceeding $14M. Spearheaded restaurant openings, operational stabilization initiatives, leadership development programs, and service excellence standards across multiple hospitality environments.
+          </p>
+        </div>
+      </div>
+      
+      <p class="section-intro" style="margin-top: 15px; margin-bottom: 0; font-size: 11px; font-weight: 600;">
+        This progression created a unique leadership profile combining culinary expertise, guest experience management, operational execution, and business performance accountability.
+      </p>
+    </div>
+    
+    <div class="page-footer">
+      <span>Alexandre Garcia Portfolio</span>
+      <span class="page-num">03</span>
+    </div>
+  </div>
+
+  <!-- PAGE 4: PHILOSOPHY & OPERATIONAL DASHBOARD -->
+  <div class="page-box">
+    <div class="page-header">
+      <span class="page-header-title">Operational Strategy</span>
+      <span class="page-header-class">Alexandre Garcia</span>
+    </div>
+    
+    <div class="content-body">
+      <h2 class="page-title">Philosophy & Operational Dashboard</h2>
+      <p class="section-intro">
+        Consolidated summary of core leadership principles and verified business metrics.
+      </p>
+      
+      <div class="grid-2col" style="flex-grow: 1; margin-top: 5px;">
+        <!-- Left Column: Leadership Philosophy -->
+        <div style="border-right: 1px solid #e8e6e1; padding-right: 20px;">
+          <h3 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 16px; font-weight: 700; color: #0f1e36; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Core Philosophy</h3>
+          <div style="margin-bottom: 15px;">
+            <h4 style="font-size: 10px; font-weight: 700; color: #c5a059; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">1. People-First Cultivation</h4>
+            <p style="font-size: 9px; line-height: 1.45; text-align: justify;">Hospitality begins with people. My priority is to establish clear growth pathways, structured training manuals, and supportive, high-accountability cultures where team members deliver standard-setting guest experiences naturally.</p>
+          </div>
+          <div style="margin-bottom: 15px;">
+            <h4 style="font-size: 10px; font-weight: 700; color: #c5a059; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">2. Process-Driven Consistency</h4>
+            <p style="font-size: 9px; line-height: 1.45; text-align: justify;">Outstanding operations are the result of repeatable execution. I specialize in standardizing standard operating procedures (SOPs) across FOH and BOH to eliminate operational variance and secure uniform food and service quality.</p>
+          </div>
+          <div>
+            <h4 style="font-size: 10px; font-weight: 700; color: #c5a059; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">3. Performance Accountability</h4>
+            <p style="font-size: 9px; line-height: 1.45; text-align: justify;">Operational credibility is built on data-validated performance. Implementing daily checklists, labor hours monitoring, and inventory variance reviews drives shared unit responsibility and margin protection.</p>
+          </div>
+        </div>
+
+        <!-- Right Column: Impact Dashboard -->
+        <div>
+          <h3 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 16px; font-weight: 700; color: #0f1e36; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Operational Scope</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- KPI 1 -->
+            <div style="background-color: #ffffff; border: 1px solid #d6d2c4; border-top: 2.5px solid #c5a059; padding: 8px 10px;">
+              <div style="font-size: 16px; font-weight: 700; color: #0f1e36;">15+ Years</div>
+              <div style="font-size: 7px; font-weight: 700; color: #c5a059; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Leadership</div>
+              <div style="font-size: 8px; line-height: 1.3; color: #2d3142;">Directing FOH and BOH operations.</div>
+            </div>
+            <!-- KPI 2 -->
+            <div style="background-color: #ffffff; border: 1px solid #d6d2c4; border-top: 2.5px solid #c5a059; padding: 8px 10px;">
+              <div style="font-size: 16px; font-weight: 700; color: #0f1e36;">3,000+</div>
+              <div style="font-size: 7px; font-weight: 700; color: #c5a059; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Weekly Guests</div>
+              <div style="font-size: 8px; line-height: 1.3; color: #2d3142;">Managing high transaction volumes.</div>
+            </div>
+            <!-- KPI 3 -->
+            <div style="background-color: #ffffff; border: 1px solid #d6d2c4; border-top: 2.5px solid #c5a059; padding: 8px 10px;">
+              <div style="font-size: 16px; font-weight: 700; color: #0f1e36;">Up to 120</div>
+              <div style="font-size: 7px; font-weight: 700; color: #c5a059; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Staff Members</div>
+              <div style="font-size: 8px; line-height: 1.3; color: #2d3142;">Directing multi-functional store teams.</div>
+            </div>
+            <!-- KPI 4 -->
+            <div style="background-color: #ffffff; border: 1px solid #d6d2c4; border-top: 2.5px solid #c5a059; padding: 8px 10px;">
+              <div style="font-size: 16px; font-weight: 700; color: #0f1e36;">$14M</div>
+              <div style="font-size: 7px; font-weight: 700; color: #c5a059; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Annual Exposure</div>
+              <div style="font-size: 8px; line-height: 1.3; color: #2d3142;">Managing prime costs and purchasing.</div>
+            </div>
+            <!-- KPI 5 -->
+            <div style="background-color: #ffffff; border: 1px solid #d6d2c4; border-top: 2.5px solid #c5a059; padding: 8px 10px;">
+              <div style="font-size: 16px; font-weight: 700; color: #0f1e36;">7 Openings</div>
+              <div style="font-size: 7px; font-weight: 700; color: #c5a059; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Store launches</div>
+              <div style="font-size: 8px; line-height: 1.3; color: #2d3142;">From site setup to stabilization.</div>
+            </div>
+            <!-- KPI 6 -->
+            <div style="background-color: #ffffff; border: 1px solid #d6d2c4; border-top: 2.5px solid #c5a059; padding: 8px 10px;">
+              <div style="font-size: 16px; font-weight: 700; color: #0f1e36;">FOH + BOH</div>
+              <div style="font-size: 7px; font-weight: 700; color: #c5a059; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Team Alignment</div>
+              <div style="font-size: 8px; line-height: 1.3; color: #2d3142;">Unifying kitchen and service floor.</div>
+            </div>
+            <!-- KPI 7 -->
+            <div style="background-color: #ffffff; border: 1px solid #d6d2c4; border-top: 2.5px solid #c5a059; padding: 8px 10px;">
+              <div style="font-size: 16px; font-weight: 700; color: #0f1e36;">Prime Cost</div>
+              <div style="font-size: 7px; font-weight: 700; color: #c5a059; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Control</div>
+              <div style="font-size: 8px; line-height: 1.3; color: #2d3142;">Optimizing labor and food costs.</div>
+            </div>
+            <!-- KPI 8 -->
+            <div style="background-color: #ffffff; border: 1px solid #d6d2c4; border-top: 2.5px solid #c5a059; padding: 8px 10px;">
+              <div style="font-size: 16px; font-weight: 700; color: #0f1e36;">Luxury QA</div>
+              <div style="font-size: 7px; font-weight: 700; color: #c5a059; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Service Standards</div>
+              <div style="font-size: 8px; line-height: 1.3; color: #2d3142;">Implementing luxury guest standards.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="page-footer">
+      <span>Alexandre Garcia Portfolio</span>
+      <span class="page-num">04</span>
+    </div>
+  </div>
+
+  <!-- PAGE 5: RESTAURANT OPENINGS & EXPANSION -->
+  <div class="page-box">
+    <div class="page-header">
+      <span class="page-header-title">Expansion Experience</span>
+      <span class="page-header-class">Alexandre Garcia</span>
+    </div>
+    
+    <div class="content-body">
+      <h2 class="page-title">Restaurant Openings & Expansion Experience</h2>
+      <div class="grid-2col" style="align-items: stretch; flex-grow: 1; margin-bottom: 10px;">
+        <div>
+          <p class="section-intro">
+            A proven record of leading openings and expansion units, standardizing launch readiness, vendor setups, and service standards.
+          </p>
+          
+          <div class="openings-list">
+            <!-- Richmond -->
+            <div class="opening-item">
+              <div class="opening-city">Richmond</div>
+              <div class="opening-desc">Directed launch readiness timelines, local supply integrations, and initial FOH/BOH crew onboarding.</div>
+            </div>
+            <!-- Fairfax -->
+            <div class="opening-item">
+              <div class="opening-city">Fairfax</div>
+              <div class="opening-desc">Managed employee training pipelines and standard service workflows, ensuring compliance with local health regulations.</div>
+            </div>
+            <!-- Hallandale Beach -->
+            <div class="opening-item">
+              <div class="opening-city">Hallandale Beach</div>
+              <div class="opening-desc">Coordinated kitchen line assembly, equipment setup, vendor deliveries, and initial inventory systems.</div>
+            </div>
+            <!-- Miami Beach -->
+            <div class="opening-item">
+              <div class="opening-city">Miami Beach</div>
+              <div class="opening-desc">Directed operational stabilization for high-volume beachside restaurant launch, managing FOH choreography under heavy visitor volume.</div>
+            </div>
+            <!-- Botafogo -->
+            <div class="opening-item">
+              <div class="opening-city">Botafogo</div>
+              <div class="opening-desc">Implemented international concept standards, steps-of-service compliance, and initial local staff training.</div>
+            </div>
+            <!-- Augusta -->
+            <div class="opening-item">
+              <div class="opening-city">Augusta</div>
+              <div class="opening-desc">Supervised layout configuration, operational infrastructure setup and vendor coordination.</div>
+            </div>
+            <!-- Olivia Cucina -->
+            <div class="opening-item">
+              <div class="opening-city">Olivia Cucina</div>
+              <div class="opening-desc">Directed grand opening operations, menu costing alignments, and service standard implementation.</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="image-frame" style="height: 380px;">
+          <img src="../../linkedin_assets/Culinary18.JPG" alt="Restaurant Openings Setup">
+        </div>
+      </div>
+      
+      <!-- Expansion Leadership Competencies NEW SECTION -->
+      <div class="competencies-section">
+        <h3 class="competencies-title">Expansion Leadership Competencies</h3>
+        <div class="competencies-grid">
+          <div class="competency-li">Launch Readiness Planning</div>
+          <div class="competency-li">Team Recruitment & Training</div>
+          <div class="competency-li">Vendor Coordination</div>
+          <div class="competency-li">Service Standards Implementation</div>
+          <div class="competency-li">Operational Stabilization</div>
+          <div class="competency-li">Culture Development</div>
+          <div class="competency-li">New Unit Support</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="page-footer">
+      <span>Alexandre Garcia Portfolio</span>
+      <span class="page-num">05</span>
+    </div>
+  </div>
+
+  <!-- PAGE 6: TEAM DEVELOPMENT & LEADERSHIP -->
+  <div class="page-box">
+    <div class="page-header">
+      <span class="page-header-title">Team Leadership</span>
+      <span class="page-header-class">Alexandre Garcia</span>
+    </div>
+    
+    <div class="content-body">
+      <h2 class="page-title">Team Development & Leadership</h2>
+      <p class="section-intro">
+        Developing capable operational teams and encouraging positive workplace cultures to stabilize labor scheduling.
+      </p>
+      
+      <div class="grid-2col" style="flex-grow: 1; margin-top: 5px;">
+        <!-- Card 1: Leadership -->
+        <div class="ops-card">
+          <div class="ops-image-box image-frame">
+            <img src="../../linkedin_assets/Culinary21.JPG" alt="Staff Briefing & Training">
+          </div>
+          <h3 class="ops-card-title">Operational Training & Alignment</h3>
+          <ul class="ops-bullets">
+            <li class="ops-bullet-li">Conduct daily leadership alignment meetings to communicate operational priorities, guest expectations, and staffing requirements.</li>
+            <li class="ops-bullet-li">Establish clear, physical checklists to audit prep consistency, sanitation standards, and station cleanliness.</li>
+            <li class="ops-bullet-li">Cross-train team members to improve operational flexibility and maintain service consistency during peak business periods.</li>
+          </ul>
+        </div>
+        
+        <!-- Card 2: Team development -->
+        <div class="ops-card">
+          <div class="ops-image-box image-frame">
+            <img src="../../linkedin_assets/Culinary14.JPG" alt="Staff Mentoring & Coaching">
+          </div>
+          <h3 class="ops-card-title">Mentorship & Retention Programs</h3>
+          <ul class="ops-bullets">
+            <li class="ops-bullet-li">Design internal career pathway programs to prepare high-potential team members for supervisor and assistant manager roles.</li>
+            <li class="ops-bullet-li">Support department leads with hands-on operational coaching, budget review preparation, and scheduling management.</li>
+            <li class="ops-bullet-li">Foster respectful, growth-oriented workplace cultures that reduce staff turnover and stabilize weekly labor schedules.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="page-footer">
+      <span>Alexandre Garcia Portfolio</span>
+      <span class="page-num">06</span>
+    </div>
+  </div>
+
+  <!-- PAGE 7: CULINARY & HOSPITALITY FOUNDATION -->
+  <div class="page-box">
+    <div class="page-header">
+      <span class="page-header-title">Hospitality Foundation</span>
+      <span class="page-header-class">Alexandre Garcia</span>
+    </div>
+    
+    <div class="content-body">
+      <h2 class="page-title">Culinary & Hospitality Foundation</h2>
+      <p class="section-intro">
+        The strongest hospitality leaders understand every aspect of the guest journey. Alexandre's foundation in culinary operations provides practical insight into menu execution, food cost control, team training, service standards, and guest satisfaction.
+      </p>
+      
+      <div class="grid-3col" style="flex-grow: 1; margin-top: 5px;">
+        <!-- Col 1 -->
+        <div class="col-card">
+          <div class="col-image-box image-frame">
+            <img src="../../linkedin_assets/Culinary16.JPG" alt="Culinary Innovation">
+          </div>
+          <h3 class="col-card-title">Menu Engineering & Innovation</h3>
+          <p class="col-card-desc" style="font-size:8.5px; line-height:1.45; margin-bottom:5px;">
+            Structuring menu designs and daily specials by aligning recipe ingredient costs with supplier contracts.
+          </p>
+          <p class="col-card-desc" style="font-size:8.5px; line-height:1.45;">
+            Collaborating with kitchen teams to enforce portion guidelines and monitor raw material yield accuracy.
+          </p>
+        </div>
+        
+        <!-- Col 2 -->
+        <div class="col-card">
+          <div class="col-image-box image-frame">
+            <img src="../../linkedin_assets/Culinary22.JPG" alt="Service Choreography & Wine Dinners">
+          </div>
+          <h3 class="col-card-title">Wine Dinners & Service</h3>
+          <p class="col-card-desc" style="font-size:8.5px; line-height:1.45; margin-bottom:5px;">
+            Standardizing service steps, wine pairings, and dining floor choreography across locations.
+          </p>
+          <p class="col-card-desc" style="font-size:8.5px; line-height:1.45;">
+            Directing wine dinners and specialty tastings to drive guest loyalty and organic check averages.
+          </p>
+        </div>
+        
+        <!-- Col 3 -->
+        <div class="col-card">
+          <div class="col-image-box image-frame">
+            <img src="../../linkedin_assets/Culinary23.JPG" alt="VIP Dinners & private events">
+          </div>
+          <h3 class="col-card-title">VIP Events & Banquets</h3>
+          <p class="col-card-desc" style="font-size:8.5px; line-height:1.45; margin-bottom:5px;">
+            Orchestrating setups, custom menu configurations, and logistics for private dining and corporate banquets.
+          </p>
+          <p class="col-card-desc" style="font-size:8.5px; line-height:1.45;">
+            Structuring group reservations to build VIP brand loyalty and drive recurring event revenue.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="page-footer">
+      <span>Alexandre Garcia Portfolio</span>
+      <span class="page-num">07</span>
+    </div>
+  </div>
+
+  <!-- PAGE 8: OPERATIONAL EXCELLENCE & CAREER HIGHLIGHTS -->
+  <div class="page-box">
+    <div class="page-header">
+      <span class="page-header-title">Career History</span>
+      <span class="page-header-class">Alexandre Garcia</span>
+    </div>
+    
+    <div class="content-body">
+      <h2 class="page-title">Operational Excellence & Career Highlights</h2>
+      
+      <div class="milestones-container">
+        <!-- Texas de Brazil -->
+        <div class="milestone-row">
+          <div class="milestone-left">
+            <div class="milestone-company">Texas de Brazil</div>
+            <div class="milestone-role">Assistant Manager & Operations Supervisor</div>
+          </div>
+          <div class="milestone-right">
+            <div class="milestone-summary">Directed daily operations within a high-volume upscale dining environment while supporting guest satisfaction, labor management, food cost controls, team development, and operational consistency.</div>
+            <ul class="milestone-points">
+              <li class="milestone-point-li">Supported private dining and large group events.</li>
+              <li class="milestone-point-li">Maintained operational standards across FOH and BOH functions.</li>
+              <li class="milestone-point-li">Developed supervisors and team members through coaching and accountability.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Fogo de Chão -->
+        <div class="milestone-row">
+          <div class="milestone-left">
+            <div class="milestone-company">Fogo de Chão</div>
+            <div class="milestone-role">Assistant Manager & Operations Supervisor</div>
+          </div>
+          <div class="milestone-right">
+            <div class="milestone-summary">Supported one of the company's highest-volume locations, managing operational execution, team performance, guest satisfaction, labor controls, and inventory accountability.</div>
+            <ul class="milestone-points">
+              <li class="milestone-point-li">Led hiring, onboarding, and team development initiatives.</li>
+              <li class="milestone-point-li">Supported food cost management and operational improvement efforts.</li>
+              <li class="milestone-point-li">Maintained premium hospitality standards in a luxury dining environment.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Pecorino -->
+        <div class="milestone-row">
+          <div class="milestone-left">
+            <div class="milestone-company">Pecorino Group</div>
+            <div class="milestone-role">Operations & Culinary Leadership</div>
+          </div>
+          <div class="milestone-right">
+            <div class="milestone-summary">Managed F&B operations, menu rollouts, and supplier relationships.</div>
+            <ul class="milestone-points">
+              <li class="milestone-point-li">Standardized recipe cards and station guidelines for new store launches.</li>
+              <li class="milestone-point-li">Monitored local distributor contracts to secure consistent product pricing matrices.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Noma Group -->
+        <div class="milestone-row">
+          <div class="milestone-left">
+            <div class="milestone-company">Noma Group</div>
+            <div class="milestone-role">Restaurant Operations & F&B Management</div>
+          </div>
+          <div class="milestone-right">
+            <div class="milestone-summary">Managed guest satisfaction standards and inventory controls in luxury setting.</div>
+            <ul class="milestone-points">
+              <li class="milestone-point-li">Enhanced guest experience through elevated service standards, wine programs, and operational consistency.</li>
+              <li class="milestone-point-li">Supervised local procurement logs and inspected high-value supplier deliverables.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Select Leadership Strengths NEW SECTION -->
+      <div class="strengths-section">
+        <h3 class="strengths-title">Select Leadership Strengths</h3>
+        <div class="strengths-grid">
+          <span class="strength-tag">High-Volume Operations</span>
+          <span class="strength-tag">Team Development</span>
+          <span class="strength-tag">Restaurant Openings</span>
+          <span class="strength-tag">Wine Dinners & VIP Events</span>
+          <span class="strength-tag">FOH & BOH Leadership</span>
+          <span class="strength-tag">Labor & Cost Controls</span>
+          <span class="strength-tag">Guest Experience Excellence</span>
+          <span class="strength-tag">Operational Accountability</span>
+        </div>
+      </div>
+
+      <!-- Closing statement -->
+      <div class="closing-block">
+        <p class="closing-quote">
+          Great hospitality is never accidental.<br><br>It is the result of disciplined leadership, operational consistency, financial accountability, and teams that are empowered to perform at their best every day.
+        </p>
+        <div class="closing-author-block">Alexandre Garcia</div>
+        <div class="closing-tagline">Hospitality & Food & Beverage Operations Executive</div>
+        <div class="bottom-logo-frame">
+          <img src="../../linkedin_assets/Culinary1.png" alt="Operations Leadership Logo" style="height: 32px;">
+        </div>
+      </div>
+    </div>
+    
+    <div class="page-footer">
+      <span>Alexandre Garcia Portfolio</span>
+      <span class="page-num">08</span>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Governo de São Paulo — Briefing Estratégico | BRASA GovTech OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #E8C96A;
+            --dark: #0D0D0D;
+            --dark-surface: #141414;
+            --dark-card: #1A1A1A;
+            --border: rgba(201, 168, 76, 0.25);
+            --text-muted: #888;
+            --text-dim: #555;
+            --red: #E53E3E;
+            --green: #38A169;
+            --blue: #3182CE;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--dark);
+            color: #E8E8E8;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ─── COVER ─── */
+        .cover {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px 80px;
+            background: var(--dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 40%, rgba(49, 130, 206, 0.08) 100%);
+            pointer-events: none;
+        }
+
+        .cover-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .cover-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            letter-spacing: 3px;
+            color: var(--blue);
+        }
+
+        .cover-brand-sub {
+            font-size: 9px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .cover-badge {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--blue);
+            border: 1px solid var(--blue);
+            padding: 6px 14px;
+        }
+
+        .cover-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px 0;
+        }
+
+        .cover-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin-bottom: 24px;
+        }
+
+        .cover-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 58px;
+            font-weight: 800;
+            line-height: 1.05;
+            color: #FFFFFF;
+            margin-bottom: 32px;
+        }
+
+        .cover-title span { color: var(--blue); }
+
+        .cover-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 650px;
+            font-weight: 400;
+        }
+
+        .cover-divider {
+            width: 60px;
+            height: 2px;
+            background: var(--blue);
+            margin: 28px 0;
+        }
+
+        .cover-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 28px;
+        }
+
+        .cover-meta {
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        .cover-meta strong {
+            color: #CCC;
+            display: block;
+        }
+
+        .cover-attention {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* ─── SECTIONS ─── */
+        .section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 80px 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .section-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            color: #FFF;
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+
+        .section-body {
+            font-size: 15px;
+            color: #AAA;
+            line-height: 1.9;
+        }
+
+        .section-body strong { color: #E8E8E8; }
+
+        /* ─── STAT CARDS ─── */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin: 48px 0;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(49, 130, 206, 0.25);
+        }
+
+        .stat-card {
+            padding: 32px 28px;
+            background: var(--dark-card);
+            position: relative;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: transparent;
+        }
+
+        .stat-card.red::after { background: var(--red); }
+        .stat-card.gold::after { background: var(--gold); }
+        .stat-card.green::after { background: var(--green); }
+        .stat-card.blue::after { background: var(--blue); }
+
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-card.red .stat-value { color: #FC8181; }
+        .stat-card.gold .stat-value { color: var(--gold); }
+        .stat-card.green .stat-value { color: #68D391; }
+        .stat-card.blue .stat-value { color: #63B3ED; }
+
+        .stat-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .stat-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ─── INCIDENT BOX ─── */
+        .incident-box {
+            background: rgba(49, 130, 206, 0.06);
+            border: 1px solid rgba(49, 130, 206, 0.25);
+            border-left: 3px solid var(--blue);
+            padding: 32px 36px;
+            margin: 40px 0;
+        }
+
+        .incident-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #63B3ED;
+            margin-bottom: 14px;
+        }
+
+        .incident-body {
+            font-size: 15px;
+            color: #CCC;
+            line-height: 1.85;
+        }
+
+        .incident-body strong { color: #63B3ED; }
+
+        /* ─── SOLUTION MODULES ─── */
+        .module-block {
+            margin: 48px 0;
+            border-left: 1px solid rgba(49, 130, 206, 0.25);
+            padding-left: 32px;
+        }
+        
+        .module-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .module-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--blue);
+            font-weight: 600;
+        }
+        
+        .module-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: #E8E8E8;
+        }
+        
+        .module-body {
+            font-size: 14px;
+            color: #AAA;
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+        
+        /* ─── GRID FOR SUB-ITEMS ─── */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--dark-surface);
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .feature-title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #63B3ED;
+            margin-bottom: 8px;
+        }
+
+        .feature-body {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ─── NRO SECTION (Gov Timeline) ─── */
+        .nro-box {
+            background: rgba(49, 130, 206, 0.05);
+            border: 1px solid rgba(49, 130, 206, 0.25);
+            border-left: 3px solid var(--blue);
+            padding: 32px 36px;
+            margin: 40px 0;
+        }
+
+        .nro-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin-bottom: 14px;
+        }
+
+        .nro-body {
+            font-size: 15px;
+            color: #CCC;
+            line-height: 1.85;
+        }
+
+        .nro-body strong { color: #63B3ED; }
+
+        /* ─── ROLLOUT TABLE ─── */
+        .roi-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 36px 0;
+            font-size: 13px;
+        }
+
+        .roi-table th {
+            text-align: left;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 10px 16px;
+            background: var(--dark-surface);
+        }
+
+        .roi-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #AAA;
+        }
+
+        .roi-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .roi-table td.highlight { color: #68D391; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .roi-table td.bold { color: #E8E8E8; font-weight: 600; }
+
+        /* ─── ASK SECTION ─── */
+        .ask-section {
+            background: linear-gradient(135deg, rgba(49, 130, 206, 0.08), rgba(49, 130, 206, 0.03));
+            border: 1px solid rgba(49, 130, 206, 0.25);
+            padding: 60px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .ask-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin-bottom: 20px;
+        }
+
+        .ask-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 40px;
+            color: #FFF;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .ask-body {
+            font-size: 15px;
+            color: #AAA;
+            line-height: 1.85;
+            max-width: 620px;
+            margin: 0 auto 40px;
+        }
+
+        .ask-contact {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 20px 40px;
+            border: 1px solid var(--blue);
+            background: rgba(49, 130, 206, 0.08);
+        }
+
+        .ask-contact-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: #FFF;
+        }
+
+        .ask-contact-title {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--blue);
+        }
+
+        .ask-contact-email {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ─── FOOTER ─── */
+        .footer {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: var(--text-dim);
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .footer-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 13px;
+            color: var(--blue);
+        }
+
+        /* ─── PRINT OPTIMIZATIONS ─── */
+        @media print {
+            @page {
+                size: letter portrait;
+                margin: 0.5in;
+            }
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .cover {
+                min-height: auto !important;
+                height: 100% !important;
+                padding: 40px !important;
+                page-break-after: always;
+            }
+            .section {
+                page-break-before: always;
+            }
+            .incident-box, .stat-card, .feature-card, .nro-box, .roi-table, .ask-section {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .module-block {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            /* Aumentando fontes para facilitar a leitura no PDF impresso */
+            .section-body { font-size: 17px; line-height: 1.8; }
+            .incident-body { font-size: 16px; line-height: 1.8; }
+            .feature-body { font-size: 15px; line-height: 1.7; }
+            .nro-body { font-size: 16px; line-height: 1.8; }
+            .roi-table td { font-size: 14px; }
+            .ask-body { font-size: 16px; line-height: 1.8; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ CAPA ═══════════════════════════════════════ -->
+<div class="cover">
+    <div class="cover-top">
+        <div>
+            <div class="cover-brand">BRASA GovTech</div>
+            <div class="cover-brand-sub">Sistema de Governança e Rastreabilidade Pública</div>
+        </div>
+        <div class="cover-badge">Auditoria · Governo de SP</div>
+    </div>
+
+    <div class="cover-center">
+        <div class="cover-label">Briefing Estratégico</div>
+        <div class="cover-title">
+            Auditoria em Tempo Real<br>
+            <span>Governança e Eficiência Logística</span>
+        </div>
+        <div class="cover-divider"></div>
+        <div class="cover-subtitle">
+            Um plano diretor sobre como o Estado de São Paulo pode garantir a precisão logística, o compliance de recebimento e a máxima eficiência na distribuição de proteínas para escolas, hospitais e instituições estaduais usando IA.
+        </div>
+    </div>
+
+    <div class="cover-bottom">
+        <div class="cover-meta">
+            <strong>Iniciativa Governamental</strong>Secretaria de Estado (São Paulo)
+            <strong style="margin-top:8px;">Parceiros Estratégicos</strong>AGV Ventures LLC & Parceiro BR
+            <strong style="margin-top:8px;">Data</strong>Maio de 2026
+        </div>
+        <div class="cover-attention">
+            Uso Restrito<br>Projeto de Governança
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ O PROBLEMA ═══════════════════════════════════════ -->
+<div class="section">
+    <div class="section-label">A Realidade Operacional — Seção 01</div>
+    <div class="section-title">Desafios Logísticos e de Compliance</div>
+    <div class="section-body">
+        A gestão de distribuição de suprimentos em larga escala, operando milhares de pontos de recebimento descentralizados, impõe desafios matemáticos e de auditoria que os sistemas tradicionais e fluxos em papel não conseguem suprir com agilidade.
+    </div>
+
+    <div class="incident-box incident-box">
+        <div class="incident-title">PONTO CEGO 1: Variação de Peso Variável (Catch-Weighting)</div>
+        <div class="incident-body">
+            Contratos de fornecimento em larga escala lidam com proteínas onde o peso real de cada caixa flutua. Sem uma leitura instantânea e automatizada do selo GS1 original (Selo do Abatedouro) nas milhares de escolas e hospitais, discrepâncias não intencionais e falhas na aferição geram ineficiência financeira.
+            <br><br>
+            <em>Impacto: O Estado pode estar remunerando pesos teóricos lançados na Nota Fiscal, sem a verificação eletrônica exata da caixa entregue na ponta.</em>
+        </div>
+    </div>
+
+    <div class="incident-box incident-box">
+        <div class="incident-title">PONTO CEGO 2: Desafios de Cadeia de Custódia</div>
+        <div class="incident-body">
+            A mercadoria sai do Centro de Distribuição Central, mas o percurso até os destinos descentralizados frequentemente carece de pontos rígidos de auditoria digital. Essa lacuna de visibilidade logística sistêmica dificulta o rastreio da alocação de recursos em tempo real.
+        </div>
+    </div>
+    
+    <div class="incident-box incident-box">
+        <div class="incident-title">PONTO CEGO 3: Gestão de Rendimento e Utilização (Yield)</div>
+        <div class="incident-body">
+            O alimento chega à instituição. No entanto, o cálculo manual de consumo (insumo utilizado vs. número de refeições efetivamente servidas/alunos presentes) carece de precisão analítica. Isso dificulta o planejamento correto de compras futuras e o dimensionamento exato das porções.
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ A SOLUÇÃO ═══════════════════════════════════════ -->
+<div class="section">
+    <div class="section-label">A Arquitetura de Compliance — Seção 02</div>
+    <div class="section-title">A Malha de Governança BRASA OS</div>
+    <div class="section-body">
+        O sistema equipa diretores de instituições, nutricionistas e gestores logísticos com uma ferramenta de auditoria descentralizada, acessível via smartphone ou tablet institucional.
+    </div>
+
+    <div class="module-block">
+        <div class="module-header">
+            <span class="module-num">01</span>
+            <h3 class="module-title">Recebimento Descentralizado (Doca Digital)</h3>
+        </div>
+        <div class="module-body">
+            Validação técnica, exata e matemática no momento em que o produto cruza a porta da instituição estadual.
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-title">Scan de Celular (GS1-128)</div>
+                <div class="feature-body">O recebedor usa o dispositivo para ler o código de rastreabilidade. O sistema identifica o peso líquido real de origem, garantindo que o faturamento espelhe estritamente a carga física entregue.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Relatório Automático de Discrepância</div>
+                <div class="feature-body">Se o peso aferido for menor que o contratado, o sistema registra a diferença e notifica a central administrativa em tempo real, permitindo ajustes nos repasses e otimização de custos.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="module-block">
+        <div class="module-header">
+            <span class="module-num">02</span>
+            <h3 class="module-title">Rastreabilidade e Otimização de Consumo</h3>
+        </div>
+        <div class="module-body">
+            A certeza matemática de que o suprimento alocado foi convertido na finalidade nutricional correta.
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-title">Motor de Rendimento (Yield)</div>
+                <div class="feature-body">Cruzamento automático entre a proteína consumida e o censo diário (catraca/presença). O algoritmo alerta desvios da matriz nutricional planejada, sugerindo correções operacionais.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Dashboard Governamental</div>
+                <div class="feature-body">Uma visão unificada para o escalão estratégico. Identifica regiões com maior eficiência logística e fornecedores com maior precisão contratual.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ PLANO DE ROLLOUT ═══════════════════════════════════════ -->
+<div class="section">
+    <div class="section-label">Execução & Timeline — Seção 03</div>
+    <div class="section-title">Plano de Implantação (Estado de SP)</div>
+    <div class="section-body">
+        Implementação fluida e guiada por dados. Toda a operação e suporte técnico é liderada pela joint-venture técnica e comercial AGV.
+    </div>
+
+    <div class="nro-box">
+        <div class="nro-title">📋 Fase 1: Operação Piloto Baseada em Dados (90 Dias)</div>
+        <div class="nro-body">
+            <strong>Objetivo:</strong> Escolher um município modelo (ex: Campinas, São Bernardo) e implementar o software de auditoria em um número controlado de escolas e unidades de saúde.
+            <br><br>
+            <strong>Ação:</strong> Levantar métricas precisas de recebimento e comparar com as faturas originais. Ao final do ciclo, os gestores públicos terão acesso a um relatório analítico (Dossiê de Governança) provando a recuperação de valor logístico.
+        </div>
+    </div>
+
+    <table class="roi-table">
+        <tr>
+            <th>Fase</th>
+            <th>Marco Principal</th>
+            <th>Tempo</th>
+        </tr>
+        <tr>
+            <td class="bold">Fase 2: Expansão via Contrato de Inovação</td>
+            <td>Com os dados do piloto demonstrando viabilidade orçamentária e ganho de eficiência, a administração pública pode escalar a solução como plataforma oficial de auditoria descentralizada.</td>
+            <td>Mês 4-6</td>
+        </tr>
+        <tr>
+            <td class="bold">Fase 3: Adoção no Nível Estadual</td>
+            <td>Aplicação da tecnologia nas maiores centrais de distribuição do Estado e nas instâncias mais críticas de fornecimento contínuo (Hospitais Regionais e Centros de Detenção).</td>
+            <td>Mês 7-10</td>
+        </tr>
+        <tr>
+            <td class="bold highlight">Fase 4: Padrão Operacional em Licitações</td>
+            <td>Adoção regulatória onde todo grande contrato de fornecimento de proteínas exija compatibilidade nativa com sistemas de leitura inteligente e auditoria digital de ponta a ponta.</td>
+            <td class="highlight">Ano 2</td>
+        </tr>
+    </table>
+    
+    <div class="stat-grid">
+        <div class="stat-card blue">
+            <div class="stat-label">Eficiência Orçamentária</div>
+            <div class="stat-value">Gestão Ativa</div>
+            <div class="stat-desc">Correção instantânea de distorções de faturamento na cadeia de suprimentos antes da liquidação financeira.</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Auditoria na Ponta</div>
+            <div class="stat-value">100%</div>
+            <div class="stat-desc">Capacidade de aferir matematicamente cada caixa de proteína entregue, no local do recebimento, sem infraestrutura complexa.</div>
+        </div>
+        <div class="stat-card gold">
+            <div class="stat-label">Governança Pública</div>
+            <div class="stat-value">Avançada</div>
+            <div class="stat-desc">Fortalece a imagem da administração frente à sociedade através de processos transparentes e auditáveis.</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ THE ASK ═══════════════════════════════════════ -->
+<div class="ask-section">
+    <div class="ask-label">O Início da Parceria — Seção 04</div>
+    <div class="ask-title">Um Novo Padrão de Gestão</div>
+    <div class="ask-body">
+        Nossa tecnologia de auditoria de proteínas já assegura a rentabilidade em operações corporativas altamente exigentes. O passo natural é levar este rigor analítico e controle de compliance para a gestão pública.
+        <br><br>
+        O nosso parceiro local facilitará as demonstrações técnicas para gestores interessados em inovação orçamentária. O sistema já está funcional, hospedado em nuvem de alta segurança e pronto para gerar relatórios de valor no seu primeiro dia de piloto oficial.
+    </div>
+    <div class="ask-contact">
+        <div class="ask-contact-name">AGV Ventures LLC & Parceiro BR</div>
+        <div class="ask-contact-title">Joint Venture — Governança GovTech Brasil</div>
+        <div class="ask-contact-email">gov.brasaos.com.br</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ FOOTER ═══════════════════════════════════════ -->
+<div class="footer">
+    <div class="footer-brand">BRASA GovTech OS</div>
+    <div>Governança e Auditoria · Governo do Estado de São Paulo · 2026</div>
+    <div>© 2026 AGV Ventures LLC. Todos os direitos reservados.</div>
+</div>
+
+</body>
+</html>

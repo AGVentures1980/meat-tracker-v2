@@ -41,13 +41,14 @@ async function main() {
                     store_name: storeData.name
                 }
             },
-            update: {},
+            update: { data_type: 'DEMO' },
             create: {
                 company_id: demoCompany.id,
                 store_name: storeData.name,
                 location: storeData.location,
                 target_lbs_guest: storeData.target_lbs_guest,
-                target_cost_guest: storeData.target_cost_guest
+                target_cost_guest: storeData.target_cost_guest,
+                data_type: 'DEMO'
             }
         });
 

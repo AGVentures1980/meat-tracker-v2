@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fogo de Chão — Briefing Confidencial | BRASA Meat Intelligence OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #E8C96A;
+            --dark: #0D0D0D;
+            --dark-surface: #141414;
+            --dark-card: #1A1A1A;
+            --border: rgba(201, 168, 76, 0.25);
+            --text-muted: #888;
+            --text-dim: #555;
+            --red: #E53E3E;
+            --green: #38A169;
+            --blue: #3182CE;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--dark);
+            color: #E8E8E8;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ─── COVER ─── */
+        .cover {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px 80px;
+            background: var(--dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 40%, rgba(201,168,76,0.04) 100%);
+            pointer-events: none;
+        }
+
+        .cover-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .cover-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            letter-spacing: 3px;
+            color: var(--gold);
+        }
+
+        .cover-brand-sub {
+            font-size: 9px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .cover-badge {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 6px 14px;
+        }
+
+        .cover-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px 0;
+        }
+
+        .cover-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 24px;
+        }
+
+        .cover-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 58px;
+            font-weight: 800;
+            line-height: 1.05;
+            color: #FFFFFF;
+            margin-bottom: 32px;
+        }
+
+        .cover-title span { color: var(--gold); }
+
+        .cover-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 600px;
+            font-weight: 400;
+        }
+
+        .cover-divider {
+            width: 60px;
+            height: 2px;
+            background: var(--gold);
+            margin: 28px 0;
+        }
+
+        .cover-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 28px;
+        }
+
+        .cover-meta {
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        .cover-meta strong {
+            color: #CCC;
+            display: block;
+        }
+
+        .cover-attention {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* ─── SECTIONS ─── */
+        .section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 80px 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .section-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            color: #FFF;
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+
+        .section-body {
+            font-size: 15px;
+            color: #AAA;
+            line-height: 1.9;
+        }
+
+        .section-body strong { color: #E8E8E8; }
+
+        /* ─── STAT CARDS ─── */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin: 48px 0;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+        }
+
+        .stat-card {
+            padding: 32px 28px;
+            background: var(--dark-card);
+            position: relative;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: transparent;
+        }
+
+        .stat-card.red::after { background: var(--red); }
+        .stat-card.gold::after { background: var(--gold); }
+        .stat-card.green::after { background: var(--green); }
+        .stat-card.blue::after { background: var(--blue); }
+
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-card.red .stat-value { color: #FC8181; }
+        .stat-card.gold .stat-value { color: var(--gold); }
+        .stat-card.green .stat-value { color: #68D391; }
+        .stat-card.blue .stat-value { color: #63B3ED; }
+
+        .stat-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .stat-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ─── INCIDENT BOX ─── */
+        .incident-box {
+            background: rgba(229,62,62,0.06);
+            border: 1px solid rgba(229,62,62,0.25);
+            border-left: 3px solid var(--red);
+            padding: 32px 36px;
+            margin: 40px 0;
+        }
+        
+        .incident-box.blue {
+            background: rgba(49, 130, 206, 0.06);
+            border: 1px solid rgba(49, 130, 206, 0.25);
+            border-left: 3px solid var(--blue);
+        }
+
+        .incident-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 14px;
+        }
+        
+        .incident-box.blue .incident-title {
+            color: #63B3ED;
+        }
+
+        .incident-body {
+            font-size: 15px;
+            color: #CCC;
+            line-height: 1.85;
+        }
+
+        .incident-body strong { color: #FC8181; }
+        .incident-box.blue .incident-body strong { color: #63B3ED; }
+
+        /* ─── SOLUTION MODULES ─── */
+        .module-block {
+            margin: 48px 0;
+            border-left: 1px solid var(--border);
+            padding-left: 32px;
+        }
+        
+        .module-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .module-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        .module-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: #E8E8E8;
+        }
+        
+        .module-body {
+            font-size: 14px;
+            color: #AAA;
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+        
+        /* ─── GRID FOR SUB-ITEMS ─── */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--dark-surface);
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .feature-title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            margin-bottom: 8px;
+        }
+
+        .feature-body {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ─── NRO SECTION ─── */
+        .nro-box {
+            background: rgba(201,168,76,0.05);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--gold);
+            padding: 32px 36px;
+            margin: 40px 0;
+        }
+
+        .nro-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 14px;
+        }
+
+        .nro-body {
+            font-size: 15px;
+            color: #CCC;
+            line-height: 1.85;
+        }
+
+        .nro-body strong { color: var(--gold-light); }
+
+        /* ─── ROI TABLE ─── */
+        .roi-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 36px 0;
+            font-size: 13px;
+        }
+
+        .roi-table th {
+            text-align: left;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 10px 16px;
+            background: var(--dark-surface);
+        }
+
+        .roi-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #AAA;
+        }
+
+        .roi-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .roi-table td.highlight { color: #68D391; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .roi-table td.bold { color: #E8E8E8; font-weight: 600; }
+
+        /* ─── ASK SECTION ─── */
+        .ask-section {
+            background: linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.03));
+            border: 1px solid var(--border);
+            padding: 60px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .ask-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .ask-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 40px;
+            color: #FFF;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .ask-body {
+            font-size: 15px;
+            color: #AAA;
+            line-height: 1.85;
+            max-width: 620px;
+            margin: 0 auto 40px;
+        }
+
+        .ask-contact {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 20px 40px;
+            border: 1px solid var(--gold);
+            background: rgba(201,168,76,0.08);
+        }
+
+        .ask-contact-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: #FFF;
+        }
+
+        .ask-contact-title {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .ask-contact-email {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ─── FOOTER ─── */
+        .footer {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: var(--text-dim);
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .footer-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 13px;
+            color: var(--gold);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ CAPA ═══════════════════════════════════════ -->
+<div class="cover">
+    <div class="cover-top">
+        <div>
+            <div class="cover-brand">BRASA OS</div>
+            <div class="cover-brand-sub">Sistema Operacional de Inteligência de Carnes</div>
+        </div>
+        <div class="cover-badge">Confidencial · Uso Interno</div>
+    </div>
+
+    <div class="cover-center">
+        <div class="cover-label">Briefing Executivo — Fogo de Chão</div>
+        <div class="cover-title">
+            O Vazamento Invisível<br>
+            <span>em Toda a Operação</span>
+        </div>
+        <div class="cover-divider"></div>
+        <div class="cover-subtitle">
+            Um briefing confidencial sobre como as churrascarias perdem margem desde o recebimento na doca até o porcionamento, delivery e vendas à la carte — e o ecossistema tecnológico criado para blindar a operação de ponta a ponta.
+        </div>
+    </div>
+
+    <div class="cover-bottom">
+        <div class="cover-meta">
+            <strong>Preparado para</strong>Alberto Wachholz — Sr. NRO Director, Fogo de Chão
+            <strong style="margin-top:8px;">Preparado por</strong>Alexandre Garcia — Fundador &amp; CEO, AGV Ventures LLC
+            <strong style="margin-top:8px;">Data</strong>Maio de 2026
+        </div>
+        <div class="cover-attention">
+            Estritamente Confidencial<br>Não Distribua
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ O PROBLEMA ═══════════════════════════════════════ -->
+<div class="section">
+    <div class="section-label">A Realidade Operacional — Seção 01</div>
+    <div class="section-title">As Fissuras no Controle de Custo</div>
+    <div class="section-body">
+        Alberto, como veterano da operação, você sabe que o custo da carne não se perde em um único lugar. É uma morte por mil cortes. As redes sofrem vazamentos sistêmicos em três frentes principais onde a tecnologia genérica de gestão (como ferramentas padrão de inventário) falha miseravelmente.
+    </div>
+
+    <div class="incident-box">
+        <div class="incident-title">🔴 PONTO CEGO 1: O Recebimento (Doca)</div>
+        <div class="incident-body">
+            O problema do catch-weight: Distribuidores cobram baseado na etiqueta de roteamento estimada. Ninguém verifica se o peso real do frigorífico (etiqueta USDA original) bate com o cobrado.
+            <br><br>
+            <em>Exemplo documentado (Churrascaria Brasileira, Tampa): Uma entrega de 13 caixas de Picanha foi cobrada a ~82 lbs/caixa. O peso real do frigorífico era ~63 lbs/caixa. <strong>Discrepância não detectada: 246 lbs — $2.243 USD perdidos em uma nota.</strong></em>
+        </div>
+    </div>
+
+    <div class="incident-box blue">
+        <div class="incident-title">🔵 PONTO CEGO 2: Produção, Salão e Delivery (OLO)</div>
+        <div class="incident-body">
+            O porcionamento não é ajustado de forma inteligente. As carnes mais caras (os "Vilões" como Picanha e Costela) são assadas sem uma correlação exata com o mix de Delivery (UberEats/DoorDash) vs. Salão. Quando o OLO recebe pedidos, os gestores não têm visibilidade imediata de quantos pounds da carne nobre estão saindo para fora da loja vs. rodízio interno.
+        </div>
+    </div>
+    
+    <div class="incident-box">
+        <div class="incident-title">🔴 PONTO CEGO 3: Fraude e Desvio (À La Carte / Hamburguer)</div>
+        <div class="incident-body">
+            Operações que servem hambúrgueres gourmet ou cortes à la carte no bar possuem uma brecha de desvio. Aparas nobres viram carne moída. Sem um "Loop Fechado" ligando o rendimento exato da carne aos dados do PDV (Aloha/Micros), não se sabe se a picanha moída virou venda real ou foi desviada/consumida indevidamente pela equipe.
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ A SOLUÇÃO COMPLETA ═══════════════════════════════════════ -->
+<div class="section">
+    <div class="section-label">A Solução Integrada — Seção 02</div>
+    <div class="section-title">O Ecossistema BRASA OS</div>
+    <div class="section-body">
+        O BRASA OS é o primeiro e único sistema operacional desenvolvido exclusivamente para a matemática complexa da churrascaria brasileira. Ele atua em todas as etapas de risco, da doca ao prato.
+    </div>
+
+    <div class="module-block">
+        <div class="module-header">
+            <span class="module-num">01</span>
+            <h3 class="module-title">Recebimento Inteligente (Zero Atrito)</h3>
+        </div>
+        <div class="module-body">
+            Verificação na doca que elimina erros de catch-weight e falsas cobranças antes mesmo do motorista ir embora.
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-title">Scan Único do GS1-128</div>
+                <div class="feature-body">O recebedor escaneia a etiqueta do frigorífico. O sistema extrai AI, peso líquido real e lote automaticamente, validando contra a nota fiscal sem erro humano.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Registro de Discrepância</div>
+                <div class="feature-body">Se a variância de peso exceder a tolerância, o sistema registra e exibe a discrepância automaticamente no dashboard para ação imediata do manager junto ao distribuidor.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="module-block">
+        <div class="module-header">
+            <span class="module-num">02</span>
+            <h3 class="module-title">Smart Prep & Controle de Vilões</h3>
+        </div>
+        <div class="module-body">
+            A matemática da cozinha nunca mais será baseada no "achismo" do churrasqueiro. O sistema calcula a necessidade exata de espetos por turno baseado em dados reais.
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-title">Inteligência Integrada (Smart Prep)</div>
+                <div class="feature-body">A inteligência de previsão (HolidayPredictorAgent) atua de forma integrada no módulo Smart Prep. O algoritmo prevê o fluxo baseado na sazonalidade e feriados, cravando o mix de proteínas.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Briefing Tático & Foco nos "Vilões"</div>
+                <div class="feature-body">Se o custo previsto ultrapassa o teto, o sistema gera um alerta imediato focando nos "Vilões" (Picanha, Costela, Filet), reduzindo as quebras e o over-prep.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="module-block">
+        <div class="module-header">
+            <span class="module-num">03</span>
+            <h3 class="module-title">Delivery & OLO OCR Engine</h3>
+        </div>
+        <div class="module-body">
+            O Delivery (UberEats, DoorDash, To-Go) distorce o consumo do rodízio. O sistema separa e reconcilia perfeitamente o consumo externo.
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-title">Decomposição de Combos</div>
+                <div class="feature-body">Quando um cliente pede um "Feast para 4", o sistema usa inteligência para extrair os exatos percentuais de Picanha, Fraldinha e Linguiça que compõem o prato, baixando do inventário corretamente.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Leitura de Tickets por IA (Visão)</div>
+                <div class="feature-body">Upload das vias do OLO — nossa IA com visão computacional lê o ticket impresso, ignora bebidas e saladas, e sincroniza os pesos reais de proteína vendidos para fora da loja.</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="module-block">
+        <div class="module-header">
+            <span class="module-num">04</span>
+            <h3 class="module-title">Burger Intelligence & Anti-Fraude</h3>
+        </div>
+        <div class="module-body">
+            Loop de segurança que integra rendimento (yield) de açougue com vendas de balcão (PDV/Aloha).
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-title">Cálculo Teórico de Patties</div>
+                <div class="feature-body">Mede o volume de aparas de picanha e pacotes destinados a hambúrguer, determinando quantos hambúrgueres exatos (ex: 8oz) devem existir.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Alerta Integrado com PDV</div>
+                <div class="feature-body">Compara o volume de patties teóricos com as vendas no POS e estoque declarado pelo gerente. Acusa desvio imediatamente se hambúrgueres "desaparecem" sem venda no sistema.</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════ IMPACTO NRO E ROI ═══════════════════════════════════════ -->
+<div class="section">
+    <div class="section-label">Impacto Corporativo — Seção 03</div>
+    <div class="section-title">O Efeito Escala no Fogo de Chão</div>
+    <div class="section-body">
+        Com 70+ unidades e uma forte agenda de expansões, falhas manuais se transformam em milhões de dólares de exposição não rastreada, cobrindo doca, cozinha e delivery.
+    </div>
+
+    <div class="nro-box">
+        <div class="nro-title">📋 Valor Específico para NRO (New Restaurant Openings)</div>
+        <div class="nro-body">
+            <strong>O NRO é o período de maior risco para o controle de custo.</strong> Com recebedores novos, distribuidores desconhecidos e churrasqueiros ajustando a mão, o desperdício é tratado como "custo de abertura".
+            <br><br>
+            O BRASA OS é implantado em uma nova unidade em menos de 24 horas. Ele força as mesmas especificações corporativas, tolerâncias de peso, cálculos de espetos e compliance de PDV desde o Dia Um, cortando o período de "adequação de CMV" pela raiz.
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card gold">
+            <div class="stat-label">Impacto Financeiro (70 Lojas)</div>
+            <div class="stat-value">$2M+</div>
+            <div class="stat-desc">Potencial anualizado de recuperação e economia otimizando Receiving, Delivery e Perdas de Yield.</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-label">Visão Centralizada</div>
+            <div class="stat-value">100%</div>
+            <div class="stat-desc">Operação completa visível em tempo real na Matriz em Dallas para diretores corporativos.</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Desvio e Perdas (Shrink)</div>
+            <div class="stat-value">⬇ 85%</div>
+            <div class="stat-desc">Queda dramática de perdas não justificadas conectando estoque físico às baixas do PDV.</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ O PEDIDO ═══════════════════════════════════════ -->
+<div class="ask-section">
+    <div class="ask-label">Próximos Passos — Seção 04</div>
+    <div class="ask-title">Uma Hora em Dallas</div>
+    <div class="ask-body">
+        Não estamos pedindo que o Fogo de Chão tome uma decisão de compra hoje. Estamos pedindo a oportunidade de demonstrar, ao vivo, com os dados da operação, como nossa tecnologia monitora as quatro frentes (Doca, Cozinha, Delivery e PDV) simultaneamente.
+        <br><br>
+        Alberto, a sua validação da relevância deste sistema para a operação que você domina é o primeiro passo. Se você achar que esse ecossistema revoluciona o CMV no chão de loja, gostaríamos do seu apoio para abrirmos o sistema para o Rick e a liderança em Dallas.
+        <br><br>
+        <em>O controle operacional do futuro já existe. Nós só precisamos mostrá-lo.</em>
+    </div>
+    <div class="ask-contact">
+        <div class="ask-contact-name">Alexandre Garcia</div>
+        <div class="ask-contact-title">Fundador &amp; CEO — AGV Ventures LLC</div>
+        <div class="ask-contact-email">alexandre@alexgarciaventures.co · brasameat.com</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ RODAPÉ ═══════════════════════════════════════ -->
+<div class="footer">
+    <div class="footer-brand">BRASA Meat Intelligence OS</div>
+    <div>Estritamente Confidencial · Preparado para Alberto Wachholz · Maio de 2026</div>
+    <div>© 2026 AGV Ventures LLC. Todos os direitos reservados.</div>
+</div>
+
+</body>
+</html>
