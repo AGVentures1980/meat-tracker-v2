@@ -55,6 +55,26 @@ model Company {
   supplierAliasMappings       SupplierAliasMapping[]
   invoices                    SysInvoice[]
   vaultFiles                  VaultFile[]
+  entitlements                OrganizationProductEntitlement[]
+}
+
+model OrganizationProductEntitlement {
+  id            String    @id @default(uuid())
+  company_id    String
+  product_code  String    // e.g. "BRASA_PULSE"
+  status        String    @default("ACTIVE") // "ACTIVE", "INACTIVE", "PENDING"
+  enabled_at    DateTime  @default(now())
+  disabled_at   DateTime?
+  enabled_by    String?
+  source        String?   // "MIGRATION_EXISTING_CLIENTS_2026", "ONBOARDING", "ADMIN_TOGGLE"
+  notes         String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  company       Company   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_id, product_code])
+  @@index([company_id, status])
 }
 
 model CompanyProduct {

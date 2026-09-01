@@ -9,12 +9,13 @@ export class PulseController {
     /**
      * POST /api/v1/pulse/handoff (and /api/v1/auth/pulse-handoff)
      * Generates a short-lived (5 min), cryptographically signed Handoff Token for BRASA Pulse.
+     * Enforces client-level product entitlement server-side (Requirement 8).
      * Contains cryptographically unique `jti` for replay protection.
      * Derived strictly from authenticated session context (Zero-Trust).
      */
     static async generateHandoff(req: Request, res: Response) {
         try {
-            // Environment-aware Brand Pulse destination configuration (Requirement 7)
+            // Environment-aware Brand Pulse destination configuration (Requirement 7 & 15)
             const pulseBaseUrl = process.env.PULSE_BASE_URL ||
                 process.env.BRAND_PULSE_URL ||
                 (process.env.NODE_ENV === 'production' ? 'https://pulse.brasameat.com' : 'http://localhost:3001');
@@ -25,6 +26,7 @@ export class PulseController {
                 console.error('[SSO SENDER FAIL] Dedicated PULSE_SSO_SECRET is missing on sender.');
                 return res.status(500).json({
                     error: 'PULSE_SSO_NOT_CONFIGURED',
+                    status: 'PULSE_SSO_NOT_CONFIGURED',
                     message: 'Dedicated SSO secret PULSE_SSO_SECRET is not configured on BRASA Meat sender.'
                 });
             }
@@ -37,6 +39,27 @@ export class PulseController {
             const userId = String(user.id || user.userId);
             const organizationId = user.companyId || user.company_id ? String(user.companyId || user.company_id) : null;
             const role = String(user.role || 'viewer');
+
+            // ─── REQUIREMENT 8: SERVER-SIDE PRODUCT ENTITLEMENT ENFORCEMENT ──────
+            if (organizationId) {
+                const entitlement = await prisma.organizationProductEntitlement.findUnique({
+                    where: {
+                        company_id_product_code: {
+                            company_id: organizationId,
+                            product_code: 'BRASA_PULSE'
+                        }
+                    }
+                });
+
+                if (!entitlement || entitlement.status !== 'ACTIVE') {
+                    console.warn(`[SSO DENIED] Organization ${organizationId} lacks ACTIVE BRASA_PULSE entitlement.`);
+                    return res.status(403).json({
+                        error: 'PULSE_ENTITLEMENT_REQUIRED',
+                        status: 'PULSE_NOT_ENTITLED',
+                        message: 'BRASA Pulse module is not enabled for this organization.'
+                    });
+                }
+            }
 
             // ─── DERIVE LOCATION SCOPE SERVER-SIDE (ZERO TRUST) ───────────────────
             let allowedLocationIds: string[] = [];
@@ -104,6 +127,16 @@ export class PulseController {
             // Sign token server-side with HS256 HMAC using dedicated PULSE_SSO_SECRET
             const handoffToken = jwt.sign(handoffPayload, ssoSecret, { algorithm: 'HS256' });
 
+            // Verify store_id exists if FK is present
+            let validStoreId: number | undefined = undefined;
+            if (primaryLocationId) {
+                const parsed = parseInt(primaryLocationId, 10);
+                if (!isNaN(parsed)) {
+                    const exists = await prisma.store.findUnique({ where: { id: parsed }, select: { id: true } });
+                    if (exists) validStoreId = parsed;
+                }
+            }
+
             // Requirement 8: Audit event logging (Safe metadata only, no raw token/secret)
             await prisma.auditLog.create({
                 data: {
@@ -111,7 +144,7 @@ export class PulseController {
                     action: 'PULSE_SSO_HANDOFF_ISSUED',
                     resource: 'BRASA_BRAND_PULSE',
                     company_id: organizationId || undefined,
-                    store_id: primaryLocationId ? parseInt(primaryLocationId) || undefined : undefined,
+                    store_id: validStoreId,
                     ip_address: req.ip || req.socket.remoteAddress || 'unknown',
                     details: {
                         jti,
@@ -157,6 +190,120 @@ export class PulseController {
                 error: 'Failed to generate BRASA Pulse handoff token',
                 details: error.message
             });
+        }
+    }
+
+    /**
+     * GET /api/v1/pulse/entitlement/status
+     * Returns BRASA_PULSE entitlement status for current session organization.
+     */
+    static async getEntitlementStatus(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            const organizationId = user?.companyId || user?.company_id || req.headers['x-company-id'];
+            if (!organizationId) {
+                return res.json({ entitled: false, status: 'NO_ORGANIZATION_CONTEXT' });
+            }
+
+            const entitlement = await prisma.organizationProductEntitlement.findUnique({
+                where: {
+                    company_id_product_code: {
+                        company_id: String(organizationId),
+                        product_code: 'BRASA_PULSE'
+                    }
+                }
+            });
+
+            const entitled = !!(entitlement && entitlement.status === 'ACTIVE');
+            return res.json({
+                entitled,
+                status: entitlement ? entitlement.status : 'INACTIVE',
+                productCode: 'BRASA_PULSE'
+            });
+        } catch (err: any) {
+            console.error('Fetch entitlement status error:', err);
+            return res.status(500).json({ error: 'Failed to fetch entitlement status' });
+        }
+    }
+
+    /**
+     * POST /api/v1/pulse/entitlement/toggle
+     * Admin-only endpoint to enable or disable BRASA Pulse entitlement for a client organization (Requirement 12).
+     */
+    static async toggleEntitlement(req: Request, res: Response) {
+        try {
+            const user = (req as any).user;
+            if (!user) {
+                return res.status(401).json({ error: 'Unauthorized' });
+            }
+
+            // Role Protection: Admin / Director / Master only (GMs cannot toggle entitlements)
+            const isMaster = user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
+            const isAdmin = user.role === 'admin' || user.role === 'director' || isMaster;
+            if (!isAdmin) {
+                return res.status(403).json({ error: 'Forbidden: Admin authorization required' });
+            }
+
+            const { companyId, enabled } = req.body;
+            if (!companyId || typeof enabled !== 'boolean') {
+                return res.status(400).json({ error: 'Invalid payload: companyId (string) and enabled (boolean) required' });
+            }
+
+            const newStatus = enabled ? 'ACTIVE' : 'INACTIVE';
+            const source = 'ADMIN_TOGGLE';
+
+            const entitlement = await prisma.organizationProductEntitlement.upsert({
+                where: {
+                    company_id_product_code: {
+                        company_id: companyId,
+                        product_code: 'BRASA_PULSE'
+                    }
+                },
+                create: {
+                    company_id: companyId,
+                    product_code: 'BRASA_PULSE',
+                    status: newStatus,
+                    enabled_by: String(user.id),
+                    disabled_at: enabled ? null : new Date(),
+                    source,
+                    notes: `Toggled via Admin API by ${user.email}`
+                },
+                update: {
+                    status: newStatus,
+                    enabled_by: String(user.id),
+                    disabled_at: enabled ? null : new Date(),
+                    source,
+                    notes: `Toggled via Admin API by ${user.email}`,
+                    updated_at: new Date()
+                }
+            });
+
+            // Requirement 19: Audit Logging
+            const action = enabled ? 'PULSE_ENTITLEMENT_ENABLED' : 'PULSE_ENTITLEMENT_DISABLED';
+            await prisma.auditLog.create({
+                data: {
+                    user_id: String(user.id),
+                    action,
+                    resource: 'ORGANIZATION_PRODUCT_ENTITLEMENT',
+                    company_id: companyId,
+                    details: {
+                        productCode: 'BRASA_PULSE',
+                        previousStatus: enabled ? 'INACTIVE' : 'ACTIVE',
+                        newStatus,
+                        actedBy: user.email,
+                        timestamp: new Date().toISOString()
+                    }
+                }
+            }).catch(e => console.warn('Audit log write error:', e.message));
+
+            return res.json({
+                success: true,
+                message: `BRASA Pulse entitlement ${newStatus} for company ${companyId}`,
+                entitlement
+            });
+        } catch (err: any) {
+            console.error('Toggle entitlement error:', err);
+            return res.status(500).json({ error: 'Failed to update entitlement', details: err.message });
         }
     }
 }

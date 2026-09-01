@@ -7,13 +7,25 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 router.post('/provision', requireAuth, requireScope('GLOBAL'), async (req, res) => {
-    const { name, subdomain, adminEmail, initialStores } = req.body;
+    const { name, subdomain, adminEmail, initialStores, enablePulse } = req.body;
     
     try {
         const result = await prisma.$transaction(async (tx) => {
             // 1. Create Tenant Record
             const company = await tx.company.create({ 
                 data: { name, subdomain, company_status: 'Active' } 
+            });
+
+            // 1b. Create Product Entitlement (Default OFF unless explicit YES)
+            const isPulseEnabled = enablePulse === true || enablePulse === 'true';
+            await tx.organizationProductEntitlement.create({
+                data: {
+                    company_id: company.id,
+                    product_code: 'BRASA_PULSE',
+                    status: isPulseEnabled ? 'ACTIVE' : 'INACTIVE',
+                    source: 'ONBOARDING',
+                    notes: `Created during provisioning (Pulse Enabled: ${isPulseEnabled})`
+                }
             });
             
             // 2. Create Global Director for Tenant

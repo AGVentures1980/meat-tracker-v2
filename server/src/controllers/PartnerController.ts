@@ -306,6 +306,18 @@ export class PartnerController {
             }
         });
 
+        // 3b2. Product Entitlement (Default OFF unless explicit YES)
+        const isPulseRequested = req.body.enable_pulse === true || req.body.enablePulse === true;
+        await tx.organizationProductEntitlement.create({
+            data: {
+                company_id: newCompany.id,
+                product_code: 'BRASA_PULSE',
+                status: isPulseRequested ? 'ACTIVE' : 'INACTIVE',
+                source: 'ONBOARDING',
+                notes: `Created via Partner Architect (Pulse Enabled: ${isPulseRequested})`
+            }
+        });
+
         // 3c. Link Reseller & Ledger
         await tx.partnerClient.create({
             data: { partner_id: partner.id, company_id: newCompany.id, commission_rate: 25.0, setup_fee_share: 70.0 }
