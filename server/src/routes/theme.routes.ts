@@ -384,9 +384,15 @@ router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        const company = await prisma.company.findUnique({
+        let subdomainKey = subdomain.toLowerCase();
+        if (subdomainKey === 'fdc') subdomainKey = 'fogo';
+
+        const company = await prisma.company.findFirst({
             where: {
-                subdomain: subdomain.toLowerCase()
+                OR: [
+                    { subdomain: subdomainKey },
+                    { name: { contains: subdomainKey, mode: 'insensitive' } }
+                ]
             },
             select: {
                 name: true,
