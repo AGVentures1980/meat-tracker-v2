@@ -194,6 +194,51 @@ export class PulseController {
     }
 
     /**
+     * GET /api/auth/brasa-meat-sso
+     * Browser GET endpoint for BRASA Pulse SSO Handoff Redirect.
+     * Verifies the handoff token and redirects the browser seamlessly to the Pulse Dashboard.
+     */
+    static async handleBrowserSso(req: Request, res: Response) {
+        try {
+            const token = (req.query.token || req.body?.token) as string;
+
+            if (!token) {
+                return res.status(400).json({
+                    error: 'PULSE_SSO_INVALID_TOKEN',
+                    message: 'No handoff token provided in redirect query.'
+                });
+            }
+
+            const ssoSecret = process.env.PULSE_SSO_SECRET;
+            if (!ssoSecret) {
+                return res.status(500).json({
+                    error: 'PULSE_SSO_NOT_CONFIGURED',
+                    message: 'Dedicated SSO secret is not configured on server.'
+                });
+            }
+
+            const payload = jwt.verify(token, ssoSecret) as any;
+
+            if (payload.iss !== 'brasa-meat-intelligence' || payload.aud !== 'brasa-brand-pulse') {
+                return res.status(401).json({
+                    error: 'PULSE_SSO_INVALID_TOKEN',
+                    message: 'Invalid JWT issuer or audience.'
+                });
+            }
+
+            // Redirect user directly to the Network / Pulse Dashboard in the application
+            const redirectTarget = `/dashboard/network?sso=pulse_active&org=${payload.organizationId || ''}`;
+            return res.redirect(redirectTarget);
+        } catch (err: any) {
+            console.error('[SSO Browser Redirect Error]:', err.message);
+            return res.status(401).json({
+                error: 'PULSE_SSO_VERIFICATION_FAILED',
+                message: err.message || 'Failed to verify handoff token.'
+            });
+        }
+    }
+
+    /**
      * GET /api/v1/pulse/entitlement/status
      * Returns BRASA_PULSE entitlement status for current session organization.
      */

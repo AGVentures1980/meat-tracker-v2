@@ -81,12 +81,20 @@ async function runPulseEntryAndHandoffTests() {
 
     // Test 2: Development destination defaults to http://localhost:3001
     {
+        const savedUrl = process.env.PULSE_BASE_URL;
+        const savedEnv = process.env.NODE_ENV;
+        delete process.env.PULSE_BASE_URL;
+        process.env.NODE_ENV = 'development';
+
         const mockRes = createMockRes();
         await PulseController.generateHandoff(mockGmReq, mockRes as any);
         const data = mockRes.testData.responseData;
 
         assert(data?.destinationUrl === 'http://localhost:3001', '4. Development destinationUrl defaults to http://localhost:3001');
         assert(data?.fullRedirectUrl?.startsWith('http://localhost:3001/api/auth/brasa-meat-sso'), '5. Development fullRedirectUrl uses http://localhost:3001 in dev');
+
+        process.env.PULSE_BASE_URL = savedUrl;
+        process.env.NODE_ENV = savedEnv;
     }
 
     // Test 3: Environment variable PULSE_BASE_URL override works
