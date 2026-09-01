@@ -4,7 +4,7 @@ import { runClientEntitlementsMigration } from './migrate-client-entitlements';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-process.env.PULSE_SSO_SECRET = 'brasa-pulse-sso-secret-key-change-me';
+process.env.PULSE_SSO_SECRET = process.env.PULSE_SSO_SECRET || 'test-dedicated-sso-secret-key-392810';
 
 async function runEntitlementTestMatrix() {
     console.log('===============================================================');

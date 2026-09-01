@@ -20,8 +20,16 @@ export class PulseController {
                 process.env.BRAND_PULSE_URL ||
                 (process.env.NODE_ENV === 'production' ? 'https://pulse.brasameat.com' : 'http://localhost:3001');
 
-            // Dedicated SSO Secret with production-safe fallback
-            const ssoSecret = process.env.PULSE_SSO_SECRET || 'brasa-pulse-sso-secret-key-change-me';
+            // Dedicated SSO Secret ONLY (No hardcoded fallback secret). Fail closed if absent.
+            const ssoSecret = process.env.PULSE_SSO_SECRET;
+            if (!ssoSecret || ssoSecret.trim().length === 0) {
+                console.error('[SSO SENDER FAIL] Dedicated PULSE_SSO_SECRET environment variable is missing on sender.');
+                return res.status(500).json({
+                    error: 'PULSE_SSO_NOT_CONFIGURED',
+                    status: 'PULSE_SSO_NOT_CONFIGURED',
+                    message: 'Dedicated SSO secret PULSE_SSO_SECRET is not configured on BRASA Meat sender.'
+                });
+            }
 
             const user = (req as any).user;
             if (!user) {
