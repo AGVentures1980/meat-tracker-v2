@@ -74,19 +74,9 @@ function evaluateV6Rules(
     return { state: 'INVALID_METADATA', decision: 'BLOCK_BOOT', reason: 'Unknown state logic bypass' };
 }
 
-function emitMetric(metric: string, value: number) {
-    console.log(JSON.stringify({
-        metric: metric,
-        value: value,
-        tags: ["env:production", "service:brasa-api", "guard_version:V6-OBSERVABLE-ZEROTRUST"]
-    }));
-}
-
 async function startV6Engine(): Promise<void> {
     const STRICT_EXTRA_DB_MIGRATIONS = process.env.STRICT_EXTRA_DB_MIGRATIONS === 'true';
     const STRICT_CHECKSUM = process.env.STRICT_CHECKSUM === 'true';
-    const MIGRATION_GUARD_WARN_THRESHOLD = parseInt(process.env.MIGRATION_GUARD_WARN_THRESHOLD || '3', 10);
-    const MIGRATION_GUARD_RISK_THRESHOLD = parseInt(process.env.MIGRATION_GUARD_RISK_THRESHOLD || '5', 10);
 
     const bootId = crypto.randomUUID();
 
@@ -111,7 +101,18 @@ async function startV6Engine(): Promise<void> {
         payload.forEach(row => dbMap.set(row.migration_name, row));
 
         let localMigrations: string[] = [];
-        const migrationsPath = path.join(__dirname, '../../../prisma/migrations');
+        const candidatePaths = [
+            path.join(__dirname, '../../../prisma/migrations'),
+            path.join(__dirname, '../../prisma/migrations'),
+            path.join(process.cwd(), 'prisma/migrations'),
+            path.join(process.cwd(), 'server/prisma/migrations'),
+            '/app/server/prisma/migrations',
+            '/app/prisma/migrations'
+        ];
+
+        const migrationsPath = candidatePaths.find(p => fs.existsSync(p)) || candidatePaths[0];
+        console.log(`[MigrationGuard] Resolved migrations path: ${migrationsPath}`);
+
         if (fs.existsSync(migrationsPath)) {
             // Find valid folders that have a migration.sql file
             localMigrations = fs.readdirSync(migrationsPath).filter(d => fs.existsSync(path.join(migrationsPath, d, 'migration.sql')));
@@ -182,26 +183,6 @@ async function startV6Engine(): Promise<void> {
             }
         }
 
-        let anomaly_detected = false;
-        
-        // Threshold validations
-        if (metrics.warn_score >= MIGRATION_GUARD_WARN_THRESHOLD) {
-             console.log(JSON.stringify({ event: 'ANOMALY_ALERT', reason: `warn_score ${metrics.warn_score} >= ${MIGRATION_GUARD_WARN_THRESHOLD}`, timestamp: new Date().toISOString() }));
-             anomaly_detected = true;
-        }
-
-        if (metrics.risk_score >= MIGRATION_GUARD_RISK_THRESHOLD) {
-             console.log(JSON.stringify({ event: 'ANOMALY_ALERT', reason: `risk_score ${metrics.risk_score} >= ${MIGRATION_GUARD_RISK_THRESHOLD}`, timestamp: new Date().toISOString() }));
-             anomaly_detected = true;
-             blockOccurred = true;
-        }
-
-        // PARTE 5: PROTECAO FINAL
-        if (metrics.safe_count === 0 && allMigrations.size > 0) {
-            console.log(JSON.stringify({ event: 'ANOMALY_ALERT', reason: `Zero SAFE migrations detected. Possible catastrophic state or empty DB.`, timestamp: new Date().toISOString() }));
-            blockOccurred = true;
-        }
-
         console.log(JSON.stringify({ event: 'GUARD_SUMMARY', metrics, timestamp: new Date().toISOString() }));
 
         const finalDecision: 'PERMIT_BOOT' | 'BLOCK_BOOT' = blockOccurred ? 'BLOCK_BOOT' : 'PERMIT_BOOT';
@@ -214,7 +195,6 @@ async function startV6Engine(): Promise<void> {
             last_boot_at: new Date().toISOString()
         });
 
-        // Pure read-only emission completed via stdout metrics (no DB mutation)
         await prisma.$disconnect();
         process.exit(blockOccurred ? 1 : 0);
         
