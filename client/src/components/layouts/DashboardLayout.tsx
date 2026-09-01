@@ -34,6 +34,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { BrandPulseTile } from '../BrandPulseTile';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -447,6 +448,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         </>
                     )}
 
+
+                    {/* BRASA Pulse Entry Point (Phase 1 Integration) */}
+                    <div className="mt-4 px-1 border-t border-[#333]/50 pt-3">
+                        <div className="text-[10px] text-amber-500/80 font-mono font-bold tracking-widest uppercase mb-1.5 px-2">
+                            INTELLIGENCE SUITE
+                        </div>
+                        <BrandPulseTile variant="nav_button" />
+                    </div>
 
                     {/* Switch Company (Master Owner Only) */}
                     {isMaster && (

@@ -1,5 +1,6 @@
 import express from 'express';
 import { AuthController } from '../controllers/AuthController';
+import { PulseController } from '../controllers/PulseController';
 import { requireAuth } from '../middleware/auth.middleware';
 import { securityMiddleware } from '../middleware/SecurityMiddleware';
 
@@ -16,5 +17,6 @@ router.post('/reset-password', loginRateLimiter, securityMiddleware, AuthControl
 // Protected
 router.post('/change-password', requireAuth, AuthController.changePassword);
 router.post('/admin/force-reset/:id', requireAuth, AuthController.forceResetPassword);
+router.post('/pulse-handoff', requireAuth, PulseController.generateHandoff);
 
 export default router;

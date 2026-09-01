@@ -169,6 +169,7 @@ import ediRoutes from './routes/edi.routes';
 import leadRoutes from './routes/lead.routes';
 import weatherRoutes from './routes/weather.routes';
 import alohaRoutes from './routes/aloha.routes';
+import pulseRoutes from './routes/pulse.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
@@ -237,6 +238,7 @@ app.use('/api/v1/compliance', complianceRoutes);
 app.use('/api/v1/yield', requireAuth, yieldRoutes);
 app.use('/api/v1/billing', requireAuth, billingRoutes);
 app.use('/api/v1/burger', burgerRoutes);
+app.use('/api/v1/pulse', pulseRoutes);
 app.use('/api/v1', leadRoutes);
 app.use('/api/v1/weather', weatherRoutes);
 app.use('/api/v1/sre', sreRoutes);

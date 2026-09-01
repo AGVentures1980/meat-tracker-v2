@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Globe, ArrowRight, ShieldAlert, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { BrandPulseTile } from '../../components/BrandPulseTile';
 
 export const NetworkDashboard = () => {
     const { user, selectedCompany } = useAuth();
@@ -127,6 +128,11 @@ export const NetworkDashboard = () => {
                     <div className={`text-3xl font-bold ${criticalCount > 0 ? 'text-red-500' : 'text-green-500'}`}>{criticalCount}</div>
                     <div className="text-xs text-gray-400 mt-2">Active Critical Flags</div>
                 </div>
+            </div>
+
+            {/* B. BRASA PULSE MODULE ACCESS TILE */}
+            <div className="mb-8">
+                <BrandPulseTile variant="card" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
