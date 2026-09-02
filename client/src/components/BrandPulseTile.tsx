@@ -78,8 +78,8 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
             const data = await res.json();
 
             if (res.ok && data.success) {
-                // DIRECT LIVE SSO REDIRECT TO PULSE INTELLIGENCE (Preserving active domain session & theme)
-                window.location.href = '/enterprise-dashboard?sso=pulse_active';
+                // DIRECT LIVE REDIRECT TO BRASA PULSE GUEST AI & REPUTATION DASHBOARD
+                window.location.href = '/pulse';
             } else if (data.error === 'PULSE_ENTITLEMENT_REQUIRED' || data.status === 'PULSE_NOT_ENTITLED') {
                 setIsEntitled(false);
                 setModalInfo({
