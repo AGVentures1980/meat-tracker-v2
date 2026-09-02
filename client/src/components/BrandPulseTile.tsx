@@ -77,9 +77,9 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
 
             const data = await res.json();
 
-            if (res.ok && data.success && data.fullRedirectUrl) {
-                // DIRECT LIVE SSO REDIRECT TO BRAND PULSE RECEIVER
-                window.open(data.fullRedirectUrl, '_blank', 'noopener,noreferrer');
+            if (res.ok && data.success) {
+                // DIRECT LIVE SSO REDIRECT TO PULSE INTELLIGENCE (Preserving active domain session & theme)
+                window.location.href = '/enterprise-dashboard?sso=pulse_active';
             } else if (data.error === 'PULSE_ENTITLEMENT_REQUIRED' || data.status === 'PULSE_NOT_ENTITLED') {
                 setIsEntitled(false);
                 setModalInfo({
