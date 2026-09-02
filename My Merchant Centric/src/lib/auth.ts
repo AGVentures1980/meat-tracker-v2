@@ -48,9 +48,9 @@ async function signToken(payload: any, secret: string): Promise<string> {
   const encoder = new TextEncoder();
   const header = { alg: 'HS256', typ: 'JWT' };
   
-  const part1 = base64url(JSON.stringify(header));
-  const part2 = base64url(JSON.stringify(payload));
-  const data = encoder.encode(`${part1}.${part2}`);
+  const headerB64 = base64url(JSON.stringify(header));
+  const payloadB64 = base64url(JSON.stringify(payload));
+  const data = encoder.encode(`${headerB64}.${payloadB64}`);
   
   const keyData = encoder.encode(secret);
   const cryptoKey = await crypto.subtle.importKey(
@@ -61,17 +61,10 @@ async function signToken(payload: any, secret: string): Promise<string> {
     ['sign']
   );
   
-  const signatureBuffer = await crypto.subtle.sign(
-    'HMAC',
-    cryptoKey,
-    data
-  );
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
+  const signatureB64 = base64url(String.fromCharCode.apply(null, Array.from(new Uint8Array(signature))));
   
-  const signatureArray = Array.from(new Uint8Array(signatureBuffer));
-  const signatureBinary = signatureArray.map(b => String.fromCharCode(b)).join('');
-  const signatureBase64 = base64url(signatureBinary);
-  
-  return `${part1}.${part2}.${signatureBase64}`;
+  return `${headerB64}.${payloadB64}.${signatureB64}`;
 }
 
 // Edge-safe HMAC-SHA256 verifier using Web Crypto API
@@ -130,9 +123,11 @@ export async function createSession(user: { id: string; email: string; organizat
   
   const token = await signToken(payload, JWT_SECRET);
   
+  const isProd = process.env.NODE_ENV === 'production';
+
   response.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: false,
+    secure: isProd,
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 7, // 7 days
@@ -155,6 +150,53 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
     console.error('JWT Verification Error in getSessionUser:', error);
     return null;
   }
+}
+
+/**
+ * Checks if a session user is authorized to access a specific organization scope.
+ */
+export function isAuthorizedForOrganization(
+  session: SessionUser,
+  requestedOrgId?: string | null
+): boolean {
+  if (!requestedOrgId || requestedOrgId === session.organizationId) {
+    return true;
+  }
+
+  const isCorporateAdmin =
+    session.roles.includes(Role.CORPORATE_ADMIN) ||
+    session.scopes.some(s => s.scopeId === '*');
+
+  if (isCorporateAdmin && session.authSource !== 'BRASA_MEAT_SSO_TENANT_LOCKED') {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Resolves effective organizationId for a session.
+ * Throws SCOPE_ACCESS_DENIED if requestedOrgId is unauthorized.
+ */
+export async function getEffectiveOrganizationId(
+  session: SessionUser,
+  requestedOrgId?: string | null
+): Promise<string> {
+  if (requestedOrgId && requestedOrgId !== session.organizationId) {
+    const isAuthorized = isAuthorizedForOrganization(session, requestedOrgId);
+    if (!isAuthorized) {
+      throw new Error('SCOPE_ACCESS_DENIED');
+    }
+
+    const validOrg = await db.organization.findUnique({
+      where: { id: requestedOrgId },
+      select: { id: true }
+    });
+    if (validOrg) return validOrg.id;
+    throw new Error('ORGANIZATION_NOT_FOUND');
+  }
+
+  return session.organizationId;
 }
 
 /**
@@ -192,7 +234,7 @@ export async function verifyScopeAccess(
 ): Promise<boolean> {
   // 1. Enforce that target resource belongs to user's organization first
   if (target.locationId) {
-    if (session.allowedLocationIds && session.allowedLocationIds.length > 0) {
+    if (session.allowedLocationIds && session.allowedLocationIds.length > 0 && !session.allowedLocationIds.includes('*')) {
       if (!session.allowedLocationIds.includes(target.locationId)) {
         console.warn(`[SCOPE DENIED] User ${session.email} attempted to access unauthorized location ${target.locationId}`);
         return false;
@@ -202,7 +244,7 @@ export async function verifyScopeAccess(
       where: { id: target.locationId },
       select: { organizationId: true },
     });
-    if (!loc || loc.organizationId !== session.organizationId) {
+    if (!loc || (loc.organizationId !== session.organizationId && !session.roles.includes(Role.CORPORATE_ADMIN))) {
       return false;
     }
   }
@@ -212,7 +254,7 @@ export async function verifyScopeAccess(
       where: { id: target.districtId },
       select: { organizationId: true },
     });
-    if (!dist || dist.organizationId !== session.organizationId) {
+    if (!dist || (dist.organizationId !== session.organizationId && !session.roles.includes(Role.CORPORATE_ADMIN))) {
       return false;
     }
   }
@@ -222,7 +264,7 @@ export async function verifyScopeAccess(
       where: { id: target.regionId },
       select: { organizationId: true },
     });
-    if (!reg || reg.organizationId !== session.organizationId) {
+    if (!reg || (reg.organizationId !== session.organizationId && !session.roles.includes(Role.CORPORATE_ADMIN))) {
       return false;
     }
   }
@@ -232,7 +274,7 @@ export async function verifyScopeAccess(
       where: { id: target.divisionId },
       select: { organizationId: true },
     });
-    if (!div || div.organizationId !== session.organizationId) {
+    if (!div || (div.organizationId !== session.organizationId && !session.roles.includes(Role.CORPORATE_ADMIN))) {
       return false;
     }
   }

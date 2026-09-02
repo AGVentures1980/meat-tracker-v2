@@ -188,7 +188,7 @@ async function handleSSO(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // 5. MASTER ORGANIZATION IDENTITY RESOLUTION
+    // 4. MASTER ORGANIZATION IDENTITY RESOLUTION
     let pulseOrganizationId: string | null = null;
 
     const canonicalOrg = await db.organization.findFirst({
@@ -198,23 +198,12 @@ async function handleSSO(req: NextRequest) {
     if (canonicalOrg) {
       pulseOrganizationId = canonicalOrg.id;
     } else {
-      const orgMapping = await db.externalOrganizationIdentity.findUnique({
+      const orgMap = await db.externalOrganizationIdentity.findUnique({
         where: { provider_externalOrgId: { provider: 'BRASA_MEAT', externalOrgId: String(meatOrgId) } }
       });
-      if (orgMapping) {
-        pulseOrganizationId = orgMapping.pulseOrganizationId;
-      } else if (meatOrgId) {
-        const directOrg = await db.organization.findFirst({
-          where: { OR: [{ id: String(meatOrgId) }, { slug: String(meatOrgId) }] }
-        });
-        if (directOrg) pulseOrganizationId = directOrg.id;
-      }
-    }
 
-    if (!pulseOrganizationId) {
-      const defaultOrg = await db.organization.findFirst();
-      if (defaultOrg) {
-        pulseOrganizationId = defaultOrg.id;
+      if (orgMap) {
+        pulseOrganizationId = orgMap.pulseOrganizationId;
       }
     }
 
@@ -225,7 +214,7 @@ async function handleSSO(req: NextRequest) {
       }, { status: 403 });
     }
 
-    // 6. MASTER LOCATION IDENTITY RESOLUTION
+    // 5. MASTER LOCATION IDENTITY RESOLUTION
     const resolvedPulseLocationIds: string[] = [];
     const resolvedBrasaLocationIds: string[] = [];
     let primaryPulseLocationId: string | null = null;
@@ -284,7 +273,7 @@ async function handleSSO(req: NextRequest) {
       primaryPulseLocationId = resolvedPulseLocationIds[0];
     }
 
-    // 7. USER IDENTITY LINKING & JIT PROVISIONING
+    // 6. USER IDENTITY LINKING & JIT PROVISIONING
     let pulseUserId: string | null = null;
     const userMapping = await db.externalUserIdentity.findUnique({
       where: { provider_externalUserId: { provider: 'BRASA_MEAT', externalUserId: String(meatUserId) } }
@@ -332,11 +321,52 @@ async function handleSSO(req: NextRequest) {
       }
     }
 
+    // 7. ATOMIC SINGLE-USE JTI CONSUMPTION (REPLAY PREVENTION)
+    try {
+      await db.consumedSsoHandoff.create({
+        data: {
+          issuer: payload.iss || 'brasa-meat-intelligence',
+          jti: jtiStr,
+          externalUserId: payload.userId ? String(payload.userId) : null,
+          issuedAt: payload.iat ? new Date(payload.iat * 1000) : null,
+          expiresAt: payload.exp ? new Date(payload.exp * 1000) : null,
+          outcome: 'SUCCESS'
+        }
+      });
+    } catch (err: any) {
+      if (err?.code === 'P2002' || err?.message?.includes('Unique constraint') || err?.message?.includes('unique constraint')) {
+        const sysOrg = await db.organization.findFirst();
+        if (sysOrg) {
+          await db.auditLog.create({
+            data: {
+              organizationId: sysOrg.id,
+              userId: null,
+              action: 'PULSE_SSO_REPLAY_BLOCKED',
+              entityType: 'SSO_HANDOFF',
+              entityId: jtiStr,
+              metadata: {
+                issuer: payload.iss,
+                jti: jtiStr,
+                externalUserId: String(payload.userId || ''),
+                outcome: 'REPLAY_BLOCKED'
+              }
+            }
+          }).catch(() => {});
+        }
+
+        return NextResponse.json({
+          error: 'PULSE_SSO_REPLAY_DETECTED',
+          message: 'This handoff token has already been consumed. Replay attempt blocked.'
+        }, { status: 401 });
+      }
+      throw err;
+    }
+
     // 8. ROLE NORMALIZATION & SCOPE CONSTRUCTION
     let pulseRole: Role = Role.GENERAL_MANAGER;
     const normalizedRoleStr = String(meatRole || '').toLowerCase();
 
-    if (['admin', 'director', 'corporate_director'].includes(normalizedRoleStr)) {
+    if (['admin', 'director', 'corporate_director', 'corporate_admin'].includes(normalizedRoleStr)) {
       pulseRole = Role.CORPORATE_ADMIN;
     } else if (['area_manager', 'regional_director'].includes(normalizedRoleStr)) {
       pulseRole = Role.AREA_MANAGER;
@@ -369,73 +399,46 @@ async function handleSSO(req: NextRequest) {
           outcome: 'SUCCESS'
         }
       }
-    }).catch(e => console.warn('Audit log write error:', e.message));
+    });
 
-    // Update consumed handoff metadata
-    await db.consumedSsoHandoff.update({
-      where: { issuer_jti: { issuer: payload.iss || 'brasa-meat-intelligence', jti: jtiStr } },
-      data: {
-        pulseUserId,
-        organizationId: pulseOrganizationId,
-        primaryBrasaLocationId: String(meatPrimaryLocId || resolvedBrasaLocationIds[0] || ''),
-        outcome: 'SUCCESS'
-      }
-    }).catch(() => {});
+    // 10. SESSION CREATION & POST-SSO REDIRECT (HTTP 302 FOR BROWSER GET)
+    const acceptHeader = req.headers.get('accept') || '';
+    const isJsonRequest = acceptHeader.includes('application/json') && !acceptHeader.includes('text/html');
 
-    // 10. SESSION CREATION & REDIRECTION
-    const redirectPath = `/dashboard?locationId=${primaryPulseLocationId}`;
-    const isApiRequest = req.headers.get('accept')?.includes('application/json') || req.headers.get('content-type')?.includes('application/json');
+    let res: NextResponse;
 
-    if (isApiRequest) {
-      const response = NextResponse.json({
+    if (isJsonRequest) {
+      res = NextResponse.json({
         success: true,
-        message: 'SSO Authentication successful.',
-        redirectUrl: redirectPath,
-        session: {
-          pulseUserId,
+        user: {
+          id: pulseUserId,
+          email: email || `sso_${meatUserId}@brasameat.com`,
           organizationId: pulseOrganizationId,
+          role: pulseRole,
           primaryLocationId: primaryPulseLocationId,
           allowedLocationIds: resolvedPulseLocationIds,
-          allowedBrasaLocationIds: resolvedBrasaLocationIds,
-          role: pulseRole,
-          authSource: 'BRASA_MEAT_SSO'
+          brasaOrganizationId: String(meatOrgId),
+          brasaLocationIds: resolvedBrasaLocationIds
         }
       });
-
-      await createSession({
-        id: pulseUserId,
-        email: email || 'sso@brasameat.com',
-        organizationId: pulseOrganizationId,
-        roles: [pulseRole],
-        scopes: userScopes,
-        authSource: 'BRASA_MEAT_SSO',
-        allowedLocationIds: resolvedPulseLocationIds
-      }, response);
-
-      return response;
+    } else {
+      const dashboardUrl = new URL('/dashboard', req.url);
+      res = NextResponse.redirect(dashboardUrl);
     }
-
-    const responseUrl = new URL(redirectPath, req.url);
-    const response = NextResponse.redirect(responseUrl);
 
     await createSession({
       id: pulseUserId,
-      email: email || 'sso@brasameat.com',
+      email: email || `sso_${meatUserId}@brasameat.com`,
       organizationId: pulseOrganizationId,
       roles: [pulseRole],
-      scopes: userScopes,
-      authSource: 'BRASA_MEAT_SSO',
-      allowedLocationIds: resolvedPulseLocationIds
-    }, response);
+      scopes: pulseRole === Role.CORPORATE_ADMIN ? [{ scopeType: ScopeType.GLOBAL, scopeId: '*' }] : userScopes,
+      allowedLocationIds: resolvedPulseLocationIds,
+      authSource: 'BRASA_MEAT_SSO'
+    }, res);
 
-    return response;
-
-  } catch (error: any) {
-    console.error('[SSO RECEIVER FATAL ERROR]:', error);
-    return NextResponse.json({
-      error: 'PULSE_SSO_INVALID_TOKEN',
-      message: 'Fatal error processing SSO handoff.',
-      details: error.message
-    }, { status: 500 });
+    return res;
+  } catch (err: any) {
+    console.error('SSO handoff handler error:', err);
+    return NextResponse.json({ error: err?.message || 'Error executing SSO handoff' }, { status: 500 });
   }
 }
