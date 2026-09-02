@@ -56,6 +56,7 @@ model Company {
   invoices                    SysInvoice[]
   vaultFiles                  VaultFile[]
   entitlements                OrganizationProductEntitlement[]
+  publicLocationRegistries    PublicLocationRegistry[]
 }
 
 model OrganizationProductEntitlement {
@@ -2395,4 +2396,32 @@ enum FeedbackCategory {
 enum StoreDataType {
   LIVE
   DEMO
+}
+
+model PublicLocationRegistry {
+  id                      String    @id @default(uuid())
+  company_id              String
+  brand_name              String
+  official_location_name   String
+  address                 String?
+  city                    String
+  region                  String?
+  postal_code             String?
+  country                 String    @default("USA")
+  public_operating_status String    // "OPERATIONAL", "COMING_SOON", "TEMPORARILY_CLOSED", "CLOSED", "UNKNOWN"
+  property_type           String?   // "RESTAURANT", "HOTEL", "CASINO", "RESORT", "HOTEL_CASINO", "CAFE", "OTHER"
+  official_source_url     String
+  source_type             String    // "FIRST_PARTY_LOCATOR", "FIRST_PARTY_DIRECTORY", "INVESTOR_RELATIONS", "PRESS_RELEASE"
+  source_verified_at      DateTime  @default(now())
+  reconciliation_status   String    // "MATCHED", "MISSING_FROM_BRASA", "BRASA_SCOPE_ONLY", "PUBLIC_COMING_SOON", "PUBLIC_CLOSED", "AMBIGUOUS_MATCH", "UNRESOLVED"
+  matched_brasa_store_id  Int?
+  confidence              Float     @default(1.0)
+  notes                   String?
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  company                 Company   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id, reconciliation_status])
+  @@index([company_id, public_operating_status])
 }
