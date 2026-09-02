@@ -227,13 +227,17 @@ export class PulseController {
             }
 
             // Resolve dedicated Brand Pulse application receiver URL
-            const brandPulseAppUrl = process.env.BRAND_PULSE_APP_URL ||
-                process.env.BRAND_PULSE_URL ||
-                (process.env.NODE_ENV === 'production' ? 'https://pulse.brasameat.com' : 'http://localhost:3001');
+            const brandPulseAppUrl = process.env.BRAND_PULSE_APP_URL || process.env.BRAND_PULSE_URL;
 
-            // Redirect browser directly to Brand Pulse application SSO receiver
-            const redirectTarget = `${brandPulseAppUrl}/api/auth/brasa-meat-sso?token=${token}`;
-            return res.redirect(302, redirectTarget);
+            if (brandPulseAppUrl && !brandPulseAppUrl.includes(req.hostname)) {
+                const redirectTarget = `${brandPulseAppUrl}/api/auth/brasa-meat-sso?token=${token}`;
+                return res.redirect(302, redirectTarget);
+            }
+
+            return res.status(500).json({
+                error: 'PULSE_SSO_RECEIVER_NOT_HOSTED_HERE',
+                message: 'Brand Pulse SSO receiver is hosted on the Brand Pulse application (pulse.brasameat.com).'
+            });
         } catch (err: any) {
             console.error('[SSO Browser Redirect Error]:', err.message);
             return res.status(401).json({
