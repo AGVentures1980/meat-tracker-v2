@@ -163,11 +163,16 @@ export function isAuthorizedForOrganization(
     return true;
   }
 
+  // Tenant-locked SSO users can NEVER access another organization scope
+  if (session.authSource === 'BRASA_MEAT_SSO') {
+    return false;
+  }
+
   const isCorporateAdmin =
     session.roles.includes(Role.CORPORATE_ADMIN) ||
     session.scopes.some(s => s.scopeId === '*');
 
-  if (isCorporateAdmin && session.authSource !== 'BRASA_MEAT_SSO_TENANT_LOCKED') {
+  if (isCorporateAdmin) {
     return true;
   }
 
