@@ -226,85 +226,14 @@ export class PulseController {
                 });
             }
 
-            // Find full user in database
-            const user = await prisma.user.findUnique({
-                where: { id: payload.userId }
-            });
+            // Resolve dedicated Brand Pulse application receiver URL
+            const brandPulseAppUrl = process.env.BRAND_PULSE_APP_URL ||
+                process.env.BRAND_PULSE_URL ||
+                (process.env.NODE_ENV === 'production' ? 'https://pulse.brasameat.com' : 'http://localhost:3001');
 
-            if (!user) {
-                return res.status(404).json({ error: 'USER_NOT_FOUND', message: 'User does not exist' });
-            }
-
-            // Issue authenticated session token for this domain
-            const jwtSecret = process.env.JWT_SECRET || 'brasa-secret-key-change-me';
-            const sessionToken = jwt.sign(
-                {
-                    userId: user.id,
-                    email: user.email,
-                    role: user.role,
-                    storeId: user.store_id,
-                    companyId: payload.organizationId || user.company_id,
-                    scope: { type: 'COMPANY', companyId: payload.organizationId || user.company_id },
-                    tv: user.token_version,
-                    isPrimary: user.is_primary,
-                    eula_accepted: !!user.eula_accepted_at,
-                    position: user.position,
-                    firstName: user.first_name,
-                    lastName: user.last_name
-                },
-                jwtSecret,
-                { expiresIn: '24h' }
-            );
-
-            const userPayload = {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-                storeId: user.store_id,
-                companyId: payload.organizationId || user.company_id,
-                firstName: user.first_name,
-                lastName: user.last_name,
-                token: sessionToken
-            };
-
-            const targetCompanyId = payload.organizationId || user.company_id || '';
-
-            const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BRASA Pulse — Authenticating Session</title>
-  <style>
-    body { background-color: #0a0a0a; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-    .card { text-align: center; background: #141414; border: 1px solid rgba(197, 160, 89, 0.4); padding: 2.5rem 3rem; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .spinner { border: 3px solid rgba(197, 160, 89, 0.15); border-top: 3px solid #C5A059; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; margin: 0 auto 1.25rem; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    h2 { color: #C5A059; margin: 0 0 0.5rem; font-size: 1.25rem; letter-spacing: 0.05em; }
-    p { color: #888; font-size: 0.85rem; margin: 0; font-family: monospace; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="spinner"></div>
-    <h2>BRASA Pulse AI</h2>
-    <p>Autenticando sessão corporativa...</p>
-  </div>
-  <script>
-    try {
-      localStorage.setItem('brasa_token', ${JSON.stringify(sessionToken)});
-      localStorage.setItem('brasa_user', ${JSON.stringify(JSON.stringify(userPayload))});
-      localStorage.setItem('brasa_selected_company', ${JSON.stringify(targetCompanyId)});
-    } catch(e) { console.error('LocalStorage write failed:', e); }
-    setTimeout(function() {
-      window.location.replace('/enterprise-dashboard?sso=pulse_active');
-    }, 200);
-  </script>
-</body>
-</html>`;
-
-            res.setHeader('Content-Type', 'text/html');
-            return res.send(html);
+            // Redirect browser directly to Brand Pulse application SSO receiver
+            const redirectTarget = `${brandPulseAppUrl}/api/auth/brasa-meat-sso?token=${token}`;
+            return res.redirect(302, redirectTarget);
         } catch (err: any) {
             console.error('[SSO Browser Redirect Error]:', err.message);
             return res.status(401).json({

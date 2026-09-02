@@ -42,7 +42,6 @@ import { IdeaVault } from './pages/IdeaVault';
 import { CorpProcurement } from './pages/CorpProcurement';
 import { ProcurementShadowDashboard } from './pages/Intelligence/ProcurementShadowDashboard';
 import ButcherLeaderboard from './pages/store/ButcherLeaderboard';
-import { BrandPulseDashboard } from './pages/BrandPulseDashboard';
 
 // Partner / Reseller Components
 import { PartnerLayout } from './components/layouts/PartnerLayout';
@@ -286,7 +285,6 @@ function AppContent() {
                     <Route path="/intelligence/procurement-shadow" element={<ProcurementShadowDashboard />} />
                     <Route path="/support" element={<SupportHub />} />
                     <Route path="/vault" element={<IdeaVault />} />
-                    <Route path="/pulse" element={<BrandPulseDashboard />} />
                     <Route path="/dashboard/sre" element={<Navigate to="/owner-terminal" replace />} />
                 </Route>
 

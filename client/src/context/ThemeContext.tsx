@@ -33,9 +33,8 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
                 // We'll pass the first part as a simplistic approach, the backend handles fallbacks.
                 let subdomain = parts[0];
 
-                // Map frontend aliases ('fdc', 'pulse', 'brandpulse') to active tenant
-                const lowerSub = subdomain.toLowerCase();
-                if (lowerSub === 'fdc' || lowerSub === 'pulse' || lowerSub === 'brandpulse') {
+                // Map the frontend 'fdc' alias to the database 'fogo' tenant
+                if (subdomain.toLowerCase() === 'fdc') {
                     subdomain = 'fogo';
                 }
 

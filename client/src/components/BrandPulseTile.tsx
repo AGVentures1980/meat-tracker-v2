@@ -77,9 +77,9 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
 
             const data = await res.json();
 
-            if (res.ok && data.success) {
-                // DIRECT LIVE REDIRECT TO BRASA PULSE GUEST AI & REPUTATION DASHBOARD
-                window.location.href = '/pulse';
+            if (res.ok && data.success && data.fullRedirectUrl) {
+                // SECURE CROSS-APP SSO HANDOFF NAVIGATION (SAME TAB)
+                window.location.assign(data.fullRedirectUrl);
             } else if (data.error === 'PULSE_ENTITLEMENT_REQUIRED' || data.status === 'PULSE_NOT_ENTITLED') {
                 setIsEntitled(false);
                 setModalInfo({
