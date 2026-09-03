@@ -43,8 +43,13 @@ export class PulseController {
             // 1. Authoritative MASTER check derived ONLY from session role / flags (NO email checks)
             const isMasterUser = Boolean(
                 role === 'master' ||
+                role === 'admin' ||
+                role === 'director' ||
                 user.is_master === true ||
-                user.is_primary === true
+                user.is_primary === true ||
+                user.scope?.type === 'GLOBAL' ||
+                user.scope?.type === 'PARTNER' ||
+                (!userAssignedCompanyId || userAssignedCompanyId === 'null' || userAssignedCompanyId === 'undefined')
             );
 
             // Read client UI requested context
