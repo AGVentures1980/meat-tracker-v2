@@ -183,13 +183,12 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // 4. MASTER ORGANIZATION IDENTITY RESOLUTION
+    // 4. AUTHORITATIVE MASTER ORGANIZATION IDENTITY RESOLUTION
     let pulseOrganizationId: string | null = null;
+    const orgIdStr = String(meatOrgId).trim();
 
-    const orgIdStr = String(meatOrgId).toLowerCase();
-
-    // Map legacy/subdomain strings to canonical Brand Pulse org
-    let targetBrasaOrgId = String(meatOrgId);
+    // Map approved explicit external IDs/subdomains to canonical brasaOrganizationId
+    let targetBrasaOrgId = orgIdStr;
     if (orgIdStr === '26e29999-5e6e-4022-bd85-17aec722655e' || orgIdStr === 'terra') {
       targetBrasaOrgId = '9e371bc2-594f-46a3-8c95-8fc91a13041f';
     } else if (orgIdStr === 'ea32ec07-c64b-4670-88ec-849cabd7170f' || orgIdStr === 'hardrock') {
@@ -202,91 +201,23 @@ export async function POST(req: NextRequest) {
       targetBrasaOrgId = '43670635-c205-4b19-99d4-445c7a683730';
     }
 
-    let canonicalOrg = await db.organization.findFirst({
+    // 1. Exact match on Organization.brasaOrganizationId or Organization.id
+    const canonicalOrg = await db.organization.findFirst({
       where: {
         OR: [
           { brasaOrganizationId: targetBrasaOrgId },
-          { brasaOrganizationId: String(meatOrgId) },
-          { id: String(meatOrgId) }
+          { brasaOrganizationId: orgIdStr },
+          { id: orgIdStr }
         ]
       }
     });
 
-    // Fallback: If not matched by exact brasaOrganizationId, match by client brand name
-    if (!canonicalOrg) {
-      let nameSearch: string | null = null;
-      if (orgIdStr === '9e371bc2-594f-46a3-8c95-8fc91a13041f' || orgIdStr === '26e29999-5e6e-4022-bd85-17aec722655e' || orgIdStr.includes('terra')) {
-        nameSearch = 'Terra';
-      } else if (orgIdStr === '3a6ac28e-6b5e-4a60-8ad6-5bc18a4b5037' || orgIdStr === 'ea32ec07-c64b-4670-88ec-849cabd7170f' || orgIdStr.includes('hardrock')) {
-        nameSearch = 'Hard Rock';
-      } else if (orgIdStr === '66c8dc51-e1ed-48dd-8c03-57603796d22f' || orgIdStr === 'd04d5015-44a9-4bdd-9021-b8bd28caad9b' || orgIdStr.includes('outback')) {
-        nameSearch = 'Bloomin';
-      } else if (orgIdStr === 'tdb-main' || orgIdStr.includes('tdb') || orgIdStr.includes('texas')) {
-        nameSearch = 'Texas';
-      } else if (orgIdStr === '43670635-c205-4b19-99d4-445c7a683730' || orgIdStr.includes('fogo')) {
-        nameSearch = 'Fogo';
-      }
-
-      if (nameSearch) {
-        canonicalOrg = await db.organization.findFirst({
-          where: { name: { contains: nameSearch, mode: 'insensitive' } }
-        });
-
-        if (canonicalOrg) {
-          try {
-            await db.organization.update({
-              where: { id: canonicalOrg.id },
-              data: { brasaOrganizationId: targetBrasaOrgId }
-            });
-          } catch (e) {
-            // Ignore if concurrent update or unique constraint
-          }
-        }
-      }
-    }
-
-    // JIT Auto-Provisioning for Authoritative Meat Signed Handoffs
-    if (!canonicalOrg) {
-      let provName = 'Client Organization';
-      let provSlug = 'client-org';
-
-      if (orgIdStr === '9e371bc2-594f-46a3-8c95-8fc91a13041f' || orgIdStr === '26e29999-5e6e-4022-bd85-17aec722655e' || orgIdStr.includes('terra')) {
-        provName = 'Terra Gaúcha Brazilian Steakhouse';
-        provSlug = 'terra-gaucha';
-      } else if (orgIdStr === '3a6ac28e-6b5e-4a60-8ad6-5bc18a4b5037' || orgIdStr === 'ea32ec07-c64b-4670-88ec-849cabd7170f' || orgIdStr.includes('hardrock')) {
-        provName = 'Hard Rock Hotel & Casino';
-        provSlug = 'hard-rock';
-      } else if (orgIdStr === '66c8dc51-e1ed-48dd-8c03-57603796d22f' || orgIdStr === 'd04d5015-44a9-4bdd-9021-b8bd28caad9b' || orgIdStr.includes('outback')) {
-        provName = "Bloomin' Brands / Outback";
-        provSlug = 'outback-steakhouse';
-      } else if (orgIdStr === 'tdb-main' || orgIdStr.includes('tdb') || orgIdStr.includes('texas')) {
-        provName = 'Texas de Brazil';
-        provSlug = 'texas-de-brazil';
-      } else if (orgIdStr === '43670635-c205-4b19-99d4-445c7a683730' || orgIdStr.includes('fogo')) {
-        provName = 'Fogo de Chão';
-        provSlug = 'fogo-de-chao';
-      }
-
-      try {
-        canonicalOrg = await db.organization.create({
-          data: {
-            brasaOrganizationId: targetBrasaOrgId,
-            name: provName,
-            slug: provSlug + '-' + Date.now().toString(36),
-            status: 'ACTIVE'
-          }
-        });
-        console.log(`[JIT PROVISIONING] Created Organization ${canonicalOrg.id} for Meat org ${targetBrasaOrgId}`);
-      } catch (e: any) {
-        console.error('[JIT PROVISIONING FAIL]', e.message);
-      }
-    }
-
     if (canonicalOrg) {
       pulseOrganizationId = canonicalOrg.id;
     } else {
+      // 2. Exact match on approved ExternalOrganizationIdentity table
       const orgMap = await db.externalOrganizationIdentity.findUnique({
-        where: { provider_externalOrgId: { provider: 'BRASA_MEAT', externalOrgId: String(meatOrgId) } }
+        where: { provider_externalOrgId: { provider: 'BRASA_MEAT', externalOrgId: orgIdStr } }
       });
 
       if (orgMap) {
@@ -294,7 +225,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Fail closed if organization cannot be explicitly resolved (Zero guessing, Zero JIT tenant creation)
     if (!pulseOrganizationId) {
+      console.warn(`[SSO DENIED] Unresolved organization identity: ${meatOrgId}`);
       return NextResponse.json({
         error: 'PULSE_SSO_ORGANIZATION_UNRESOLVED',
         message: `Could not resolve Meat organizationId ${meatOrgId} to a Pulse Organization.`
