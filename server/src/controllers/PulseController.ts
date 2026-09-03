@@ -37,8 +37,11 @@ export class PulseController {
             }
 
             const userId = String(user.id || user.userId);
-            const clientReqCompanyId = req.body?.companyId || req.headers['x-company-id'];
-            const organizationId = clientReqCompanyId || user.companyId || user.company_id ? String(clientReqCompanyId || user.companyId || user.company_id) : null;
+            const clientReqCompanyId = (req.body?.companyId || req.headers['x-company-id']) as string | undefined;
+            const rawCompanyId = (clientReqCompanyId && String(clientReqCompanyId).trim() !== '' && String(clientReqCompanyId) !== 'undefined')
+                ? String(clientReqCompanyId)
+                : (user.companyId || user.company_id ? String(user.companyId || user.company_id) : null);
+            const organizationId = rawCompanyId || 'tdb-main';
             const role = String(user.role || 'viewer');
 
             const isMasterUser = Boolean(
