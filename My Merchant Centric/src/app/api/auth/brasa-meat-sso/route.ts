@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
       targetBrasaOrgId = '43670635-c205-4b19-99d4-445c7a683730';
     }
 
-    const canonicalOrg = await db.organization.findFirst({
+    let canonicalOrg = await db.organization.findFirst({
       where: {
         OR: [
           { brasaOrganizationId: targetBrasaOrgId },
@@ -211,6 +211,39 @@ export async function POST(req: NextRequest) {
         ]
       }
     });
+
+    // Fallback: If not matched by exact brasaOrganizationId, match by client brand name
+    if (!canonicalOrg) {
+      let nameSearch: string | null = null;
+      if (orgIdStr === '9e371bc2-594f-46a3-8c95-8fc91a13041f' || orgIdStr === '26e29999-5e6e-4022-bd85-17aec722655e' || orgIdStr.includes('terra')) {
+        nameSearch = 'Terra';
+      } else if (orgIdStr === '3a6ac28e-6b5e-4a60-8ad6-5bc18a4b5037' || orgIdStr === 'ea32ec07-c64b-4670-88ec-849cabd7170f' || orgIdStr.includes('hardrock')) {
+        nameSearch = 'Hard Rock';
+      } else if (orgIdStr === '66c8dc51-e1ed-48dd-8c03-57603796d22f' || orgIdStr === 'd04d5015-44a9-4bdd-9021-b8bd28caad9b' || orgIdStr.includes('outback')) {
+        nameSearch = 'Bloomin';
+      } else if (orgIdStr === 'tdb-main' || orgIdStr.includes('tdb') || orgIdStr.includes('texas')) {
+        nameSearch = 'Texas';
+      } else if (orgIdStr === '43670635-c205-4b19-99d4-445c7a683730' || orgIdStr.includes('fogo')) {
+        nameSearch = 'Fogo';
+      }
+
+      if (nameSearch) {
+        canonicalOrg = await db.organization.findFirst({
+          where: { name: { contains: nameSearch, mode: 'insensitive' } }
+        });
+
+        if (canonicalOrg) {
+          try {
+            await db.organization.update({
+              where: { id: canonicalOrg.id },
+              data: { brasaOrganizationId: targetBrasaOrgId }
+            });
+          } catch (e) {
+            // Ignore if concurrent update or unique constraint
+          }
+        }
+      }
+    }
 
     if (canonicalOrg) {
       pulseOrganizationId = canonicalOrg.id;
