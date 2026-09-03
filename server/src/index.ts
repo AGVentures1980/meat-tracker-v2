@@ -762,6 +762,36 @@ async function ensureOutbackPilot() {
     }
 }
 
+async function ensurePulseEntitlements() {
+    try {
+        console.log('[Startup] Ensuring BRASA_PULSE entitlements for all client companies...');
+        const companies = await (prisma as any).company.findMany({ select: { id: true, name: true } });
+        for (const c of companies) {
+            await (prisma as any).organizationProductEntitlement.upsert({
+                where: {
+                    company_id_product_code: {
+                        company_id: c.id,
+                        product_code: 'BRASA_PULSE'
+                    }
+                },
+                update: {
+                    status: 'ACTIVE'
+                },
+                create: {
+                    company_id: c.id,
+                    product_code: 'BRASA_PULSE',
+                    status: 'ACTIVE',
+                    source: 'SYSTEM_BOOTSTRAP',
+                    notes: 'Auto-provisioned on startup'
+                }
+            });
+        }
+        console.log(`[Startup] SUCCESS: BRASA_PULSE entitlements active for ${companies.length} companies.`);
+    } catch (err: any) {
+        console.error('[Startup] Failed to ensure BRASA_PULSE entitlements:', err.message);
+    }
+}
+
 // Start Server after DB Check
 if (process.env.NODE_ENV !== 'test') {
     SREStartupGuard.verifyEnvironmentSafety()
@@ -771,6 +801,7 @@ if (process.env.NODE_ENV !== 'test') {
         .then(() => ensureProductionAccounts())
         .then(() => ensureOutbackPilot())
         .then(() => ensureFogoTheme())
+        .then(() => ensurePulseEntitlements())
         .then(() => {
         // ... (existing imports)
 

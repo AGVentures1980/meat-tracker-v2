@@ -7,6 +7,36 @@ const prisma = new PrismaClient();
 
 export class PulseController {
     /**
+     * Resolves a raw company identifier (UUID, subdomain, or slug) to the canonical Company.id UUID.
+     */
+    static async resolveCompanyId(rawInput: string | null | undefined): Promise<string | null> {
+        if (!rawInput || rawInput === 'null' || rawInput === 'undefined') return null;
+        const trimmed = rawInput.trim();
+        if (!trimmed) return null;
+
+        // 1. Check direct UUID match
+        const directCompany = await prisma.company.findUnique({
+            where: { id: trimmed },
+            select: { id: true }
+        });
+        if (directCompany) return directCompany.id;
+
+        // 2. Check subdomain match or name match
+        const subdomainCompany = await prisma.company.findFirst({
+            where: {
+                OR: [
+                    { subdomain: trimmed.toLowerCase() },
+                    { name: { contains: trimmed, mode: 'insensitive' } }
+                ]
+            },
+            select: { id: true }
+        });
+        if (subdomainCompany) return subdomainCompany.id;
+
+        return null;
+    }
+
+    /**
      * POST /api/v1/pulse/handoff (and /api/v1/auth/pulse-handoff)
      * Generates a short-lived (5 min), cryptographically signed Handoff Token for BRASA Pulse.
      * Enforces client-level product entitlement server-side (Requirement 8).
@@ -60,11 +90,12 @@ export class PulseController {
             let organizationId: string | null = null;
 
             if (isMasterUser) {
-                organizationId = (clientReqCompanyId && String(clientReqCompanyId).trim() !== '' && String(clientReqCompanyId) !== 'undefined')
-                    ? String(clientReqCompanyId).trim()
-                    : (userAssignedCompanyId || 'tdb-main');
+                const resolvedReq = await PulseController.resolveCompanyId(clientReqCompanyId);
+                const resolvedAssigned = await PulseController.resolveCompanyId(userAssignedCompanyId);
+                organizationId = resolvedReq || resolvedAssigned || 'tdb-main';
             } else {
-                if (!userAssignedCompanyId) {
+                const resolvedAssigned = await PulseController.resolveCompanyId(userAssignedCompanyId);
+                if (!resolvedAssigned) {
                     console.warn(`[SSO DENIED] Non-MASTER user ${userId} has no assigned companyId in session.`);
                     return res.status(403).json({
                         error: 'PULSE_ORGANIZATION_UNAUTHORIZED',
@@ -74,9 +105,9 @@ export class PulseController {
                 }
 
                 if (clientReqCompanyId && String(clientReqCompanyId).trim() !== '' && String(clientReqCompanyId) !== 'undefined') {
-                    const requestedComp = String(clientReqCompanyId).trim();
-                    if (requestedComp !== userAssignedCompanyId) {
-                        console.warn(`[SSO DENIED] Cross-tenant escalation attempt by user ${userId}: assigned ${userAssignedCompanyId}, requested ${requestedComp}`);
+                    const resolvedReq = await PulseController.resolveCompanyId(clientReqCompanyId);
+                    if (resolvedReq && resolvedReq !== resolvedAssigned) {
+                        console.warn(`[SSO DENIED] Cross-tenant escalation attempt by user ${userId}: assigned ${resolvedAssigned}, requested ${resolvedReq}`);
                         return res.status(403).json({
                             error: 'PULSE_ORGANIZATION_UNAUTHORIZED',
                             status: 'PULSE_ORGANIZATION_UNAUTHORIZED',
@@ -84,7 +115,7 @@ export class PulseController {
                         });
                     }
                 }
-                organizationId = userAssignedCompanyId;
+                organizationId = resolvedAssigned;
             }
 
             // 3. Validate Server-Side Product Entitlement
