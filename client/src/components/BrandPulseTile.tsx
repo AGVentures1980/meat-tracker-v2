@@ -20,15 +20,26 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
         fullRedirectUrl?: string;
     } | null>(null);
 
+    const getEffectiveCompanyId = () => {
+        if (selectedCompany && selectedCompany.trim() !== '') return selectedCompany;
+        const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+        if (hostname.includes('.brasameat.com')) {
+            const sub = hostname.split('.brasameat.com')[0].split('.').pop();
+            if (sub && sub !== 'www' && sub !== 'pulse' && sub !== 'app') return sub;
+        }
+        return user?.companyId || user?.company_id || '';
+    };
+
     useEffect(() => {
         let mounted = true;
         const checkEntitlement = async () => {
             if (!user?.token) return;
             try {
+                const activeComp = getEffectiveCompanyId();
                 const res = await fetch('/api/v1/pulse/entitlement/status', {
                     headers: {
                         'Authorization': `Bearer ${user.token}`,
-                        'x-company-id': selectedCompany || user.companyId || ''
+                        'x-company-id': activeComp
                     }
                 });
                 if (res.ok) {
@@ -72,17 +83,19 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
             user?.store_id ||
             '';
 
+        const activeComp = getEffectiveCompanyId();
+
         try {
             const res = await fetch('/api/v1/pulse/handoff', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${user.token}`,
-                    'x-company-id': selectedCompany || user.companyId || '',
+                    'x-company-id': activeComp,
                     'x-store-id': String(currentActiveStoreId || '')
                 },
                 body: JSON.stringify({
-                    companyId: selectedCompany || user.companyId || '',
+                    companyId: activeComp,
                     activeLocationId: String(currentActiveStoreId || ''),
                     storeId: currentActiveStoreId ? Number(currentActiveStoreId) : undefined
                 })

@@ -86,16 +86,26 @@ export class PulseController {
             const clientReqCompanyId = (req.body?.companyId || req.headers['x-company-id']) as string | undefined;
             const clientRequestedLoc = req.body?.activeLocationId || req.body?.storeId || req.headers['x-store-id'];
 
+            // Extract subdomain from request host if present (e.g. terra.brasameat.com -> terra)
+            const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || req.hostname || '');
+            const hostSubdomain = hostHeader.includes('.brasameat.com')
+                ? hostHeader.split('.brasameat.com')[0].split('.').pop()
+                : null;
+
             // 2. Validate Organization Access (Zero-Trust Server Validation)
             let organizationId: string | null = null;
 
             if (isMasterUser) {
                 const resolvedReq = await PulseController.resolveCompanyId(clientReqCompanyId);
+                const resolvedSubdomain = await PulseController.resolveCompanyId(hostSubdomain);
                 const resolvedAssigned = await PulseController.resolveCompanyId(userAssignedCompanyId);
-                organizationId = resolvedReq || resolvedAssigned || 'tdb-main';
+                organizationId = resolvedReq || resolvedSubdomain || resolvedAssigned || '26e29999-5e6e-4022-bd85-17aec722655e';
             } else {
                 const resolvedAssigned = await PulseController.resolveCompanyId(userAssignedCompanyId);
-                if (!resolvedAssigned) {
+                const resolvedSubdomain = await PulseController.resolveCompanyId(hostSubdomain);
+                const effectiveAssigned = resolvedAssigned || resolvedSubdomain;
+
+                if (!effectiveAssigned) {
                     console.warn(`[SSO DENIED] Non-MASTER user ${userId} has no assigned companyId in session.`);
                     return res.status(403).json({
                         error: 'PULSE_ORGANIZATION_UNAUTHORIZED',
@@ -106,8 +116,8 @@ export class PulseController {
 
                 if (clientReqCompanyId && String(clientReqCompanyId).trim() !== '' && String(clientReqCompanyId) !== 'undefined') {
                     const resolvedReq = await PulseController.resolveCompanyId(clientReqCompanyId);
-                    if (resolvedReq && resolvedReq !== resolvedAssigned) {
-                        console.warn(`[SSO DENIED] Cross-tenant escalation attempt by user ${userId}: assigned ${resolvedAssigned}, requested ${resolvedReq}`);
+                    if (resolvedReq && resolvedReq !== effectiveAssigned) {
+                        console.warn(`[SSO DENIED] Cross-tenant escalation attempt by user ${userId}: assigned ${effectiveAssigned}, requested ${resolvedReq}`);
                         return res.status(403).json({
                             error: 'PULSE_ORGANIZATION_UNAUTHORIZED',
                             status: 'PULSE_ORGANIZATION_UNAUTHORIZED',
@@ -115,7 +125,7 @@ export class PulseController {
                         });
                     }
                 }
-                organizationId = resolvedAssigned;
+                organizationId = effectiveAssigned;
             }
 
             // 3. Validate Server-Side Product Entitlement
