@@ -186,8 +186,30 @@ export async function POST(req: NextRequest) {
     // 4. MASTER ORGANIZATION IDENTITY RESOLUTION
     let pulseOrganizationId: string | null = null;
 
+    const orgIdStr = String(meatOrgId).toLowerCase();
+
+    // Map legacy/subdomain strings to canonical Brand Pulse org
+    let targetBrasaOrgId = String(meatOrgId);
+    if (orgIdStr === '26e29999-5e6e-4022-bd85-17aec722655e' || orgIdStr === 'terra') {
+      targetBrasaOrgId = '9e371bc2-594f-46a3-8c95-8fc91a13041f';
+    } else if (orgIdStr === 'ea32ec07-c64b-4670-88ec-849cabd7170f' || orgIdStr === 'hardrock') {
+      targetBrasaOrgId = '3a6ac28e-6b5e-4a60-8ad6-5bc18a4b5037';
+    } else if (orgIdStr === 'd04d5015-44a9-4bdd-9021-b8bd28caad9b' || orgIdStr === 'outback') {
+      targetBrasaOrgId = '66c8dc51-e1ed-48dd-8c03-57603796d22f';
+    } else if (orgIdStr === 'tdb' || orgIdStr === 'texas') {
+      targetBrasaOrgId = 'tdb-main';
+    } else if (orgIdStr === 'fogo') {
+      targetBrasaOrgId = '43670635-c205-4b19-99d4-445c7a683730';
+    }
+
     const canonicalOrg = await db.organization.findFirst({
-      where: { brasaOrganizationId: String(meatOrgId) }
+      where: {
+        OR: [
+          { brasaOrganizationId: targetBrasaOrgId },
+          { brasaOrganizationId: String(meatOrgId) },
+          { id: String(meatOrgId) }
+        ]
+      }
     });
 
     if (canonicalOrg) {
