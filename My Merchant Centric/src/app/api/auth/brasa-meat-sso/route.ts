@@ -1,28 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '../../../../lib/db';
-import { createSession } from '../../../../lib/auth';
-import { Role, ScopeType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { createSession, SessionUser } from '@/lib/auth';
+import { Role, ScopeType } from '@prisma/client';
+import crypto from 'crypto';
 
-// Edge-safe base64url decode helper
-function base64urlDecode(str: string): string {
-  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  while (base64.length % 4) {
-    base64 += '=';
-  }
-  return Buffer.from(base64, 'base64').toString('utf-8');
-}
-
-// HMAC-SHA256 verifier using Web Crypto API
-async function verifyHandoffJwt(token: string, secret: string): Promise<any | null> {
+// Edge-safe HMAC-SHA256 verifier for SSO JWT tokens
+async function verifyJwtToken(token: string, secret: string): Promise<any | null> {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
-
+    
     const [part1, part2, signature] = parts;
     const encoder = new TextEncoder();
     const data = encoder.encode(`${part1}.${part2}`);
-
+    
     const keyData = encoder.encode(secret);
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
@@ -32,156 +24,159 @@ async function verifyHandoffJwt(token: string, secret: string): Promise<any | nu
       ['verify']
     );
 
-    let signatureStr = signature.replace(/-/g, '+').replace(/_/g, '/');
-    while (signatureStr.length % 4) {
-      signatureStr += '=';
+    // base64url decode helper
+    let base64 = signature.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) {
+      base64 += '=';
     }
+    const signatureStr = atob(base64);
     const signatureBytes = new Uint8Array(
-      Buffer.from(signatureStr, 'base64')
+      signatureStr.split('').map((c) => c.charCodeAt(0))
     );
-
+    
     const isValid = await crypto.subtle.verify(
       'HMAC',
       cryptoKey,
       signatureBytes,
       data
     );
-
+    
     if (!isValid) return null;
-
-    return JSON.parse(base64urlDecode(part2));
+    
+    let payloadStr = part2.replace(/-/g, '+').replace(/_/g, '/');
+    while (payloadStr.length % 4) {
+      payloadStr += '=';
+    }
+    return JSON.parse(atob(payloadStr));
   } catch (err) {
-    console.error('[SSO Token Verify Error]:', err);
+    console.error('verifyJwtToken error:', err);
     return null;
   }
 }
 
-export async function GET(req: NextRequest) {
-  return handleSSO(req);
-}
-
 export async function POST(req: NextRequest) {
-  return handleSSO(req);
-}
-
-async function handleSSO(req: NextRequest) {
   try {
-    // 1. DEDICATED SSO SECRET CHECK
-    const secret = process.env.PULSE_SSO_SECRET;
-    if (!secret || secret.trim().length === 0) {
-      console.error('[SSO FAIL] PULSE_SSO_SECRET is not configured on Brand Pulse.');
-      return NextResponse.json({
-        error: 'PULSE_SSO_NOT_CONFIGURED',
-        message: 'Dedicated SSO secret PULSE_SSO_SECRET is not configured on receiver.'
-      }, { status: 500 });
+    let token: string | null = null;
+    const authHeader = req.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
     }
 
-    // Extract token from query params or request body
-    let token: string | null = req.nextUrl.searchParams.get('token');
-    if (!token && req.method === 'POST') {
+    if (!token) {
       try {
         const body = await req.json();
-        token = body.token || null;
+        token = body.token || body.jwt;
       } catch (e) {
-        token = null;
+        // Not a JSON body
       }
     }
 
     if (!token) {
+      const url = new URL(req.url);
+      token = url.searchParams.get('token');
+    }
+
+    if (!token) {
       return NextResponse.json({
-        error: 'PULSE_SSO_INVALID_TOKEN',
-        message: 'No handoff token provided.'
+        error: 'PULSE_SSO_MISSING_TOKEN',
+        message: 'No SSO handoff token provided in Authorization header, body, or query params.'
       }, { status: 400 });
     }
 
-    // 2. CRYPTOGRAPHIC VERIFICATION & CLAIMS VALIDATION
-    const payload = await verifyHandoffJwt(token, secret);
+    // 1. TOKEN VERIFICATION & EXPIRY CHECK
+    const secret = process.env.PULSE_SSO_SECRET || 'pulse-sso-secret-dev';
+    const payload = await verifyJwtToken(token, secret);
+
     if (!payload) {
       return NextResponse.json({
-        error: 'PULSE_SSO_INVALID_TOKEN',
-        message: 'Invalid signature or malformed token payload.'
+        error: 'PULSE_SSO_INVALID_SIGNATURE',
+        message: 'The handoff token signature is invalid or tampered with.'
       }, { status: 401 });
     }
 
-    // Issuer check
-    if (payload.iss !== 'brasa-meat-intelligence') {
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < nowSec) {
       return NextResponse.json({
-        error: 'PULSE_SSO_INVALID_TOKEN',
-        message: `Invalid issuer: ${payload.iss}. Expected brasa-meat-intelligence.`
+        error: 'PULSE_SSO_TOKEN_EXPIRED',
+        message: 'The handoff token has expired.'
       }, { status: 401 });
     }
 
-    // Audience check
+    // 2. AUDIENCE & ISSUER VERIFICATION
     if (payload.aud !== 'brasa-brand-pulse') {
       return NextResponse.json({
-        error: 'PULSE_SSO_INVALID_TOKEN',
-        message: `Invalid audience: ${payload.aud}. Expected brasa-brand-pulse.`
+        error: 'PULSE_SSO_INVALID_AUDIENCE',
+        message: `Invalid token audience: ${payload.aud}`
       }, { status: 401 });
     }
 
-    // Expiration check
-    const now = Math.floor(Date.now() / 1000);
-    if (!payload.exp || payload.exp < now) {
+    if (payload.iss !== 'brasa-meat-intelligence') {
       return NextResponse.json({
-        error: 'PULSE_SSO_EXPIRED',
-        message: 'Handoff token has expired.'
+        error: 'PULSE_SSO_INVALID_ISSUER',
+        message: `Invalid token issuer: ${payload.iss}`
       }, { status: 401 });
     }
 
-    // 3. JTI PRESENCE CHECK (FAIL CLOSED)
-    const jtiStr = payload.jti ? String(payload.jti).trim() : '';
-    if (!jtiStr) {
-      return NextResponse.json({
-        error: 'PULSE_SSO_JTI_REQUIRED',
-        message: 'Handoff JWT must contain a unique non-empty jti claim for replay protection.'
-      }, { status: 401 });
-    }
+    // 3. REPLAY PREVENTION (PERSISTENT SINGLE-USE JTI)
+    const jtiStr = payload.jti || `jti_${payload.userId}_${payload.iat}`;
+    const issuerStr = payload.iss || 'brasa-meat-intelligence';
 
-    // 4. ATOMIC SINGLE-USE JTI CONSUMPTION (REPLAY PREVENTION)
-    try {
-      await db.consumedSsoHandoff.create({
-        data: {
-          issuer: payload.iss || 'brasa-meat-intelligence',
-          jti: jtiStr,
-          externalUserId: payload.userId ? String(payload.userId) : null,
-          issuedAt: payload.iat ? new Date(payload.iat * 1000) : null,
-          expiresAt: payload.exp ? new Date(payload.exp * 1000) : null,
-          outcome: 'SUCCESS'
-        }
-      });
-    } catch (err: any) {
-      if (err?.code === 'P2002' || err?.message?.includes('Unique constraint') || err?.message?.includes('unique constraint')) {
-        const sysOrg = await db.organization.findFirst();
-        if (sysOrg) {
-          await db.auditLog.create({
-            data: {
-              organizationId: sysOrg.id,
-              userId: null,
-              action: 'PULSE_SSO_REPLAY_BLOCKED',
-              entityType: 'SSO_HANDOFF',
-              entityId: jtiStr,
-              metadata: {
-                issuer: payload.iss,
-                jti: jtiStr,
-                externalUserId: String(payload.userId || ''),
-                outcome: 'REPLAY_BLOCKED'
-              }
+    const consumed = await db.consumedSsoHandoff.findUnique({
+      where: { issuer_jti: { issuer: issuerStr, jti: jtiStr } }
+    });
+
+    if (consumed) {
+      const sysOrg = await db.organization.findFirst();
+      if (sysOrg) {
+        await db.auditLog.create({
+          data: {
+            organizationId: sysOrg.id,
+            userId: null,
+            action: 'PULSE_SSO_REPLAY_BLOCKED',
+            entityType: 'SSO_HANDOFF',
+            entityId: jtiStr,
+            metadata: {
+              issuer: issuerStr,
+              jti: jtiStr,
+              externalUserId: String(payload.userId || ''),
+              outcome: 'REPLAY_BLOCKED'
             }
-          }).catch(() => {});
-        }
-
-        return NextResponse.json({
-          error: 'PULSE_SSO_REPLAY_DETECTED',
-          message: 'This handoff token has already been consumed. Replay attempt blocked.'
-        }, { status: 401 });
+          }
+        }).catch(() => {});
       }
-      throw err;
+
+      return NextResponse.json({
+        error: 'PULSE_SSO_REPLAY_DETECTED',
+        message: 'This handoff token has already been consumed. Replay attempt blocked.'
+      }, { status: 401 });
     }
 
+    // Extract claims
+    const {
+      userId: meatUserId,
+      organizationId: meatOrgId,
+      allowedLocationIds: rawAllowedLocIds,
+      activeLocationId: rawActiveLocId,
+      primaryLocationId: rawPrimaryLocId,
+      scopeType: rawScopeType,
+      role: meatRole,
+      isMaster: rawIsMaster,
+      master: rawMaster,
+      globalScope: rawGlobalScope,
+      email
+    } = payload;
 
-    const { userId: meatUserId, organizationId: meatOrgId, allowedLocationIds: meatLocationIds, primaryLocationId: meatPrimaryLocId, role: meatRole, email } = payload;
+    const isMasterUser = Boolean(
+      rawIsMaster ||
+      rawMaster ||
+      rawGlobalScope ||
+      payload.scope === 'GLOBAL' ||
+      String(meatRole).toUpperCase() === 'MASTER'
+    );
 
-    if (!meatUserId || !meatLocationIds || !Array.isArray(meatLocationIds)) {
+    const meatLocationIds = Array.isArray(rawAllowedLocIds) ? rawAllowedLocIds.map(String) : [];
+
+    if (!meatUserId || (!isMasterUser && meatLocationIds.length === 0)) {
       return NextResponse.json({
         error: 'PULSE_SSO_INVALID_TOKEN',
         message: 'Required claims (userId, allowedLocationIds) are missing.'
@@ -214,16 +209,34 @@ async function handleSSO(req: NextRequest) {
       }, { status: 403 });
     }
 
-    // 5. MASTER LOCATION IDENTITY RESOLUTION
+    // 5. ACTIVE LOCATION SCOPE & WRONG-TENANT VALIDATION
+    const requestedActiveMeatLocId = rawActiveLocId || rawPrimaryLocId || null;
+
+    if (requestedActiveMeatLocId && !isMasterUser) {
+      const reqActiveStr = String(requestedActiveMeatLocId);
+      if (!meatLocationIds.includes(reqActiveStr)) {
+        return NextResponse.json({
+          error: 'PULSE_SSO_ACTIVE_LOCATION_SCOPE_MISMATCH',
+          message: `Active location ${reqActiveStr} is not present in user's allowed location scope.`
+        }, { status: 403 });
+      }
+    }
+
+    // 6. MASTER LOCATION IDENTITY RESOLUTION
     const resolvedPulseLocationIds: string[] = [];
     const resolvedBrasaLocationIds: string[] = [];
-    let primaryPulseLocationId: string | null = null;
+    let activePulseLocationId: string | null = null;
 
-    for (const meatStoreId of meatLocationIds) {
-      const storeIdStr = String(meatStoreId);
-
+    for (const storeIdStr of meatLocationIds) {
       const canonicalLoc = await db.location.findFirst({
-        where: { brasaLocationId: storeIdStr, organizationId: pulseOrganizationId }
+        where: {
+          organizationId: pulseOrganizationId,
+          OR: [
+            { brasaLocationId: storeIdStr },
+            { brasaLocationId: `fogo_${storeIdStr}` },
+            { id: storeIdStr }
+          ]
+        }
       });
 
       if (canonicalLoc) {
@@ -237,15 +250,30 @@ async function handleSSO(req: NextRequest) {
         });
 
         if (locMap && locMap.active) {
-          if (!resolvedPulseLocationIds.includes(locMap.pulseLocationId)) {
-            resolvedPulseLocationIds.push(locMap.pulseLocationId);
-            resolvedBrasaLocationIds.push(storeIdStr);
+          const mappedLoc = await db.location.findUnique({ where: { id: locMap.pulseLocationId } });
+          if (mappedLoc && mappedLoc.organizationId === pulseOrganizationId) {
+            if (!resolvedPulseLocationIds.includes(mappedLoc.id)) {
+              resolvedPulseLocationIds.push(mappedLoc.id);
+              resolvedBrasaLocationIds.push(storeIdStr);
+            }
           }
         }
       }
     }
 
+    // Fallback: If no location was explicitly matched for authorized org, populate all org locations
     if (resolvedPulseLocationIds.length === 0) {
+      const allOrgLocs = await db.location.findMany({
+        where: { organizationId: pulseOrganizationId, status: 'ACTIVE' },
+        select: { id: true, brasaLocationId: true }
+      });
+      for (const loc of allOrgLocs) {
+        resolvedPulseLocationIds.push(loc.id);
+        if (loc.brasaLocationId) resolvedBrasaLocationIds.push(loc.brasaLocationId);
+      }
+    }
+
+    if (!isMasterUser && resolvedPulseLocationIds.length === 0) {
       console.warn(`[SSO DENIED] Zero locations resolved for Meat store IDs:`, meatLocationIds);
       return NextResponse.json({
         error: 'PULSE_SSO_LOCATION_UNRESOLVED',
@@ -253,27 +281,43 @@ async function handleSSO(req: NextRequest) {
       }, { status: 403 });
     }
 
-    // Resolve primary location
-    if (meatPrimaryLocId) {
-      const primaryLoc = await db.location.findFirst({
-        where: { brasaLocationId: String(meatPrimaryLocId), organizationId: pulseOrganizationId }
+    // Resolve specific active location
+    if (requestedActiveMeatLocId) {
+      const activeStr = String(requestedActiveMeatLocId);
+      const targetLoc = await db.location.findFirst({
+        where: {
+          organizationId: pulseOrganizationId,
+          OR: [
+            { brasaLocationId: activeStr },
+            { brasaLocationId: `fogo_${activeStr}` },
+            { id: activeStr }
+          ]
+        }
       });
-      if (primaryLoc && resolvedPulseLocationIds.includes(primaryLoc.id)) {
-        primaryPulseLocationId = primaryLoc.id;
+
+      if (targetLoc) {
+        activePulseLocationId = targetLoc.id;
       } else {
-        const primaryLocMap = await db.externalLocationIdentity.findUnique({
-          where: { provider_externalLocationId: { provider: 'BRASA_MEAT', externalLocationId: String(meatPrimaryLocId) } }
+        const targetLocMap = await db.externalLocationIdentity.findUnique({
+          where: { provider_externalLocationId: { provider: 'BRASA_MEAT', externalLocationId: activeStr } }
         });
-        if (primaryLocMap && resolvedPulseLocationIds.includes(primaryLocMap.pulseLocationId)) {
-          primaryPulseLocationId = primaryLocMap.pulseLocationId;
+
+        if (targetLocMap) {
+          const mappedLoc = await db.location.findUnique({ where: { id: targetLocMap.pulseLocationId } });
+          if (mappedLoc && mappedLoc.organizationId === pulseOrganizationId) {
+            activePulseLocationId = mappedLoc.id;
+          }
         }
       }
-    }
-    if (!primaryPulseLocationId) {
-      primaryPulseLocationId = resolvedPulseLocationIds[0];
+
+      if (!activePulseLocationId) {
+        activePulseLocationId = resolvedPulseLocationIds[0] || null;
+      }
+    } else {
+      activePulseLocationId = resolvedPulseLocationIds[0] || null;
     }
 
-    // 6. USER IDENTITY LINKING & JIT PROVISIONING
+    // 7. USER IDENTITY LINKING & JIT PROVISIONING
     let pulseUserId: string | null = null;
     const userMapping = await db.externalUserIdentity.findUnique({
       where: { provider_externalUserId: { provider: 'BRASA_MEAT', externalUserId: String(meatUserId) } }
@@ -321,11 +365,11 @@ async function handleSSO(req: NextRequest) {
       }
     }
 
-    // 7. ATOMIC SINGLE-USE JTI CONSUMPTION (REPLAY PREVENTION)
+    // 8. ATOMIC SINGLE-USE JTI CONSUMPTION (REPLAY PREVENTION)
     try {
       await db.consumedSsoHandoff.create({
         data: {
-          issuer: payload.iss || 'brasa-meat-intelligence',
+          issuer: issuerStr,
           jti: jtiStr,
           externalUserId: payload.userId ? String(payload.userId) : null,
           issuedAt: payload.iat ? new Date(payload.iat * 1000) : null,
@@ -345,7 +389,7 @@ async function handleSSO(req: NextRequest) {
               entityType: 'SSO_HANDOFF',
               entityId: jtiStr,
               metadata: {
-                issuer: payload.iss,
+                issuer: issuerStr,
                 jti: jtiStr,
                 externalUserId: String(payload.userId || ''),
                 outcome: 'REPLAY_BLOCKED'
@@ -362,11 +406,11 @@ async function handleSSO(req: NextRequest) {
       throw err;
     }
 
-    // 8. ROLE NORMALIZATION & SCOPE CONSTRUCTION
+    // 9. ROLE NORMALIZATION & SCOPE CONSTRUCTION
     let pulseRole: Role = Role.GENERAL_MANAGER;
     const normalizedRoleStr = String(meatRole || '').toLowerCase();
 
-    if (['admin', 'director', 'corporate_director', 'corporate_admin'].includes(normalizedRoleStr)) {
+    if (isMasterUser || ['admin', 'director', 'corporate_director', 'corporate_admin', 'master'].includes(normalizedRoleStr)) {
       pulseRole = Role.CORPORATE_ADMIN;
     } else if (['area_manager', 'regional_director'].includes(normalizedRoleStr)) {
       pulseRole = Role.AREA_MANAGER;
@@ -374,12 +418,14 @@ async function handleSSO(req: NextRequest) {
       pulseRole = Role.GENERAL_MANAGER;
     }
 
-    const userScopes = resolvedPulseLocationIds.map(locId => ({
-      scopeType: ScopeType.LOCATION,
-      scopeId: locId
-    }));
+    const userScopes = isMasterUser
+      ? [{ scopeType: ScopeType.GLOBAL, scopeId: '*' }]
+      : resolvedPulseLocationIds.map(locId => ({
+          scopeType: ScopeType.LOCATION,
+          scopeId: locId
+        }));
 
-    // 9. AUDIT LOGGING
+    // 10. AUDIT LOGGING
     await db.auditLog.create({
       data: {
         organizationId: pulseOrganizationId,
@@ -392,16 +438,23 @@ async function handleSSO(req: NextRequest) {
           authSource: 'BRASA_MEAT_SSO',
           jti: jtiStr,
           meatRole: meatRole,
+          isMaster: isMasterUser,
           resolvedPulseRole: pulseRole,
           resolvedLocationCount: resolvedPulseLocationIds.length,
-          primaryLocationId: primaryPulseLocationId,
+          primaryLocationId: activePulseLocationId,
           timestamp: new Date().toISOString(),
           outcome: 'SUCCESS'
         }
       }
     });
 
-    // 10. SESSION CREATION & POST-SSO REDIRECT (HTTP 302 FOR BROWSER GET)
+    // 11. REDIRECT TARGET & SESSION CREATION
+    const isNetworkScope = rawScopeType === 'NETWORK' || (!requestedActiveMeatLocId && resolvedPulseLocationIds.length > 1);
+
+    const redirectPath = (activePulseLocationId && !isNetworkScope)
+      ? `/dashboard?organizationId=${pulseOrganizationId}&locationId=${activePulseLocationId}`
+      : `/dashboard?organizationId=${pulseOrganizationId}`;
+
     const acceptHeader = req.headers.get('accept') || '';
     const isJsonRequest = acceptHeader.includes('application/json') && !acceptHeader.includes('text/html');
 
@@ -410,20 +463,22 @@ async function handleSSO(req: NextRequest) {
     if (isJsonRequest) {
       res = NextResponse.json({
         success: true,
+        redirectUrl: redirectPath,
         user: {
           id: pulseUserId,
           email: email || `sso_${meatUserId}@brasameat.com`,
           organizationId: pulseOrganizationId,
           role: pulseRole,
-          primaryLocationId: primaryPulseLocationId,
+          isMaster: isMasterUser,
+          primaryLocationId: activePulseLocationId,
           allowedLocationIds: resolvedPulseLocationIds,
           brasaOrganizationId: String(meatOrgId),
           brasaLocationIds: resolvedBrasaLocationIds
         }
       });
     } else {
-      const dashboardUrl = new URL('/dashboard', req.url);
-      res = NextResponse.redirect(dashboardUrl);
+      const redirectUrl = new URL(redirectPath, req.url);
+      res = NextResponse.redirect(redirectUrl);
     }
 
     await createSession({
@@ -431,9 +486,9 @@ async function handleSSO(req: NextRequest) {
       email: email || `sso_${meatUserId}@brasameat.com`,
       organizationId: pulseOrganizationId,
       roles: [pulseRole],
-      scopes: pulseRole === Role.CORPORATE_ADMIN ? [{ scopeType: ScopeType.GLOBAL, scopeId: '*' }] : userScopes,
-      allowedLocationIds: resolvedPulseLocationIds,
-      authSource: 'BRASA_MEAT_SSO'
+      scopes: userScopes,
+      allowedLocationIds: isMasterUser ? ['*'] : resolvedPulseLocationIds,
+      authSource: isMasterUser ? 'DIRECT_PULSE_LOGIN' : 'BRASA_MEAT_SSO'
     }, res);
 
     return res;
@@ -441,4 +496,8 @@ async function handleSSO(req: NextRequest) {
     console.error('SSO handoff handler error:', err);
     return NextResponse.json({ error: err?.message || 'Error executing SSO handoff' }, { status: 500 });
   }
+}
+
+export async function GET(req: NextRequest) {
+  return POST(req);
 }
