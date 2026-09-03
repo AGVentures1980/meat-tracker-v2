@@ -37,32 +37,52 @@ export class PulseController {
             }
 
             const userId = String(user.id || user.userId);
-            const clientReqCompanyId = (req.body?.companyId || req.headers['x-company-id']) as string | undefined;
-            const rawCompanyId = (clientReqCompanyId && String(clientReqCompanyId).trim() !== '' && String(clientReqCompanyId) !== 'undefined')
-                ? String(clientReqCompanyId)
-                : (user.companyId || user.company_id ? String(user.companyId || user.company_id) : null);
-            const organizationId = rawCompanyId || 'tdb-main';
+            const userAssignedCompanyId = user.companyId || user.company_id ? String(user.companyId || user.company_id) : null;
             const role = String(user.role || 'viewer');
 
+            // 1. Authoritative MASTER check derived ONLY from session role / flags (NO email checks)
             const isMasterUser = Boolean(
                 role === 'master' ||
-                user.is_master ||
-                user.is_primary ||
-                user.email === 'alexandre@alexgarciaventures.co'
+                user.is_master === true ||
+                user.is_primary === true
             );
 
-            // Read client requested active store/location ID from UI
+            // Read client UI requested context
+            const clientReqCompanyId = (req.body?.companyId || req.headers['x-company-id']) as string | undefined;
             const clientRequestedLoc = req.body?.activeLocationId || req.body?.storeId || req.headers['x-store-id'];
-            let activeLocationId: string | null = null;
 
-            if (clientRequestedLoc) {
-                const locStr = String(clientRequestedLoc).trim();
-                if (locStr && locStr !== 'undefined' && locStr !== 'null') {
-                    activeLocationId = locStr;
+            // 2. Validate Organization Access (Zero-Trust Server Validation)
+            let organizationId: string | null = null;
+
+            if (isMasterUser) {
+                organizationId = (clientReqCompanyId && String(clientReqCompanyId).trim() !== '' && String(clientReqCompanyId) !== 'undefined')
+                    ? String(clientReqCompanyId).trim()
+                    : (userAssignedCompanyId || 'tdb-main');
+            } else {
+                if (!userAssignedCompanyId) {
+                    console.warn(`[SSO DENIED] Non-MASTER user ${userId} has no assigned companyId in session.`);
+                    return res.status(403).json({
+                        error: 'PULSE_ORGANIZATION_UNAUTHORIZED',
+                        status: 'PULSE_ORGANIZATION_UNAUTHORIZED',
+                        message: 'User session has no authorized organization assignment.'
+                    });
                 }
+
+                if (clientReqCompanyId && String(clientReqCompanyId).trim() !== '' && String(clientReqCompanyId) !== 'undefined') {
+                    const requestedComp = String(clientReqCompanyId).trim();
+                    if (requestedComp !== userAssignedCompanyId) {
+                        console.warn(`[SSO DENIED] Cross-tenant escalation attempt by user ${userId}: assigned ${userAssignedCompanyId}, requested ${requestedComp}`);
+                        return res.status(403).json({
+                            error: 'PULSE_ORGANIZATION_UNAUTHORIZED',
+                            status: 'PULSE_ORGANIZATION_UNAUTHORIZED',
+                            message: 'Unauthorized cross-organization access request.'
+                        });
+                    }
+                }
+                organizationId = userAssignedCompanyId;
             }
 
-            // ─── REQUIREMENT 8: SERVER-SIDE PRODUCT ENTITLEMENT ENFORCEMENT ──────
+            // 3. Validate Server-Side Product Entitlement
             if (organizationId) {
                 const entitlement = await prisma.organizationProductEntitlement.findUnique({
                     where: {
@@ -83,29 +103,56 @@ export class PulseController {
                 }
             }
 
-            // ─── DERIVE LOCATION SCOPE SERVER-SIDE (ZERO TRUST) ───────────────────
+            // 4. Derive Allowed Location Scope & Validate Active Store Request
             let allowedLocationIds: string[] = [];
             let primaryLocationId: string | null = null;
+            let activeLocationId: string | null = null;
 
             if (isMasterUser) {
                 allowedLocationIds = ['*'];
-                if (organizationId) {
-                    const companyStores = await prisma.store.findMany({
-                        where: { company_id: organizationId },
-                        select: { id: true }
-                    });
-                    if (companyStores.length > 0) {
-                        primaryLocationId = activeLocationId || String(companyStores[0].id);
+                const companyStores = await prisma.store.findMany({
+                    where: { company_id: organizationId },
+                    select: { id: true }
+                });
+                const companyStoreIds = companyStores.map(s => String(s.id));
+
+                if (clientRequestedLoc) {
+                    const reqLocStr = String(clientRequestedLoc).trim();
+                    if (reqLocStr && reqLocStr !== 'undefined' && reqLocStr !== 'null') {
+                        const parsedId = parseInt(reqLocStr, 10);
+                        if (!isNaN(parsedId)) {
+                            const storeRecord = await prisma.store.findUnique({ where: { id: parsedId } });
+                            if (storeRecord && storeRecord.company_id === organizationId) {
+                                activeLocationId = reqLocStr;
+                                primaryLocationId = reqLocStr;
+                            }
+                        }
                     }
                 }
-                if (!primaryLocationId && (user.store_id || user.storeId)) {
-                    primaryLocationId = String(user.store_id || user.storeId);
+
+                if (!primaryLocationId && companyStoreIds.length > 0) {
+                    primaryLocationId = companyStoreIds[0];
+                    activeLocationId = companyStoreIds[0];
                 }
             } else if (user.store_id || user.storeId) {
-                const storeIdStr = String(user.store_id || user.storeId);
-                allowedLocationIds = [storeIdStr];
-                primaryLocationId = storeIdStr;
-                activeLocationId = storeIdStr;
+                // GM / Single store user
+                const userStoreIdStr = String(user.store_id || user.storeId);
+                allowedLocationIds = [userStoreIdStr];
+                primaryLocationId = userStoreIdStr;
+                activeLocationId = userStoreIdStr;
+
+                // Reject cross-store tampering
+                if (clientRequestedLoc) {
+                    const reqLocStr = String(clientRequestedLoc).trim();
+                    if (reqLocStr && reqLocStr !== 'undefined' && reqLocStr !== 'null' && reqLocStr !== userStoreIdStr) {
+                        console.warn(`[SSO DENIED] Cross-store escalation attempt by user ${userId}: assigned ${userStoreIdStr}, requested ${reqLocStr}`);
+                        return res.status(403).json({
+                            error: 'PULSE_LOCATION_UNAUTHORIZED',
+                            status: 'PULSE_LOCATION_UNAUTHORIZED',
+                            message: 'Unauthorized cross-location access request.'
+                        });
+                    }
+                }
             } else if (role === 'area_manager' || (user.scope && user.scope.type === 'AREA')) {
                 const areaStores = await prisma.store.findMany({
                     where: { area_manager_id: userId },
@@ -113,18 +160,56 @@ export class PulseController {
                 });
                 if (areaStores.length > 0) {
                     allowedLocationIds = areaStores.map(s => String(s.id));
-                    primaryLocationId = activeLocationId && allowedLocationIds.includes(activeLocationId) ? activeLocationId : allowedLocationIds[0];
                 } else if (user.scope?.storeIds && Array.isArray(user.scope.storeIds)) {
                     allowedLocationIds = user.scope.storeIds.map((id: any) => String(id));
-                    primaryLocationId = activeLocationId && allowedLocationIds.includes(activeLocationId) ? activeLocationId : (allowedLocationIds[0] || null);
+                }
+
+                if (clientRequestedLoc) {
+                    const reqLocStr = String(clientRequestedLoc).trim();
+                    if (reqLocStr && reqLocStr !== 'undefined' && reqLocStr !== 'null') {
+                        if (!allowedLocationIds.includes(reqLocStr)) {
+                            console.warn(`[SSO DENIED] Area Manager ${userId} requested store ${reqLocStr} outside assigned scope ${allowedLocationIds.join(',')}`);
+                            return res.status(403).json({
+                                error: 'PULSE_LOCATION_UNAUTHORIZED',
+                                status: 'PULSE_LOCATION_UNAUTHORIZED',
+                                message: 'Requested location is outside your assigned area scope.'
+                            });
+                        }
+                        activeLocationId = reqLocStr;
+                        primaryLocationId = reqLocStr;
+                    }
+                }
+                if (!primaryLocationId) {
+                    primaryLocationId = allowedLocationIds[0] || null;
+                    activeLocationId = primaryLocationId;
                 }
             } else if (organizationId) {
+                // Corporate Admin / Director
                 const companyStores = await prisma.store.findMany({
                     where: { company_id: organizationId },
                     select: { id: true }
                 });
                 allowedLocationIds = companyStores.map(s => String(s.id));
-                primaryLocationId = activeLocationId && allowedLocationIds.includes(activeLocationId) ? activeLocationId : (allowedLocationIds[0] || null);
+
+                if (clientRequestedLoc) {
+                    const reqLocStr = String(clientRequestedLoc).trim();
+                    if (reqLocStr && reqLocStr !== 'undefined' && reqLocStr !== 'null') {
+                        if (!allowedLocationIds.includes(reqLocStr)) {
+                            console.warn(`[SSO DENIED] Corporate User ${userId} requested store ${reqLocStr} outside company ${organizationId}`);
+                            return res.status(403).json({
+                                error: 'PULSE_LOCATION_UNAUTHORIZED',
+                                status: 'PULSE_LOCATION_UNAUTHORIZED',
+                                message: 'Requested location does not belong to your organization.'
+                            });
+                        }
+                        activeLocationId = reqLocStr;
+                        primaryLocationId = reqLocStr;
+                    }
+                }
+                if (!primaryLocationId) {
+                    primaryLocationId = allowedLocationIds[0] || null;
+                    activeLocationId = primaryLocationId;
+                }
             }
 
             if (allowedLocationIds.length === 0 && user.propertyId) {
