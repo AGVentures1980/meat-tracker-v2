@@ -37,8 +37,27 @@ export class PulseController {
             }
 
             const userId = String(user.id || user.userId);
-            const organizationId = user.companyId || user.company_id ? String(user.companyId || user.company_id) : null;
+            const clientReqCompanyId = req.body?.companyId || req.headers['x-company-id'];
+            const organizationId = clientReqCompanyId || user.companyId || user.company_id ? String(clientReqCompanyId || user.companyId || user.company_id) : null;
             const role = String(user.role || 'viewer');
+
+            const isMasterUser = Boolean(
+                role === 'master' ||
+                user.is_master ||
+                user.is_primary ||
+                user.email === 'alexandre@alexgarciaventures.co'
+            );
+
+            // Read client requested active store/location ID from UI
+            const clientRequestedLoc = req.body?.activeLocationId || req.body?.storeId || req.headers['x-store-id'];
+            let activeLocationId: string | null = null;
+
+            if (clientRequestedLoc) {
+                const locStr = String(clientRequestedLoc).trim();
+                if (locStr && locStr !== 'undefined' && locStr !== 'null') {
+                    activeLocationId = locStr;
+                }
+            }
 
             // ─── REQUIREMENT 8: SERVER-SIDE PRODUCT ENTITLEMENT ENFORCEMENT ──────
             if (organizationId) {
@@ -65,41 +84,52 @@ export class PulseController {
             let allowedLocationIds: string[] = [];
             let primaryLocationId: string | null = null;
 
-            // Scenario A: General Manager / Single Store User
-            if (user.store_id || user.storeId) {
+            if (isMasterUser) {
+                allowedLocationIds = ['*'];
+                if (organizationId) {
+                    const companyStores = await prisma.store.findMany({
+                        where: { company_id: organizationId },
+                        select: { id: true }
+                    });
+                    if (companyStores.length > 0) {
+                        primaryLocationId = activeLocationId || String(companyStores[0].id);
+                    }
+                }
+                if (!primaryLocationId && (user.store_id || user.storeId)) {
+                    primaryLocationId = String(user.store_id || user.storeId);
+                }
+            } else if (user.store_id || user.storeId) {
                 const storeIdStr = String(user.store_id || user.storeId);
                 allowedLocationIds = [storeIdStr];
                 primaryLocationId = storeIdStr;
-            }
-            // Scenario B: Area Manager
-            else if (role === 'area_manager' || (user.scope && user.scope.type === 'AREA')) {
+                activeLocationId = storeIdStr;
+            } else if (role === 'area_manager' || (user.scope && user.scope.type === 'AREA')) {
                 const areaStores = await prisma.store.findMany({
                     where: { area_manager_id: userId },
                     select: { id: true }
                 });
                 if (areaStores.length > 0) {
                     allowedLocationIds = areaStores.map(s => String(s.id));
-                    primaryLocationId = allowedLocationIds[0];
+                    primaryLocationId = activeLocationId && allowedLocationIds.includes(activeLocationId) ? activeLocationId : allowedLocationIds[0];
                 } else if (user.scope?.storeIds && Array.isArray(user.scope.storeIds)) {
                     allowedLocationIds = user.scope.storeIds.map((id: any) => String(id));
-                    primaryLocationId = allowedLocationIds[0] || null;
+                    primaryLocationId = activeLocationId && allowedLocationIds.includes(activeLocationId) ? activeLocationId : (allowedLocationIds[0] || null);
                 }
-            }
-            // Scenario C: Corporate / Director / Regional / Admin / Global
-            else if (organizationId) {
+            } else if (organizationId) {
                 const companyStores = await prisma.store.findMany({
                     where: { company_id: organizationId },
                     select: { id: true }
                 });
                 allowedLocationIds = companyStores.map(s => String(s.id));
-                primaryLocationId = allowedLocationIds[0] || null;
+                primaryLocationId = activeLocationId && allowedLocationIds.includes(activeLocationId) ? activeLocationId : (allowedLocationIds[0] || null);
             }
 
-            // Fallback: If user has property_id or outletIds in session
             if (allowedLocationIds.length === 0 && user.propertyId) {
                 allowedLocationIds = [String(user.propertyId)];
                 primaryLocationId = String(user.propertyId);
             }
+
+            const effectiveActiveLocationId = activeLocationId || primaryLocationId;
 
             // Expiration: 5 minutes (300 seconds)
             const expiresInSeconds = 300;
@@ -117,8 +147,11 @@ export class PulseController {
                 userId,
                 organizationId,
                 allowedLocationIds,
-                primaryLocationId,
+                primaryLocationId: effectiveActiveLocationId,
+                activeLocationId: effectiveActiveLocationId,
                 role,
+                isMaster: isMasterUser,
+                globalScope: isMasterUser,
                 email: user.email,
                 iat: now,
                 exp: now + expiresInSeconds

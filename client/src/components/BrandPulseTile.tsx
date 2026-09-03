@@ -65,14 +65,27 @@ export const BrandPulseTile: React.FC<BrandPulseTileProps> = ({ variant = 'card'
         if (!user?.token || loading) return;
         setLoading(true);
 
+        const currentActiveStoreId = localStorage.getItem('brasameat_selected_store') ||
+            localStorage.getItem('selected_store_id') ||
+            localStorage.getItem('selected_store') ||
+            user?.storeId ||
+            user?.store_id ||
+            '';
+
         try {
             const res = await fetch('/api/v1/pulse/handoff', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${user.token}`,
-                    'x-company-id': selectedCompany || user.companyId || ''
-                }
+                    'x-company-id': selectedCompany || user.companyId || '',
+                    'x-store-id': String(currentActiveStoreId || '')
+                },
+                body: JSON.stringify({
+                    companyId: selectedCompany || user.companyId || '',
+                    activeLocationId: String(currentActiveStoreId || ''),
+                    storeId: currentActiveStoreId ? Number(currentActiveStoreId) : undefined
+                })
             });
 
             const data = await res.json();
