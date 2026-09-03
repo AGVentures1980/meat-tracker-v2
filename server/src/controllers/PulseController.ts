@@ -375,15 +375,27 @@ export class PulseController {
     static async getEntitlementStatus(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const organizationId = user?.companyId || user?.company_id || req.headers['x-company-id'];
+            const reqCompanyHeader = (req.headers['x-company-id'] || req.query.companyId || req.body?.companyId) as string | undefined;
+
+            let organizationId: string | null = null;
+
+            if (reqCompanyHeader && String(reqCompanyHeader).trim() !== '' && String(reqCompanyHeader) !== 'undefined' && String(reqCompanyHeader) !== 'null') {
+                organizationId = String(reqCompanyHeader).trim();
+            } else if (user?.companyId || user?.company_id) {
+                const compStr = String(user.companyId || user.company_id).trim();
+                if (compStr !== 'null' && compStr !== 'undefined') {
+                    organizationId = compStr;
+                }
+            }
+
             if (!organizationId) {
-                return res.json({ entitled: false, status: 'NO_ORGANIZATION_CONTEXT' });
+                organizationId = 'tdb-main';
             }
 
             const entitlement = await prisma.organizationProductEntitlement.findUnique({
                 where: {
                     company_id_product_code: {
-                        company_id: String(organizationId),
+                        company_id: organizationId,
                         product_code: 'BRASA_PULSE'
                     }
                 }
@@ -393,7 +405,8 @@ export class PulseController {
             return res.json({
                 entitled,
                 status: entitlement ? entitlement.status : 'INACTIVE',
-                productCode: 'BRASA_PULSE'
+                productCode: 'BRASA_PULSE',
+                organizationId
             });
         } catch (err: any) {
             console.error('Fetch entitlement status error:', err);
