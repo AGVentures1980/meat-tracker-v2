@@ -39,8 +39,29 @@ export const CompanySelector = () => {
         fetchCompanies();
     }, [user?.token]);
 
-    const handleSelect = (company: Company) => {
+    const handleSelect = (company: { id: string; name: string; subdomain?: string }) => {
         setCompany(company.id);
+
+        const targetSubdomain = (company.subdomain || company.name.toLowerCase().replace(/[^a-z0-9]/g, '')).trim();
+        const currentHost = window.location.hostname.toLowerCase();
+
+        // Perform canonical subdomain navigation for production domains
+        if (currentHost.includes('.brasameat.com')) {
+            const rootDomain = 'brasameat.com';
+            const currentSubdomain = currentHost.split(`.${rootDomain}`)[0];
+            if (targetSubdomain && currentSubdomain !== targetSubdomain) {
+                window.location.href = `https://${targetSubdomain}.${rootDomain}/dashboard`;
+                return;
+            }
+        } else if (currentHost.includes('.alexgarciaventures.co')) {
+            const rootDomain = 'alexgarciaventures.co';
+            const currentSubdomain = currentHost.split(`.${rootDomain}`)[0];
+            if (targetSubdomain && currentSubdomain !== targetSubdomain) {
+                window.location.href = `https://${targetSubdomain}.${rootDomain}/dashboard`;
+                return;
+            }
+        }
+
         navigate('/dashboard');
     };
 

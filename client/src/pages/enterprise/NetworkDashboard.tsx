@@ -15,6 +15,8 @@ export const NetworkDashboard = () => {
 
     useEffect(() => {
         const fetchNet = async () => {
+            setLoading(true);
+            setNetwork(null);
             try {
                 const targetCompanyId = selectedCompany || theme?.companyId || user?.companyId || '';
                 const res = await fetch('/api/v1/enterprise/network-summary', {
@@ -57,7 +59,7 @@ export const NetworkDashboard = () => {
         if (user) {
             fetchNet();
         }
-    }, [user, selectedCompany, theme]);
+    }, [user, selectedCompany, theme?.companyId]);
 
     if (loading) return <div className="p-8 text-[#C5A059] animate-pulse font-mono tracking-widest text-center">Loading Network Context...</div>;
     if (!network || network.length === 0) return (

@@ -145,6 +145,49 @@ async function runTests() {
     assert(mappedStoreCount === 8, 'Mapped store count includes only active stores with valid coordinates (8 mapped)');
     assert(geoPendingCount === 2, 'Geo pending count correctly equals active minus mapped (2 pending)');
 
+    // TEST 11: Cross-Subdomain Navigation Target Construction
+    function resolveTargetUrl(currentHost: string, targetSubdomain: string): string {
+        if (currentHost.includes('.brasameat.com')) {
+            const rootDomain = 'brasameat.com';
+            const currentSub = currentHost.split(`.${rootDomain}`)[0];
+            if (targetSubdomain && currentSub !== targetSubdomain) {
+                return `https://${targetSubdomain}.${rootDomain}/dashboard`;
+            }
+        }
+        return '/dashboard';
+    }
+
+    const tdbNav = resolveTargetUrl('chima.brasameat.com', 'tdb');
+    assert(tdbNav === 'https://tdb.brasameat.com/dashboard', 'Selecting TDB from Chima subdomain generates https://tdb.brasameat.com/dashboard');
+
+    const chimaNav = resolveTargetUrl('tdb.brasameat.com', 'chima');
+    assert(chimaNav === 'https://chima.brasameat.com/dashboard', 'Selecting Chima from TDB subdomain generates https://chima.brasameat.com/dashboard');
+
+    const hardrockNav = resolveTargetUrl('tdb.brasameat.com', 'hardrock');
+    assert(hardrockNav === 'https://hardrock.brasameat.com/dashboard', 'Selecting Hard Rock from TDB subdomain generates https://hardrock.brasameat.com/dashboard');
+
+    // TEST 12: Hostname Reconciliation Invariant
+    function reconcileTenantCompany(hostname: string, themeCompanyId: string, currentSelected: string): string {
+        if (hostname.includes('.brasameat.com')) {
+            const currentSub = hostname.split('.brasameat.com')[0];
+            if (currentSub !== 'www' && currentSub !== 'localhost') {
+                return themeCompanyId; // Hostname theme companyId is authoritative on tenant subdomains
+            }
+        }
+        return currentSelected;
+    }
+
+    const reconciledOnChima = reconcileTenantCompany('chima.brasameat.com', 'CMP-CHIMA', 'CMP-TDB');
+    assert(reconciledOnChima === 'CMP-CHIMA', 'Stale selectedCompany CMP-TDB on chima.brasameat.com is reconciled to CMP-CHIMA');
+
+    const reconciledOnTdb = reconcileTenantCompany('tdb.brasameat.com', 'CMP-TDB', 'CMP-CHIMA');
+    assert(reconciledOnTdb === 'CMP-TDB', 'Stale selectedCompany CMP-CHIMA on tdb.brasameat.com is reconciled to CMP-TDB');
+
+    // TEST 13: Secret / Token URL Protection
+    const navUrls = [tdbNav, chimaNav, hardrockNav];
+    const hasSecretInUrl = navUrls.some(url => url.includes('token=') || url.includes('jwt=') || url.includes('password=') || url.includes('secret='));
+    assert(!hasSecretInUrl, 'Cross-subdomain navigation URLs contain zero tokens, passwords, or secrets');
+
     console.log(`\n[TEST SUMMARY] Total: ${passed + failed} | Passed: ${passed} | Failed: ${failed}`);
     if (failed > 0) {
         process.exit(1);

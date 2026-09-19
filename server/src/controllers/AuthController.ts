@@ -247,10 +247,28 @@ export class AuthController {
             const refreshToken = crypto.randomUUID();
             // In a production Level 4 SaaS this is pushed to Redis with an expiry of 7d
             // e.g. redisClient.setex(`refresh:${refreshToken}`, 604800, user.id);
+            // Cross-subdomain session cookie for BRASA platform subdomains
+            const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || req.hostname || '');
+            let cookieDomain: string | undefined = undefined;
+            if (hostHeader.includes('.brasameat.com')) {
+                cookieDomain = '.brasameat.com';
+            } else if (hostHeader.includes('.alexgarciaventures.co')) {
+                cookieDomain = '.alexgarciaventures.co';
+            }
+
+            res.cookie('brasameat_token', token, {
+                httpOnly: false,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                domain: cookieDomain,
+                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            });
+
             res.cookie('refreshToken', refreshToken, { 
                 httpOnly: true, 
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
+                domain: cookieDomain,
                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
             });
 

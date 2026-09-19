@@ -17,9 +17,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const stored = localStorage.getItem('brasameat_user');
+        let stored = localStorage.getItem('brasameat_user');
         const storedCompany = localStorage.getItem('brasameat_selected_company');
         
+        const getCookie = (name: string): string | null => {
+            try {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+            } catch (e) {}
+            return null;
+        };
+
         const decodeJWT = (token: string) => {
             try {
                 const base64Url = token.split('.')[1];
@@ -30,6 +39,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return JSON.parse(jsonPayload);
             } catch (e) { return null; }
         };
+
+        // Cross-subdomain session restoration from parent domain cookie
+        if (!stored) {
+            const cookieToken = getCookie('brasameat_token');
+            if (cookieToken) {
+                const decoded = decodeJWT(cookieToken);
+                if (decoded && decoded.role && (!decoded.exp || decoded.exp > Date.now() / 1000)) {
+                    const restoredUser = {
+                        id: decoded.userId || decoded.id,
+                        email: decoded.email,
+                        role: decoded.role,
+                        scope: decoded.scope,
+                        token: cookieToken,
+                        companyId: decoded.companyId
+                    };
+                    localStorage.setItem('brasameat_user', JSON.stringify(restoredUser));
+                    stored = JSON.stringify(restoredUser);
+                }
+            }
+        }
 
         if (stored) {
             const parsedUser = JSON.parse(stored);
