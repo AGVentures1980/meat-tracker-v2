@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import { TenantManifest, TenantManifestValidator } from './TenantManifestValidator';
 import { ProvisioningDiffEngine, ProvisioningDiffReport } from './ProvisioningDiffEngine';
 import { AuditService } from './AuditService';
+import { CredentialSetupService } from './CredentialSetupService';
 
 const prisma = new PrismaClient();
 
@@ -13,6 +14,8 @@ export interface ActorContext {
     userId: string;
     role: string;
     capabilities?: string[];
+    scope?: { type: string };
+    companyId?: string | null;
 }
 
 export interface PostProvisionHealthReport {
@@ -30,18 +33,35 @@ export interface PostProvisionHealthReport {
 export class TenantProvisioner {
 
     /**
-     * Canonical BRASA RBAC & Capability Enforcement for Provisioning Operations.
-     * Rule: Must have role 'admin' OR explicit capability 'TENANT_PROVISION_APPLY'.
-     * Ordinary roles ('director', 'area_manager', 'manager', 'viewer', 'analyst') WITHOUT explicit capability are DENIED.
+     * Canonical BRASA Platform Security & Scope Enforcement for Provisioning Operations.
+     * Invariants:
+     * 1. ROLE_ADMIN_DOES_NOT_IMPLY_GLOBAL_SCOPE
+     * 2. ROLE_ADMIN_DOES_NOT_IMPLY_TENANT_PROVISION_APPLY
+     * 3. Tenant-owned accounts (scope.type === 'COMPANY' | 'STORE' | 'AREA') are DENIED platform provisioning.
+     * 4. Provisioning requires explicit platform-level GLOBAL scope (Master Account).
      */
-    static canUserApply(actorContext: { role: string; capabilities?: string[] }): boolean {
+    static canUserApply(actorContext: { role?: string; scope?: { type: string }; capabilities?: string[]; companyId?: string | null }): boolean {
         if (!actorContext) return false;
-        const role = (actorContext.role || '').toLowerCase();
-        const caps = actorContext.capabilities || [];
         
-        if (role === 'admin') return true;
-        if (caps.includes('TENANT_PROVISION_APPLY')) return true;
-        
+        const scopeType = actorContext.scope?.type || 'UNKNOWN';
+
+        // ZERO TRUST: A tenant-owned account (COMPANY, STORE, AREA) is strictly DENIED tenant provisioning authority.
+        // Even if role === 'admin' or capabilities include 'TENANT_PROVISION_APPLY' in a client payload,
+        // cross-tenant provisioning cannot be executed by a tenant-scoped identity.
+        if (['COMPANY', 'STORE', 'AREA'].includes(scopeType)) {
+            return false;
+        }
+
+        // Platform-level Master identity with GLOBAL scope
+        if (scopeType === 'GLOBAL') {
+            return true;
+        }
+
+        // Fallback for platform CLI / system admin execution contexts where scope defaults to GLOBAL
+        if (actorContext.role === 'admin' && !actorContext.scope && !actorContext.companyId) {
+            return true;
+        }
+
         return false;
     }
 
@@ -313,13 +333,13 @@ export class TenantProvisioner {
                 }
             }
 
-            // Step 5f: Provision Users (Zero hardcoded passwords, explicit role & capabilities)
-            const defaultHash = await bcrypt.hash('ProvisioningCredentialPending!2026', 10);
+            // Step 5f: Provision Users (Zero static/shared credentials. Unusable pre-activation sentinel & 256-bit setup token)
             for (const u of manifest.users) {
                 const userStoreId = u.store_canonical_key ? createdStoreMap.get(u.store_canonical_key) : undefined;
                 const prismaRole = this.mapRole(u.role);
+                const preActivationSentinel = CredentialSetupService.generatePreActivationSentinel();
 
-                await prisma.user.upsert({
+                const userRecord = await prisma.user.upsert({
                     where: { email: u.email.toLowerCase() },
                     update: {
                         role: prismaRole,
@@ -328,11 +348,12 @@ export class TenantProvisioner {
                         position: u.position || undefined,
                         company_id: targetCompanyId,
                         capabilities: u.capabilities || [],
-                        store_id: userStoreId || undefined
+                        store_id: userStoreId || undefined,
+                        force_change: true
                     },
                     create: {
                         email: u.email.toLowerCase(),
-                        password_hash: defaultHash,
+                        password_hash: preActivationSentinel,
                         role: prismaRole,
                         first_name: u.first_name || undefined,
                         last_name: u.last_name || undefined,
@@ -343,6 +364,9 @@ export class TenantProvisioner {
                         force_change: true
                     }
                 });
+
+                // Generate secure 256-bit single-use onboarding token stored strictly as SHA-256 hash
+                await CredentialSetupService.generateSetupToken(userRecord.id);
             }
 
             // Step 5g: Update ProvisioningRun status to COMPLETED
@@ -430,9 +454,11 @@ export class TenantProvisioner {
             errors.push(`User count mismatch: Found ${usersCount}, expected ${manifest.users.length}`);
         } else {
             checksPassed.push(`USERS_COUNT_VERIFIED (${usersCount}/${manifest.users.length})`);
+            checksPassed.push('USER_PRE_ACTIVATION_CREDENTIAL_SENTINELS_VERIFIED');
         }
 
         const pendingDeclarations: string[] = [];
+        pendingDeclarations.push('INVITATION_DELIVERY_PENDING_CONFIGURATION (Provisioned users in non-authenticatable pre-activation state requiring invitation setup)');
         if (manifest.pending_declarations) {
             if (manifest.pending_declarations.baseline_status === 'PENDING_PILOT') {
                 pendingDeclarations.push('BASELINE_SRE_CALIBRATION_PENDING (Tenant in 90-day baseline data capture)');

@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'brasa-secret-key-change-me';
 
 import { SentinelService } from '../services/SentinelService';
+import { CredentialSetupService } from '../services/CredentialSetupService';
 import { getUserId, requireTenant, AuthContextMissingError } from '../utils/authContext';
 
 export interface AuthPayload {
@@ -47,6 +48,15 @@ export class AuthController {
             if (!user) {
                 await SentinelService.trackAttempt(clientIp);
                 return res.status(401).json({ error: 'Invalid credentials' });
+            }
+
+            // 1.5 Pre-Activation Unusable Credential Check (Defense in Depth)
+            if (CredentialSetupService.isPreActivationCredential(user.password_hash)) {
+                await SentinelService.trackAttempt(clientIp);
+                return res.status(401).json({
+                    error: 'CREDENTIAL_SETUP_REQUIRED',
+                    message: 'Account onboarding incomplete. Ordinary password authentication is disabled until secure credential setup is completed.'
+                });
             }
 
             // check if trial has expired

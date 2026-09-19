@@ -113,7 +113,7 @@ async function runProvisioningTests() {
 
         assert(TenantProvisioner.canUserApply(adminActor), 'RBAC Check: Role admin is authorized to apply');
         assert(!TenantProvisioner.canUserApply(directorNoCapActor), 'RBAC Check: Director WITHOUT TENANT_PROVISION_APPLY is DENIED');
-        assert(TenantProvisioner.canUserApply(directorWithCapActor), 'RBAC Check: Director WITH TENANT_PROVISION_APPLY capability is APPROVED');
+        assert(!TenantProvisioner.canUserApply(directorWithCapActor), 'RBAC Check: Tenant-scoped Director WITH TENANT_PROVISION_APPLY capability is DENIED');
         assert(!TenantProvisioner.canUserApply(managerActor), 'RBAC Check: Manager is DENIED');
 
         let rbacDenied = false;
