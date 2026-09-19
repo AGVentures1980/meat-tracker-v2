@@ -8,13 +8,14 @@
         "node": ">=20.0.0"
     },
     "scripts": {
-        "start": "node dist/src/scripts/preMigrationResolve.js && PRISMA_HIDE_UPDATE_MESSAGE=true npx prisma migrate deploy && node dist/src/scripts/runMigrationGuard.js && node dist/src/index.js",
+        "start": "PRISMA_HIDE_UPDATE_MESSAGE=true npx prisma migrate deploy && node dist/src/scripts/runMigrationGuard.js && node dist/src/index.js",
         "start:api": "node dist/src/index.js",
         "start:worker": "node dist/src/workers/index.js",
         "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
         "build": "tsc",
         "fix:ac": "ts-node src/scripts/fix_ac_corrected.ts",
-        "db:seed": "ts-node scripts/seed_targets.ts"
+        "db:seed": "ts-node scripts/seed_targets.ts",
+        "db:resolve-stuck": "ts-node src/scripts/preMigrationResolve.ts"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.1025.0",

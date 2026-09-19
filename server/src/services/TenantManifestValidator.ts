@@ -106,6 +106,15 @@ export class TenantManifestValidator {
             return { isValid: false, errors: ['Manifest is required'], warnings: [] };
         }
 
+        // Credential Prohibitions Check
+        const forbiddenKeys = ['password', 'temporary_password', 'plaintext_password', 'password_hash', 'credential_secret', 'secret'];
+        const serialized = JSON.stringify(manifest).toLowerCase();
+        for (const key of forbiddenKeys) {
+            if (serialized.includes(`"${key}"`)) {
+                errors.push(`CREDENTIAL_SECRET_PROHIBITED: TenantManifest must not contain credential field '${key}'. User onboarding must use safe onboarding invitation flow (USER_CREDENTIAL_SETUP_REQUIRED).`);
+            }
+        }
+
         if (manifest.manifest_version !== 1) {
             errors.push(`Unsupported manifest_version: ${manifest.manifest_version}. Expected 1.`);
         }
