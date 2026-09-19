@@ -203,13 +203,50 @@ export class ProvisioningDiffEngine {
 
         // 5. Evaluate Preparations
         if (manifest.preparations && Array.isArray(manifest.preparations)) {
+            const existingPreparations = targetCompanyId ? await prisma.companyProductPreparation.findMany({
+                where: { company_id: targetCompanyId }
+            }) : [];
+
             for (const prep of manifest.preparations) {
-                diffs.push({
-                    entityType: 'PREPARATION',
-                    entityKey: `${prep.subproduct_name}->${prep.parent_protein_name}`,
-                    action: 'CREATE',
-                    reason: `Subproduct relationship '${prep.subproduct_name}' under parent '${prep.parent_protein_name}' will be registered`
-                });
+                // Resolve parent canonical CompanyProduct from manifest or DB
+                const parentInManifest = manifest.products.find(
+                    p => p.canonical_name.toLowerCase() === prep.parent_protein_name.toLowerCase()
+                );
+                const parentInDb = existingProdMap.get(prep.parent_protein_name.toLowerCase());
+
+                if (!parentInManifest && !parentInDb) {
+                    diffs.push({
+                        entityType: 'PREPARATION',
+                        entityKey: `${prep.subproduct_name}->${prep.parent_protein_name}`,
+                        action: 'BLOCKED',
+                        reason: `Parent canonical product '${prep.parent_protein_name}' for preparation '${prep.subproduct_name}' cannot be resolved in manifest or database`
+                    });
+                    continue;
+                }
+
+                const parentId = parentInDb ? parentInDb.id : null;
+                const normPrepName = prep.subproduct_name.toLowerCase().trim();
+
+                const existingPrep = existingPreparations.find(p =>
+                    (parentId ? p.parent_product_id === parentId : true) &&
+                    p.normalized_preparation_name === normPrepName
+                );
+
+                if (existingPrep && targetCompanyId) {
+                    diffs.push({
+                        entityType: 'PREPARATION',
+                        entityKey: `${prep.subproduct_name}->${prep.parent_protein_name}`,
+                        action: 'UNCHANGED',
+                        reason: `Preparation definition '${prep.subproduct_name}' under parent '${prep.parent_protein_name}' already exists`
+                    });
+                } else {
+                    diffs.push({
+                        entityType: 'PREPARATION',
+                        entityKey: `${prep.subproduct_name}->${prep.parent_protein_name}`,
+                        action: 'CREATE',
+                        reason: `Preparation definition '${prep.subproduct_name}' under parent '${prep.parent_protein_name}' will be provisioned`
+                    });
+                }
             }
         }
 

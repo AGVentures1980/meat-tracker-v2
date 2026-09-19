@@ -60,6 +60,7 @@ model Company {
   targetVersions              OrganizationTargetVersion[]
   targetSimulations           TargetScenarioSimulation[]
   provisioningRuns            ProvisioningRun[]
+  productPreparations         CompanyProductPreparation[]
 }
 
 model OrganizationProductEntitlement {
@@ -98,8 +99,27 @@ model CompanyProduct {
   inventory_items             InventoryItem[]
   parentPrepTargets           PreparationTarget[] @relation("PreparationTargetParent")
   subproductPrepTargets       PreparationTarget[] @relation("PreparationTargetSubproduct")
+  preparations                CompanyProductPreparation[]
 
   @@unique([company_id, name])
+}
+
+model CompanyProductPreparation {
+  id                          String         @id @default(uuid())
+  company_id                  String
+  parent_product_id           String
+  preparation_name            String
+  normalized_preparation_name  String
+  status                      String         @default("ACTIVE")
+  created_at                  DateTime       @default(now())
+  updated_at                  DateTime       @updatedAt
+
+  company                     Company        @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  parent_product              CompanyProduct @relation(fields: [parent_product_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_id, parent_product_id, normalized_preparation_name])
+  @@index([company_id])
+  @@index([parent_product_id])
 }
 
 model Store {

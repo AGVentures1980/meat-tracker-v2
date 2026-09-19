@@ -333,6 +333,51 @@ export class TenantProvisioner {
                 }
             }
 
+            // Step 5e2: Provision Canonical Preparation Genealogy
+            if (manifest.preparations && Array.isArray(manifest.preparations)) {
+                for (const prep of manifest.preparations) {
+                    let parentProductId = createdProductMap.get(prep.parent_protein_name.toLowerCase());
+                    if (!parentProductId) {
+                        const parentProdInDb = await prisma.companyProduct.findUnique({
+                            where: {
+                                company_id_name: {
+                                    company_id: targetCompanyId,
+                                    name: prep.parent_protein_name
+                                }
+                            }
+                        });
+                        if (!parentProdInDb) {
+                            throw new Error(`PREPARATION_PARENT_PRODUCT_NOT_FOUND: Parent canonical product '${prep.parent_protein_name}' for preparation '${prep.subproduct_name}' was not found in company ID '${targetCompanyId}'.`);
+                        }
+                        parentProductId = parentProdInDb.id;
+                        createdProductMap.set(prep.parent_protein_name.toLowerCase(), parentProductId);
+                    }
+
+                    const normalizedPrepName = prep.subproduct_name.toLowerCase().trim();
+
+                    await prisma.companyProductPreparation.upsert({
+                        where: {
+                            company_id_parent_product_id_normalized_preparation_name: {
+                                company_id: targetCompanyId,
+                                parent_product_id: parentProductId,
+                                normalized_preparation_name: normalizedPrepName
+                            }
+                        },
+                        update: {
+                            preparation_name: prep.subproduct_name,
+                            status: 'ACTIVE'
+                        },
+                        create: {
+                            company_id: targetCompanyId,
+                            parent_product_id: parentProductId,
+                            preparation_name: prep.subproduct_name,
+                            normalized_preparation_name: normalizedPrepName,
+                            status: 'ACTIVE'
+                        }
+                    });
+                }
+            }
+
             // Step 5f: Provision Users (Zero static/shared credentials. Unusable pre-activation sentinel & 256-bit setup token)
             for (const u of manifest.users) {
                 const userStoreId = u.store_canonical_key ? createdStoreMap.get(u.store_canonical_key) : undefined;

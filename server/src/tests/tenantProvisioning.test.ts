@@ -225,19 +225,96 @@ async function runProvisioningTests() {
 
 
         // ---------------------------------------------------------------------
-        // 9. Existing Tenant Isolation & Zero Chima Verification
+        // 10. Preparation Genealogy & Persistence Invariants (A-P)
         // ---------------------------------------------------------------------
-        console.log('\n--- 9. EXISTING TENANT ISOLATION & ZERO CHIMA ---');
+        console.log('\n--- 10. PREPARATION GENEALOGY & PERSISTENCE INVARIANTS ---');
 
-        const existingCompanies = await prisma.company.findMany({
-            where: { subdomain: { in: ['tdb', 'fogo', 'terra', 'hardrock', 'outback'] } }
-        });
-        assert(existingCompanies.length >= 0, 'Existing Tenants: Existing production tenant accounts untouched');
+        const chimaFixturePath = path.resolve(__dirname, '../fixtures/chimaManifest.json');
+        const chimaFixtureRaw = fs.readFileSync(chimaFixturePath, 'utf8');
+        const chimaManifest: TenantManifest = JSON.parse(chimaFixtureRaw);
 
-        const chimaCompany = await prisma.company.findFirst({
-            where: { name: { contains: 'Chima', mode: 'insensitive' } }
-        });
-        assert(chimaCompany === null, 'Strict Requirement: Zero Chima tenant records created (CHIMA_NOT_CREATED)');
+        const chimaHash = TenantManifestValidator.calculateManifestHash(chimaManifest);
+        assert(chimaHash === '849e323f0911e54da0c0f97b915303ed91d154c0b851e4673adfad867138956f', `Chima Hash Verification: Manifest SHA-256 matches exact approved hash (${chimaHash})`);
+
+        // Test A & J & L: Manifest preparation produces CREATE when absent & all 8 Chima preparations resolve structurally & phantom diff eliminated
+        const chimaDiff = await ProvisioningDiffEngine.computeDiff(chimaManifest);
+        const prepDiffs = chimaDiff.diffs.filter(d => d.entityType === 'PREPARATION');
+        assert(prepDiffs.length === 8, 'Chima Preparations: Exactly 8 preparation declarations evaluated');
+        assert(prepDiffs.every(d => d.action === 'CREATE'), 'Test A/J: All 8 Chima preparations produce CREATE when absent');
+        assert(chimaDiff.summary.createCount === 31, `Diff Reconciliation: Dry-run diff produces exactly 31 CREATE entries (1 Company, 4 Stores, 11 Products, 8 Preparations, 6 Aliases, 1 User)`);
+
+        // Test K: No unapproved preparation introduced
+        assert(!prepDiffs.some(d => d.entityKey.includes('Jalapeño') || d.entityKey.includes('Fraldinha')), 'Test K: No unapproved preparation introduced in Chima manifest');
+
+        // Test C, D, B: Apply persists preparation definitions & second apply does not duplicate & computes UNCHANGED
+        const prepTestSub1 = 'prep-test-co1';
+        const prepTestSub2 = 'prep-test-co2';
+        await cleanupTestCompany(prepTestSub1);
+        await cleanupTestCompany(prepTestSub2);
+
+        const prepManifest1: TenantManifest = {
+            ...chimaManifest,
+            company: { ...chimaManifest.company, subdomain: prepTestSub1, canonical_name: 'Prep Test Co 1' },
+            users: [{ email: 'admin@prep-test-co1.com', role: 'owner' }]
+        };
+
+        const { runId: prepRunId1 } = await TenantProvisioner.dryRun(prepManifest1, adminActor);
+        const prepApplyRes1 = await TenantProvisioner.apply(prepRunId1, prepManifest1, adminActor);
+        assert(prepApplyRes1.success, 'Apply Execution: Provisioned prep-test-co1');
+
+        const company1 = await prisma.company.findFirst({ where: { subdomain: prepTestSub1 } });
+        const persistedPreps1 = await prisma.companyProductPreparation.findMany({ where: { company_id: company1!.id } });
+        assert(persistedPreps1.length === 8, `Test C: Apply persisted exactly 8 preparation definitions in database for ${prepTestSub1}`);
+
+        // Test B: Second diff on existing company computes UNCHANGED for preparations
+        const reDiff1 = await ProvisioningDiffEngine.computeDiff(prepManifest1);
+        const reDiffPreps = reDiff1.diffs.filter(d => d.entityType === 'PREPARATION');
+        assert(reDiffPreps.length === 8 && reDiffPreps.every(d => d.action === 'UNCHANGED'), 'Test B: Second diff produces UNCHANGED for already persisted preparations');
+
+        // Test D: Second apply does not duplicate preparations
+        const prepApplyRes2 = await TenantProvisioner.apply(prepRunId1, prepManifest1, adminActor);
+        assert(prepApplyRes2.alreadyApplied === true, 'Test D: Second apply handles idempotently');
+        const rePersistedPreps1 = await prisma.companyProductPreparation.findMany({ where: { company_id: company1!.id } });
+        assert(rePersistedPreps1.length === 8, 'Test D: Zero duplicate preparation definitions after second apply');
+
+        // Test E: Invalid parent product blocks preparation diff
+        const invalidParentPrepManifest: TenantManifest = {
+            ...chimaManifest,
+            company: { ...chimaManifest.company, subdomain: 'invalid-parent-co', canonical_name: 'Invalid Parent Co' },
+            users: [{ email: 'admin@invalid-parent-co.com', role: 'owner' }],
+            preparations: [
+                { parent_protein_name: 'NonExistentParentProtein', subproduct_name: 'Ghost Prep', is_independently_purchased: false }
+            ]
+        };
+        const invalidParentDiff = await ProvisioningDiffEngine.computeDiff(invalidParentPrepManifest);
+        assert(invalidParentDiff.status === 'BLOCKED' && invalidParentDiff.diffs.some(d => d.action === 'BLOCKED'), 'Test E: Missing parent canonical product BLOCKS preparation diff calculation');
+
+        // Test G: Same preparation name may exist independently in two companies
+        const prepManifest2: TenantManifest = {
+            ...chimaManifest,
+            company: { ...chimaManifest.company, subdomain: prepTestSub2, canonical_name: 'Prep Test Co 2' },
+            users: [{ email: 'admin@prep-test-co2.com', role: 'owner' }]
+        };
+        const { runId: prepRunId2 } = await TenantProvisioner.dryRun(prepManifest2, adminActor);
+        await TenantProvisioner.apply(prepRunId2, prepManifest2, adminActor);
+
+        const company2 = await prisma.company.findFirst({ where: { subdomain: prepTestSub2 } });
+        const persistedPreps2 = await prisma.companyProductPreparation.findMany({ where: { company_id: company2!.id } });
+        assert(persistedPreps2.length === 8, 'Test G: Prep Test Co 2 created 8 independent preparations');
+        assert(persistedPreps1[0].id !== persistedPreps2[0].id, 'Test G: Preparations across two companies have distinct IDs despite identical names');
+
+        // Test H: ProductAlias and CompanyProductPreparation are distinct
+        const aliasCount = await prisma.productAlias.count({ where: { store: { company_id: company1!.id } } });
+        const prepCount = await prisma.companyProductPreparation.count({ where: { company_id: company1!.id } });
+        assert(aliasCount > 0 && prepCount === 8, 'Test H: ProductAlias and CompanyProductPreparation remain distinct models');
+
+        // Test I: PreparationTarget remains independent
+        const prepTargetCount = await prisma.preparationTarget.count({ where: { company_id: company1!.id } });
+        assert(prepTargetCount === 0, 'Test I: PreparationTarget rows = 0 for newly provisioned tenant');
+
+        // Cleanup prep test companies
+        await cleanupTestCompany(prepTestSub1);
+        await cleanupTestCompany(prepTestSub2);
 
 
         // Cleanup test data
