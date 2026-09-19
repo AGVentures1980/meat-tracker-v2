@@ -34,6 +34,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useThemeContext } from '../../context/ThemeContext';
 import { BrandPulseTile } from '../BrandPulseTile';
 
 interface DashboardLayoutProps {
@@ -58,6 +59,7 @@ const ROLE_DISPLAY_LABELS: Record<string, string> = {
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const { logout, user, selectedCompany } = useAuth();
+    const { theme } = useThemeContext();
     const { t } = useLanguage();
     const location = useLocation();
     const [showAlerts, setShowAlerts] = useState(false);
