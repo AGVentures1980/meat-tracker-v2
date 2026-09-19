@@ -1,0 +1,218 @@
+{
+  "manifest_id": "chima-steakhouse-v1",
+  "manifest_version": 1,
+  "company": {
+    "canonical_name": "Chima Steakhouse",
+    "display_name": "Chima Steakhouse",
+    "subdomain": "chima",
+    "concept_type": "RODIZIO",
+    "timezone_default": "America/New_York",
+    "country": "USA",
+    "status": "Active",
+    "branding": {
+      "theme_primary_color": "#4A0E17"
+    },
+    "entitlements": [
+      "BRASA_CORE"
+    ],
+    "pilot_config": {
+      "is_pilot": true
+    }
+  },
+  "locations": [
+    {
+      "canonical_key": "chima-ftl-01",
+      "store_name": "Chima Fort Lauderdale",
+      "store_code": "chima-ftl",
+      "city": "Fort Lauderdale",
+      "state": "FL",
+      "country": "USA",
+      "timezone": "America/New_York",
+      "status": "ACTIVE",
+      "is_pilot": true
+    },
+    {
+      "canonical_key": "chima-orl-02",
+      "store_name": "Chima Orlando",
+      "store_code": "chima-orl",
+      "city": "Orlando",
+      "state": "FL",
+      "country": "USA",
+      "timezone": "America/New_York",
+      "status": "ACTIVE",
+      "is_pilot": false
+    },
+    {
+      "canonical_key": "chima-clt-03",
+      "store_name": "Chima Charlotte",
+      "store_code": "chima-clt",
+      "city": "Charlotte",
+      "state": "NC",
+      "country": "USA",
+      "timezone": "America/New_York",
+      "status": "ACTIVE",
+      "is_pilot": false
+    },
+    {
+      "canonical_key": "chima-tys-04",
+      "store_name": "Chima Tysons Corner",
+      "store_code": "chima-tys",
+      "city": "Tysons Corner",
+      "state": "VA",
+      "country": "USA",
+      "timezone": "America/New_York",
+      "status": "ACTIVE",
+      "is_pilot": false
+    }
+  ],
+  "products": [
+    {
+      "canonical_name": "Picanha",
+      "category": "Prime Cuts",
+      "protein_group": "BEEF",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Filet Mignon",
+      "category": "Prime Cuts",
+      "protein_group": "BEEF",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Ribeye",
+      "category": "Prime Cuts",
+      "protein_group": "BEEF",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Beef Ribs",
+      "category": "Ribs & Roasts",
+      "protein_group": "BEEF",
+      "is_dinner_only": true
+    },
+    {
+      "canonical_name": "Lamb Picanha",
+      "category": "Lamb",
+      "protein_group": "LAMB",
+      "is_dinner_only": true
+    },
+    {
+      "canonical_name": "Chicken Thighs",
+      "category": "Poultry",
+      "protein_group": "POULTRY",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Chicken Drumsticks",
+      "category": "Poultry",
+      "protein_group": "POULTRY",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Brazilian Sausage",
+      "category": "Sausage",
+      "protein_group": "SAUSAGE",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Cheddar Sausage",
+      "category": "Sausage",
+      "protein_group": "SAUSAGE",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Salmon",
+      "category": "Seafood",
+      "protein_group": "SEAFOOD",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Shrimp",
+      "category": "Seafood",
+      "protein_group": "SEAFOOD",
+      "is_dinner_only": false
+    }
+  ],
+  "preparations": [
+    {
+      "parent_protein_name": "Picanha",
+      "subproduct_name": "Traditional Picanha",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Picanha",
+      "subproduct_name": "Garlic Picanha",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Filet Mignon",
+      "subproduct_name": "Traditional Filet",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Filet Mignon",
+      "subproduct_name": "Bacon-Wrapped Filet",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Filet Mignon",
+      "subproduct_name": "Teriyaki Filet",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Ribeye",
+      "subproduct_name": "Cajun Ribeye",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Chicken Thighs",
+      "subproduct_name": "Aji Chicken Thighs",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Chicken Drumsticks",
+      "subproduct_name": "Beer-Marinated Drumsticks",
+      "is_independently_purchased": false
+    }
+  ],
+  "aliases": [
+    {
+      "alias_name": "Garlic Picanha",
+      "canonical_protein_name": "Picanha"
+    },
+    {
+      "alias_name": "Bacon Filet",
+      "canonical_protein_name": "Filet Mignon"
+    },
+    {
+      "alias_name": "Teriyaki Filet",
+      "canonical_protein_name": "Filet Mignon"
+    },
+    {
+      "alias_name": "Cajun Ribeye",
+      "canonical_protein_name": "Ribeye"
+    },
+    {
+      "alias_name": "Aji Chicken",
+      "canonical_protein_name": "Chicken Thighs"
+    },
+    {
+      "alias_name": "Beer Drumsticks",
+      "canonical_protein_name": "Chicken Drumsticks"
+    }
+  ],
+  "users": [
+    {
+      "email": "director@chimasteakhouse.com",
+      "role": "director",
+      "position": "Director of Operations",
+      "is_primary": true,
+      "capabilities": []
+    }
+  ],
+  "pending_declarations": {
+    "baseline_status": "PENDING_PILOT",
+    "corporate_target_status": "PENDING_AUTHORIZED_INPUT",
+    "supplier_integration_status": "PENDING_INTEGRATION"
+  }
+}

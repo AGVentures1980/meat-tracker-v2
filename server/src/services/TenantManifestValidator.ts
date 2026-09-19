@@ -88,10 +88,23 @@ export interface TenantManifest {
 export class TenantManifestValidator {
 
     /**
+     * Recursively sorts object keys for deterministic SHA-256 hash calculation across nested levels.
+     */
+    private static sortObjectRecursively(obj: any): any {
+        if (obj === null || typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) return obj.map(item => this.sortObjectRecursively(item));
+        return Object.keys(obj).sort().reduce((acc: any, key: string) => {
+            acc[key] = this.sortObjectRecursively(obj[key]);
+            return acc;
+        }, {});
+    }
+
+    /**
      * Calculates deterministic SHA-256 hash over normalized manifest JSON.
      */
     static calculateManifestHash(manifest: TenantManifest): string {
-        const canonicalString = JSON.stringify(manifest, Object.keys(manifest).sort());
+        const sorted = this.sortObjectRecursively(manifest);
+        const canonicalString = JSON.stringify(sorted);
         return crypto.createHash('sha256').update(canonicalString).digest('hex');
     }
 
