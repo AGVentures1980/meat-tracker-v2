@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const decoded = parsedUser.token ? decodeJWT(parsedUser.token) : null;
             
             // Validate Token Freshness
-            if (!decoded || !decoded.companyId || !decoded.role || (decoded.exp && decoded.exp < Date.now() / 1000)) {
+            if (!decoded || !decoded.role || (decoded.exp && decoded.exp < Date.now() / 1000)) {
                 console.warn("[AUTH] Stale or invalid JWT detected. Forcing re-login.");
                 localStorage.removeItem('brasameat_user');
                 localStorage.removeItem('brasameat_selected_company');

@@ -115,7 +115,22 @@ export class AuthController {
                 }
             }
 
-            // Step 3: Domain Inference Fallback for Directors/Area Managers/Admins without raw relations
+            // Step 3: Domain & Portal Inference Fallback
+            if (portalCompany && portalCompany !== 'Brasa Meat Intelligence' && (user.role === 'admin' || !defaultCompanyId)) {
+                const matchedCo = await prisma.company.findFirst({
+                    where: {
+                        OR: [
+                            { name: { contains: portalCompany, mode: 'insensitive' } },
+                            { subdomain: { equals: portalCompany.toLowerCase().trim() } }
+                        ]
+                    },
+                    select: { id: true }
+                });
+                if (matchedCo) {
+                    defaultCompanyId = matchedCo.id;
+                }
+            }
+
             if (!defaultCompanyId) {
                 if (user.email.endsWith('@fogo.com')) {
                     const fdcCompany = await prisma.company.findFirst({ where: { name: { contains: 'Fogo' } } });

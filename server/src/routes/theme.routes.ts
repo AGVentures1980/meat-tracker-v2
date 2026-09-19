@@ -395,6 +395,7 @@ router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => 
                 ]
             },
             select: {
+                id: true,
                 name: true,
                 theme_primary_color: true,
                 theme_logo_url: true,
@@ -405,6 +406,7 @@ router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => 
         if (!company) {
             // Not found - fallback to default
             res.json({
+                company_id: null,
                 primary_color: '#cc0000',
                 logo_url: null,
                 bg_url: null,
@@ -414,6 +416,7 @@ router.get('/:subdomain', async (req: Request, res: Response): Promise<void> => 
         }
 
         res.json({
+            company_id: company.id,
             primary_color: company.theme_primary_color || '#cc0000',
             logo_url: company.theme_logo_url || null,
             bg_url: company.theme_bg_url || null,

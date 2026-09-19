@@ -50,13 +50,31 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
             // ZERO TRUST: Enforce companyId exclusively from JWT Truth (calculated at Login), NOT headers
             // Only GLOBAL admins can override the tenant boundary context.
             const requestedCompanyId = req.headers['x-company-id'];
-            if (requestedCompanyId && typeof requestedCompanyId === 'string') {
-                if (decoded.scope && (decoded.scope.type === 'GLOBAL' || decoded.scope.type === 'PARTNER')) {
+            if (decoded.scope && (decoded.scope.type === 'GLOBAL' || decoded.scope.type === 'PARTNER')) {
+                if (requestedCompanyId && typeof requestedCompanyId === 'string' && requestedCompanyId !== 'null' && requestedCompanyId !== 'undefined' && requestedCompanyId.trim().length > 0) {
                     decoded.companyId = requestedCompanyId; // Authorized override
-                } else if (String(requestedCompanyId) !== String(decoded.companyId)) {
-                    console.warn(`[SECURITY] Tenant spoofing blocked for user ${decoded.id}`);
-                    return res.status(403).json({ error: 'Tenant spoofing detected and blocked.' });
+                } else {
+                    const rawHost = (req.headers.host || '').split(':')[0].toLowerCase();
+                    let subdomain = rawHost.split('.')[0].toLowerCase();
+                    if (subdomain === 'fdc') subdomain = 'fogo';
+                    if (subdomain && subdomain !== 'www' && subdomain !== 'localhost' && !subdomain.includes('brasameat') && !subdomain.includes('railway')) {
+                        const tenantCo = await prisma.company.findFirst({
+                            where: {
+                                OR: [
+                                    { subdomain: subdomain },
+                                    { name: { contains: subdomain, mode: 'insensitive' } }
+                                ]
+                            },
+                            select: { id: true }
+                        });
+                        if (tenantCo) {
+                            decoded.companyId = tenantCo.id;
+                        }
+                    }
                 }
+            } else if (requestedCompanyId && typeof requestedCompanyId === 'string' && String(requestedCompanyId) !== String(decoded.companyId)) {
+                console.warn(`[SECURITY] Tenant spoofing blocked for user ${decoded.id}`);
+                return res.status(403).json({ error: 'Tenant spoofing detected and blocked.' });
             }
         }
 
