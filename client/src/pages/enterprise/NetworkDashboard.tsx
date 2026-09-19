@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useThemeContext } from '../../context/ThemeContext';
 import { Globe, ArrowRight, ShieldAlert, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { BrandPulseTile } from '../../components/BrandPulseTile';
 
 export const NetworkDashboard = () => {
     const { user, selectedCompany } = useAuth();
+    const { theme } = useThemeContext();
     const navigate = useNavigate();
     const [network, setNetwork] = useState<any>(null);
     const [accuracies, setAccuracies] = useState<any>({});
@@ -14,10 +16,11 @@ export const NetworkDashboard = () => {
     useEffect(() => {
         const fetchNet = async () => {
             try {
+                const targetCompanyId = selectedCompany || theme?.companyId || user?.companyId || '';
                 const res = await fetch('/api/v1/enterprise/network-summary', {
                     headers: { 
                         'Authorization': `Bearer ${user?.token}`,
-                        'x-company-id': selectedCompany || user?.companyId
+                        'x-company-id': targetCompanyId
                     }
                 });
                 
@@ -31,7 +34,7 @@ export const NetworkDashboard = () => {
                             const accRes = await fetch(`/api/v1/enterprise/property/${n.store_id}/forecast-accuracy-summary`, {
                                 headers: { 
                                     'Authorization': `Bearer ${user?.token}`,
-                                    'x-company-id': selectedCompany || user?.companyId
+                                    'x-company-id': targetCompanyId
                                 }
                             });
                             if (accRes.ok) {
@@ -54,7 +57,7 @@ export const NetworkDashboard = () => {
         if (user) {
             fetchNet();
         }
-    }, [user]);
+    }, [user, selectedCompany, theme]);
 
     if (loading) return <div className="p-8 text-[#C5A059] animate-pulse font-mono tracking-widest text-center">Loading Network Context...</div>;
     if (!network || network.length === 0) return (

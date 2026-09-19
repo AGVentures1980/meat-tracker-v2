@@ -54,10 +54,11 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
                 if (requestedCompanyId && typeof requestedCompanyId === 'string' && requestedCompanyId !== 'null' && requestedCompanyId !== 'undefined' && requestedCompanyId.trim().length > 0) {
                     decoded.companyId = requestedCompanyId; // Authorized override
                 } else {
-                    const rawHost = (req.headers.host || '').split(':')[0].toLowerCase();
+                    const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || req.hostname || '').split(',')[0].trim();
+                    const rawHost = hostHeader.split(':')[0].toLowerCase();
                     let subdomain = rawHost.split('.')[0].toLowerCase();
                     if (subdomain === 'fdc') subdomain = 'fogo';
-                    if (subdomain && subdomain !== 'www' && subdomain !== 'localhost' && !subdomain.includes('brasameat') && !subdomain.includes('railway')) {
+                    if (subdomain && subdomain !== 'www' && subdomain !== 'localhost' && subdomain !== 'brasameat' && !subdomain.includes('railway')) {
                         const tenantCo = await prisma.company.findFirst({
                             where: {
                                 OR: [

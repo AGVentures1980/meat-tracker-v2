@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface ThemeConfig {
+    companyId: string | null;
     primaryColor: string;
     logoUrl: string | null;
     bgUrl: string | null;
@@ -46,6 +47,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
                 if (response.ok) {
                     const data = await response.json();
                     setTheme({
+                        companyId: data.company_id || null,
                         primaryColor: data.primary_color,
                         logoUrl: data.logo_url,
                         bgUrl: data.bg_url,

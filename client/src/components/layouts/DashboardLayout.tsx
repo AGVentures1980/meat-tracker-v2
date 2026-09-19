@@ -246,7 +246,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 const res = await fetch('/api/v1/dashboard/stats/network', {
                     headers: { 
                         'Authorization': `Bearer ${user.token}`,
-                        'x-company-id': selectedCompany || ''
+                        'x-company-id': selectedCompany || theme?.companyId || ''
                     }
                 });
                 if (res.ok) {
@@ -256,7 +256,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             } catch (err) { }
         };
         fetchNetworkStats();
-    }, [user, selectedCompany]);
+    }, [user, selectedCompany, theme]);
 
     useEffect(() => {
         const isMaster = user?.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
