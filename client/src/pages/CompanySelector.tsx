@@ -133,12 +133,14 @@ export const CompanySelector = () => {
                                     <img src="/tdb-logo-white.svg" alt="TDB Watermark" className="w-[100px] md:w-[150px] object-contain opacity-70" />
                                 ) : company.name.toLowerCase().includes('outback') ? (
                                     <img src="/outback-logo.svg" alt="Outback Watermark" className="w-[100px] md:w-[150px] object-contain opacity-70" />
+                                ) : company.name.toLowerCase().includes('chima') ? (
+                                    <img src="/chima-logo.svg" alt="Chima Watermark" className="w-[100px] md:w-[150px] object-contain opacity-70" />
                                 ) : (
                                     <Building2 size={80} className="text-white scale-75 md:scale-100" />
                                 )}
                             </div>
 
-                            {user?.role === 'admin' && company.id !== 'CMP-001' && !company.name.includes('Texas de Brazil') && !company.name.includes('Fogo de Chão') && (
+                            {user?.role === 'admin' && company.id !== 'CMP-001' && !company.name.includes('Texas de Brazil') && !company.name.includes('Fogo de Chão') && !company.name.toLowerCase().includes('chima') && (
                                 <button 
                                     onClick={(e) => handleArchive(e, company.id, company.name)}
                                     className="absolute top-4 right-4 z-20 p-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full"
@@ -163,6 +165,8 @@ export const CompanySelector = () => {
                                     <img src="/outback-logo.svg" alt="Outback Steakhouse" className="h-[35px] md:h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : company.name.toLowerCase().includes('terra') ? (
                                     <img src="https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg" alt="Terra Gaúcha" className="h-[35px] md:h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
+                                ) : company.name.toLowerCase().includes('chima') ? (
+                                    <img src="/chima-logo.svg" alt="Chima Steakhouse" className="h-[35px] md:h-[45px] w-auto object-contain mb-4 group-hover:scale-105 transition-transform origin-left drop-shadow-md" />
                                 ) : (
                                     <h3 className="text-xl md:text-2xl font-bold text-white mb-2 group-hover:text-[#C5A059] transition-colors">{company.name}</h3>
                                 )}

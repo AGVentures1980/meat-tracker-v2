@@ -95,7 +95,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         }
     }, [activeRegion, isPaused, focusedCompany]);
 
-    const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa") || c.name.toLowerCase().includes("terra") || c.name.toLowerCase().includes("adega") || c.name.toLowerCase().includes("hard rock") || c.name.toLowerCase().includes("hardrock"));
+    const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa") || c.name.toLowerCase().includes("terra") || c.name.toLowerCase().includes("adega") || c.name.toLowerCase().includes("hard rock") || c.name.toLowerCase().includes("hardrock") || c.name.toLowerCase().includes("chima"));
 
     // Hardcode the region variations based on master database
     const regionalOperations = {
@@ -106,7 +106,8 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             { id: 'usa-4', dbMatch: 'Brasa', name: 'Brasa USA', img: '/brasa-logo-v3.png', stores: 1, plan: 'HQ' },
             { id: 'usa-5', dbMatch: 'Terra', name: 'Terra Gaúcha USA', img: 'https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg', stores: 6, plan: 'ENTERPRISE' },
             { id: 'usa-6', dbMatch: 'Adega', name: 'Adega Gaucha USA', img: '/adega-logo.png', stores: 3, plan: 'ENTERPRISE' },
-            { id: 'usa-7', dbMatch: 'Hard Rock', name: 'Hard Rock Cafe', img: '/hardrock_logo.png', stores: 180, plan: 'ENTERPRISE' }
+            { id: 'usa-7', dbMatch: 'Hard Rock', name: 'Hard Rock Cafe', img: '/hardrock_logo.png', stores: 180, plan: 'ENTERPRISE' },
+            { id: 'usa-8', dbMatch: 'Chima', name: 'Chima Steakhouse', img: '/chima-logo.svg', stores: 4, plan: 'ENTERPRISE' }
         ],
         'BR': [
             { id: 'br-1', dbMatch: 'Fogo', name: 'Fogo de Chão Brasil', img: '/fdc-logo-pure-white.png', stores: 9, plan: 'ENTERPRISE' },
@@ -134,6 +135,7 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
              c.name.toLowerCase().includes('terra') ? 'https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg' :
              c.name.toLowerCase().includes('adega') ? '/adega-logo.png' :
              c.name.toLowerCase().includes('hard rock') || c.name.toLowerCase().includes('hardrock') ? '/hardrock_logo.png' :
+             c.name.toLowerCase().includes('chima') ? '/chima-logo.svg' :
              '/brasa-logo-v3.png'
     }));
 
@@ -189,6 +191,16 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                 { lat: 26.0461, lng: -80.2096 }, // Hollywood, FL
                 { lat: 39.3597, lng: -74.4229 }, // Atlantic City, NJ
                 { lat: 18.7301, lng: -68.5303 }, // Punta Cana, DR
+            ];
+        }
+
+        // If Chima Steakhouse, return exact geographic points for the 4 actual stores
+        if (companyName.toLowerCase().includes('chima')) {
+            return [
+                { lat: 26.1224, lng: -80.1373 }, // Fort Lauderdale, FL (Las Olas)
+                { lat: 28.4485, lng: -81.4700 }, // Orlando, FL (Sand Lake Rd)
+                { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Tryon St)
+                { lat: 38.9187, lng: -77.2311 }, // Tysons Corner, VA
             ];
         }
 
