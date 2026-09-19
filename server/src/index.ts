@@ -256,6 +256,9 @@ app.post('/api/auth/brasa-meat-sso', PulseController.handleBrowserSso);
 app.use('/api/v1', leadRoutes);
 app.use('/api/v1/weather', weatherRoutes);
 app.use('/api/v1/sre', sreRoutes);
+import targetGovernanceRoutes from './routes/targetGovernance.routes';
+app.use('/api/v1/governance', targetGovernanceRoutes);
+
 app.use('/api/v1/executive', executiveRoutes);
 
 // Temporary Setup Route (Remove in production later)

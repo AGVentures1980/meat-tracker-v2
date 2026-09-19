@@ -57,6 +57,8 @@ model Company {
   vaultFiles                  VaultFile[]
   entitlements                OrganizationProductEntitlement[]
   publicLocationRegistries    PublicLocationRegistry[]
+  targetVersions              OrganizationTargetVersion[]
+  targetSimulations           TargetScenarioSimulation[]
 }
 
 model OrganizationProductEntitlement {
@@ -91,8 +93,10 @@ model CompanyProduct {
   protein_group       String?
   lbs_per_skewer      Float?
   required_usda_grade UsdaGrade?
-  company             Company         @relation(fields: [company_id], references: [id])
-  inventory_items     InventoryItem[]
+  company                     Company             @relation(fields: [company_id], references: [id])
+  inventory_items             InventoryItem[]
+  parentPrepTargets           PreparationTarget[] @relation("PreparationTargetParent")
+  subproductPrepTargets       PreparationTarget[] @relation("PreparationTargetSubproduct")
 
   @@unique([company_id, name])
 }
@@ -176,6 +180,8 @@ model Store {
   vaultFiles                 VaultFile[]
   waste_compliance           WasteCompliance[]
   waste_logs                 WasteLog[]
+  targetAllocations          StoreTargetAllocation[]
+  preparationTargets         PreparationTarget[]
 
   @@unique([company_id, store_name])
 }
@@ -244,6 +250,7 @@ model User {
   token_version        Int                  @default(1)
   is_active            Boolean              @default(true)
   outletIds            String[]
+  capabilities         String[]             @default([])
   fileAccessLogs       FileAccessLog[]
   partner              Partner?             @relation("PartnerUser")
   password_history     PasswordHistory[]
@@ -2425,3 +2432,110 @@ model PublicLocationRegistry {
   @@index([company_id, reconciliation_status])
   @@index([company_id, public_operating_status])
 }
+
+model OrganizationTargetVersion {
+  id                 String                     @id @default(uuid())
+  company_id         String
+  version            Int                        @default(1)
+  status             String                     @default("APPROVED") // DRAFT, APPROVED, SUPERSEDED
+  effective_from     DateTime                   @db.Date
+  effective_to       DateTime?                  @db.Date
+  target_cost_pax    Float
+  target_lbs_pax     Float
+  fiscal_year        Int                        @default(2027)
+  period_type        String                     @default("YEAR") // YEAR, QUARTER, MONTH, WEEK
+  period_identifier  String                     @default("FY2027")
+  created_by         String
+  approved_by        String?
+  approved_at        DateTime?                  @default(now())
+  reason             String?
+  created_at         DateTime                   @default(now())
+  updated_at         DateTime                   @updatedAt
+
+  company            Company                    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  storeAllocations   StoreTargetAllocation[]
+  targetMetrics      OrganizationTargetMetric[]
+
+  @@unique([company_id, period_type, period_identifier, version])
+  @@index([company_id, status, effective_from])
+}
+
+model OrganizationTargetMetric {
+  id                String                    @id @default(uuid())
+  target_version_id String
+  metric_type       String                    // "LBS_PER_GUEST", "COST_PER_GUEST", "YIELD_PERCENT", "LOSS_PERCENT", "OVERPRODUCTION_PERCENT"
+  target_value      Float
+  unit              String                    // "lb/guest", "USD/guest", "%"
+  created_at        DateTime                  @default(now())
+
+  targetVersion     OrganizationTargetVersion @relation(fields: [target_version_id], references: [id], onDelete: Cascade)
+
+  @@unique([target_version_id, metric_type])
+  @@index([target_version_id])
+}
+
+model StoreTargetAllocation {
+  id                 String                    @id @default(uuid())
+  target_version_id  String
+  store_id           Int
+  tier_name          String?
+  allocated_lbs_pax  Float
+  allocated_cost_pax Float
+  projected_covers   Int?
+  forecast_source    String?
+  created_at         DateTime                  @default(now())
+
+  targetVersion      OrganizationTargetVersion @relation(fields: [target_version_id], references: [id], onDelete: Cascade)
+  store              Store                     @relation(fields: [store_id], references: [id], onDelete: Cascade)
+
+  @@unique([target_version_id, store_id])
+  @@index([store_id])
+}
+
+model TargetScenarioSimulation {
+  id                  String   @id @default(uuid())
+  company_id          String
+  scenario_name       String
+  proposed_cost_pax   Float
+  proposed_lbs_pax    Float
+  simulated_by        String
+  simulated_payload   Json
+  is_promoted         Boolean  @default(false)
+  promoted_version_id String?
+  created_at          DateTime @default(now())
+
+  company             Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id, is_promoted])
+}
+
+model PreparationTarget {
+  id                      String          @id @default(uuid())
+  company_id              String
+  store_id                Int
+  parent_product_id       String?
+  subproduct_product_id   String?
+  parent_protein          String          // Canonical parent protein e.g. "Picanha"
+  subproduct_name         String          // Subproduct / preparation name e.g. "Garlic Picanha"
+  target_quantity         Float           // Planned preparation weight
+  unit                    String          @default("lb")
+  target_date             DateTime        @db.Date
+  planned_parent_quantity Float?
+  source                  String          @default("AUTHORIZED_MANAGER") // "AUTHORIZED_MANAGER", "AI_RECOMMENDATION", "STORE_TEMPLATE"
+  ai_recommended_qty      Float?
+  actual_prepared_qty     Float?
+  created_by              String
+  status                  String          @default("APPROVED") // "DRAFT", "APPROVED", "SUPERSEDED"
+  created_at              DateTime        @default(now())
+  updated_at              DateTime        @updatedAt
+
+  store                   Store           @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  parentProduct           CompanyProduct? @relation("PreparationTargetParent", fields: [parent_product_id], references: [id], onDelete: SetNull)
+  subproductProduct       CompanyProduct? @relation("PreparationTargetSubproduct", fields: [subproduct_product_id], references: [id], onDelete: SetNull)
+
+  @@unique([store_id, subproduct_name, target_date])
+  @@index([company_id, store_id, target_date])
+  @@index([parent_protein, target_date])
+  @@index([parent_product_id])
+}
+
