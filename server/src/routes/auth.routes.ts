@@ -15,6 +15,9 @@ router.post('/forgot-password', loginRateLimiter, securityMiddleware, AuthContro
 router.post('/reset-password', loginRateLimiter, securityMiddleware, AuthController.resetPassword);
 
 // Protected
+router.get('/me', requireAuth, AuthController.getMe);
+router.get('/session', requireAuth, AuthController.getMe);
+router.post('/logout', requireAuth, AuthController.logout);
 router.post('/change-password', requireAuth, AuthController.changePassword);
 router.post('/admin/force-reset/:id', requireAuth, AuthController.forceResetPassword);
 router.post('/pulse-handoff', requireAuth, PulseController.generateHandoff);

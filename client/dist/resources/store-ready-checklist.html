@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Ready Checklist — Texas de Brazil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: white;
+            color: #111;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        @media print {
+            body {
+                padding: 20px;
+            }
+
+            @page {
+                margin: 1.5cm;
+                size: A4;
+            }
+        }
+
+        .header {
+            border-bottom: 3px solid #111;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+
+        .header .meta {
+            text-align: right;
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #111;
+            color: white;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 3px 8px;
+            margin-bottom: 4px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #888;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+        }
+
+        .item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #111;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .item-text {
+            flex: 1;
+        }
+
+        .item-label {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .item-note {
+            font-size: 10px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .critical {
+            border-left: 3px solid #c00;
+            padding-left: 10px;
+        }
+
+        .footer {
+            margin-top: 32px;
+            border-top: 2px solid #111;
+            padding-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .sign-line {
+            border-bottom: 1px solid #111;
+            margin-bottom: 4px;
+            height: 32px;
+        }
+
+        .sign-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div>
+            <div class="badge">Confidential · Operations</div>
+            <h1>Store Ready Checklist</h1>
+            <p style="font-size:12px;color:#666;margin-top:4px;">Texas de Brazil · Brasa Prophet Analytics</p>
+        </div>
+        <div class="meta">
+            <p>Store: ___________________</p>
+            <p style="margin-top:6px;">Opening Date: ___________</p>
+            <p style="margin-top:6px;">Responsible GM: ___________</p>
+        </div>
+    </div>
+
+    <div class="two-col">
+        <div>
+            <div class="section">
+                <div class="section-title">1. Brasa Prophet System</div>
+                <div class="item critical">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Login created and tested</div>
+                        <div class="item-note">GM can access the store dashboard</div>
+                    </div>
+                </div>
+                <div class="item critical">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Operational Template applied</div>
+                        <div class="item-note">Settings → Templates → Select and Apply</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Lunch/Dinner prices configured</div>
+                        <div class="item-note">Settings → Store → Prices</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Lamb Chops rotation configured</div>
+                        <div class="item-note">Yes/No per store contract</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Protein Targets reviewed</div>
+                        <div class="item-note">Confirm with Regional Director</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">2. Initial Data</div>
+                <div class="item critical">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">First inventory entered</div>
+                        <div class="item-note">Opening date as baseline</div>
+                    </div>
+                </div>
+                <div class="item critical">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">First guest report entered</div>
+                        <div class="item-note">Opening week (estimate OK)</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Weekly prices entered</div>
+                        <div class="item-note">Prices → Weekly Price Input</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="section">
+                <div class="section-title">3. Team Training</div>
+                <div class="item critical">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">GM completed Module 1 (Dashboard)</div>
+                        <div class="item-note">Training → Module 1 → Quiz passed</div>
+                    </div>
+                </div>
+                <div class="item critical">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">GM completed Module 2 (Alerts)</div>
+                        <div class="item-note">Training → Module 2 → Quiz passed</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Kitchen team briefed</div>
+                        <div class="item-note">Portioning protocol explained</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Daily data entry routine explained</div>
+                        <div class="item-note">Who enters, when, how</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">4. Approvals</div>
+                <div class="item critical">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Regional Director approved config</div>
+                        <div class="item-note">Targets and template validated</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">Dashboard appears in Exec Summary</div>
+                        <div class="item-note">Store visible in corporate network</div>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="checkbox"></div>
+                    <div class="item-text">
+                        <div class="item-label">First alert tested and received</div>
+                        <div class="item-note">GM knows how to respond to alerts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>
+            <div class="sign-line"></div>
+            <div class="sign-label">Store GM — Signature and Date</div>
+        </div>
+        <div>
+            <div class="sign-line"></div>
+            <div class="sign-label">Regional Director — Approval and Date</div>
+        </div>
+    </div>
+
+    <p style="font-size:9px;color:#ccc;text-align:center;margin-top:20px;">Brasa Prophet Analytics v3.1 · Texas de
+        Brazil · Confidential Document</p>
+
+</body>
+
+</html>

@@ -248,7 +248,7 @@ export class AuthController {
             // In a production Level 4 SaaS this is pushed to Redis with an expiry of 7d
             // e.g. redisClient.setex(`refresh:${refreshToken}`, 604800, user.id);
             // Cross-subdomain session cookie for BRASA platform subdomains
-            const hostHeader = String(req.headers['x-forwarded-host'] || req.headers.host || req.hostname || '');
+            const hostHeader = String(req.headers?.['x-forwarded-host'] || req.headers?.host || req.hostname || '');
             let cookieDomain: string | undefined = undefined;
             if (hostHeader.includes('.brasameat.com')) {
                 cookieDomain = '.brasameat.com';
@@ -257,10 +257,11 @@ export class AuthController {
             }
 
             res.cookie('brasameat_token', token, {
-                httpOnly: false,
+                httpOnly: true, // HARDENED: HttpOnly=true prevents frontend JS access
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
                 domain: cookieDomain,
+                path: '/',
                 maxAge: 24 * 60 * 60 * 1000 // 24 hours
             });
 
@@ -588,5 +589,72 @@ export class AuthController {
             console.error('Force Reset Error:', error);
             return res.status(500).json({ error: 'Failed to execute forced reset' });
         }
+    }
+
+    static async getMe(req: Request, res: Response) {
+        try {
+            const decoded = (req as any).user;
+            if (!decoded) {
+                return res.status(401).json({ error: 'Unauthenticated' });
+            }
+
+            const user = await prisma.user.findUnique({
+                where: { id: decoded.id },
+                select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                    store_id: true,
+                    company_id: true,
+                    is_primary: true,
+                    eula_accepted_at: true,
+                    position: true,
+                    first_name: true,
+                    last_name: true
+                }
+            });
+
+            if (!user) {
+                return res.status(401).json({ error: 'User not found' });
+            }
+
+            return res.json({
+                success: true,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    role: user.role,
+                    storeId: user.store_id,
+                    companyId: decoded.companyId || user.company_id,
+                    scope: decoded.scope,
+                    isPrimary: user.is_primary,
+                    eula_accepted: !!user.eula_accepted_at,
+                    position: user.position,
+                    firstName: user.first_name,
+                    lastName: user.last_name,
+                    propertyId: decoded.propertyId || null,
+                    regionId: decoded.regionId || null,
+                    outletIds: decoded.outletIds || [],
+                    defaultLandingLevel: decoded.defaultLandingLevel || 'PROPERTY'
+                }
+            });
+        } catch (error: any) {
+            console.error('getMe Error:', error);
+            return res.status(500).json({ error: 'Failed to fetch user session' });
+        }
+    }
+
+    static async logout(req: Request, res: Response) {
+        const hostHeader = String(req.headers?.['x-forwarded-host'] || req.headers?.host || req.hostname || '');
+        let cookieDomain: string | undefined = undefined;
+        if (hostHeader.includes('.brasameat.com')) {
+            cookieDomain = '.brasameat.com';
+        } else if (hostHeader.includes('.alexgarciaventures.co')) {
+            cookieDomain = '.alexgarciaventures.co';
+        }
+
+        res.clearCookie('brasameat_token', { domain: cookieDomain, path: '/' });
+        res.clearCookie('refreshToken', { domain: cookieDomain, path: '/' });
+        return res.json({ success: true, message: 'Logged out successfully' });
     }
 }

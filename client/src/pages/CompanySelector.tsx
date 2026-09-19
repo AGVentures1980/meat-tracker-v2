@@ -24,7 +24,7 @@ export const CompanySelector = () => {
         const fetchCompanies = async () => {
             try {
                 const res = await fetch('/api/v1/owner/my-companies', {
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    credentials: 'include'
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -37,26 +37,36 @@ export const CompanySelector = () => {
             }
         };
         fetchCompanies();
-    }, [user?.token]);
+    }, []);
 
     const handleSelect = (company: { id: string; name: string; subdomain?: string }) => {
         setCompany(company.id);
 
-        const targetSubdomain = (company.subdomain || company.name.toLowerCase().replace(/[^a-z0-9]/g, '')).trim();
+        const targetSubdomain = company.subdomain?.trim().toLowerCase();
+        
+        // P2 & Requirements 7, 8, 9: Subdomain Validation & Fallback Elimination
+        const isValidSubdomain = targetSubdomain && /^[a-z0-9-]+$/.test(targetSubdomain);
+
+        if (!isValidSubdomain) {
+            console.error('[TENANT_SWITCH] Subdomain unprovisioned or malformed for company:', company);
+            alert('TENANT_SUBDOMAIN_NOT_PROVISIONED: Cannot navigate to tenant dashboard. Provisioned subdomain is missing or malformed.');
+            return;
+        }
+
         const currentHost = window.location.hostname.toLowerCase();
 
         // Perform canonical subdomain navigation for production domains
         if (currentHost.includes('.brasameat.com')) {
             const rootDomain = 'brasameat.com';
             const currentSubdomain = currentHost.split(`.${rootDomain}`)[0];
-            if (targetSubdomain && currentSubdomain !== targetSubdomain) {
+            if (currentSubdomain !== targetSubdomain) {
                 window.location.href = `https://${targetSubdomain}.${rootDomain}/dashboard`;
                 return;
             }
         } else if (currentHost.includes('.alexgarciaventures.co')) {
             const rootDomain = 'alexgarciaventures.co';
             const currentSubdomain = currentHost.split(`.${rootDomain}`)[0];
-            if (targetSubdomain && currentSubdomain !== targetSubdomain) {
+            if (currentSubdomain !== targetSubdomain) {
                 window.location.href = `https://${targetSubdomain}.${rootDomain}/dashboard`;
                 return;
             }
@@ -71,7 +81,7 @@ export const CompanySelector = () => {
             try {
                 const res = await fetch(`/api/v1/owner/company/${companyId}`, {
                     method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                    credentials: 'include'
                 });
                 const data = await res.json();
                 if (data.success) {

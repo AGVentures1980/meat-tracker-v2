@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 150">
+  <!-- Flame Icon approximation -->
+  <path d="M 200 20 C 230 50 250 80 230 110 C 210 140 170 140 170 140 C 170 140 150 110 170 80 C 180 60 200 20 200 20 Z" fill="#cf2e2e" />
+  <path d="M 200 45 C 215 65 225 85 215 105 C 205 125 185 125 185 125 C 185 125 175 105 185 85 C 190 75 200 45 200 45 Z" fill="#fca311" />
+  
+  <!-- Text Logo -->
+  <text x="50%" y="145" dominant-baseline="baseline" text-anchor="middle" font-family="Georgia, serif" font-size="32" font-weight="bold" fill="#ffffff" letter-spacing="2">FOGO DE CHÃO</text>
+</svg>

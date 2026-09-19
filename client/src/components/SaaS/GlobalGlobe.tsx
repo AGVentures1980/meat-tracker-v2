@@ -58,6 +58,7 @@ export const GlobalGlobe = ({ onSelect }: GlobalGlobeProps) => {
         const fetchGlobalIntelligence = async () => {
             try {
                 const res = await fetch('/api/v1/platform/global-intelligence', {
+                    credentials: 'include',
                     headers: user?.token ? { 'Authorization': `Bearer ${user.token}` } : {}
                 });
                 

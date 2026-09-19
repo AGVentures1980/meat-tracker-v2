@@ -17,68 +17,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        let stored = localStorage.getItem('brasameat_user');
-        const storedCompany = localStorage.getItem('brasameat_selected_company');
-        
-        const getCookie = (name: string): string | null => {
+        const fetchSession = async () => {
             try {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-            } catch (e) {}
-            return null;
+                const res = await fetch('/api/v1/auth/me', {
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.user) {
+                        setUser(data.user);
+                        const storedCompany = localStorage.getItem('brasameat_selected_company');
+                        const resolvedCompany = storedCompany || data.user.companyId || data.user.company_id;
+                        if (resolvedCompany) {
+                            setSelectedCompany(resolvedCompany);
+                            localStorage.setItem('brasameat_selected_company', resolvedCompany);
+                        }
+                        setIsLoading(false);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('[AUTH] Server session bootstrap failed:', e);
+            }
+
+            // Fallback: If unauthenticated or token expired, clear user state
+            setUser(null);
+            setSelectedCompany(null);
+            localStorage.removeItem('brasameat_user');
+            localStorage.removeItem('brasameat_selected_company');
+            setIsLoading(false);
         };
 
-        const decodeJWT = (token: string) => {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => 
-                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                ).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) { return null; }
-        };
-
-        // Cross-subdomain session restoration from parent domain cookie
-        if (!stored) {
-            const cookieToken = getCookie('brasameat_token');
-            if (cookieToken) {
-                const decoded = decodeJWT(cookieToken);
-                if (decoded && decoded.role && (!decoded.exp || decoded.exp > Date.now() / 1000)) {
-                    const restoredUser = {
-                        id: decoded.userId || decoded.id,
-                        email: decoded.email,
-                        role: decoded.role,
-                        scope: decoded.scope,
-                        token: cookieToken,
-                        companyId: decoded.companyId
-                    };
-                    localStorage.setItem('brasameat_user', JSON.stringify(restoredUser));
-                    stored = JSON.stringify(restoredUser);
-                }
-            }
-        }
-
-        if (stored) {
-            const parsedUser = JSON.parse(stored);
-            const decoded = parsedUser.token ? decodeJWT(parsedUser.token) : null;
-            
-            // Validate Token Freshness
-            if (!decoded || !decoded.role || (decoded.exp && decoded.exp < Date.now() / 1000)) {
-                console.warn("[AUTH] Stale or invalid JWT detected. Forcing re-login.");
-                localStorage.removeItem('brasameat_user');
-                localStorage.removeItem('brasameat_selected_company');
-            } else {
-                setUser(parsedUser);
-                const resolvedCompany = storedCompany || parsedUser.companyId || parsedUser.company_id || decoded.companyId;
-                if (resolvedCompany) {
-                    setSelectedCompany(resolvedCompany);
-                    localStorage.setItem('brasameat_selected_company', resolvedCompany);
-                }
-            }
-        }
-        setIsLoading(false);
+        fetchSession();
     }, []);
 
     const setCompany = (id: string | null) => {
@@ -96,15 +66,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const res = await fetch(`${baseUrl}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ email, password: pass, portalCompany })
             });
 
             const data = await res.json();
 
             if (res.ok && data.success) {
-                const userData = { ...data.user, token: data.token, forceChange: data.forcePasswordChange };
+                const userData = { ...data.user, forceChange: data.forcePasswordChange };
                 setUser(userData);
-                localStorage.setItem('brasameat_user', JSON.stringify(userData));
+                // Safe non-secret metadata stored in localStorage for UI hints (NO raw bearer token)
+                localStorage.setItem('brasameat_user', JSON.stringify({
+                    id: userData.id,
+                    email: userData.email,
+                    role: userData.role,
+                    companyId: userData.companyId
+                }));
 
                 const effectiveCompany = data.defaultCompanyId || userData.companyId || userData.company_id;
                 if (effectiveCompany) {
@@ -121,11 +98,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
         setUser(null);
         setSelectedCompany(null);
         localStorage.removeItem('brasameat_user');
         localStorage.removeItem('brasameat_selected_company');
+        try {
+            await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
+        } catch (e) {}
     };
 
     return (
