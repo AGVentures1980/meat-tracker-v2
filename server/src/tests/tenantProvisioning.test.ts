@@ -236,8 +236,16 @@ async function runProvisioningTests() {
         const chimaHash = TenantManifestValidator.calculateManifestHash(chimaManifest);
         assert(chimaHash === '849e323f0911e54da0c0f97b915303ed91d154c0b851e4673adfad867138956f', `Chima Hash Verification: Manifest SHA-256 matches exact approved hash (${chimaHash})`);
 
+        const chimaTestSub = 'chima-test-sub';
+        await cleanupTestCompany(chimaTestSub);
+        const chimaTestManifest: TenantManifest = {
+            ...chimaManifest,
+            company: { ...chimaManifest.company, subdomain: chimaTestSub, canonical_name: 'Chima Test Steakhouse' },
+            users: [{ email: 'admin@chima-test-sub.com', role: 'owner' }]
+        };
+
         // Test A & J & L: Manifest preparation produces CREATE when absent & all 8 Chima preparations resolve structurally & phantom diff eliminated
-        const chimaDiff = await ProvisioningDiffEngine.computeDiff(chimaManifest);
+        const chimaDiff = await ProvisioningDiffEngine.computeDiff(chimaTestManifest);
         const prepDiffs = chimaDiff.diffs.filter(d => d.entityType === 'PREPARATION');
         assert(prepDiffs.length === 8, 'Chima Preparations: Exactly 8 preparation declarations evaluated');
         assert(prepDiffs.every(d => d.action === 'CREATE'), 'Test A/J: All 8 Chima preparations produce CREATE when absent');
