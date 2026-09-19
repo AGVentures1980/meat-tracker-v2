@@ -263,7 +263,9 @@ export class TenantProvisioner {
                         dinner_price: loc.dinner_price ?? undefined,
                         lunch_price: loc.lunch_price ?? undefined,
                         is_lunch_enabled: loc.is_lunch_enabled ?? undefined,
-                        is_pilot: loc.is_pilot ?? false
+                        is_pilot: loc.is_pilot ?? false,
+                        status: 'ACTIVE',
+                        billing_active: true
                     },
                     create: {
                         company_id: targetCompanyId,
@@ -276,6 +278,9 @@ export class TenantProvisioner {
                         lunch_price: loc.lunch_price ?? 29.90,
                         is_lunch_enabled: loc.is_lunch_enabled ?? false,
                         is_pilot: loc.is_pilot ?? false,
+                        status: 'ACTIVE',
+                        billing_active: true,
+                        activated_at: new Date(),
                         data_type: 'DEMO'
                     }
                 });

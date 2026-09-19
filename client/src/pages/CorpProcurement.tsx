@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, TrendingDown, TrendingUp, Target, DollarSign, Database, AlertCircle, EyeOff, Search } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useThemeContext } from '../context/ThemeContext';
 import { Navigate } from 'react-router-dom';
 
 export const CorpProcurement = () => {
     const { t } = useLanguage();
-    const { user } = useAuth();
+    const { user, selectedCompany } = useAuth();
+    const { theme } = useThemeContext();
     const [searchTerm, setSearchTerm] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [stores, setStores] = useState<any[]>([]);
 
     // Hard Lockout: ONLY the master owner can see this page (Ace in the Hole)
     if (user?.email?.toLowerCase().trim() !== 'alexandre@alexgarciaventures.co') {
@@ -26,7 +29,34 @@ export const CorpProcurement = () => {
     const [topOpportunities, setTopOpportunities] = useState<any[]>([]);
     const [loadingDrifts, setLoadingDrifts] = useState(true);
 
-    React.useEffect(() => {
+    useEffect(() => {
+        const fetchTenantData = async () => {
+            try {
+                const res = await fetch('/api/v1/owner/my-companies', {
+                    headers: { 'Authorization': `Bearer ${user?.token}` }
+                });
+                const data = await res.json();
+                if (data.success && Array.isArray(data.companies)) {
+                    // Find current active company matching selectedCompany, theme, or hostname
+                    const rawHost = window.location.hostname.toLowerCase();
+                    const targetCo = data.companies.find((c: any) => 
+                        c.id === selectedCompany || 
+                        c.name?.toLowerCase().includes(theme?.companyName?.toLowerCase() || '') ||
+                        (c.subdomain && rawHost.includes(c.subdomain))
+                    ) || data.companies.find((c: any) => c.subdomain === 'chima' && rawHost.includes('chima'));
+
+                    if (targetCo && targetCo.stores && targetCo.stores.length > 0) {
+                        setStores(targetCo.stores);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch tenant stores for procurement", e);
+            }
+        };
+        fetchTenantData();
+    }, [user, selectedCompany, theme]);
+
+    useEffect(() => {
         const fetchDrifts = async () => {
             try {
                 const res = await fetch('/api/v1/intelligence/ocr/drifts', {
@@ -45,11 +75,22 @@ export const CorpProcurement = () => {
         fetchDrifts();
     }, [user]);
 
-    const recentInvoices = [
-        { id: 'INV-0992', date: 'Today', store: 'Dallas', status: 'Ingested (Stealth)', items: 45, value: 5400 },
-        { id: 'INV-0991', date: 'Yesterday', store: 'Addison', status: 'Ingested (Stealth)', items: 32, value: 3800 },
-        { id: 'INV-0990', date: 'Yesterday', store: 'Fort Worth', status: 'Ingested (Stealth)', items: 51, value: 6100 },
-    ];
+    // Fallback store list based on domain if stores array empty
+    const rawHost = window.location.hostname.toLowerCase();
+    const isChima = rawHost.includes('chima') || theme?.companyName?.toLowerCase().includes('chima');
+
+    const displayStores = stores.length > 0
+        ? stores.map(s => s.city || s.store_name.replace(/^(Chima|Texas de Brazil|Fogo de Chão|Hard Rock|Outback)\s*/i, ''))
+        : (isChima ? ['Fort Lauderdale', 'Orlando', 'Charlotte', 'Tysons Corner'] : ['Dallas', 'Addison', 'Fort Worth']);
+
+    const recentInvoices = displayStores.slice(0, 4).map((storeName, i) => ({
+        id: `INV-099${2 - (i % 3)}`,
+        date: i === 0 ? 'Today' : i === 1 ? 'Yesterday' : `${i + 1} days ago`,
+        store: storeName,
+        status: 'Ingested (Stealth)',
+        items: [45, 32, 51, 28][i % 4],
+        value: [5400, 3800, 6100, 4200][i % 4]
+    }));
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
@@ -99,7 +140,7 @@ export const CorpProcurement = () => {
                         <span className="text-3xl font-bold text-white">$4,850</span>
                         <span className="text-xs text-red-500 font-medium">/ week</span>
                     </div>
-                    <p className="text-[10px] text-gray-500 mt-2">Potential savings across 3 pilot stores</p>
+                    <p className="text-[10px] text-gray-500 mt-2">Potential savings across {displayStores.length} pilot stores</p>
                 </div>
 
                 <div className="bg-[#1a1a1a] p-4 rounded-xl border border-[#333] relative overflow-hidden">

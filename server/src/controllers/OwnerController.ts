@@ -138,6 +138,9 @@ export const OwnerController = {
                     ...whereClause
                 },
                 include: {
+                    stores: {
+                        select: { id: true, store_name: true, city: true, is_pilot: true, status: true }
+                    },
                     _count: {
                         select: { stores: true }
                     }
