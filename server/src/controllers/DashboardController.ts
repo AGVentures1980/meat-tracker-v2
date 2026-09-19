@@ -73,8 +73,8 @@ export class DashboardController {
                 throw new Error("403: Multi-Tenant Zero-Trust boundary missing. Dashboard requires an active tenant context.");
             }
 
-            // Enforcement: Network stats must be filtered by companyId (unless MASTER)
-            const stats = await MeatEngine.getNetworkBiStats(y, w, isMaster ? undefined : activeCompanyId, user);
+            // Enforcement: Network stats must be filtered by activeCompanyId whenever present
+            const stats = await MeatEngine.getNetworkBiStats(y, w, activeCompanyId || undefined, user);
 
             return res.json(stats);
         } catch (error: any) {

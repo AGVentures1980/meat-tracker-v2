@@ -93,9 +93,9 @@ async function resolveUserStoreIds(user: any): Promise<number[]> {
     const isMaster = user.email?.toLowerCase().trim() === 'alexandre@alexgarciaventures.co';
 
     if (['corporate_director', 'admin', 'director', 'partner'].includes(user.role)) {
-        console.log(`[DIAGNOSE] Querying stores. Master: ${isMaster}, companyId: ${user.companyId}`);
+        console.log(`[DIAGNOSE] Querying stores for companyId: ${user.companyId}`);
         const stores = await prisma.store.findMany({
-            where: isMaster ? {} : { company_id: user.companyId },
+            where: { company_id: user.companyId },
             select: { id: true }
         });
         console.log(`[DIAGNOSE] Resulting stores:`, stores.map((s: any) => s.id));
@@ -190,11 +190,10 @@ export const getNetworkSummary = async (req: Request, res: Response) => {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        const isMaster = user.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
         const stores = await prisma.store.findMany({
             where: {
                 id: { in: allowedStoreIds },
-                ...(isMaster ? {} : { company_id: user.companyId })
+                company_id: user.companyId
             },
             select: {
                 id: true,

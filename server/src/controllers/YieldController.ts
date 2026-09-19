@@ -245,7 +245,7 @@ export class YieldController {
         status: 'QUARANTINED'
       };
 
-      if (!isMaster && companyId) {
+      if (companyId) {
         whereClause.store = { company_id: companyId };
       }
 
