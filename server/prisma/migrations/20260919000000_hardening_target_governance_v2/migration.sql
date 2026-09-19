@@ -31,8 +31,12 @@ ON "OrganizationTargetMetric"("target_version_id", "metric_type");
 CREATE INDEX IF NOT EXISTS "OrganizationTargetMetric_target_version_id_idx" 
 ON "OrganizationTargetMetric"("target_version_id");
 
-ALTER TABLE "OrganizationTargetMetric" ADD CONSTRAINT "OrganizationTargetMetric_target_version_id_fkey" 
+DO $$ BEGIN
+    ALTER TABLE "OrganizationTargetMetric" ADD CONSTRAINT "OrganizationTargetMetric_target_version_id_fkey" 
 FOREIGN KEY ("target_version_id") REFERENCES "OrganizationTargetVersion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create PreparationTarget table
 CREATE TABLE IF NOT EXISTS "PreparationTarget" (
@@ -65,5 +69,9 @@ ON "PreparationTarget"("company_id", "store_id", "target_date");
 CREATE INDEX IF NOT EXISTS "PreparationTarget_parent_protein_target_date_idx" 
 ON "PreparationTarget"("parent_protein", "target_date");
 
-ALTER TABLE "PreparationTarget" ADD CONSTRAINT "PreparationTarget_store_id_fkey" 
+DO $$ BEGIN
+    ALTER TABLE "PreparationTarget" ADD CONSTRAINT "PreparationTarget_store_id_fkey" 
 FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;

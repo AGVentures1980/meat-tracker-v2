@@ -59,6 +59,7 @@ model Company {
   publicLocationRegistries    PublicLocationRegistry[]
   targetVersions              OrganizationTargetVersion[]
   targetSimulations           TargetScenarioSimulation[]
+  provisioningRuns            ProvisioningRun[]
 }
 
 model OrganizationProductEntitlement {
@@ -2537,5 +2538,26 @@ model PreparationTarget {
   @@index([company_id, store_id, target_date])
   @@index([parent_protein, target_date])
   @@index([parent_product_id])
+}
+
+model ProvisioningRun {
+  id                String   @id @default(uuid())
+  manifest_id       String
+  manifest_version  Int      @default(1)
+  manifest_hash     String
+  company_id        String?
+  company_subdomain String
+  mode              String   // "DRY_RUN", "APPLY"
+  status            String   // "VALIDATED", "COMPLETED", "FAILED", "BLOCKED", "REQUIRES_REVIEW"
+  initiated_by      String
+  summary_json      Json
+  error_json        Json?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  company           Company? @relation(fields: [company_id], references: [id], onDelete: SetNull)
+
+  @@index([company_subdomain, mode])
+  @@index([manifest_hash])
 }
 

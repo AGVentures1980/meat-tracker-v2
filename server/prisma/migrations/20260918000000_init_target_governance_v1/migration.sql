@@ -1,113 +1,257 @@
 -- CreateEnum
-CREATE TYPE "OutletType" AS ENUM ('RESTAURANT', 'BAR', 'KITCHEN', 'EMPLOYEE');
+DO $$ BEGIN
+    CREATE TYPE "OutletType" AS ENUM ('RESTAURANT', 'BAR', 'KITCHEN', 'EMPLOYEE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "CycleType" AS ENUM ('WEEKLY', 'MONTHLY');
+DO $$ BEGIN
+    CREATE TYPE "CycleType" AS ENUM ('WEEKLY', 'MONTHLY');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "CycleStatus" AS ENUM ('PENDING', 'SUBMITTED', 'LOCKED');
+DO $$ BEGIN
+    CREATE TYPE "CycleStatus" AS ENUM ('PENDING', 'SUBMITTED', 'LOCKED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "OperationType" AS ENUM ('RODIZIO', 'ALACARTE');
+DO $$ BEGIN
+    CREATE TYPE "OperationType" AS ENUM ('RODIZIO', 'ALACARTE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('admin', 'manager', 'viewer', 'director', 'area_manager', 'partner', 'corporate_director', 'regional_director', 'property_manager', 'executive_chef', 'outlet_manager', 'kitchen_operator', 'read_only_viewer');
+DO $$ BEGIN
+    CREATE TYPE "Role" AS ENUM ('admin', 'manager', 'viewer', 'director', 'area_manager', 'partner', 'corporate_director', 'regional_director', 'property_manager', 'executive_chef', 'outlet_manager', 'kitchen_operator', 'read_only_viewer');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "OrderSource" AS ENUM ('OLO', 'UberEats', 'DoorDash', 'Manual', 'OCR');
+DO $$ BEGIN
+    CREATE TYPE "OrderSource" AS ENUM ('OLO', 'UberEats', 'DoorDash', 'Manual', 'OCR');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "LeadStatus" AS ENUM ('NEW', 'CONTACTED', 'PROPOSAL_SENT', 'ARCHIVED');
+DO $$ BEGIN
+    CREATE TYPE "LeadStatus" AS ENUM ('NEW', 'CONTACTED', 'PROPOSAL_SENT', 'ARCHIVED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "FileType" AS ENUM ('CSV', 'Image');
+DO $$ BEGIN
+    CREATE TYPE "FileType" AS ENUM ('CSV', 'Image');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "TicketStatus" AS ENUM ('OPEN', 'RESOLVED', 'CLOSED');
+DO $$ BEGIN
+    CREATE TYPE "TicketStatus" AS ENUM ('OPEN', 'RESOLVED', 'CLOSED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "SenderType" AS ENUM ('USER', 'AI', 'ADMIN');
+DO $$ BEGIN
+    CREATE TYPE "SenderType" AS ENUM ('USER', 'AI', 'ADMIN');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "MeatSourceType" AS ENUM ('RODIZIO', 'DELIVERY', 'ALACARTE');
+DO $$ BEGIN
+    CREATE TYPE "MeatSourceType" AS ENUM ('RODIZIO', 'DELIVERY', 'ALACARTE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "UsdaGrade" AS ENUM ('PRIME', 'CHOICE', 'SELECT', 'CAB', 'WAGYU', 'STANDARD', 'UNGRADED');
+DO $$ BEGIN
+    CREATE TYPE "UsdaGrade" AS ENUM ('PRIME', 'CHOICE', 'SELECT', 'CAB', 'WAGYU', 'STANDARD', 'UNGRADED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "DeletionJobStatus" AS ENUM ('ANALYZED', 'EXECUTED', 'FAILED_HASH_MISMATCH', 'FAILED_EXECUTION', 'REJECTED');
+DO $$ BEGIN
+    CREATE TYPE "DeletionJobStatus" AS ENUM ('ANALYZED', 'EXECUTED', 'FAILED_HASH_MISMATCH', 'FAILED_EXECUTION', 'REJECTED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "BoxStatus" AS ENUM ('RECEIVED', 'IN_COOLER', 'PULLED_TO_PREP', 'CONSUMED', 'WASTE', 'QUARANTINED', 'ADJUSTED');
+DO $$ BEGIN
+    CREATE TYPE "BoxStatus" AS ENUM ('RECEIVED', 'IN_COOLER', 'PULLED_TO_PREP', 'CONSUMED', 'WASTE', 'QUARANTINED', 'ADJUSTED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "BoxEvent" AS ENUM ('RECEIVE', 'PUT_AWAY', 'PULL_TO_PREP', 'PREP_FINISHED', 'CONSUME', 'MARK_WASTE', 'ADMIN_ADJUST', 'QUARANTINE_LOCKED');
+DO $$ BEGIN
+    CREATE TYPE "BoxEvent" AS ENUM ('RECEIVE', 'PUT_AWAY', 'PULL_TO_PREP', 'PREP_FINISHED', 'CONSUME', 'MARK_WASTE', 'ADMIN_ADJUST', 'QUARANTINE_LOCKED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "TierLevel" AS ENUM ('TIER_1', 'TIER_2', 'TIER_3');
+DO $$ BEGIN
+    CREATE TYPE "TierLevel" AS ENUM ('TIER_1', 'TIER_2', 'TIER_3');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "DocuSignStatus" AS ENUM ('PENDING', 'SENT', 'DELIVERED', 'SIGNED', 'DECLINED', 'VOIDED');
+DO $$ BEGIN
+    CREATE TYPE "DocuSignStatus" AS ENUM ('PENDING', 'SENT', 'DELIVERED', 'SIGNED', 'DECLINED', 'VOIDED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "IntakeStatus" AS ENUM ('RECEIVED', 'NORMALIZED', 'VALIDATED', 'QUARANTINED', 'REJECTED', 'CANONICALIZED', 'QUEUED', 'PROCESSING', 'COMPLETED');
+DO $$ BEGIN
+    CREATE TYPE "IntakeStatus" AS ENUM ('RECEIVED', 'NORMALIZED', 'VALIDATED', 'QUARANTINED', 'REJECTED', 'CANONICALIZED', 'QUEUED', 'PROCESSING', 'COMPLETED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "ScopeLevel" AS ENUM ('GLOBAL', 'TENANT', 'STORE');
+DO $$ BEGIN
+    CREATE TYPE "ScopeLevel" AS ENUM ('GLOBAL', 'TENANT', 'STORE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "QuarantineCause" AS ENUM ('INVALID_SCOPE', 'PARSER_FAILURE', 'LOW_CONFIDENCE', 'DUPLICATE_INPUT', 'UNSUPPORTED_FORMAT', 'INVALID_PAYLOAD', 'INVALID_MIME', 'FILE_TOO_LARGE', 'OCR_FAILURE', 'NORMALIZATION_FAILURE', 'RULESET_FAILURE', 'MISSING_REQUIRED_FIELDS', 'MALWARE_DETECTED', 'CORRUPTED_FILE');
+DO $$ BEGIN
+    CREATE TYPE "QuarantineCause" AS ENUM ('INVALID_SCOPE', 'PARSER_FAILURE', 'LOW_CONFIDENCE', 'DUPLICATE_INPUT', 'UNSUPPORTED_FORMAT', 'INVALID_PAYLOAD', 'INVALID_MIME', 'FILE_TOO_LARGE', 'OCR_FAILURE', 'NORMALIZATION_FAILURE', 'RULESET_FAILURE', 'MISSING_REQUIRED_FIELDS', 'MALWARE_DETECTED', 'CORRUPTED_FILE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "RuleMatchType" AS ENUM ('GTIN', 'PRODUCT_CODE', 'PREFIX', 'REGEX');
+DO $$ BEGIN
+    CREATE TYPE "RuleMatchType" AS ENUM ('GTIN', 'PRODUCT_CODE', 'PREFIX', 'REGEX');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "RuleStrength" AS ENUM ('STRONG', 'MEDIUM', 'WEAK');
+DO $$ BEGIN
+    CREATE TYPE "RuleStrength" AS ENUM ('STRONG', 'MEDIUM', 'WEAK');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "PoStatus" AS ENUM ('DRAFT', 'ISSUED', 'PARTIALLY_FULFILLED', 'FULFILLED', 'DISPUTED', 'CLOSED');
+DO $$ BEGIN
+    CREATE TYPE "PoStatus" AS ENUM ('DRAFT', 'ISSUED', 'PARTIALLY_FULFILLED', 'FULFILLED', 'DISPUTED', 'CLOSED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "DeliveryStatus" AS ENUM ('PLANNED', 'IN_TRANSIT', 'ARRIVED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'EXCEPTION');
+DO $$ BEGIN
+    CREATE TYPE "DeliveryStatus" AS ENUM ('PLANNED', 'IN_TRANSIT', 'ARRIVED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'EXCEPTION');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "SupplierDocType" AS ENUM ('INVOICE', 'PACKING_LIST', 'BILL_OF_LADING', 'ASN', 'DELIVERY_NOTE');
+DO $$ BEGIN
+    CREATE TYPE "SupplierDocType" AS ENUM ('INVOICE', 'PACKING_LIST', 'BILL_OF_LADING', 'ASN', 'DELIVERY_NOTE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "DocParsedStatus" AS ENUM ('CAPTURED', 'PARSED', 'VERIFIED', 'LINKED', 'DISPUTED');
+DO $$ BEGIN
+    CREATE TYPE "DocParsedStatus" AS ENUM ('CAPTURED', 'PARSED', 'VERIFIED', 'LINKED', 'DISPUTED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "VarianceSeverity" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+DO $$ BEGIN
+    CREATE TYPE "VarianceSeverity" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "BatchStatus" AS ENUM ('OPEN', 'CLOSED', 'RECONCILED');
+DO $$ BEGIN
+    CREATE TYPE "BatchStatus" AS ENUM ('OPEN', 'CLOSED', 'RECONCILED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "InputSourceType" AS ENUM ('PRIME_CUT', 'SCRAP');
+DO $$ BEGIN
+    CREATE TYPE "InputSourceType" AS ENUM ('PRIME_CUT', 'SCRAP');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "AllocationMethod" AS ENUM ('UNIT_BASED', 'FIXED_WEIGHT');
+DO $$ BEGIN
+    CREATE TYPE "AllocationMethod" AS ENUM ('UNIT_BASED', 'FIXED_WEIGHT');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "DestinationChannel" AS ENUM ('SALAO', 'BAR', 'DELIVERY');
+DO $$ BEGIN
+    CREATE TYPE "DestinationChannel" AS ENUM ('SALAO', 'BAR', 'DELIVERY');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "SnapshotType" AS ENUM ('DAILY', 'WEEKLY');
+DO $$ BEGIN
+    CREATE TYPE "SnapshotType" AS ENUM ('DAILY', 'WEEKLY');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "DecisionStatus" AS ENUM ('OPEN', 'ACKNOWLEDGED', 'FORWARDED', 'APPROVED', 'RESOLVED', 'DISMISSED');
+DO $$ BEGIN
+    CREATE TYPE "DecisionStatus" AS ENUM ('OPEN', 'ACKNOWLEDGED', 'FORWARDED', 'APPROVED', 'RESOLVED', 'DISMISSED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "PilotStatus" AS ENUM ('ACTIVE', 'PAUSED', 'ROLLED_BACK', 'INACTIVE', 'COMPLETED');
+DO $$ BEGIN
+    CREATE TYPE "PilotStatus" AS ENUM ('ACTIVE', 'PAUSED', 'ROLLED_BACK', 'INACTIVE', 'COMPLETED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "FeedbackCategory" AS ENUM ('UX_CONFUSION', 'DATA_QUALITY_ISSUE', 'OPERATIONAL_PROCESS_GAP', 'BUG', 'PERFORMANCE_ISSUE', 'METRIC_CONFIDENCE_ISSUE', 'ADOPTION_BARRIER');
+DO $$ BEGIN
+    CREATE TYPE "FeedbackCategory" AS ENUM ('UX_CONFUSION', 'DATA_QUALITY_ISSUE', 'OPERATIONAL_PROCESS_GAP', 'BUG', 'PERFORMANCE_ISSUE', 'METRIC_CONFIDENCE_ISSUE', 'ADOPTION_BARRIER');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "StoreDataType" AS ENUM ('LIVE', 'DEMO');
+DO $$ BEGIN
+    CREATE TYPE "StoreDataType" AS ENUM ('LIVE', 'DEMO');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateTable
-CREATE TABLE "Company" (
+CREATE TABLE IF NOT EXISTS "Company" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "plan" TEXT NOT NULL DEFAULT 'enterprise',
@@ -146,7 +290,7 @@ CREATE TABLE "Company" (
 );
 
 -- CreateTable
-CREATE TABLE "OrganizationProductEntitlement" (
+CREATE TABLE IF NOT EXISTS "OrganizationProductEntitlement" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "product_code" TEXT NOT NULL,
@@ -163,7 +307,7 @@ CREATE TABLE "OrganizationProductEntitlement" (
 );
 
 -- CreateTable
-CREATE TABLE "CompanyProduct" (
+CREATE TABLE IF NOT EXISTS "CompanyProduct" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -181,7 +325,7 @@ CREATE TABLE "CompanyProduct" (
 );
 
 -- CreateTable
-CREATE TABLE "Store" (
+CREATE TABLE IF NOT EXISTS "Store" (
     "id" SERIAL NOT NULL,
     "company_id" TEXT NOT NULL,
     "store_name" TEXT NOT NULL,
@@ -228,7 +372,7 @@ CREATE TABLE "Store" (
 );
 
 -- CreateTable
-CREATE TABLE "Outlet" (
+CREATE TABLE IF NOT EXISTS "Outlet" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "company_id" TEXT NOT NULL,
@@ -245,7 +389,7 @@ CREATE TABLE "Outlet" (
 );
 
 -- CreateTable
-CREATE TABLE "StoreTemplate" (
+CREATE TABLE IF NOT EXISTS "StoreTemplate" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -258,7 +402,7 @@ CREATE TABLE "StoreTemplate" (
 );
 
 -- CreateTable
-CREATE TABLE "StoreMeatTarget" (
+CREATE TABLE IF NOT EXISTS "StoreMeatTarget" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "protein" TEXT NOT NULL,
@@ -269,7 +413,7 @@ CREATE TABLE "StoreMeatTarget" (
 );
 
 -- CreateTable
-CREATE TABLE "User" (
+CREATE TABLE IF NOT EXISTS "User" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER,
     "email" TEXT NOT NULL,
@@ -295,7 +439,7 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "OwnerVaultMessage" (
+CREATE TABLE IF NOT EXISTS "OwnerVaultMessage" (
     "id" TEXT NOT NULL,
     "text" TEXT,
     "file_url" TEXT,
@@ -310,7 +454,7 @@ CREATE TABLE "OwnerVaultMessage" (
 );
 
 -- CreateTable
-CREATE TABLE "TrainingProgress" (
+CREATE TABLE IF NOT EXISTS "TrainingProgress" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "module_id" TEXT NOT NULL,
@@ -322,7 +466,7 @@ CREATE TABLE "TrainingProgress" (
 );
 
 -- CreateTable
-CREATE TABLE "Order" (
+CREATE TABLE IF NOT EXISTS "Order" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "order_external_id" TEXT,
@@ -334,7 +478,7 @@ CREATE TABLE "Order" (
 );
 
 -- CreateTable
-CREATE TABLE "OrderItem" (
+CREATE TABLE IF NOT EXISTS "OrderItem" (
     "id" TEXT NOT NULL,
     "order_id" TEXT NOT NULL,
     "item_name" TEXT NOT NULL,
@@ -345,7 +489,7 @@ CREATE TABLE "OrderItem" (
 );
 
 -- CreateTable
-CREATE TABLE "MeatUsage" (
+CREATE TABLE IF NOT EXISTS "MeatUsage" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "protein" TEXT NOT NULL,
@@ -358,7 +502,7 @@ CREATE TABLE "MeatUsage" (
 );
 
 -- CreateTable
-CREATE TABLE "Upload" (
+CREATE TABLE IF NOT EXISTS "Upload" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "file_type" "FileType" NOT NULL,
@@ -370,7 +514,7 @@ CREATE TABLE "Upload" (
 );
 
 -- CreateTable
-CREATE TABLE "Report" (
+CREATE TABLE IF NOT EXISTS "Report" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "month" TEXT NOT NULL,
@@ -386,7 +530,7 @@ CREATE TABLE "Report" (
 );
 
 -- CreateTable
-CREATE TABLE "InventoryRecord" (
+CREATE TABLE IF NOT EXISTS "InventoryRecord" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" DATE NOT NULL,
@@ -399,7 +543,7 @@ CREATE TABLE "InventoryRecord" (
 );
 
 -- CreateTable
-CREATE TABLE "PurchaseRecord" (
+CREATE TABLE IF NOT EXISTS "PurchaseRecord" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" DATE NOT NULL,
@@ -411,7 +555,7 @@ CREATE TABLE "PurchaseRecord" (
 );
 
 -- CreateTable
-CREATE TABLE "InvoiceRecord" (
+CREATE TABLE IF NOT EXISTS "InvoiceRecord" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -430,7 +574,7 @@ CREATE TABLE "InvoiceRecord" (
 );
 
 -- CreateTable
-CREATE TABLE "SystemSettings" (
+CREATE TABLE IF NOT EXISTS "SystemSettings" (
     "id" TEXT NOT NULL,
     "key" TEXT NOT NULL,
     "value" TEXT NOT NULL,
@@ -441,7 +585,7 @@ CREATE TABLE "SystemSettings" (
 );
 
 -- CreateTable
-CREATE TABLE "AuditLog" (
+CREATE TABLE IF NOT EXISTS "AuditLog" (
     "id" TEXT NOT NULL,
     "user_id" TEXT,
     "action" TEXT NOT NULL,
@@ -460,7 +604,7 @@ CREATE TABLE "AuditLog" (
 );
 
 -- CreateTable
-CREATE TABLE "WasteLog" (
+CREATE TABLE IF NOT EXISTS "WasteLog" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" DATE NOT NULL,
@@ -474,7 +618,7 @@ CREATE TABLE "WasteLog" (
 );
 
 -- CreateTable
-CREATE TABLE "WasteCompliance" (
+CREATE TABLE IF NOT EXISTS "WasteCompliance" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "week_start" DATE NOT NULL,
@@ -487,7 +631,7 @@ CREATE TABLE "WasteCompliance" (
 );
 
 -- CreateTable
-CREATE TABLE "PrepLog" (
+CREATE TABLE IF NOT EXISTS "PrepLog" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" DATE NOT NULL,
@@ -500,7 +644,7 @@ CREATE TABLE "PrepLog" (
 );
 
 -- CreateTable
-CREATE TABLE "DeliverySale" (
+CREATE TABLE IF NOT EXISTS "DeliverySale" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -516,7 +660,7 @@ CREATE TABLE "DeliverySale" (
 );
 
 -- CreateTable
-CREATE TABLE "ProductAlias" (
+CREATE TABLE IF NOT EXISTS "ProductAlias" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "alias" TEXT NOT NULL,
@@ -528,7 +672,7 @@ CREATE TABLE "ProductAlias" (
 );
 
 -- CreateTable
-CREATE TABLE "SalesForecast" (
+CREATE TABLE IF NOT EXISTS "SalesForecast" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "week_start" DATE NOT NULL,
@@ -545,7 +689,7 @@ CREATE TABLE "SalesForecast" (
 );
 
 -- CreateTable
-CREATE TABLE "Prospect" (
+CREATE TABLE IF NOT EXISTS "Prospect" (
     "id" TEXT NOT NULL,
     "company_name" TEXT NOT NULL,
     "industry" TEXT NOT NULL,
@@ -563,7 +707,7 @@ CREATE TABLE "Prospect" (
 );
 
 -- CreateTable
-CREATE TABLE "SysInvoice" (
+CREATE TABLE IF NOT EXISTS "SysInvoice" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
@@ -578,7 +722,7 @@ CREATE TABLE "SysInvoice" (
 );
 
 -- CreateTable
-CREATE TABLE "SystemMetric" (
+CREATE TABLE IF NOT EXISTS "SystemMetric" (
     "id" TEXT NOT NULL,
     "key" TEXT NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
@@ -590,7 +734,7 @@ CREATE TABLE "SystemMetric" (
 );
 
 -- CreateTable
-CREATE TABLE "Lead" (
+CREATE TABLE IF NOT EXISTS "Lead" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -605,7 +749,7 @@ CREATE TABLE "Lead" (
 );
 
 -- CreateTable
-CREATE TABLE "InventoryCycle" (
+CREATE TABLE IF NOT EXISTS "InventoryCycle" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "cycle_type" "CycleType" NOT NULL,
@@ -619,7 +763,7 @@ CREATE TABLE "InventoryCycle" (
 );
 
 -- CreateTable
-CREATE TABLE "InventoryItem" (
+CREATE TABLE IF NOT EXISTS "InventoryItem" (
     "id" TEXT NOT NULL,
     "cycle_id" TEXT NOT NULL,
     "protein_id" TEXT NOT NULL,
@@ -636,7 +780,7 @@ CREATE TABLE "InventoryItem" (
 );
 
 -- CreateTable
-CREATE TABLE "FAQ" (
+CREATE TABLE IF NOT EXISTS "FAQ" (
     "id" TEXT NOT NULL,
     "question" TEXT NOT NULL,
     "answer" TEXT NOT NULL,
@@ -649,7 +793,7 @@ CREATE TABLE "FAQ" (
 );
 
 -- CreateTable
-CREATE TABLE "SupportTicket" (
+CREATE TABLE IF NOT EXISTS "SupportTicket" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "user_id" TEXT NOT NULL,
@@ -666,7 +810,7 @@ CREATE TABLE "SupportTicket" (
 );
 
 -- CreateTable
-CREATE TABLE "SupportMessage" (
+CREATE TABLE IF NOT EXISTS "SupportMessage" (
     "id" TEXT NOT NULL,
     "ticket_id" TEXT NOT NULL,
     "sender_type" "SenderType" NOT NULL DEFAULT 'USER',
@@ -677,7 +821,7 @@ CREATE TABLE "SupportMessage" (
 );
 
 -- CreateTable
-CREATE TABLE "ProcurementAIFeedback" (
+CREATE TABLE IF NOT EXISTS "ProcurementAIFeedback" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" DATE NOT NULL,
@@ -699,7 +843,7 @@ CREATE TABLE "ProcurementAIFeedback" (
 );
 
 -- CreateTable
-CREATE TABLE "Partner" (
+CREATE TABLE IF NOT EXISTS "Partner" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "legal_entity_type" TEXT NOT NULL DEFAULT 'Individual',
@@ -717,7 +861,7 @@ CREATE TABLE "Partner" (
 );
 
 -- CreateTable
-CREATE TABLE "PartnerClient" (
+CREATE TABLE IF NOT EXISTS "PartnerClient" (
     "id" TEXT NOT NULL,
     "partner_id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
@@ -731,7 +875,7 @@ CREATE TABLE "PartnerClient" (
 );
 
 -- CreateTable
-CREATE TABLE "Proposal" (
+CREATE TABLE IF NOT EXISTS "Proposal" (
     "id" TEXT NOT NULL,
     "partner_id" TEXT NOT NULL,
     "client_name" TEXT NOT NULL,
@@ -753,7 +897,7 @@ CREATE TABLE "Proposal" (
 );
 
 -- CreateTable
-CREATE TABLE "Payout" (
+CREATE TABLE IF NOT EXISTS "Payout" (
     "id" TEXT NOT NULL,
     "partner_id" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
@@ -770,7 +914,7 @@ CREATE TABLE "Payout" (
 );
 
 -- CreateTable
-CREATE TABLE "ContractDocument" (
+CREATE TABLE IF NOT EXISTS "ContractDocument" (
     "id" TEXT NOT NULL,
     "company_name" TEXT NOT NULL,
     "signer_name" TEXT NOT NULL,
@@ -790,7 +934,7 @@ CREATE TABLE "ContractDocument" (
 );
 
 -- CreateTable
-CREATE TABLE "PilotDailyAudit" (
+CREATE TABLE IF NOT EXISTS "PilotDailyAudit" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "audit_date" DATE NOT NULL,
@@ -805,7 +949,7 @@ CREATE TABLE "PilotDailyAudit" (
 );
 
 -- CreateTable
-CREATE TABLE "ForecastIntelligenceLog" (
+CREATE TABLE IF NOT EXISTS "ForecastIntelligenceLog" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
@@ -821,7 +965,7 @@ CREATE TABLE "ForecastIntelligenceLog" (
 );
 
 -- CreateTable
-CREATE TABLE "OutletForecastLog" (
+CREATE TABLE IF NOT EXISTS "OutletForecastLog" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
@@ -843,7 +987,7 @@ CREATE TABLE "OutletForecastLog" (
 );
 
 -- CreateTable
-CREATE TABLE "AuditLogArchive" (
+CREATE TABLE IF NOT EXISTS "AuditLogArchive" (
     "id" TEXT NOT NULL,
     "company_id" TEXT,
     "store_id" INTEGER,
@@ -862,7 +1006,7 @@ CREATE TABLE "AuditLogArchive" (
 );
 
 -- CreateTable
-CREATE TABLE "CorporateProteinSpec" (
+CREATE TABLE IF NOT EXISTS "CorporateProteinSpec" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "protein_name" TEXT NOT NULL,
@@ -883,7 +1027,7 @@ CREATE TABLE "CorporateProteinSpec" (
 );
 
 -- CreateTable
-CREATE TABLE "BarcodeScanEvent" (
+CREATE TABLE IF NOT EXISTS "BarcodeScanEvent" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "scanned_barcode" TEXT NOT NULL,
@@ -901,7 +1045,7 @@ CREATE TABLE "BarcodeScanEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "BurgerInventoryPool" (
+CREATE TABLE IF NOT EXISTS "BurgerInventoryPool" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" DATE NOT NULL,
@@ -919,7 +1063,7 @@ CREATE TABLE "BurgerInventoryPool" (
 );
 
 -- CreateTable
-CREATE TABLE "BarcodeFamily" (
+CREATE TABLE IF NOT EXISTS "BarcodeFamily" (
     "id" TEXT NOT NULL,
     "family_code" TEXT NOT NULL,
     "family_name" TEXT NOT NULL,
@@ -940,7 +1084,7 @@ CREATE TABLE "BarcodeFamily" (
 );
 
 -- CreateTable
-CREATE TABLE "UnknownBarcodeLog" (
+CREATE TABLE IF NOT EXISTS "UnknownBarcodeLog" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "raw_barcode" TEXT NOT NULL,
@@ -952,7 +1096,7 @@ CREATE TABLE "UnknownBarcodeLog" (
 );
 
 -- CreateTable
-CREATE TABLE "ReceivingEvent" (
+CREATE TABLE IF NOT EXISTS "ReceivingEvent" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "scanned_barcode" TEXT NOT NULL,
@@ -983,7 +1127,7 @@ CREATE TABLE "ReceivingEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "PullToPrepEvent" (
+CREATE TABLE IF NOT EXISTS "PullToPrepEvent" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "scanned_barcode" TEXT NOT NULL,
@@ -998,7 +1142,7 @@ CREATE TABLE "PullToPrepEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "TrimRecordEvent" (
+CREATE TABLE IF NOT EXISTS "TrimRecordEvent" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "protein_name" TEXT,
@@ -1017,7 +1161,7 @@ CREATE TABLE "TrimRecordEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "FinancialLeakageEvent" (
+CREATE TABLE IF NOT EXISTS "FinancialLeakageEvent" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1036,7 +1180,7 @@ CREATE TABLE "FinancialLeakageEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "AiYieldInsight" (
+CREATE TABLE IF NOT EXISTS "AiYieldInsight" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1050,7 +1194,7 @@ CREATE TABLE "AiYieldInsight" (
 );
 
 -- CreateTable
-CREATE TABLE "SystemAlert" (
+CREATE TABLE IF NOT EXISTS "SystemAlert" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "severity" TEXT NOT NULL,
@@ -1064,7 +1208,7 @@ CREATE TABLE "SystemAlert" (
 );
 
 -- CreateTable
-CREATE TABLE "IndustryBenchmark" (
+CREATE TABLE IF NOT EXISTS "IndustryBenchmark" (
     "id" TEXT NOT NULL,
     "cut" TEXT NOT NULL,
     "yield_min" DOUBLE PRECISION NOT NULL,
@@ -1080,7 +1224,7 @@ CREATE TABLE "IndustryBenchmark" (
 );
 
 -- CreateTable
-CREATE TABLE "BarcodeDecisionLog" (
+CREATE TABLE IF NOT EXISTS "BarcodeDecisionLog" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "raw_barcode" TEXT NOT NULL,
@@ -1099,7 +1243,7 @@ CREATE TABLE "BarcodeDecisionLog" (
 );
 
 -- CreateTable
-CREATE TABLE "PasswordResetToken" (
+CREATE TABLE IF NOT EXISTS "PasswordResetToken" (
     "id" SERIAL NOT NULL,
     "user_id" TEXT NOT NULL,
     "token_hash" TEXT NOT NULL,
@@ -1110,7 +1254,7 @@ CREATE TABLE "PasswordResetToken" (
 );
 
 -- CreateTable
-CREATE TABLE "PasswordHistory" (
+CREATE TABLE IF NOT EXISTS "PasswordHistory" (
     "id" SERIAL NOT NULL,
     "user_id" TEXT NOT NULL,
     "hash" TEXT NOT NULL,
@@ -1120,7 +1264,7 @@ CREATE TABLE "PasswordHistory" (
 );
 
 -- CreateTable
-CREATE TABLE "VaultFile" (
+CREATE TABLE IF NOT EXISTS "VaultFile" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
@@ -1141,7 +1285,7 @@ CREATE TABLE "VaultFile" (
 );
 
 -- CreateTable
-CREATE TABLE "FileAccessLog" (
+CREATE TABLE IF NOT EXISTS "FileAccessLog" (
     "id" TEXT NOT NULL,
     "file_id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
@@ -1156,7 +1300,7 @@ CREATE TABLE "FileAccessLog" (
 );
 
 -- CreateTable
-CREATE TABLE "OcrQuarantineQueue" (
+CREATE TABLE IF NOT EXISTS "OcrQuarantineQueue" (
     "id" TEXT NOT NULL,
     "company_id" TEXT,
     "store_id" INTEGER NOT NULL,
@@ -1180,7 +1324,7 @@ CREATE TABLE "OcrQuarantineQueue" (
 );
 
 -- CreateTable
-CREATE TABLE "TenantDeletionJob" (
+CREATE TABLE IF NOT EXISTS "TenantDeletionJob" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "actor_id" TEXT NOT NULL,
@@ -1196,7 +1340,7 @@ CREATE TABLE "TenantDeletionJob" (
 );
 
 -- CreateTable
-CREATE TABLE "RawIntegrationPayload" (
+CREATE TABLE IF NOT EXISTS "RawIntegrationPayload" (
     "id" TEXT NOT NULL,
     "idempotency_key" TEXT NOT NULL,
     "trace_id" TEXT,
@@ -1210,7 +1354,7 @@ CREATE TABLE "RawIntegrationPayload" (
 );
 
 -- CreateTable
-CREATE TABLE "CanonicalEvent" (
+CREATE TABLE IF NOT EXISTS "CanonicalEvent" (
     "id" TEXT NOT NULL,
     "payload_id" TEXT NOT NULL,
     "store_id" TEXT NOT NULL,
@@ -1222,7 +1366,7 @@ CREATE TABLE "CanonicalEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "ProteinBox" (
+CREATE TABLE IF NOT EXISTS "ProteinBox" (
     "id" TEXT NOT NULL,
     "tenant_id" INTEGER NOT NULL,
     "store_id" INTEGER NOT NULL,
@@ -1246,7 +1390,7 @@ CREATE TABLE "ProteinBox" (
 );
 
 -- CreateTable
-CREATE TABLE "BoxLifecycleEvent" (
+CREATE TABLE IF NOT EXISTS "BoxLifecycleEvent" (
     "id" TEXT NOT NULL,
     "box_id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
@@ -1262,7 +1406,7 @@ CREATE TABLE "BoxLifecycleEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "WeeklyReconciliationSnapshot" (
+CREATE TABLE IF NOT EXISTS "WeeklyReconciliationSnapshot" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "business_date" TIMESTAMP(3) NOT NULL,
@@ -1276,7 +1420,7 @@ CREATE TABLE "WeeklyReconciliationSnapshot" (
 );
 
 -- CreateTable
-CREATE TABLE "MigrationGuardAuditLog" (
+CREATE TABLE IF NOT EXISTS "MigrationGuardAuditLog" (
     "id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "guard_version" TEXT NOT NULL,
@@ -1297,7 +1441,7 @@ CREATE TABLE "MigrationGuardAuditLog" (
 );
 
 -- CreateTable
-CREATE TABLE "Subscription" (
+CREATE TABLE IF NOT EXISTS "Subscription" (
     "id" TEXT NOT NULL,
     "organization_id" TEXT NOT NULL,
     "stripe_subscription_id" TEXT NOT NULL,
@@ -1312,7 +1456,7 @@ CREATE TABLE "Subscription" (
 );
 
 -- CreateTable
-CREATE TABLE "BillingPlan" (
+CREATE TABLE IF NOT EXISTS "BillingPlan" (
     "id" TEXT NOT NULL,
     "tier" "TierLevel" NOT NULL,
     "price_per_store" DOUBLE PRECISION NOT NULL,
@@ -1325,7 +1469,7 @@ CREATE TABLE "BillingPlan" (
 );
 
 -- CreateTable
-CREATE TABLE "GoldenDatasetItem" (
+CREATE TABLE IF NOT EXISTS "GoldenDatasetItem" (
     "id" TEXT NOT NULL,
     "source_type" TEXT NOT NULL,
     "raw_input" TEXT NOT NULL,
@@ -1360,7 +1504,7 @@ CREATE TABLE "GoldenDatasetItem" (
 );
 
 -- CreateTable
-CREATE TABLE "IntakeBatch" (
+CREATE TABLE IF NOT EXISTS "IntakeBatch" (
     "id" TEXT NOT NULL,
     "tenant_id" TEXT NOT NULL,
     "total_items" INTEGER NOT NULL,
@@ -1372,7 +1516,7 @@ CREATE TABLE "IntakeBatch" (
 );
 
 -- CreateTable
-CREATE TABLE "IntakeJob" (
+CREATE TABLE IF NOT EXISTS "IntakeJob" (
     "id" TEXT NOT NULL,
     "dataset_item_id" TEXT NOT NULL,
     "attempts" INTEGER NOT NULL DEFAULT 0,
@@ -1385,7 +1529,7 @@ CREATE TABLE "IntakeJob" (
 );
 
 -- CreateTable
-CREATE TABLE "IntakeAudit" (
+CREATE TABLE IF NOT EXISTS "IntakeAudit" (
     "id" TEXT NOT NULL,
     "correlation_id" TEXT NOT NULL,
     "actor_user_id" TEXT NOT NULL,
@@ -1401,7 +1545,7 @@ CREATE TABLE "IntakeAudit" (
 );
 
 -- CreateTable
-CREATE TABLE "ValidationRun" (
+CREATE TABLE IF NOT EXISTS "ValidationRun" (
     "id" TEXT NOT NULL,
     "executed_by" TEXT NOT NULL,
     "tenant_id" TEXT,
@@ -1423,7 +1567,7 @@ CREATE TABLE "ValidationRun" (
 );
 
 -- CreateTable
-CREATE TABLE "ValidationQuarantine" (
+CREATE TABLE IF NOT EXISTS "ValidationQuarantine" (
     "id" TEXT NOT NULL,
     "source_type" TEXT NOT NULL,
     "reason" TEXT NOT NULL,
@@ -1438,7 +1582,7 @@ CREATE TABLE "ValidationQuarantine" (
 );
 
 -- CreateTable
-CREATE TABLE "ShadowModeCompare" (
+CREATE TABLE IF NOT EXISTS "ShadowModeCompare" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER,
     "event_type" TEXT NOT NULL,
@@ -1452,7 +1596,7 @@ CREATE TABLE "ShadowModeCompare" (
 );
 
 -- CreateTable
-CREATE TABLE "OutboxEvent" (
+CREATE TABLE IF NOT EXISTS "OutboxEvent" (
     "id" TEXT NOT NULL,
     "topic" TEXT NOT NULL,
     "payload" JSONB NOT NULL,
@@ -1469,7 +1613,7 @@ CREATE TABLE "OutboxEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "FileObject" (
+CREATE TABLE IF NOT EXISTS "FileObject" (
     "id" TEXT NOT NULL,
     "tenant_id" TEXT NOT NULL,
     "storage_key" TEXT NOT NULL,
@@ -1485,7 +1629,7 @@ CREATE TABLE "FileObject" (
 );
 
 -- CreateTable
-CREATE TABLE "RulesetVersion" (
+CREATE TABLE IF NOT EXISTS "RulesetVersion" (
     "id" TEXT NOT NULL,
     "version_tag" TEXT NOT NULL,
     "thresholds" JSONB NOT NULL,
@@ -1496,7 +1640,7 @@ CREATE TABLE "RulesetVersion" (
 );
 
 -- CreateTable
-CREATE TABLE "ScoreDefinition" (
+CREATE TABLE IF NOT EXISTS "ScoreDefinition" (
     "id" TEXT NOT NULL,
     "score_name" TEXT NOT NULL,
     "formula_hash" TEXT NOT NULL,
@@ -1507,7 +1651,7 @@ CREATE TABLE "ScoreDefinition" (
 );
 
 -- CreateTable
-CREATE TABLE "IntelligenceSnapshot" (
+CREATE TABLE IF NOT EXISTS "IntelligenceSnapshot" (
     "id" TEXT NOT NULL,
     "tenant_id" TEXT NOT NULL,
     "store_id" INTEGER,
@@ -1529,7 +1673,7 @@ CREATE TABLE "IntelligenceSnapshot" (
 );
 
 -- CreateTable
-CREATE TABLE "AnomalyEvent" (
+CREATE TABLE IF NOT EXISTS "AnomalyEvent" (
     "id" TEXT NOT NULL,
     "snapshot_id" TEXT NOT NULL,
     "tenant_id" TEXT NOT NULL,
@@ -1548,7 +1692,7 @@ CREATE TABLE "AnomalyEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "RecommendationEvent" (
+CREATE TABLE IF NOT EXISTS "RecommendationEvent" (
     "id" TEXT NOT NULL,
     "snapshot_id" TEXT NOT NULL,
     "anomaly_id" TEXT,
@@ -1568,7 +1712,7 @@ CREATE TABLE "RecommendationEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "ReceivingRecognitionRule" (
+CREATE TABLE IF NOT EXISTS "ReceivingRecognitionRule" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "protein_spec_id" TEXT NOT NULL,
@@ -1585,7 +1729,7 @@ CREATE TABLE "ReceivingRecognitionRule" (
 );
 
 -- CreateTable
-CREATE TABLE "AuditEvent" (
+CREATE TABLE IF NOT EXISTS "AuditEvent" (
     "id" TEXT NOT NULL,
     "action" TEXT NOT NULL,
     "actor" TEXT NOT NULL,
@@ -1598,7 +1742,7 @@ CREATE TABLE "AuditEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "SupplierProfile" (
+CREATE TABLE IF NOT EXISTS "SupplierProfile" (
     "id" TEXT NOT NULL,
     "companyId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -1612,7 +1756,7 @@ CREATE TABLE "SupplierProfile" (
 );
 
 -- CreateTable
-CREATE TABLE "SupplierBarcodeRule" (
+CREATE TABLE IF NOT EXISTS "SupplierBarcodeRule" (
     "id" TEXT NOT NULL,
     "companyId" TEXT NOT NULL,
     "supplierId" TEXT NOT NULL,
@@ -1633,7 +1777,7 @@ CREATE TABLE "SupplierBarcodeRule" (
 );
 
 -- CreateTable
-CREATE TABLE "SupplierCatalogItem" (
+CREATE TABLE IF NOT EXISTS "SupplierCatalogItem" (
     "id" TEXT NOT NULL,
     "supplierId" TEXT NOT NULL,
     "supplierItemCode" TEXT NOT NULL,
@@ -1652,7 +1796,7 @@ CREATE TABLE "SupplierCatalogItem" (
 );
 
 -- CreateTable
-CREATE TABLE "PurchaseOrder" (
+CREATE TABLE IF NOT EXISTS "PurchaseOrder" (
     "id" TEXT NOT NULL,
     "companyId" TEXT NOT NULL,
     "storeId" INTEGER NOT NULL,
@@ -1667,7 +1811,7 @@ CREATE TABLE "PurchaseOrder" (
 );
 
 -- CreateTable
-CREATE TABLE "PurchaseOrderLine" (
+CREATE TABLE IF NOT EXISTS "PurchaseOrderLine" (
     "id" TEXT NOT NULL,
     "purchaseOrderId" TEXT NOT NULL,
     "supplierItemCode" TEXT,
@@ -1681,7 +1825,7 @@ CREATE TABLE "PurchaseOrderLine" (
 );
 
 -- CreateTable
-CREATE TABLE "ExpectedDelivery" (
+CREATE TABLE IF NOT EXISTS "ExpectedDelivery" (
     "id" TEXT NOT NULL,
     "companyId" TEXT NOT NULL,
     "storeId" INTEGER NOT NULL,
@@ -1696,7 +1840,7 @@ CREATE TABLE "ExpectedDelivery" (
 );
 
 -- CreateTable
-CREATE TABLE "ExpectedDeliveryLine" (
+CREATE TABLE IF NOT EXISTS "ExpectedDeliveryLine" (
     "id" TEXT NOT NULL,
     "expectedDeliveryId" TEXT NOT NULL,
     "supplierItemCode" TEXT,
@@ -1707,7 +1851,7 @@ CREATE TABLE "ExpectedDeliveryLine" (
 );
 
 -- CreateTable
-CREATE TABLE "SupplierDocument" (
+CREATE TABLE IF NOT EXISTS "SupplierDocument" (
     "id" TEXT NOT NULL,
     "companyId" TEXT NOT NULL,
     "storeId" INTEGER NOT NULL,
@@ -1726,7 +1870,7 @@ CREATE TABLE "SupplierDocument" (
 );
 
 -- CreateTable
-CREATE TABLE "SupplierDocumentLine" (
+CREATE TABLE IF NOT EXISTS "SupplierDocumentLine" (
     "id" TEXT NOT NULL,
     "documentId" TEXT NOT NULL,
     "supplierItemCode" TEXT,
@@ -1738,7 +1882,7 @@ CREATE TABLE "SupplierDocumentLine" (
 );
 
 -- CreateTable
-CREATE TABLE "PosSalesFeed" (
+CREATE TABLE IF NOT EXISTS "PosSalesFeed" (
     "id" TEXT NOT NULL,
     "storeId" INTEGER NOT NULL,
     "businessDate" TIMESTAMP(3) NOT NULL,
@@ -1750,7 +1894,7 @@ CREATE TABLE "PosSalesFeed" (
 );
 
 -- CreateTable
-CREATE TABLE "PosSalesLine" (
+CREATE TABLE IF NOT EXISTS "PosSalesLine" (
     "id" TEXT NOT NULL,
     "feedId" TEXT NOT NULL,
     "itemSold" TEXT NOT NULL,
@@ -1762,7 +1906,7 @@ CREATE TABLE "PosSalesLine" (
 );
 
 -- CreateTable
-CREATE TABLE "ReconciliationEvent" (
+CREATE TABLE IF NOT EXISTS "ReconciliationEvent" (
     "id" TEXT NOT NULL,
     "storeId" INTEGER NOT NULL,
     "businessDate" TIMESTAMP(3) NOT NULL,
@@ -1774,7 +1918,7 @@ CREATE TABLE "ReconciliationEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "VarianceCase" (
+CREATE TABLE IF NOT EXISTS "VarianceCase" (
     "id" TEXT NOT NULL,
     "reconciliationEventId" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -1792,7 +1936,7 @@ CREATE TABLE "VarianceCase" (
 );
 
 -- CreateTable
-CREATE TABLE "SupplierIntegritySnapshot" (
+CREATE TABLE IF NOT EXISTS "SupplierIntegritySnapshot" (
     "id" TEXT NOT NULL,
     "companyId" TEXT NOT NULL,
     "supplierId" TEXT NOT NULL,
@@ -1812,7 +1956,7 @@ CREATE TABLE "SupplierIntegritySnapshot" (
 );
 
 -- CreateTable
-CREATE TABLE "ProteinTransformationBatch" (
+CREATE TABLE IF NOT EXISTS "ProteinTransformationBatch" (
     "id" TEXT NOT NULL,
     "storeId" INTEGER NOT NULL,
     "productType" TEXT NOT NULL,
@@ -1829,7 +1973,7 @@ CREATE TABLE "ProteinTransformationBatch" (
 );
 
 -- CreateTable
-CREATE TABLE "TransformationInput" (
+CREATE TABLE IF NOT EXISTS "TransformationInput" (
     "id" TEXT NOT NULL,
     "batchId" TEXT NOT NULL,
     "sourceProteinBoxId" TEXT NOT NULL,
@@ -1841,7 +1985,7 @@ CREATE TABLE "TransformationInput" (
 );
 
 -- CreateTable
-CREATE TABLE "TransformationOutput" (
+CREATE TABLE IF NOT EXISTS "TransformationOutput" (
     "id" TEXT NOT NULL,
     "batchId" TEXT NOT NULL,
     "productCode" TEXT NOT NULL,
@@ -1853,7 +1997,7 @@ CREATE TABLE "TransformationOutput" (
 );
 
 -- CreateTable
-CREATE TABLE "ConsumptionLink" (
+CREATE TABLE IF NOT EXISTS "ConsumptionLink" (
     "id" TEXT NOT NULL,
     "batchId" TEXT NOT NULL,
     "posSalesLineId" TEXT NOT NULL,
@@ -1865,7 +2009,7 @@ CREATE TABLE "ConsumptionLink" (
 );
 
 -- CreateTable
-CREATE TABLE "ConsumptionAllocationRule" (
+CREATE TABLE IF NOT EXISTS "ConsumptionAllocationRule" (
     "id" TEXT NOT NULL,
     "storeId" INTEGER NOT NULL,
     "productCode" TEXT NOT NULL,
@@ -1882,7 +2026,7 @@ CREATE TABLE "ConsumptionAllocationRule" (
 );
 
 -- CreateTable
-CREATE TABLE "ProteinConsumptionAllocation" (
+CREATE TABLE IF NOT EXISTS "ProteinConsumptionAllocation" (
     "id" TEXT NOT NULL,
     "sourceProteinBoxId" TEXT,
     "sourceScanEventId" TEXT,
@@ -1898,7 +2042,7 @@ CREATE TABLE "ProteinConsumptionAllocation" (
 );
 
 -- CreateTable
-CREATE TABLE "ExecutiveSnapshotLedger" (
+CREATE TABLE IF NOT EXISTS "ExecutiveSnapshotLedger" (
     "id" TEXT NOT NULL,
     "companyId" INTEGER NOT NULL,
     "storeId" INTEGER,
@@ -1922,7 +2066,7 @@ CREATE TABLE "ExecutiveSnapshotLedger" (
 );
 
 -- CreateTable
-CREATE TABLE "ExecutiveActionDecision" (
+CREATE TABLE IF NOT EXISTS "ExecutiveActionDecision" (
     "id" TEXT NOT NULL,
     "companyId" INTEGER NOT NULL,
     "storeId" INTEGER,
@@ -1952,7 +2096,7 @@ CREATE TABLE "ExecutiveActionDecision" (
 );
 
 -- CreateTable
-CREATE TABLE "PilotConfiguration" (
+CREATE TABLE IF NOT EXISTS "PilotConfiguration" (
     "id" TEXT NOT NULL,
     "companyId" INTEGER NOT NULL,
     "storeId" INTEGER NOT NULL,
@@ -1968,7 +2112,7 @@ CREATE TABLE "PilotConfiguration" (
 );
 
 -- CreateTable
-CREATE TABLE "PilotFeedback" (
+CREATE TABLE IF NOT EXISTS "PilotFeedback" (
     "id" TEXT NOT NULL,
     "companyId" INTEGER NOT NULL,
     "storeId" INTEGER NOT NULL,
@@ -1984,7 +2128,7 @@ CREATE TABLE "PilotFeedback" (
 );
 
 -- CreateTable
-CREATE TABLE "BarcodeCanonicalIdentity" (
+CREATE TABLE IF NOT EXISTS "BarcodeCanonicalIdentity" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "identity_hash" TEXT NOT NULL,
@@ -2000,7 +2144,7 @@ CREATE TABLE "BarcodeCanonicalIdentity" (
 );
 
 -- CreateTable
-CREATE TABLE "SupplierAliasMapping" (
+CREATE TABLE IF NOT EXISTS "SupplierAliasMapping" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "canonical_hash" TEXT NOT NULL,
@@ -2016,7 +2160,7 @@ CREATE TABLE "SupplierAliasMapping" (
 );
 
 -- CreateTable
-CREATE TABLE "RawBarcodeEvent" (
+CREATE TABLE IF NOT EXISTS "RawBarcodeEvent" (
     "id" TEXT NOT NULL,
     "scanned_barcode" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
@@ -2030,7 +2174,7 @@ CREATE TABLE "RawBarcodeEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "ParsedBarcodeFacts" (
+CREATE TABLE IF NOT EXISTS "ParsedBarcodeFacts" (
     "id" TEXT NOT NULL,
     "raw_barcode_event_id" TEXT NOT NULL,
     "gtin" TEXT,
@@ -2049,7 +2193,7 @@ CREATE TABLE "ParsedBarcodeFacts" (
 );
 
 -- CreateTable
-CREATE TABLE "CanonicalBarcodeIdentity" (
+CREATE TABLE IF NOT EXISTS "CanonicalBarcodeIdentity" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "identity_hash" TEXT NOT NULL,
@@ -2067,7 +2211,7 @@ CREATE TABLE "CanonicalBarcodeIdentity" (
 );
 
 -- CreateTable
-CREATE TABLE "SupplierProductAlias" (
+CREATE TABLE IF NOT EXISTS "SupplierProductAlias" (
     "id" TEXT NOT NULL,
     "canonical_identity_id" TEXT NOT NULL,
     "supplier_id" TEXT,
@@ -2084,7 +2228,7 @@ CREATE TABLE "SupplierProductAlias" (
 );
 
 -- CreateTable
-CREATE TABLE "OperationalFamily" (
+CREATE TABLE IF NOT EXISTS "OperationalFamily" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "family_code" TEXT NOT NULL,
@@ -2098,7 +2242,7 @@ CREATE TABLE "OperationalFamily" (
 );
 
 -- CreateTable
-CREATE TABLE "FamilySpecBinding" (
+CREATE TABLE IF NOT EXISTS "FamilySpecBinding" (
     "id" TEXT NOT NULL,
     "operational_family_id" TEXT NOT NULL,
     "corporate_protein_spec_id" TEXT NOT NULL,
@@ -2111,7 +2255,7 @@ CREATE TABLE "FamilySpecBinding" (
 );
 
 -- CreateTable
-CREATE TABLE "MappingReviewQueue" (
+CREATE TABLE IF NOT EXISTS "MappingReviewQueue" (
     "id" TEXT NOT NULL,
     "raw_barcode" TEXT NOT NULL,
     "parsed_facts_id" TEXT,
@@ -2131,7 +2275,7 @@ CREATE TABLE "MappingReviewQueue" (
 );
 
 -- CreateTable
-CREATE TABLE "IdentityResolutionAudit" (
+CREATE TABLE IF NOT EXISTS "IdentityResolutionAudit" (
     "id" TEXT NOT NULL,
     "raw_barcode" TEXT NOT NULL,
     "parsed_facts_id" TEXT,
@@ -2149,7 +2293,7 @@ CREATE TABLE "IdentityResolutionAudit" (
 );
 
 -- CreateTable
-CREATE TABLE "InboundShipment" (
+CREATE TABLE IF NOT EXISTS "InboundShipment" (
     "id" TEXT NOT NULL,
     "company_id" TEXT,
     "store_id" INTEGER NOT NULL,
@@ -2164,7 +2308,7 @@ CREATE TABLE "InboundShipment" (
 );
 
 -- CreateTable
-CREATE TABLE "InboundLineUnit" (
+CREATE TABLE IF NOT EXISTS "InboundLineUnit" (
     "id" TEXT NOT NULL,
     "shipment_id" TEXT NOT NULL,
     "item_name" TEXT NOT NULL,
@@ -2181,7 +2325,7 @@ CREATE TABLE "InboundLineUnit" (
 );
 
 -- CreateTable
-CREATE TABLE "ProducedInventoryItem" (
+CREATE TABLE IF NOT EXISTS "ProducedInventoryItem" (
     "id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
     "source_batch_id" TEXT NOT NULL,
@@ -2196,7 +2340,7 @@ CREATE TABLE "ProducedInventoryItem" (
 );
 
 -- CreateTable
-CREATE TABLE "PublicLocationRegistry" (
+CREATE TABLE IF NOT EXISTS "PublicLocationRegistry" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "brand_name" TEXT NOT NULL,
@@ -2222,7 +2366,7 @@ CREATE TABLE "PublicLocationRegistry" (
 );
 
 -- CreateTable
-CREATE TABLE "OrganizationTargetVersion" (
+CREATE TABLE IF NOT EXISTS "OrganizationTargetVersion" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "version" INTEGER NOT NULL DEFAULT 1,
@@ -2245,7 +2389,7 @@ CREATE TABLE "OrganizationTargetVersion" (
 );
 
 -- CreateTable
-CREATE TABLE "StoreTargetAllocation" (
+CREATE TABLE IF NOT EXISTS "StoreTargetAllocation" (
     "id" TEXT NOT NULL,
     "target_version_id" TEXT NOT NULL,
     "store_id" INTEGER NOT NULL,
@@ -2259,7 +2403,7 @@ CREATE TABLE "StoreTargetAllocation" (
 );
 
 -- CreateTable
-CREATE TABLE "TargetScenarioSimulation" (
+CREATE TABLE IF NOT EXISTS "TargetScenarioSimulation" (
     "id" TEXT NOT NULL,
     "company_id" TEXT NOT NULL,
     "scenario_name" TEXT NOT NULL,
@@ -2275,785 +2419,1181 @@ CREATE TABLE "TargetScenarioSimulation" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Company_api_key_key" ON "Company"("api_key");
+CREATE UNIQUE INDEX IF NOT EXISTS "Company_api_key_key" ON "Company"("api_key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Company_stripe_customer_id_key" ON "Company"("stripe_customer_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "Company_stripe_customer_id_key" ON "Company"("stripe_customer_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Company_stripe_subscription_id_key" ON "Company"("stripe_subscription_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "Company_stripe_subscription_id_key" ON "Company"("stripe_subscription_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Company_subdomain_key" ON "Company"("subdomain");
+CREATE UNIQUE INDEX IF NOT EXISTS "Company_subdomain_key" ON "Company"("subdomain");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Company_contract_id_key" ON "Company"("contract_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "Company_contract_id_key" ON "Company"("contract_id");
 
 -- CreateIndex
-CREATE INDEX "OrganizationProductEntitlement_company_id_status_idx" ON "OrganizationProductEntitlement"("company_id", "status");
+CREATE INDEX IF NOT EXISTS "OrganizationProductEntitlement_company_id_status_idx" ON "OrganizationProductEntitlement"("company_id", "status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OrganizationProductEntitlement_company_id_product_code_key" ON "OrganizationProductEntitlement"("company_id", "product_code");
+CREATE UNIQUE INDEX IF NOT EXISTS "OrganizationProductEntitlement_company_id_product_code_key" ON "OrganizationProductEntitlement"("company_id", "product_code");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CompanyProduct_company_id_name_key" ON "CompanyProduct"("company_id", "name");
+CREATE UNIQUE INDEX IF NOT EXISTS "CompanyProduct_company_id_name_key" ON "CompanyProduct"("company_id", "name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Store_company_id_store_name_key" ON "Store"("company_id", "store_name");
+CREATE UNIQUE INDEX IF NOT EXISTS "Store_company_id_store_name_key" ON "Store"("company_id", "store_name");
 
 -- CreateIndex
-CREATE INDEX "Outlet_company_id_store_id_idx" ON "Outlet"("company_id", "store_id");
+CREATE INDEX IF NOT EXISTS "Outlet_company_id_store_id_idx" ON "Outlet"("company_id", "store_id");
 
 -- CreateIndex
-CREATE INDEX "Outlet_store_id_outlet_type_idx" ON "Outlet"("store_id", "outlet_type");
+CREATE INDEX IF NOT EXISTS "Outlet_store_id_outlet_type_idx" ON "Outlet"("store_id", "outlet_type");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Outlet_store_id_slug_key" ON "Outlet"("store_id", "slug");
+CREATE UNIQUE INDEX IF NOT EXISTS "Outlet_store_id_slug_key" ON "Outlet"("store_id", "slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "StoreTemplate_company_id_name_key" ON "StoreTemplate"("company_id", "name");
+CREATE UNIQUE INDEX IF NOT EXISTS "StoreTemplate_company_id_name_key" ON "StoreTemplate"("company_id", "name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "StoreMeatTarget_store_id_protein_key" ON "StoreMeatTarget"("store_id", "protein");
+CREATE UNIQUE INDEX IF NOT EXISTS "StoreMeatTarget_store_id_protein_key" ON "StoreMeatTarget"("store_id", "protein");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "TrainingProgress_user_id_module_id_key" ON "TrainingProgress"("user_id", "module_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "TrainingProgress_user_id_module_id_key" ON "TrainingProgress"("user_id", "module_id");
 
 -- CreateIndex
-CREATE INDEX "Order_store_id_order_date_idx" ON "Order"("store_id", "order_date");
+CREATE INDEX IF NOT EXISTS "Order_store_id_order_date_idx" ON "Order"("store_id", "order_date");
 
 -- CreateIndex
-CREATE INDEX "MeatUsage_store_id_source_type_date_idx" ON "MeatUsage"("store_id", "source_type", "date");
+CREATE INDEX IF NOT EXISTS "MeatUsage_store_id_source_type_date_idx" ON "MeatUsage"("store_id", "source_type", "date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "MeatUsage_store_id_protein_date_key" ON "MeatUsage"("store_id", "protein", "date");
+CREATE UNIQUE INDEX IF NOT EXISTS "MeatUsage_store_id_protein_date_key" ON "MeatUsage"("store_id", "protein", "date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Report_store_id_month_key" ON "Report"("store_id", "month");
+CREATE UNIQUE INDEX IF NOT EXISTS "Report_store_id_month_key" ON "Report"("store_id", "month");
 
 -- CreateIndex
-CREATE INDEX "InventoryRecord_store_id_date_idx" ON "InventoryRecord"("store_id", "date");
+CREATE INDEX IF NOT EXISTS "InventoryRecord_store_id_date_idx" ON "InventoryRecord"("store_id", "date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "InventoryRecord_company_id_client_event_id_key" ON "InventoryRecord"("company_id", "client_event_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "InventoryRecord_company_id_client_event_id_key" ON "InventoryRecord"("company_id", "client_event_id");
 
 -- CreateIndex
-CREATE INDEX "PurchaseRecord_store_id_date_idx" ON "PurchaseRecord"("store_id", "date");
+CREATE INDEX IF NOT EXISTS "PurchaseRecord_store_id_date_idx" ON "PurchaseRecord"("store_id", "date");
 
 -- CreateIndex
-CREATE INDEX "InvoiceRecord_store_id_date_idx" ON "InvoiceRecord"("store_id", "date");
+CREATE INDEX IF NOT EXISTS "InvoiceRecord_store_id_date_idx" ON "InvoiceRecord"("store_id", "date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SystemSettings_key_key" ON "SystemSettings"("key");
+CREATE UNIQUE INDEX IF NOT EXISTS "SystemSettings_key_key" ON "SystemSettings"("key");
 
 -- CreateIndex
-CREATE INDEX "AuditLog_company_id_created_at_idx" ON "AuditLog"("company_id", "created_at");
+CREATE INDEX IF NOT EXISTS "AuditLog_company_id_created_at_idx" ON "AuditLog"("company_id", "created_at");
 
 -- CreateIndex
-CREATE INDEX "AuditLog_store_id_created_at_idx" ON "AuditLog"("store_id", "created_at");
+CREATE INDEX IF NOT EXISTS "AuditLog_store_id_created_at_idx" ON "AuditLog"("store_id", "created_at");
 
 -- CreateIndex
-CREATE INDEX "AuditLog_store_id_outlet_id_created_at_idx" ON "AuditLog"("store_id", "outlet_id", "created_at");
+CREATE INDEX IF NOT EXISTS "AuditLog_store_id_outlet_id_created_at_idx" ON "AuditLog"("store_id", "outlet_id", "created_at");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "WasteLog_store_id_date_shift_key" ON "WasteLog"("store_id", "date", "shift");
+CREATE UNIQUE INDEX IF NOT EXISTS "WasteLog_store_id_date_shift_key" ON "WasteLog"("store_id", "date", "shift");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "WasteCompliance_store_id_week_start_key" ON "WasteCompliance"("store_id", "week_start");
+CREATE UNIQUE INDEX IF NOT EXISTS "WasteCompliance_store_id_week_start_key" ON "WasteCompliance"("store_id", "week_start");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PrepLog_store_id_date_key" ON "PrepLog"("store_id", "date");
+CREATE UNIQUE INDEX IF NOT EXISTS "PrepLog_store_id_date_key" ON "PrepLog"("store_id", "date");
 
 -- CreateIndex
-CREATE INDEX "DeliverySale_store_id_date_idx" ON "DeliverySale"("store_id", "date");
+CREATE INDEX IF NOT EXISTS "DeliverySale_store_id_date_idx" ON "DeliverySale"("store_id", "date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProductAlias_store_id_alias_key" ON "ProductAlias"("store_id", "alias");
+CREATE UNIQUE INDEX IF NOT EXISTS "ProductAlias_store_id_alias_key" ON "ProductAlias"("store_id", "alias");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SalesForecast_store_id_week_start_key" ON "SalesForecast"("store_id", "week_start");
+CREATE UNIQUE INDEX IF NOT EXISTS "SalesForecast_store_id_week_start_key" ON "SalesForecast"("store_id", "week_start");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SystemMetric_key_key" ON "SystemMetric"("key");
+CREATE UNIQUE INDEX IF NOT EXISTS "SystemMetric_key_key" ON "SystemMetric"("key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "InventoryCycle_store_id_cycle_type_start_date_key" ON "InventoryCycle"("store_id", "cycle_type", "start_date");
+CREATE UNIQUE INDEX IF NOT EXISTS "InventoryCycle_store_id_cycle_type_start_date_key" ON "InventoryCycle"("store_id", "cycle_type", "start_date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "InventoryItem_cycle_id_protein_id_key" ON "InventoryItem"("cycle_id", "protein_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "InventoryItem_cycle_id_protein_id_key" ON "InventoryItem"("cycle_id", "protein_id");
 
 -- CreateIndex
-CREATE INDEX "SupportTicket_store_id_status_idx" ON "SupportTicket"("store_id", "status");
+CREATE INDEX IF NOT EXISTS "SupportTicket_store_id_status_idx" ON "SupportTicket"("store_id", "status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProcurementAIFeedback_store_id_date_protein_key" ON "ProcurementAIFeedback"("store_id", "date", "protein");
+CREATE UNIQUE INDEX IF NOT EXISTS "ProcurementAIFeedback_store_id_date_protein_key" ON "ProcurementAIFeedback"("store_id", "date", "protein");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Partner_user_id_key" ON "Partner"("user_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "Partner_user_id_key" ON "Partner"("user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PartnerClient_partner_id_company_id_key" ON "PartnerClient"("partner_id", "company_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "PartnerClient_partner_id_company_id_key" ON "PartnerClient"("partner_id", "company_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PilotDailyAudit_store_id_audit_date_key" ON "PilotDailyAudit"("store_id", "audit_date");
+CREATE UNIQUE INDEX IF NOT EXISTS "PilotDailyAudit_store_id_audit_date_key" ON "PilotDailyAudit"("store_id", "audit_date");
 
 -- CreateIndex
-CREATE INDEX "ForecastIntelligenceLog_store_id_business_date_idx" ON "ForecastIntelligenceLog"("store_id", "business_date");
+CREATE INDEX IF NOT EXISTS "ForecastIntelligenceLog_store_id_business_date_idx" ON "ForecastIntelligenceLog"("store_id", "business_date");
 
 -- CreateIndex
-CREATE INDEX "ForecastIntelligenceLog_company_id_business_date_idx" ON "ForecastIntelligenceLog"("company_id", "business_date");
+CREATE INDEX IF NOT EXISTS "ForecastIntelligenceLog_company_id_business_date_idx" ON "ForecastIntelligenceLog"("company_id", "business_date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ForecastIntelligenceLog_store_id_business_date_key" ON "ForecastIntelligenceLog"("store_id", "business_date");
+CREATE UNIQUE INDEX IF NOT EXISTS "ForecastIntelligenceLog_store_id_business_date_key" ON "ForecastIntelligenceLog"("store_id", "business_date");
 
 -- CreateIndex
-CREATE INDEX "OutletForecastLog_company_id_store_id_business_date_idx" ON "OutletForecastLog"("company_id", "store_id", "business_date");
+CREATE INDEX IF NOT EXISTS "OutletForecastLog_company_id_store_id_business_date_idx" ON "OutletForecastLog"("company_id", "store_id", "business_date");
 
 -- CreateIndex
-CREATE INDEX "OutletForecastLog_outlet_id_business_date_idx" ON "OutletForecastLog"("outlet_id", "business_date");
+CREATE INDEX IF NOT EXISTS "OutletForecastLog_outlet_id_business_date_idx" ON "OutletForecastLog"("outlet_id", "business_date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OutletForecastLog_outlet_id_business_date_meal_period_key" ON "OutletForecastLog"("outlet_id", "business_date", "meal_period");
+CREATE UNIQUE INDEX IF NOT EXISTS "OutletForecastLog_outlet_id_business_date_meal_period_key" ON "OutletForecastLog"("outlet_id", "business_date", "meal_period");
 
 -- CreateIndex
-CREATE INDEX "AuditLogArchive_company_id_created_at_idx" ON "AuditLogArchive"("company_id", "created_at");
+CREATE INDEX IF NOT EXISTS "AuditLogArchive_company_id_created_at_idx" ON "AuditLogArchive"("company_id", "created_at");
 
 -- CreateIndex
-CREATE INDEX "AuditLogArchive_store_id_created_at_idx" ON "AuditLogArchive"("store_id", "created_at");
+CREATE INDEX IF NOT EXISTS "AuditLogArchive_store_id_created_at_idx" ON "AuditLogArchive"("store_id", "created_at");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "BurgerInventoryPool_store_id_date_key" ON "BurgerInventoryPool"("store_id", "date");
+CREATE UNIQUE INDEX IF NOT EXISTS "BurgerInventoryPool_store_id_date_key" ON "BurgerInventoryPool"("store_id", "date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "BarcodeFamily_family_code_key" ON "BarcodeFamily"("family_code");
+CREATE UNIQUE INDEX IF NOT EXISTS "BarcodeFamily_family_code_key" ON "BarcodeFamily"("family_code");
 
 -- CreateIndex
-CREATE INDEX "BarcodeFamily_family_code_is_active_idx" ON "BarcodeFamily"("family_code", "is_active");
+CREATE INDEX IF NOT EXISTS "BarcodeFamily_family_code_is_active_idx" ON "BarcodeFamily"("family_code", "is_active");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ReceivingEvent_company_id_client_event_id_key" ON "ReceivingEvent"("company_id", "client_event_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "ReceivingEvent_company_id_client_event_id_key" ON "ReceivingEvent"("company_id", "client_event_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ReceivingEvent_scanned_barcode_shipment_id_key" ON "ReceivingEvent"("scanned_barcode", "shipment_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "ReceivingEvent_scanned_barcode_shipment_id_key" ON "ReceivingEvent"("scanned_barcode", "shipment_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PullToPrepEvent_company_id_client_event_id_key" ON "PullToPrepEvent"("company_id", "client_event_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "PullToPrepEvent_company_id_client_event_id_key" ON "PullToPrepEvent"("company_id", "client_event_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "TrimRecordEvent_company_id_client_event_id_key" ON "TrimRecordEvent"("company_id", "client_event_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "TrimRecordEvent_company_id_client_event_id_key" ON "TrimRecordEvent"("company_id", "client_event_id");
 
 -- CreateIndex
-CREATE INDEX "BarcodeDecisionLog_store_id_context_status_idx" ON "BarcodeDecisionLog"("store_id", "context", "status");
+CREATE INDEX IF NOT EXISTS "BarcodeDecisionLog_store_id_context_status_idx" ON "BarcodeDecisionLog"("store_id", "context", "status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PasswordResetToken_token_hash_key" ON "PasswordResetToken"("token_hash");
+CREATE UNIQUE INDEX IF NOT EXISTS "PasswordResetToken_token_hash_key" ON "PasswordResetToken"("token_hash");
 
 -- CreateIndex
-CREATE INDEX "PasswordResetToken_user_id_idx" ON "PasswordResetToken"("user_id");
+CREATE INDEX IF NOT EXISTS "PasswordResetToken_user_id_idx" ON "PasswordResetToken"("user_id");
 
 -- CreateIndex
-CREATE INDEX "PasswordHistory_user_id_idx" ON "PasswordHistory"("user_id");
+CREATE INDEX IF NOT EXISTS "PasswordHistory_user_id_idx" ON "PasswordHistory"("user_id");
 
 -- CreateIndex
-CREATE INDEX "VaultFile_company_id_store_id_idx" ON "VaultFile"("company_id", "store_id");
+CREATE INDEX IF NOT EXISTS "VaultFile_company_id_store_id_idx" ON "VaultFile"("company_id", "store_id");
 
 -- CreateIndex
-CREATE INDEX "VaultFile_document_type_idx" ON "VaultFile"("document_type");
+CREATE INDEX IF NOT EXISTS "VaultFile_document_type_idx" ON "VaultFile"("document_type");
 
 -- CreateIndex
-CREATE INDEX "VaultFile_storage_key_idx" ON "VaultFile"("storage_key");
+CREATE INDEX IF NOT EXISTS "VaultFile_storage_key_idx" ON "VaultFile"("storage_key");
 
 -- CreateIndex
-CREATE INDEX "FileAccessLog_file_id_idx" ON "FileAccessLog"("file_id");
+CREATE INDEX IF NOT EXISTS "FileAccessLog_file_id_idx" ON "FileAccessLog"("file_id");
 
 -- CreateIndex
-CREATE INDEX "FileAccessLog_user_id_idx" ON "FileAccessLog"("user_id");
+CREATE INDEX IF NOT EXISTS "FileAccessLog_user_id_idx" ON "FileAccessLog"("user_id");
 
 -- CreateIndex
-CREATE INDEX "FileAccessLog_company_id_store_id_idx" ON "FileAccessLog"("company_id", "store_id");
+CREATE INDEX IF NOT EXISTS "FileAccessLog_company_id_store_id_idx" ON "FileAccessLog"("company_id", "store_id");
 
 -- CreateIndex
-CREATE INDEX "TenantDeletionJob_company_id_idx" ON "TenantDeletionJob"("company_id");
+CREATE INDEX IF NOT EXISTS "TenantDeletionJob_company_id_idx" ON "TenantDeletionJob"("company_id");
 
 -- CreateIndex
-CREATE INDEX "TenantDeletionJob_status_idx" ON "TenantDeletionJob"("status");
+CREATE INDEX IF NOT EXISTS "TenantDeletionJob_status_idx" ON "TenantDeletionJob"("status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RawIntegrationPayload_idempotency_key_key" ON "RawIntegrationPayload"("idempotency_key");
+CREATE UNIQUE INDEX IF NOT EXISTS "RawIntegrationPayload_idempotency_key_key" ON "RawIntegrationPayload"("idempotency_key");
 
 -- CreateIndex
-CREATE INDEX "RawIntegrationPayload_source_id_status_idx" ON "RawIntegrationPayload"("source_id", "status");
+CREATE INDEX IF NOT EXISTS "RawIntegrationPayload_source_id_status_idx" ON "RawIntegrationPayload"("source_id", "status");
 
 -- CreateIndex
-CREATE INDEX "RawIntegrationPayload_trace_id_idx" ON "RawIntegrationPayload"("trace_id");
+CREATE INDEX IF NOT EXISTS "RawIntegrationPayload_trace_id_idx" ON "RawIntegrationPayload"("trace_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CanonicalEvent_payload_id_key" ON "CanonicalEvent"("payload_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "CanonicalEvent_payload_id_key" ON "CanonicalEvent"("payload_id");
 
 -- CreateIndex
-CREATE INDEX "ProteinBox_store_id_status_idx" ON "ProteinBox"("store_id", "status");
+CREATE INDEX IF NOT EXISTS "ProteinBox_store_id_status_idx" ON "ProteinBox"("store_id", "status");
 
 -- CreateIndex
-CREATE INDEX "ProteinBox_gtin_lot_code_idx" ON "ProteinBox"("gtin", "lot_code");
+CREATE INDEX IF NOT EXISTS "ProteinBox_gtin_lot_code_idx" ON "ProteinBox"("gtin", "lot_code");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProteinBox_store_id_barcode_business_date_key" ON "ProteinBox"("store_id", "barcode", "business_date");
+CREATE UNIQUE INDEX IF NOT EXISTS "ProteinBox_store_id_barcode_business_date_key" ON "ProteinBox"("store_id", "barcode", "business_date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Subscription_stripe_subscription_id_key" ON "Subscription"("stripe_subscription_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "Subscription_stripe_subscription_id_key" ON "Subscription"("stripe_subscription_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "BillingPlan_tier_key" ON "BillingPlan"("tier");
+CREATE UNIQUE INDEX IF NOT EXISTS "BillingPlan_tier_key" ON "BillingPlan"("tier");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "GoldenDatasetItem_fingerprint_key" ON "GoldenDatasetItem"("fingerprint");
+CREATE UNIQUE INDEX IF NOT EXISTS "GoldenDatasetItem_fingerprint_key" ON "GoldenDatasetItem"("fingerprint");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "GoldenDatasetItem_job_id_key" ON "GoldenDatasetItem"("job_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "GoldenDatasetItem_job_id_key" ON "GoldenDatasetItem"("job_id");
 
 -- CreateIndex
-CREATE INDEX "GoldenDatasetItem_tenant_id_status_created_at_idx" ON "GoldenDatasetItem"("tenant_id", "status", "created_at");
+CREATE INDEX IF NOT EXISTS "GoldenDatasetItem_tenant_id_status_created_at_idx" ON "GoldenDatasetItem"("tenant_id", "status", "created_at");
 
 -- CreateIndex
-CREATE INDEX "GoldenDatasetItem_correlation_id_idx" ON "GoldenDatasetItem"("correlation_id");
+CREATE INDEX IF NOT EXISTS "GoldenDatasetItem_correlation_id_idx" ON "GoldenDatasetItem"("correlation_id");
 
 -- CreateIndex
-CREATE INDEX "IntakeBatch_tenant_id_idx" ON "IntakeBatch"("tenant_id");
+CREATE INDEX IF NOT EXISTS "IntakeBatch_tenant_id_idx" ON "IntakeBatch"("tenant_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "IntakeJob_dataset_item_id_key" ON "IntakeJob"("dataset_item_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "IntakeJob_dataset_item_id_key" ON "IntakeJob"("dataset_item_id");
 
 -- CreateIndex
-CREATE INDEX "IntakeJob_dataset_item_id_idx" ON "IntakeJob"("dataset_item_id");
+CREATE INDEX IF NOT EXISTS "IntakeJob_dataset_item_id_idx" ON "IntakeJob"("dataset_item_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "IntakeAudit_correlation_id_key" ON "IntakeAudit"("correlation_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "IntakeAudit_correlation_id_key" ON "IntakeAudit"("correlation_id");
 
 -- CreateIndex
-CREATE INDEX "IntakeAudit_effective_scope_action_idx" ON "IntakeAudit"("effective_scope", "action");
+CREATE INDEX IF NOT EXISTS "IntakeAudit_effective_scope_action_idx" ON "IntakeAudit"("effective_scope", "action");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OutboxEvent_idempotency_key_key" ON "OutboxEvent"("idempotency_key");
+CREATE UNIQUE INDEX IF NOT EXISTS "OutboxEvent_idempotency_key_key" ON "OutboxEvent"("idempotency_key");
 
 -- CreateIndex
-CREATE INDEX "OutboxEvent_status_locked_at_created_at_idx" ON "OutboxEvent"("status", "locked_at", "created_at");
+CREATE INDEX IF NOT EXISTS "OutboxEvent_status_locked_at_created_at_idx" ON "OutboxEvent"("status", "locked_at", "created_at");
 
 -- CreateIndex
-CREATE INDEX "OutboxEvent_idempotency_key_idx" ON "OutboxEvent"("idempotency_key");
+CREATE INDEX IF NOT EXISTS "OutboxEvent_idempotency_key_idx" ON "OutboxEvent"("idempotency_key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "FileObject_storage_key_key" ON "FileObject"("storage_key");
+CREATE UNIQUE INDEX IF NOT EXISTS "FileObject_storage_key_key" ON "FileObject"("storage_key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "FileObject_checksum_key" ON "FileObject"("checksum");
+CREATE UNIQUE INDEX IF NOT EXISTS "FileObject_checksum_key" ON "FileObject"("checksum");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "FileObject_dataset_item_id_key" ON "FileObject"("dataset_item_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "FileObject_dataset_item_id_key" ON "FileObject"("dataset_item_id");
 
 -- CreateIndex
-CREATE INDEX "FileObject_tenant_id_checksum_idx" ON "FileObject"("tenant_id", "checksum");
+CREATE INDEX IF NOT EXISTS "FileObject_tenant_id_checksum_idx" ON "FileObject"("tenant_id", "checksum");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RulesetVersion_version_tag_key" ON "RulesetVersion"("version_tag");
+CREATE UNIQUE INDEX IF NOT EXISTS "RulesetVersion_version_tag_key" ON "RulesetVersion"("version_tag");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ScoreDefinition_score_name_key" ON "ScoreDefinition"("score_name");
+CREATE UNIQUE INDEX IF NOT EXISTS "ScoreDefinition_score_name_key" ON "ScoreDefinition"("score_name");
 
 -- CreateIndex
-CREATE INDEX "IntelligenceSnapshot_tenant_id_generated_at_idx" ON "IntelligenceSnapshot"("tenant_id", "generated_at");
+CREATE INDEX IF NOT EXISTS "IntelligenceSnapshot_tenant_id_generated_at_idx" ON "IntelligenceSnapshot"("tenant_id", "generated_at");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "IntelligenceSnapshot_tenant_id_store_id_period_start_period_key" ON "IntelligenceSnapshot"("tenant_id", "store_id", "period_start", "period_end");
+CREATE UNIQUE INDEX IF NOT EXISTS "IntelligenceSnapshot_tenant_id_store_id_period_start_period_key" ON "IntelligenceSnapshot"("tenant_id", "store_id", "period_start", "period_end");
 
 -- CreateIndex
-CREATE INDEX "AnomalyEvent_tenant_id_severity_idx" ON "AnomalyEvent"("tenant_id", "severity");
+CREATE INDEX IF NOT EXISTS "AnomalyEvent_tenant_id_severity_idx" ON "AnomalyEvent"("tenant_id", "severity");
 
 -- CreateIndex
-CREATE INDEX "RecommendationEvent_tenant_id_owner_role_status_idx" ON "RecommendationEvent"("tenant_id", "owner_role", "status");
+CREATE INDEX IF NOT EXISTS "RecommendationEvent_tenant_id_owner_role_status_idx" ON "RecommendationEvent"("tenant_id", "owner_role", "status");
 
 -- CreateIndex
-CREATE INDEX "SupplierProfile_companyId_store_id_idx" ON "SupplierProfile"("companyId", "store_id");
+CREATE INDEX IF NOT EXISTS "SupplierProfile_companyId_store_id_idx" ON "SupplierProfile"("companyId", "store_id");
 
 -- CreateIndex
-CREATE INDEX "SupplierProfile_companyId_idx" ON "SupplierProfile"("companyId");
+CREATE INDEX IF NOT EXISTS "SupplierProfile_companyId_idx" ON "SupplierProfile"("companyId");
 
 -- CreateIndex
-CREATE INDEX "SupplierBarcodeRule_companyId_supplierId_idx" ON "SupplierBarcodeRule"("companyId", "supplierId");
+CREATE INDEX IF NOT EXISTS "SupplierBarcodeRule_companyId_supplierId_idx" ON "SupplierBarcodeRule"("companyId", "supplierId");
 
 -- CreateIndex
-CREATE INDEX "SupplierCatalogItem_supplierId_supplierItemCode_idx" ON "SupplierCatalogItem"("supplierId", "supplierItemCode");
+CREATE INDEX IF NOT EXISTS "SupplierCatalogItem_supplierId_supplierItemCode_idx" ON "SupplierCatalogItem"("supplierId", "supplierItemCode");
 
 -- CreateIndex
-CREATE INDEX "PurchaseOrder_companyId_storeId_idx" ON "PurchaseOrder"("companyId", "storeId");
+CREATE INDEX IF NOT EXISTS "PurchaseOrder_companyId_storeId_idx" ON "PurchaseOrder"("companyId", "storeId");
 
 -- CreateIndex
-CREATE INDEX "PurchaseOrder_poNumber_idx" ON "PurchaseOrder"("poNumber");
+CREATE INDEX IF NOT EXISTS "PurchaseOrder_poNumber_idx" ON "PurchaseOrder"("poNumber");
 
 -- CreateIndex
-CREATE INDEX "PurchaseOrderLine_purchaseOrderId_idx" ON "PurchaseOrderLine"("purchaseOrderId");
+CREATE INDEX IF NOT EXISTS "PurchaseOrderLine_purchaseOrderId_idx" ON "PurchaseOrderLine"("purchaseOrderId");
 
 -- CreateIndex
-CREATE INDEX "ExpectedDelivery_companyId_storeId_idx" ON "ExpectedDelivery"("companyId", "storeId");
+CREATE INDEX IF NOT EXISTS "ExpectedDelivery_companyId_storeId_idx" ON "ExpectedDelivery"("companyId", "storeId");
 
 -- CreateIndex
-CREATE INDEX "ExpectedDelivery_asnNumber_idx" ON "ExpectedDelivery"("asnNumber");
+CREATE INDEX IF NOT EXISTS "ExpectedDelivery_asnNumber_idx" ON "ExpectedDelivery"("asnNumber");
 
 -- CreateIndex
-CREATE INDEX "SupplierDocument_storeId_idx" ON "SupplierDocument"("storeId");
+CREATE INDEX IF NOT EXISTS "SupplierDocument_storeId_idx" ON "SupplierDocument"("storeId");
 
 -- CreateIndex
-CREATE INDEX "SupplierDocument_externalDocumentNumber_idx" ON "SupplierDocument"("externalDocumentNumber");
+CREATE INDEX IF NOT EXISTS "SupplierDocument_externalDocumentNumber_idx" ON "SupplierDocument"("externalDocumentNumber");
 
 -- CreateIndex
-CREATE INDEX "PosSalesFeed_storeId_businessDate_idx" ON "PosSalesFeed"("storeId", "businessDate");
+CREATE INDEX IF NOT EXISTS "PosSalesFeed_storeId_businessDate_idx" ON "PosSalesFeed"("storeId", "businessDate");
 
 -- CreateIndex
-CREATE INDEX "ReconciliationEvent_storeId_businessDate_idx" ON "ReconciliationEvent"("storeId", "businessDate");
+CREATE INDEX IF NOT EXISTS "ReconciliationEvent_storeId_businessDate_idx" ON "ReconciliationEvent"("storeId", "businessDate");
 
 -- CreateIndex
-CREATE INDEX "SupplierIntegritySnapshot_companyId_supplierId_periodEnd_idx" ON "SupplierIntegritySnapshot"("companyId", "supplierId", "periodEnd");
+CREATE INDEX IF NOT EXISTS "SupplierIntegritySnapshot_companyId_supplierId_periodEnd_idx" ON "SupplierIntegritySnapshot"("companyId", "supplierId", "periodEnd");
 
 -- CreateIndex
-CREATE INDEX "ProteinTransformationBatch_storeId_status_idx" ON "ProteinTransformationBatch"("storeId", "status");
+CREATE INDEX IF NOT EXISTS "ProteinTransformationBatch_storeId_status_idx" ON "ProteinTransformationBatch"("storeId", "status");
 
 -- CreateIndex
-CREATE INDEX "TransformationInput_batchId_idx" ON "TransformationInput"("batchId");
+CREATE INDEX IF NOT EXISTS "TransformationInput_batchId_idx" ON "TransformationInput"("batchId");
 
 -- CreateIndex
-CREATE INDEX "TransformationInput_sourceProteinBoxId_idx" ON "TransformationInput"("sourceProteinBoxId");
+CREATE INDEX IF NOT EXISTS "TransformationInput_sourceProteinBoxId_idx" ON "TransformationInput"("sourceProteinBoxId");
 
 -- CreateIndex
-CREATE INDEX "TransformationOutput_batchId_idx" ON "TransformationOutput"("batchId");
+CREATE INDEX IF NOT EXISTS "TransformationOutput_batchId_idx" ON "TransformationOutput"("batchId");
 
 -- CreateIndex
-CREATE INDEX "ConsumptionLink_batchId_idx" ON "ConsumptionLink"("batchId");
+CREATE INDEX IF NOT EXISTS "ConsumptionLink_batchId_idx" ON "ConsumptionLink"("batchId");
 
 -- CreateIndex
-CREATE INDEX "ConsumptionLink_posSalesLineId_idx" ON "ConsumptionLink"("posSalesLineId");
+CREATE INDEX IF NOT EXISTS "ConsumptionLink_posSalesLineId_idx" ON "ConsumptionLink"("posSalesLineId");
 
 -- CreateIndex
-CREATE INDEX "ConsumptionAllocationRule_storeId_productCode_idx" ON "ConsumptionAllocationRule"("storeId", "productCode");
+CREATE INDEX IF NOT EXISTS "ConsumptionAllocationRule_storeId_productCode_idx" ON "ConsumptionAllocationRule"("storeId", "productCode");
 
 -- CreateIndex
-CREATE INDEX "ProteinConsumptionAllocation_sourceProteinBoxId_idx" ON "ProteinConsumptionAllocation"("sourceProteinBoxId");
+CREATE INDEX IF NOT EXISTS "ProteinConsumptionAllocation_sourceProteinBoxId_idx" ON "ProteinConsumptionAllocation"("sourceProteinBoxId");
 
 -- CreateIndex
-CREATE INDEX "ProteinConsumptionAllocation_posSalesLineId_idx" ON "ProteinConsumptionAllocation"("posSalesLineId");
+CREATE INDEX IF NOT EXISTS "ProteinConsumptionAllocation_posSalesLineId_idx" ON "ProteinConsumptionAllocation"("posSalesLineId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ExecutiveSnapshotLedger_companyId_storeId_snapshotType_busi_key" ON "ExecutiveSnapshotLedger"("companyId", "storeId", "snapshotType", "businessDate");
+CREATE UNIQUE INDEX IF NOT EXISTS "ExecutiveSnapshotLedger_companyId_storeId_snapshotType_busi_key" ON "ExecutiveSnapshotLedger"("companyId", "storeId", "snapshotType", "businessDate");
 
 -- CreateIndex
-CREATE INDEX "ExecutiveActionDecision_storeId_decisionStatus_createdAt_idx" ON "ExecutiveActionDecision"("storeId", "decisionStatus", "createdAt");
+CREATE INDEX IF NOT EXISTS "ExecutiveActionDecision_storeId_decisionStatus_createdAt_idx" ON "ExecutiveActionDecision"("storeId", "decisionStatus", "createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PilotConfiguration_storeId_key" ON "PilotConfiguration"("storeId");
+CREATE UNIQUE INDEX IF NOT EXISTS "PilotConfiguration_storeId_key" ON "PilotConfiguration"("storeId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "BarcodeCanonicalIdentity_identity_hash_key" ON "BarcodeCanonicalIdentity"("identity_hash");
+CREATE UNIQUE INDEX IF NOT EXISTS "BarcodeCanonicalIdentity_identity_hash_key" ON "BarcodeCanonicalIdentity"("identity_hash");
 
 -- CreateIndex
-CREATE INDEX "BarcodeCanonicalIdentity_company_id_idx" ON "BarcodeCanonicalIdentity"("company_id");
+CREATE INDEX IF NOT EXISTS "BarcodeCanonicalIdentity_company_id_idx" ON "BarcodeCanonicalIdentity"("company_id");
 
 -- CreateIndex
-CREATE INDEX "BarcodeCanonicalIdentity_identity_hash_idx" ON "BarcodeCanonicalIdentity"("identity_hash");
+CREATE INDEX IF NOT EXISTS "BarcodeCanonicalIdentity_identity_hash_idx" ON "BarcodeCanonicalIdentity"("identity_hash");
 
 -- CreateIndex
-CREATE INDEX "BarcodeCanonicalIdentity_base_gtin_idx" ON "BarcodeCanonicalIdentity"("base_gtin");
+CREATE INDEX IF NOT EXISTS "BarcodeCanonicalIdentity_base_gtin_idx" ON "BarcodeCanonicalIdentity"("base_gtin");
 
 -- CreateIndex
-CREATE INDEX "SupplierAliasMapping_company_id_idx" ON "SupplierAliasMapping"("company_id");
+CREATE INDEX IF NOT EXISTS "SupplierAliasMapping_company_id_idx" ON "SupplierAliasMapping"("company_id");
 
 -- CreateIndex
-CREATE INDEX "SupplierAliasMapping_canonical_hash_idx" ON "SupplierAliasMapping"("canonical_hash");
+CREATE INDEX IF NOT EXISTS "SupplierAliasMapping_canonical_hash_idx" ON "SupplierAliasMapping"("canonical_hash");
 
 -- CreateIndex
-CREATE INDEX "SupplierAliasMapping_protein_spec_id_idx" ON "SupplierAliasMapping"("protein_spec_id");
+CREATE INDEX IF NOT EXISTS "SupplierAliasMapping_protein_spec_id_idx" ON "SupplierAliasMapping"("protein_spec_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SupplierAliasMapping_company_id_canonical_hash_protein_spec_key" ON "SupplierAliasMapping"("company_id", "canonical_hash", "protein_spec_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "SupplierAliasMapping_company_id_canonical_hash_protein_spec_key" ON "SupplierAliasMapping"("company_id", "canonical_hash", "protein_spec_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ParsedBarcodeFacts_raw_barcode_event_id_key" ON "ParsedBarcodeFacts"("raw_barcode_event_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "ParsedBarcodeFacts_raw_barcode_event_id_key" ON "ParsedBarcodeFacts"("raw_barcode_event_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CanonicalBarcodeIdentity_identity_hash_key" ON "CanonicalBarcodeIdentity"("identity_hash");
+CREATE UNIQUE INDEX IF NOT EXISTS "CanonicalBarcodeIdentity_identity_hash_key" ON "CanonicalBarcodeIdentity"("identity_hash");
 
 -- CreateIndex
-CREATE INDEX "CanonicalBarcodeIdentity_company_id_idx" ON "CanonicalBarcodeIdentity"("company_id");
+CREATE INDEX IF NOT EXISTS "CanonicalBarcodeIdentity_company_id_idx" ON "CanonicalBarcodeIdentity"("company_id");
 
 -- CreateIndex
-CREATE INDEX "CanonicalBarcodeIdentity_identity_hash_idx" ON "CanonicalBarcodeIdentity"("identity_hash");
+CREATE INDEX IF NOT EXISTS "CanonicalBarcodeIdentity_identity_hash_idx" ON "CanonicalBarcodeIdentity"("identity_hash");
 
 -- CreateIndex
-CREATE INDEX "CanonicalBarcodeIdentity_stable_signature_idx" ON "CanonicalBarcodeIdentity"("stable_signature");
+CREATE INDEX IF NOT EXISTS "CanonicalBarcodeIdentity_stable_signature_idx" ON "CanonicalBarcodeIdentity"("stable_signature");
 
 -- CreateIndex
-CREATE INDEX "CanonicalBarcodeIdentity_operational_family_id_idx" ON "CanonicalBarcodeIdentity"("operational_family_id");
+CREATE INDEX IF NOT EXISTS "CanonicalBarcodeIdentity_operational_family_id_idx" ON "CanonicalBarcodeIdentity"("operational_family_id");
 
 -- CreateIndex
-CREATE INDEX "SupplierProductAlias_canonical_identity_id_idx" ON "SupplierProductAlias"("canonical_identity_id");
+CREATE INDEX IF NOT EXISTS "SupplierProductAlias_canonical_identity_id_idx" ON "SupplierProductAlias"("canonical_identity_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OperationalFamily_company_id_family_code_key" ON "OperationalFamily"("company_id", "family_code");
+CREATE UNIQUE INDEX IF NOT EXISTS "OperationalFamily_company_id_family_code_key" ON "OperationalFamily"("company_id", "family_code");
 
 -- CreateIndex
-CREATE INDEX "FamilySpecBinding_operational_family_id_idx" ON "FamilySpecBinding"("operational_family_id");
+CREATE INDEX IF NOT EXISTS "FamilySpecBinding_operational_family_id_idx" ON "FamilySpecBinding"("operational_family_id");
 
 -- CreateIndex
-CREATE INDEX "FamilySpecBinding_corporate_protein_spec_id_idx" ON "FamilySpecBinding"("corporate_protein_spec_id");
+CREATE INDEX IF NOT EXISTS "FamilySpecBinding_corporate_protein_spec_id_idx" ON "FamilySpecBinding"("corporate_protein_spec_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "FamilySpecBinding_operational_family_id_corporate_protein_s_key" ON "FamilySpecBinding"("operational_family_id", "corporate_protein_spec_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "FamilySpecBinding_operational_family_id_corporate_protein_s_key" ON "FamilySpecBinding"("operational_family_id", "corporate_protein_spec_id");
 
 -- CreateIndex
-CREATE INDEX "MappingReviewQueue_company_id_idx" ON "MappingReviewQueue"("company_id");
+CREATE INDEX IF NOT EXISTS "MappingReviewQueue_company_id_idx" ON "MappingReviewQueue"("company_id");
 
 -- CreateIndex
-CREATE INDEX "MappingReviewQueue_review_status_idx" ON "MappingReviewQueue"("review_status");
+CREATE INDEX IF NOT EXISTS "MappingReviewQueue_review_status_idx" ON "MappingReviewQueue"("review_status");
 
 -- CreateIndex
-CREATE INDEX "IdentityResolutionAudit_raw_barcode_idx" ON "IdentityResolutionAudit"("raw_barcode");
+CREATE INDEX IF NOT EXISTS "IdentityResolutionAudit_raw_barcode_idx" ON "IdentityResolutionAudit"("raw_barcode");
 
 -- CreateIndex
-CREATE INDEX "IdentityResolutionAudit_canonical_identity_id_idx" ON "IdentityResolutionAudit"("canonical_identity_id");
+CREATE INDEX IF NOT EXISTS "IdentityResolutionAudit_canonical_identity_id_idx" ON "IdentityResolutionAudit"("canonical_identity_id");
 
 -- CreateIndex
-CREATE INDEX "InboundShipment_store_id_supplier_id_status_idx" ON "InboundShipment"("store_id", "supplier_id", "status");
+CREATE INDEX IF NOT EXISTS "InboundShipment_store_id_supplier_id_status_idx" ON "InboundShipment"("store_id", "supplier_id", "status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "InboundShipment_store_id_invoice_number_key" ON "InboundShipment"("store_id", "invoice_number");
+CREATE UNIQUE INDEX IF NOT EXISTS "InboundShipment_store_id_invoice_number_key" ON "InboundShipment"("store_id", "invoice_number");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "InboundLineUnit_matched_event_id_key" ON "InboundLineUnit"("matched_event_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "InboundLineUnit_matched_event_id_key" ON "InboundLineUnit"("matched_event_id");
 
 -- CreateIndex
-CREATE INDEX "InboundLineUnit_shipment_id_status_idx" ON "InboundLineUnit"("shipment_id", "status");
+CREATE INDEX IF NOT EXISTS "InboundLineUnit_shipment_id_status_idx" ON "InboundLineUnit"("shipment_id", "status");
 
 -- CreateIndex
-CREATE INDEX "ProducedInventoryItem_store_id_status_idx" ON "ProducedInventoryItem"("store_id", "status");
+CREATE INDEX IF NOT EXISTS "ProducedInventoryItem_store_id_status_idx" ON "ProducedInventoryItem"("store_id", "status");
 
 -- CreateIndex
-CREATE INDEX "ProducedInventoryItem_source_batch_id_idx" ON "ProducedInventoryItem"("source_batch_id");
+CREATE INDEX IF NOT EXISTS "ProducedInventoryItem_source_batch_id_idx" ON "ProducedInventoryItem"("source_batch_id");
 
 -- CreateIndex
-CREATE INDEX "PublicLocationRegistry_company_id_reconciliation_status_idx" ON "PublicLocationRegistry"("company_id", "reconciliation_status");
+CREATE INDEX IF NOT EXISTS "PublicLocationRegistry_company_id_reconciliation_status_idx" ON "PublicLocationRegistry"("company_id", "reconciliation_status");
 
 -- CreateIndex
-CREATE INDEX "PublicLocationRegistry_company_id_public_operating_status_idx" ON "PublicLocationRegistry"("company_id", "public_operating_status");
+CREATE INDEX IF NOT EXISTS "PublicLocationRegistry_company_id_public_operating_status_idx" ON "PublicLocationRegistry"("company_id", "public_operating_status");
 
 -- CreateIndex
-CREATE INDEX "OrganizationTargetVersion_company_id_status_effective_from_idx" ON "OrganizationTargetVersion"("company_id", "status", "effective_from");
+CREATE INDEX IF NOT EXISTS "OrganizationTargetVersion_company_id_status_effective_from_idx" ON "OrganizationTargetVersion"("company_id", "status", "effective_from");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OrganizationTargetVersion_company_id_version_key" ON "OrganizationTargetVersion"("company_id", "version");
+CREATE UNIQUE INDEX IF NOT EXISTS "OrganizationTargetVersion_company_id_version_key" ON "OrganizationTargetVersion"("company_id", "version");
 
 -- CreateIndex
-CREATE INDEX "StoreTargetAllocation_store_id_idx" ON "StoreTargetAllocation"("store_id");
+CREATE INDEX IF NOT EXISTS "StoreTargetAllocation_store_id_idx" ON "StoreTargetAllocation"("store_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "StoreTargetAllocation_target_version_id_store_id_key" ON "StoreTargetAllocation"("target_version_id", "store_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "StoreTargetAllocation_target_version_id_store_id_key" ON "StoreTargetAllocation"("target_version_id", "store_id");
 
 -- CreateIndex
-CREATE INDEX "TargetScenarioSimulation_company_id_is_promoted_idx" ON "TargetScenarioSimulation"("company_id", "is_promoted");
+CREATE INDEX IF NOT EXISTS "TargetScenarioSimulation_company_id_is_promoted_idx" ON "TargetScenarioSimulation"("company_id", "is_promoted");
 
 -- AddForeignKey
-ALTER TABLE "OrganizationProductEntitlement" ADD CONSTRAINT "OrganizationProductEntitlement_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "OrganizationProductEntitlement" ADD CONSTRAINT "OrganizationProductEntitlement_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "CompanyProduct" ADD CONSTRAINT "CompanyProduct_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "CompanyProduct" ADD CONSTRAINT "CompanyProduct_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Store" ADD CONSTRAINT "Store_active_template_id_fkey" FOREIGN KEY ("active_template_id") REFERENCES "StoreTemplate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Store" ADD CONSTRAINT "Store_active_template_id_fkey" FOREIGN KEY ("active_template_id") REFERENCES "StoreTemplate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Store" ADD CONSTRAINT "Store_area_manager_id_fkey" FOREIGN KEY ("area_manager_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Store" ADD CONSTRAINT "Store_area_manager_id_fkey" FOREIGN KEY ("area_manager_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Store" ADD CONSTRAINT "Store_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Store" ADD CONSTRAINT "Store_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "StoreTemplate" ADD CONSTRAINT "StoreTemplate_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "StoreTemplate" ADD CONSTRAINT "StoreTemplate_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "StoreMeatTarget" ADD CONSTRAINT "StoreMeatTarget_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "StoreMeatTarget" ADD CONSTRAINT "StoreMeatTarget_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "User" ADD CONSTRAINT "User_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "OwnerVaultMessage" ADD CONSTRAINT "OwnerVaultMessage_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "OwnerVaultMessage" ADD CONSTRAINT "OwnerVaultMessage_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "TrainingProgress" ADD CONSTRAINT "TrainingProgress_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "TrainingProgress" ADD CONSTRAINT "TrainingProgress_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Order" ADD CONSTRAINT "Order_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "MeatUsage" ADD CONSTRAINT "MeatUsage_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "MeatUsage" ADD CONSTRAINT "MeatUsage_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Upload" ADD CONSTRAINT "Upload_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Upload" ADD CONSTRAINT "Upload_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Report" ADD CONSTRAINT "Report_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Report" ADD CONSTRAINT "Report_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "InventoryRecord" ADD CONSTRAINT "InventoryRecord_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "InventoryRecord" ADD CONSTRAINT "InventoryRecord_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PurchaseRecord" ADD CONSTRAINT "PurchaseRecord_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PurchaseRecord" ADD CONSTRAINT "PurchaseRecord_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "InvoiceRecord" ADD CONSTRAINT "InvoiceRecord_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "InvoiceRecord" ADD CONSTRAINT "InvoiceRecord_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "WasteLog" ADD CONSTRAINT "WasteLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "WasteLog" ADD CONSTRAINT "WasteLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "WasteCompliance" ADD CONSTRAINT "WasteCompliance_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "WasteCompliance" ADD CONSTRAINT "WasteCompliance_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PrepLog" ADD CONSTRAINT "PrepLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PrepLog" ADD CONSTRAINT "PrepLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "DeliverySale" ADD CONSTRAINT "DeliverySale_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "DeliverySale" ADD CONSTRAINT "DeliverySale_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ProductAlias" ADD CONSTRAINT "ProductAlias_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ProductAlias" ADD CONSTRAINT "ProductAlias_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SalesForecast" ADD CONSTRAINT "SalesForecast_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SalesForecast" ADD CONSTRAINT "SalesForecast_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SysInvoice" ADD CONSTRAINT "SysInvoice_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SysInvoice" ADD CONSTRAINT "SysInvoice_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "InventoryCycle" ADD CONSTRAINT "InventoryCycle_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "InventoryCycle" ADD CONSTRAINT "InventoryCycle_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "InventoryItem" ADD CONSTRAINT "InventoryItem_cycle_id_fkey" FOREIGN KEY ("cycle_id") REFERENCES "InventoryCycle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "InventoryItem" ADD CONSTRAINT "InventoryItem_cycle_id_fkey" FOREIGN KEY ("cycle_id") REFERENCES "InventoryCycle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "InventoryItem" ADD CONSTRAINT "InventoryItem_protein_id_fkey" FOREIGN KEY ("protein_id") REFERENCES "CompanyProduct"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "InventoryItem" ADD CONSTRAINT "InventoryItem_protein_id_fkey" FOREIGN KEY ("protein_id") REFERENCES "CompanyProduct"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupportTicket" ADD CONSTRAINT "SupportTicket_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupportMessage" ADD CONSTRAINT "SupportMessage_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupportMessage" ADD CONSTRAINT "SupportMessage_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ProcurementAIFeedback" ADD CONSTRAINT "ProcurementAIFeedback_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ProcurementAIFeedback" ADD CONSTRAINT "ProcurementAIFeedback_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Partner" ADD CONSTRAINT "Partner_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Partner" ADD CONSTRAINT "Partner_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PartnerClient" ADD CONSTRAINT "PartnerClient_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PartnerClient" ADD CONSTRAINT "PartnerClient_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PartnerClient" ADD CONSTRAINT "PartnerClient_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "Partner"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PartnerClient" ADD CONSTRAINT "PartnerClient_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "Partner"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "Partner"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "Partner"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Payout" ADD CONSTRAINT "Payout_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "Partner"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Payout" ADD CONSTRAINT "Payout_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "Partner"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PilotDailyAudit" ADD CONSTRAINT "PilotDailyAudit_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PilotDailyAudit" ADD CONSTRAINT "PilotDailyAudit_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ForecastIntelligenceLog" ADD CONSTRAINT "ForecastIntelligenceLog_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ForecastIntelligenceLog" ADD CONSTRAINT "ForecastIntelligenceLog_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ForecastIntelligenceLog" ADD CONSTRAINT "ForecastIntelligenceLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ForecastIntelligenceLog" ADD CONSTRAINT "ForecastIntelligenceLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "CorporateProteinSpec" ADD CONSTRAINT "CorporateProteinSpec_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "CorporateProteinSpec" ADD CONSTRAINT "CorporateProteinSpec_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "BarcodeScanEvent" ADD CONSTRAINT "BarcodeScanEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "BarcodeScanEvent" ADD CONSTRAINT "BarcodeScanEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "BurgerInventoryPool" ADD CONSTRAINT "BurgerInventoryPool_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "BurgerInventoryPool" ADD CONSTRAINT "BurgerInventoryPool_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "UnknownBarcodeLog" ADD CONSTRAINT "UnknownBarcodeLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "UnknownBarcodeLog" ADD CONSTRAINT "UnknownBarcodeLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ReceivingEvent" ADD CONSTRAINT "ReceivingEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ReceivingEvent" ADD CONSTRAINT "ReceivingEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PullToPrepEvent" ADD CONSTRAINT "PullToPrepEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PullToPrepEvent" ADD CONSTRAINT "PullToPrepEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "TrimRecordEvent" ADD CONSTRAINT "TrimRecordEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "TrimRecordEvent" ADD CONSTRAINT "TrimRecordEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "FinancialLeakageEvent" ADD CONSTRAINT "FinancialLeakageEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "FinancialLeakageEvent" ADD CONSTRAINT "FinancialLeakageEvent_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "AiYieldInsight" ADD CONSTRAINT "AiYieldInsight_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "AiYieldInsight" ADD CONSTRAINT "AiYieldInsight_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SystemAlert" ADD CONSTRAINT "SystemAlert_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SystemAlert" ADD CONSTRAINT "SystemAlert_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "BarcodeDecisionLog" ADD CONSTRAINT "BarcodeDecisionLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "BarcodeDecisionLog" ADD CONSTRAINT "BarcodeDecisionLog_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PasswordResetToken" ADD CONSTRAINT "PasswordResetToken_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PasswordResetToken" ADD CONSTRAINT "PasswordResetToken_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PasswordHistory" ADD CONSTRAINT "PasswordHistory_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PasswordHistory" ADD CONSTRAINT "PasswordHistory_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "VaultFile" ADD CONSTRAINT "VaultFile_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "VaultFile" ADD CONSTRAINT "VaultFile_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "VaultFile" ADD CONSTRAINT "VaultFile_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "VaultFile" ADD CONSTRAINT "VaultFile_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "VaultFile" ADD CONSTRAINT "VaultFile_uploaded_by_user_id_fkey" FOREIGN KEY ("uploaded_by_user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "VaultFile" ADD CONSTRAINT "VaultFile_uploaded_by_user_id_fkey" FOREIGN KEY ("uploaded_by_user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "FileAccessLog" ADD CONSTRAINT "FileAccessLog_file_id_fkey" FOREIGN KEY ("file_id") REFERENCES "VaultFile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "FileAccessLog" ADD CONSTRAINT "FileAccessLog_file_id_fkey" FOREIGN KEY ("file_id") REFERENCES "VaultFile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "FileAccessLog" ADD CONSTRAINT "FileAccessLog_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "FileAccessLog" ADD CONSTRAINT "FileAccessLog_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "OcrQuarantineQueue" ADD CONSTRAINT "OcrQuarantineQueue_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "OcrQuarantineQueue" ADD CONSTRAINT "OcrQuarantineQueue_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "BoxLifecycleEvent" ADD CONSTRAINT "BoxLifecycleEvent_box_id_fkey" FOREIGN KEY ("box_id") REFERENCES "ProteinBox"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "BoxLifecycleEvent" ADD CONSTRAINT "BoxLifecycleEvent_box_id_fkey" FOREIGN KEY ("box_id") REFERENCES "ProteinBox"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "Company"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "AnomalyEvent" ADD CONSTRAINT "AnomalyEvent_snapshot_id_fkey" FOREIGN KEY ("snapshot_id") REFERENCES "IntelligenceSnapshot"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "AnomalyEvent" ADD CONSTRAINT "AnomalyEvent_snapshot_id_fkey" FOREIGN KEY ("snapshot_id") REFERENCES "IntelligenceSnapshot"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "RecommendationEvent" ADD CONSTRAINT "RecommendationEvent_anomaly_id_fkey" FOREIGN KEY ("anomaly_id") REFERENCES "AnomalyEvent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "RecommendationEvent" ADD CONSTRAINT "RecommendationEvent_anomaly_id_fkey" FOREIGN KEY ("anomaly_id") REFERENCES "AnomalyEvent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "RecommendationEvent" ADD CONSTRAINT "RecommendationEvent_snapshot_id_fkey" FOREIGN KEY ("snapshot_id") REFERENCES "IntelligenceSnapshot"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "RecommendationEvent" ADD CONSTRAINT "RecommendationEvent_snapshot_id_fkey" FOREIGN KEY ("snapshot_id") REFERENCES "IntelligenceSnapshot"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ReceivingRecognitionRule" ADD CONSTRAINT "ReceivingRecognitionRule_protein_spec_id_fkey" FOREIGN KEY ("protein_spec_id") REFERENCES "CorporateProteinSpec"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ReceivingRecognitionRule" ADD CONSTRAINT "ReceivingRecognitionRule_protein_spec_id_fkey" FOREIGN KEY ("protein_spec_id") REFERENCES "CorporateProteinSpec"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupplierBarcodeRule" ADD CONSTRAINT "SupplierBarcodeRule_proteinSpecId_fkey" FOREIGN KEY ("proteinSpecId") REFERENCES "CorporateProteinSpec"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupplierBarcodeRule" ADD CONSTRAINT "SupplierBarcodeRule_proteinSpecId_fkey" FOREIGN KEY ("proteinSpecId") REFERENCES "CorporateProteinSpec"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupplierBarcodeRule" ADD CONSTRAINT "SupplierBarcodeRule_supplierId_fkey" FOREIGN KEY ("supplierId") REFERENCES "SupplierProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupplierBarcodeRule" ADD CONSTRAINT "SupplierBarcodeRule_supplierId_fkey" FOREIGN KEY ("supplierId") REFERENCES "SupplierProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupplierCatalogItem" ADD CONSTRAINT "SupplierCatalogItem_linkedProteinSpecId_fkey" FOREIGN KEY ("linkedProteinSpecId") REFERENCES "CorporateProteinSpec"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupplierCatalogItem" ADD CONSTRAINT "SupplierCatalogItem_linkedProteinSpecId_fkey" FOREIGN KEY ("linkedProteinSpecId") REFERENCES "CorporateProteinSpec"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupplierCatalogItem" ADD CONSTRAINT "SupplierCatalogItem_supplierId_fkey" FOREIGN KEY ("supplierId") REFERENCES "SupplierProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupplierCatalogItem" ADD CONSTRAINT "SupplierCatalogItem_supplierId_fkey" FOREIGN KEY ("supplierId") REFERENCES "SupplierProfile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PurchaseOrderLine" ADD CONSTRAINT "PurchaseOrderLine_purchaseOrderId_fkey" FOREIGN KEY ("purchaseOrderId") REFERENCES "PurchaseOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PurchaseOrderLine" ADD CONSTRAINT "PurchaseOrderLine_purchaseOrderId_fkey" FOREIGN KEY ("purchaseOrderId") REFERENCES "PurchaseOrder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ExpectedDeliveryLine" ADD CONSTRAINT "ExpectedDeliveryLine_expectedDeliveryId_fkey" FOREIGN KEY ("expectedDeliveryId") REFERENCES "ExpectedDelivery"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ExpectedDeliveryLine" ADD CONSTRAINT "ExpectedDeliveryLine_expectedDeliveryId_fkey" FOREIGN KEY ("expectedDeliveryId") REFERENCES "ExpectedDelivery"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupplierDocumentLine" ADD CONSTRAINT "SupplierDocumentLine_documentId_fkey" FOREIGN KEY ("documentId") REFERENCES "SupplierDocument"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupplierDocumentLine" ADD CONSTRAINT "SupplierDocumentLine_documentId_fkey" FOREIGN KEY ("documentId") REFERENCES "SupplierDocument"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PosSalesLine" ADD CONSTRAINT "PosSalesLine_feedId_fkey" FOREIGN KEY ("feedId") REFERENCES "PosSalesFeed"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PosSalesLine" ADD CONSTRAINT "PosSalesLine_feedId_fkey" FOREIGN KEY ("feedId") REFERENCES "PosSalesFeed"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "VarianceCase" ADD CONSTRAINT "VarianceCase_reconciliationEventId_fkey" FOREIGN KEY ("reconciliationEventId") REFERENCES "ReconciliationEvent"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "VarianceCase" ADD CONSTRAINT "VarianceCase_reconciliationEventId_fkey" FOREIGN KEY ("reconciliationEventId") REFERENCES "ReconciliationEvent"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "TransformationInput" ADD CONSTRAINT "TransformationInput_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "ProteinTransformationBatch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "TransformationInput" ADD CONSTRAINT "TransformationInput_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "ProteinTransformationBatch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "TransformationInput" ADD CONSTRAINT "TransformationInput_sourceProteinBoxId_fkey" FOREIGN KEY ("sourceProteinBoxId") REFERENCES "ProteinBox"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "TransformationInput" ADD CONSTRAINT "TransformationInput_sourceProteinBoxId_fkey" FOREIGN KEY ("sourceProteinBoxId") REFERENCES "ProteinBox"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "TransformationOutput" ADD CONSTRAINT "TransformationOutput_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "ProteinTransformationBatch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "TransformationOutput" ADD CONSTRAINT "TransformationOutput_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "ProteinTransformationBatch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ConsumptionLink" ADD CONSTRAINT "ConsumptionLink_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "ProteinTransformationBatch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ConsumptionLink" ADD CONSTRAINT "ConsumptionLink_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "ProteinTransformationBatch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ConsumptionLink" ADD CONSTRAINT "ConsumptionLink_posSalesLineId_fkey" FOREIGN KEY ("posSalesLineId") REFERENCES "PosSalesLine"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ConsumptionLink" ADD CONSTRAINT "ConsumptionLink_posSalesLineId_fkey" FOREIGN KEY ("posSalesLineId") REFERENCES "PosSalesLine"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ProteinConsumptionAllocation" ADD CONSTRAINT "ProteinConsumptionAllocation_posSalesLineId_fkey" FOREIGN KEY ("posSalesLineId") REFERENCES "PosSalesLine"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ProteinConsumptionAllocation" ADD CONSTRAINT "ProteinConsumptionAllocation_posSalesLineId_fkey" FOREIGN KEY ("posSalesLineId") REFERENCES "PosSalesLine"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ProteinConsumptionAllocation" ADD CONSTRAINT "ProteinConsumptionAllocation_sourceProteinBoxId_fkey" FOREIGN KEY ("sourceProteinBoxId") REFERENCES "ProteinBox"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ProteinConsumptionAllocation" ADD CONSTRAINT "ProteinConsumptionAllocation_sourceProteinBoxId_fkey" FOREIGN KEY ("sourceProteinBoxId") REFERENCES "ProteinBox"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupplierAliasMapping" ADD CONSTRAINT "SupplierAliasMapping_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupplierAliasMapping" ADD CONSTRAINT "SupplierAliasMapping_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupplierAliasMapping" ADD CONSTRAINT "SupplierAliasMapping_protein_spec_id_fkey" FOREIGN KEY ("protein_spec_id") REFERENCES "CorporateProteinSpec"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupplierAliasMapping" ADD CONSTRAINT "SupplierAliasMapping_protein_spec_id_fkey" FOREIGN KEY ("protein_spec_id") REFERENCES "CorporateProteinSpec"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ParsedBarcodeFacts" ADD CONSTRAINT "ParsedBarcodeFacts_raw_barcode_event_id_fkey" FOREIGN KEY ("raw_barcode_event_id") REFERENCES "RawBarcodeEvent"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "ParsedBarcodeFacts" ADD CONSTRAINT "ParsedBarcodeFacts_raw_barcode_event_id_fkey" FOREIGN KEY ("raw_barcode_event_id") REFERENCES "RawBarcodeEvent"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "CanonicalBarcodeIdentity" ADD CONSTRAINT "CanonicalBarcodeIdentity_operational_family_id_fkey" FOREIGN KEY ("operational_family_id") REFERENCES "OperationalFamily"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "CanonicalBarcodeIdentity" ADD CONSTRAINT "CanonicalBarcodeIdentity_operational_family_id_fkey" FOREIGN KEY ("operational_family_id") REFERENCES "OperationalFamily"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SupplierProductAlias" ADD CONSTRAINT "SupplierProductAlias_canonical_identity_id_fkey" FOREIGN KEY ("canonical_identity_id") REFERENCES "CanonicalBarcodeIdentity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "SupplierProductAlias" ADD CONSTRAINT "SupplierProductAlias_canonical_identity_id_fkey" FOREIGN KEY ("canonical_identity_id") REFERENCES "CanonicalBarcodeIdentity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "FamilySpecBinding" ADD CONSTRAINT "FamilySpecBinding_corporate_protein_spec_id_fkey" FOREIGN KEY ("corporate_protein_spec_id") REFERENCES "CorporateProteinSpec"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "FamilySpecBinding" ADD CONSTRAINT "FamilySpecBinding_corporate_protein_spec_id_fkey" FOREIGN KEY ("corporate_protein_spec_id") REFERENCES "CorporateProteinSpec"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "FamilySpecBinding" ADD CONSTRAINT "FamilySpecBinding_operational_family_id_fkey" FOREIGN KEY ("operational_family_id") REFERENCES "OperationalFamily"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "FamilySpecBinding" ADD CONSTRAINT "FamilySpecBinding_operational_family_id_fkey" FOREIGN KEY ("operational_family_id") REFERENCES "OperationalFamily"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "IdentityResolutionAudit" ADD CONSTRAINT "IdentityResolutionAudit_canonical_identity_id_fkey" FOREIGN KEY ("canonical_identity_id") REFERENCES "CanonicalBarcodeIdentity"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "IdentityResolutionAudit" ADD CONSTRAINT "IdentityResolutionAudit_canonical_identity_id_fkey" FOREIGN KEY ("canonical_identity_id") REFERENCES "CanonicalBarcodeIdentity"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "InboundShipment" ADD CONSTRAINT "InboundShipment_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "InboundShipment" ADD CONSTRAINT "InboundShipment_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "InboundLineUnit" ADD CONSTRAINT "InboundLineUnit_matched_event_id_fkey" FOREIGN KEY ("matched_event_id") REFERENCES "ReceivingEvent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "InboundLineUnit" ADD CONSTRAINT "InboundLineUnit_matched_event_id_fkey" FOREIGN KEY ("matched_event_id") REFERENCES "ReceivingEvent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "InboundLineUnit" ADD CONSTRAINT "InboundLineUnit_shipment_id_fkey" FOREIGN KEY ("shipment_id") REFERENCES "InboundShipment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "InboundLineUnit" ADD CONSTRAINT "InboundLineUnit_shipment_id_fkey" FOREIGN KEY ("shipment_id") REFERENCES "InboundShipment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "PublicLocationRegistry" ADD CONSTRAINT "PublicLocationRegistry_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "PublicLocationRegistry" ADD CONSTRAINT "PublicLocationRegistry_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "OrganizationTargetVersion" ADD CONSTRAINT "OrganizationTargetVersion_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "OrganizationTargetVersion" ADD CONSTRAINT "OrganizationTargetVersion_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "StoreTargetAllocation" ADD CONSTRAINT "StoreTargetAllocation_target_version_id_fkey" FOREIGN KEY ("target_version_id") REFERENCES "OrganizationTargetVersion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "StoreTargetAllocation" ADD CONSTRAINT "StoreTargetAllocation_target_version_id_fkey" FOREIGN KEY ("target_version_id") REFERENCES "OrganizationTargetVersion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "StoreTargetAllocation" ADD CONSTRAINT "StoreTargetAllocation_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "StoreTargetAllocation" ADD CONSTRAINT "StoreTargetAllocation_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "Store"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "TargetScenarioSimulation" ADD CONSTRAINT "TargetScenarioSimulation_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+    ALTER TABLE "TargetScenarioSimulation" ADD CONSTRAINT "TargetScenarioSimulation_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "Company"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 

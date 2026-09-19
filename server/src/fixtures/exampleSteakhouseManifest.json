@@ -1,0 +1,197 @@
+{
+  "manifest_id": "example-steakhouse-v1",
+  "manifest_version": 1,
+  "company": {
+    "canonical_name": "Example Steakhouse Group",
+    "display_name": "Example Steakhouse Group",
+    "subdomain": "example-steakhouse",
+    "concept_type": "RODIZIO",
+    "timezone_default": "America/New_York",
+    "country": "USA",
+    "status": "Active",
+    "branding": {
+      "theme_primary_color": "#8B0000",
+      "theme_logo_url": "https://example-steakhouse.com/logo.png",
+      "theme_bg_url": "https://example-steakhouse.com/bg.jpg"
+    },
+    "entitlements": [
+      "BRASA_CORE",
+      "BRASA_PULSE",
+      "YIELD_INTELLIGENCE"
+    ],
+    "pilot_config": {
+      "is_pilot": true,
+      "pilot_start_date": "2027-01-15"
+    }
+  },
+  "locations": [
+    {
+      "canonical_key": "ex-nyc-01",
+      "store_name": "Example NYC Midtown",
+      "store_code": "EX-001",
+      "city": "New York",
+      "state": "NY",
+      "country": "USA",
+      "timezone": "America/New_York",
+      "status": "ACTIVE",
+      "is_pilot": true,
+      "dinner_price": 64.90,
+      "lunch_price": 34.90,
+      "is_lunch_enabled": true
+    },
+    {
+      "canonical_key": "ex-mia-02",
+      "store_name": "Example Miami Beach",
+      "store_code": "EX-002",
+      "city": "Miami",
+      "state": "FL",
+      "country": "USA",
+      "timezone": "America/New_York",
+      "status": "ACTIVE",
+      "is_pilot": false,
+      "dinner_price": 62.90,
+      "lunch_price": 32.90,
+      "is_lunch_enabled": true
+    },
+    {
+      "canonical_key": "ex-chi-03",
+      "store_name": "Example Chicago Loop",
+      "store_code": "EX-003",
+      "city": "Chicago",
+      "state": "IL",
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "ACTIVE",
+      "is_pilot": false,
+      "dinner_price": 59.90,
+      "lunch_price": 29.90,
+      "is_lunch_enabled": false
+    },
+    {
+      "canonical_key": "ex-dal-04",
+      "store_name": "Example Dallas Uptown",
+      "store_code": "EX-004",
+      "city": "Dallas",
+      "state": "TX",
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "ACTIVE",
+      "is_pilot": false,
+      "dinner_price": 58.90,
+      "lunch_price": 28.90,
+      "is_lunch_enabled": true
+    }
+  ],
+  "products": [
+    {
+      "canonical_name": "Picanha",
+      "category": "Prime Cuts",
+      "protein_group": "BEEF",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Filet Mignon",
+      "category": "Prime Cuts",
+      "protein_group": "BEEF",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Ribeye",
+      "category": "Prime Cuts",
+      "protein_group": "BEEF",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Beef Ribs",
+      "category": "Ribs & Roasts",
+      "protein_group": "BEEF",
+      "is_dinner_only": true
+    },
+    {
+      "canonical_name": "Rack of Lamb",
+      "category": "Lamb",
+      "protein_group": "LAMB",
+      "is_dinner_only": true
+    },
+    {
+      "canonical_name": "Chicken Thighs",
+      "category": "Poultry",
+      "protein_group": "POULTRY",
+      "is_dinner_only": false
+    },
+    {
+      "canonical_name": "Brazilian Sausage",
+      "category": "Sausage",
+      "protein_group": "SAUSAGE",
+      "is_dinner_only": false
+    }
+  ],
+  "preparations": [
+    {
+      "parent_protein_name": "Picanha",
+      "subproduct_name": "Traditional Picanha",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Picanha",
+      "subproduct_name": "Garlic Picanha",
+      "is_independently_purchased": false
+    },
+    {
+      "parent_protein_name": "Filet Mignon",
+      "subproduct_name": "Bacon-Wrapped Filet",
+      "is_independently_purchased": false
+    }
+  ],
+  "aliases": [
+    {
+      "alias_name": "Top Sirloin",
+      "canonical_protein_name": "Picanha"
+    },
+    {
+      "alias_name": "Garlic Steak",
+      "canonical_protein_name": "Picanha"
+    },
+    {
+      "alias_name": "Filet Bacon",
+      "canonical_protein_name": "Filet Mignon"
+    }
+  ],
+  "users": [
+    {
+      "email": "exec@examplesteakhouse.com",
+      "role": "owner",
+      "first_name": "Executive",
+      "last_name": "Owner",
+      "position": "CEO",
+      "is_primary": true,
+      "capabilities": [
+        "CORPORATE_TARGET_APPROVE",
+        "CORPORATE_TARGET_CREATE"
+      ]
+    },
+    {
+      "email": "director@examplesteakhouse.com",
+      "role": "director",
+      "first_name": "Regional",
+      "last_name": "Director",
+      "position": "VP Operations",
+      "is_primary": false,
+      "capabilities": []
+    },
+    {
+      "email": "manager.nyc@examplesteakhouse.com",
+      "role": "manager",
+      "first_name": "NYC",
+      "last_name": "Manager",
+      "position": "General Manager",
+      "is_primary": false,
+      "store_canonical_key": "ex-nyc-01"
+    }
+  ],
+  "pending_declarations": {
+    "baseline_status": "PENDING_PILOT",
+    "corporate_target_status": "PENDING_AUTHORIZED_INPUT",
+    "supplier_integration_status": "PENDING_INTEGRATION"
+  }
+}
