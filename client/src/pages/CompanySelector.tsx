@@ -73,8 +73,12 @@ export const CompanySelector = () => {
         );
     }
 
-    if (user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co')) {
-        return <GlobalGlobe companies={companies} onSelect={handleSelect} />;
+    const isGlobalMaster = user?.scope?.type === 'GLOBAL' || 
+        (user?.role === 'admin' && !user?.companyId && !user?.company_id) || 
+        user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co');
+
+    if (isGlobalMaster) {
+        return <GlobalGlobe onSelect={handleSelect} />;
     }
 
     return (

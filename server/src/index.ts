@@ -178,6 +178,7 @@ import leadRoutes from './routes/lead.routes';
 import weatherRoutes from './routes/weather.routes';
 import alohaRoutes from './routes/aloha.routes';
 import pulseRoutes from './routes/pulse.routes';
+import platformRoutes from './routes/platform.routes';
 
 import { ProspectingAgent } from './services/ProspectingAgent';
 import { OneDriveWatcher } from './services/OneDriveWatcher';
@@ -248,6 +249,7 @@ app.use('/api/v1/billing', requireAuth, billingRoutes);
 app.use('/api/v1/burger', burgerRoutes);
 app.use('/api/v1/pulse', pulseRoutes);
 app.use('/api/v1/ecosystem', pulseRoutes);
+app.use('/api/v1/platform', platformRoutes);
 
 // Public SSO Handoff Receiver Route for BRASA Pulse Redirects
 app.get('/api/auth/brasa-meat-sso', PulseController.handleBrowserSso);

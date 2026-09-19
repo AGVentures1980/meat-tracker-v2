@@ -264,6 +264,8 @@ export class TenantProvisioner {
                         lunch_price: loc.lunch_price ?? undefined,
                         is_lunch_enabled: loc.is_lunch_enabled ?? undefined,
                         is_pilot: loc.is_pilot ?? false,
+                        latitude: loc.latitude !== undefined ? loc.latitude : undefined,
+                        longitude: loc.longitude !== undefined ? loc.longitude : undefined,
                         status: 'ACTIVE',
                         billing_active: true
                     },
@@ -278,6 +280,8 @@ export class TenantProvisioner {
                         lunch_price: loc.lunch_price ?? 29.90,
                         is_lunch_enabled: loc.is_lunch_enabled ?? false,
                         is_pilot: loc.is_pilot ?? false,
+                        latitude: loc.latitude ?? null,
+                        longitude: loc.longitude ?? null,
                         status: 'ACTIVE',
                         billing_active: true,
                         activated_at: new Date(),

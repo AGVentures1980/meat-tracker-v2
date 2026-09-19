@@ -164,6 +164,8 @@ model Store {
   billing_active             Boolean                   @default(false)
   status                     String                    @default("INACTIVE")
   data_type                  StoreDataType             @default(DEMO)
+  latitude                   Float?
+  longitude                  Float?
   AiYieldInsight             AiYieldInsight[]
   AuditLogs                  AuditLog[]
   BarcodeDecisionLog         BarcodeDecisionLog[]

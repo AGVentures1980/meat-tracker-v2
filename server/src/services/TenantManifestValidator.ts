@@ -17,6 +17,8 @@ export interface LocationManifest {
     dinner_price?: number;
     lunch_price?: number;
     is_lunch_enabled?: boolean;
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface ProductManifest {
@@ -161,6 +163,21 @@ export class TenantManifestValidator {
                     errors.push(`Duplicate location canonical_key in manifest: '${loc.canonical_key}'`);
                 }
                 keys.add(loc.canonical_key);
+
+                // Geo Coordinate Validation
+                const hasLat = loc.latitude !== undefined && loc.latitude !== null;
+                const hasLng = loc.longitude !== undefined && loc.longitude !== null;
+
+                if (hasLat !== hasLng) {
+                    errors.push(`GEO_PAIR_INCOMPLETE: Location '${loc.canonical_key || idx}' must provide both latitude and longitude or neither.`);
+                } else if (hasLat && hasLng) {
+                    if (typeof loc.latitude !== 'number' || isNaN(loc.latitude) || loc.latitude < -90 || loc.latitude > 90) {
+                        errors.push(`INVALID_LATITUDE: Location '${loc.canonical_key || idx}' has invalid latitude '${loc.latitude}'. Must be between -90 and 90.`);
+                    }
+                    if (typeof loc.longitude !== 'number' || isNaN(loc.longitude) || loc.longitude < -180 || loc.longitude > 180) {
+                        errors.push(`INVALID_LONGITUDE: Location '${loc.canonical_key || idx}' has invalid longitude '${loc.longitude}'. Must be between -180 and 180.`);
+                    }
+                }
             });
         }
 

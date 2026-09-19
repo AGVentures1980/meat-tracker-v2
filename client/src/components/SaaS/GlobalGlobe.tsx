@@ -4,28 +4,36 @@ import { Zap, ArrowRight, Globe as GlobeIcon, Network, DollarSign, ShieldAlert, 
 import { useAuth } from '../../context/AuthContext';
 import Globe from 'react-globe.gl';
 
-interface Company {
+export interface GlobalStore {
+    id: string | number;
+    name: string;
+    city: string | null;
+    state: string | null;
+    country: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    status: string;
+}
+
+export interface GlobalCompany {
     id: string;
     name: string;
-    plan: string;
-    _count: {
-        stores: number;
-    }
+    subdomain: string;
+    logo_url: string | null;
+    primary_color: string | null;
+    company_status: string;
+    active_store_count: number;
+    mapped_store_count: number;
+    geo_pending_count: number;
+    stores: GlobalStore[];
 }
 
 interface GlobalGlobeProps {
-    companies: Company[];
-    onSelect: (company: Company) => void;
+    companies?: any[];
+    onSelect: (company: { id: string; name: string; subdomain: string }) => void;
 }
 
-const REGIONS = [
-    { id: 'USA', name: 'USA', lat: 39.8283, lng: -98.5795, size: 5, color: '#C5A059' }, // Gold
-    { id: 'BR', name: 'BRASIL', lat: -14.2350, lng: -51.9253, size: 5, color: '#C5A059' },
-    { id: 'UAE', name: 'DUBAI', lat: 25.2048, lng: 55.2708, size: 3, color: '#C5A059' },
-    { id: 'PH', name: 'FILIPINAS', lat: 12.8797, lng: 121.7740, size: 3, color: '#C5A059' },
-];
-
-export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
+export const GlobalGlobe = ({ onSelect }: GlobalGlobeProps) => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const globeEl = useRef<any>();
@@ -35,240 +43,114 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
         width: window.innerWidth,
         height: window.innerHeight
     });
-    const [activeRegion, setActiveRegion] = useState<string | null>(null);
     const [isPaused, setIsPaused] = useState(false);
     
-    // Store mapping states
-    const [focusedCompany, setFocusedCompany] = useState<any>(null);
-    const [companyPoints, setCompanyPoints] = useState<any[]>([]);
-    
+    // Dynamic Global Intelligence State
+    const [globalCompanies, setGlobalCompanies] = useState<GlobalCompany[]>([]);
+    const [loadingCompanies, setLoadingCompanies] = useState(true);
+    const [focusedCompany, setFocusedCompany] = useState<GlobalCompany | null>(null);
     const [isServerOnline, setIsServerOnline] = useState(true);
 
+    // Fetch Canonical Global Intelligence Platform Data
     useEffect(() => {
         let isMounted = true;
-        
-        const checkHealth = async () => {
+
+        const fetchGlobalIntelligence = async () => {
             try {
-                // Fetch with a 5s timeout to catch Railway sleeping/offline quickly
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                const res = await fetch('/api/v1/platform/global-intelligence', {
+                    headers: user?.token ? { 'Authorization': `Bearer ${user.token}` } : {}
+                });
                 
-                const res = await fetch('/api/health', { signal: controller.signal });
-                clearTimeout(timeoutId);
-                
-                if (isMounted) setIsServerOnline(res.ok);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (isMounted && data.companies) {
+                        setGlobalCompanies(data.companies);
+                        setIsServerOnline(true);
+                    }
+                } else {
+                    if (isMounted) setIsServerOnline(false);
+                }
             } catch (err) {
+                console.error('[GLOBAL_GLOBE] Failed to fetch platform global intelligence data', err);
                 if (isMounted) setIsServerOnline(false);
+            } finally {
+                if (isMounted) setLoadingCompanies(false);
             }
         };
 
-        checkHealth();
-        const interval = setInterval(checkHealth, 30000); // Check every 30s
-        
+        fetchGlobalIntelligence();
+        const interval = setInterval(fetchGlobalIntelligence, 30000);
+
         return () => {
             isMounted = false;
             clearInterval(interval);
         };
-    }, []);
+    }, [user?.token]);
 
     useEffect(() => {
         const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
         window.addEventListener('resize', handleResize);
 
-        // Configure auto-rotation and initial zoom after a tick
-        setTimeout(() => {
+        const timer = setTimeout(() => {
             if (globeEl.current) {
                 globeEl.current.controls().autoRotate = true;
                 globeEl.current.controls().autoRotateSpeed = 0.5;
-                globeEl.current.controls().enableZoom = true; // Allow zoom so user can tap precisely
+                globeEl.current.controls().enableZoom = true;
                 globeEl.current.pointOfView({ altitude: 2 });
             }
         }, 100);
 
-        return () => window.removeEventListener('resize', handleResize);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', handleResize);
+        };
     }, []);
 
-    // Stop rotation when a region is focused to lock onto it or manually paused
     useEffect(() => {
         if (globeEl.current) {
-            globeEl.current.controls().autoRotate = !activeRegion && !isPaused && !focusedCompany;
+            globeEl.current.controls().autoRotate = !isPaused && !focusedCompany;
         }
-    }, [activeRegion, isPaused, focusedCompany]);
+    }, [isPaused, focusedCompany]);
 
-    const systemCompanies = companies.filter(c => c.name.includes("Fogo") || c.name.includes("Texas") || c.name.toLowerCase().includes("outback") || c.name.includes("Brasa") || c.name.toLowerCase().includes("terra") || c.name.toLowerCase().includes("adega") || c.name.toLowerCase().includes("hard rock") || c.name.toLowerCase().includes("hardrock") || c.name.toLowerCase().includes("chima"));
+    // Render Markers strictly from canonical Store coordinates (NO fake / random points)
+    const companyPoints = focusedCompany
+        ? focusedCompany.stores
+            .filter(s => s.latitude !== null && s.longitude !== null && !isNaN(Number(s.latitude)) && !isNaN(Number(s.longitude)))
+            .map(s => ({
+                lat: Number(s.latitude),
+                lng: Number(s.longitude),
+                name: s.name,
+                city: s.city || s.name
+            }))
+        : [];
 
-    // Hardcode the region variations based on master database
-    const regionalOperations = {
-        'USA': [
-            { id: 'usa-1', dbMatch: 'Fogo', name: 'Fogo de Chão USA', img: '/fdc-logo-pure-white.png', stores: 58, plan: 'ENTERPRISE' },
-            { id: 'usa-2', dbMatch: 'Texas', name: 'Texas de Brazil', img: '/tdb-logo-white.svg', stores: 49, plan: 'ENTERPRISE' },
-            { id: 'usa-3', dbMatch: 'Outback', name: 'Outback USA', img: '/outback-logo.svg', stores: 700, plan: 'ENTERPRISE' },
-            { id: 'usa-4', dbMatch: 'Brasa', name: 'Brasa USA', img: '/brasa-logo-v3.png', stores: 1, plan: 'HQ' },
-            { id: 'usa-5', dbMatch: 'Terra', name: 'Terra Gaúcha USA', img: 'https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg', stores: 6, plan: 'ENTERPRISE' },
-            { id: 'usa-6', dbMatch: 'Adega', name: 'Adega Gaucha USA', img: '/adega-logo.png', stores: 3, plan: 'ENTERPRISE' },
-            { id: 'usa-7', dbMatch: 'Hard Rock', name: 'Hard Rock Cafe', img: '/hardrock_logo.png', stores: 180, plan: 'ENTERPRISE' },
-            { id: 'usa-8', dbMatch: 'Chima', name: 'Chima Steakhouse', img: '/chima-logo.svg', stores: 4, plan: 'ENTERPRISE' }
-        ],
-        'BR': [
-            { id: 'br-1', dbMatch: 'Fogo', name: 'Fogo de Chão Brasil', img: '/fdc-logo-pure-white.png', stores: 9, plan: 'ENTERPRISE' },
-            { id: 'br-2', dbMatch: 'Outback', name: 'Outback Brasil', img: '/outback-logo.svg', stores: 152, plan: 'ENTERPRISE' }
-        ],
-        'UAE': [
-            { id: 'uae-1', dbMatch: 'Fogo', name: 'Fogo de Chão Dubai', img: '/fdc-logo-pure-white.png', stores: 1, plan: 'ENTERPRISE' },
-            { id: 'uae-2', dbMatch: 'Texas', name: 'Texas de Brazil Dubai', img: '/tdb-logo-white.svg', stores: 1, plan: 'ENTERPRISE' }
-        ],
-        'PH': [
-            { id: 'ph-1', dbMatch: 'Fogo', name: 'Fogo de Chão Philippines', img: '/fdc-logo-pure-white.png', stores: 1, plan: 'ENTERPRISE' }
-        ]
-    };
-
-    const displayedCards = activeRegion ? regionalOperations[activeRegion as keyof typeof regionalOperations] : systemCompanies.map(c => ({
-        id: c.id,
-        dbMatch: c.name,
-        name: c.name,
-        stores: c.name.toLowerCase().includes('outback') ? 700 : c._count.stores,
-
-        plan: c.plan,
-        img: c.name.includes('Fogo') ? '/fdc-logo-pure-white.png' :
-             c.name.includes('Texas') ? '/tdb-logo-white.svg' :
-             c.name.toLowerCase().includes('outback') ? '/outback-logo.svg' : 
-             c.name.toLowerCase().includes('terra') ? 'https://terragaucha.com/wp-content/uploads/2024/08/logo-terra-final-11.svg' :
-             c.name.toLowerCase().includes('adega') ? '/adega-logo.png' :
-             c.name.toLowerCase().includes('hard rock') || c.name.toLowerCase().includes('hardrock') ? '/hardrock_logo.png' :
-             c.name.toLowerCase().includes('chima') ? '/chima-logo.svg' :
-             '/brasa-logo-v3.png'
-    }));
-
-    const generatePointsData = (regionId: string, count: number, companyName: string) => {
-        const points = [];
-        
-        // Refined geographic clusters to ensure points land perfectly on continental urban areas (no ocean drops)
-        const clusters = {
-            'USA': [
-                { minLat: 29, maxLat: 33, minLng: -98, maxLng: -95 }, // Texas Corridor
-                { minLat: 25.5, maxLat: 28.5, minLng: -82, maxLng: -80 }, // Florida
-                { minLat: 40.5, maxLat: 42, minLng: -75, maxLng: -71 }, // Northeast USA
-                { minLat: 33.5, maxLat: 38, minLng: -122, maxLng: -117 }, // California
-                { minLat: 41.5, maxLat: 42.5, minLng: -88, maxLng: -87 } // Chicago
-            ],
-            'BR': [
-                { minLat: -24, maxLat: -22, minLng: -47, maxLng: -43 }, // SP / RJ
-                { minLat: -16, maxLat: -15, minLng: -48, maxLng: -47 } // Brasilia
-            ],
-            'UAE': [
-                { minLat: 24.8, maxLat: 25.3, minLng: 55.1, maxLng: 55.4 } // Dubai
-            ],
-            'PH': [
-                { minLat: 14.4, maxLat: 14.7, minLng: 120.9, maxLng: 121.1 } // Manila
-            ]
-        };
-
-        // If Terra Gaucha, return exact geographic points for the 6 actual stores
-        if (companyName.toLowerCase().includes('terra') && count === 6) {
-            return [
-                { lat: 30.2520, lng: -81.5540 }, // Jacksonville, FL (Southside)
-                { lat: 27.9254, lng: -82.5065 }, // Tampa, FL (Dale Mabry)
-                { lat: 41.0526, lng: -73.5382 }, // Stamford, CT
-                { lat: 39.9137, lng: -86.1061 }, // Indianapolis, IN (Union Chapel)
-                { lat: 41.2619, lng: -96.1264 }, // Omaha, NE (FNB Pkwy)
-                { lat: 39.0566, lng: -77.1213 }, // Rockville, MD (Chapman Ave)
-            ];
-        }
-
-        // If Adega Gaucha, return exact geographic points for the 3 actual stores
-        if (companyName.toLowerCase().includes('adega') && count === 3) {
-            return [
-                { lat: 28.4485, lng: -81.3963 }, // Orlando, FL (Crystal Clear Ln)
-                { lat: 28.3444, lng: -81.5975 }, // Kissimmee, FL (Irlo Bronson)
-                { lat: 26.3150, lng: -80.0910 }, // Deerfield Beach, FL (Federal Hwy)
-            ];
-        }
-
-        // If Hard Rock, return exact geographic points for the 4 actual stores
-        if (companyName.toLowerCase().includes('hard rock') || companyName.toLowerCase().includes('hardrock')) {
-            return [
-                { lat: 27.9890, lng: -82.3735 }, // Tampa, FL
-                { lat: 26.0461, lng: -80.2096 }, // Hollywood, FL
-                { lat: 39.3597, lng: -74.4229 }, // Atlantic City, NJ
-                { lat: 18.7301, lng: -68.5303 }, // Punta Cana, DR
-            ];
-        }
-
-        // If Chima Steakhouse, return exact geographic points for the 4 actual stores
-        if (companyName.toLowerCase().includes('chima')) {
-            return [
-                { lat: 26.1224, lng: -80.1373 }, // Fort Lauderdale, FL (Las Olas)
-                { lat: 28.4485, lng: -81.4700 }, // Orlando, FL (Sand Lake Rd)
-                { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Tryon St)
-                { lat: 38.9187, lng: -77.2311 }, // Tysons Corner, VA
-            ];
-        }
-
-        // Determine which clusters to use
-        let activeClusters: any[] = [];
-        if (regionId && clusters[regionId as keyof typeof clusters]) {
-            activeClusters = clusters[regionId as keyof typeof clusters];
+    const handleSelectCard = (company: GlobalCompany) => {
+        if (focusedCompany?.id === company.id) {
+            // Second click: Navigate to selected tenant dashboard
+            onSelect(company);
         } else {
-            // GLOBAL fallback: Currently all onboarded system companies are predominantly USA holding entities.
-            // When investigating from the Global Hub, exclusively map stores to the USA mainland.
-            activeClusters = [...clusters.USA];
-        }
-        
-        for (let i = 0; i < count; i++) {
-            const cluster = activeClusters[Math.floor(Math.random() * activeClusters.length)];
-            points.push({
-                lat: cluster.minLat + Math.random() * (cluster.maxLat - cluster.minLat),
-                lng: cluster.minLng + Math.random() * (cluster.maxLng - cluster.minLng),
-            });
-        }
-        return points;
-    };
-
-    const handleSelectCard = (card: any) => {
-        if (focusedCompany?.id === card.id) {
-            // Second click: Actually enter the dashboard
-            const targetDbCompany = companies.find(c => c.name.includes(card.dbMatch) || card.dbMatch.includes(c.name));
-            if (targetDbCompany) {
-                onSelect(targetDbCompany);
-            } else if (systemCompanies.length > 0) {
-                onSelect(systemCompanies[0]); // fallback
-            }
-        } else {
-            // First click: Highlight company, plot points on globe
-            setFocusedCompany(card);
+            // First click: Highlight company, plot real store coordinates on globe
+            setFocusedCompany(company);
             
-            // Generate refined geographic points mapping the exact number of stores (e.g. 700 for Outback)
-            setCompanyPoints(generatePointsData(activeRegion || '', card.stores, card.dbMatch)); 
-            
-            // Adjust camera slightly to show off the points
-            if (globeEl.current) {
-                if (activeRegion) {
-                    const r = REGIONS.find(reg => reg.id === activeRegion);
-                    if (r) {
-                        globeEl.current.pointOfView({ lat: r.lat, lng: r.lng, altitude: 0.8 }, 1000);
-                    }
+            // Focus camera over store cluster if store coordinates exist
+            if (globeEl.current && company.stores.length > 0) {
+                const validStores = company.stores.filter(s => s.latitude !== null && s.longitude !== null);
+                if (validStores.length > 0) {
+                    const avgLat = validStores.reduce((acc, s) => acc + Number(s.latitude), 0) / validStores.length;
+                    const avgLng = validStores.reduce((acc, s) => acc + Number(s.longitude), 0) / validStores.length;
+                    globeEl.current.pointOfView({ lat: avgLat, lng: avgLng, altitude: 1.8 }, 1200);
                 } else {
-                    // Pull back and center exactly over the Americas (USA + Brazil) since 95% of system operations are there
-                    globeEl.current.pointOfView({ lat: 15, lng: -80, altitude: 2.2 }, 1500);
+                    globeEl.current.pointOfView({ lat: 20, lng: -80, altitude: 2.2 }, 1200);
                 }
             }
         }
     };
 
-    const handleRegionClick = (region: any) => {
-        setActiveRegion(region.id);
-        setFocusedCompany(null);
-        setCompanyPoints([]); // Clear points when jumping regions
-        // Spin globe to the region clicked
-        if (globeEl.current) {
-            globeEl.current.pointOfView({ lat: region.lat, lng: region.lng, altitude: 1.5 }, 1500);
-        }
-    };
-
     const clearSelection = () => {
-        setActiveRegion(null);
         setFocusedCompany(null);
-        setCompanyPoints([]);
+        if (globeEl.current) {
+            globeEl.current.pointOfView({ altitude: 2.2 }, 1000);
+        }
     };
 
     const scrollCards = (direction: 'left' | 'right') => {
@@ -277,6 +159,8 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             scrollContainerRef.current.scrollBy({ left: shift, behavior: 'smooth' });
         }
     };
+
+    const isGlobalMaster = user?.scope?.type === 'GLOBAL' || (user?.role === 'admin' && !user?.companyId);
 
     return (
         <div className="fixed inset-0 w-full h-full bg-[#000000] overflow-hidden flex flex-col z-[80]">
@@ -292,55 +176,32 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                 </button>
             </div>
 
-            {/* Pure 3D WebGL Rendering (No CSS Hacks or Layers to prevent banding) */}
+            {/* Pure 3D WebGL Rendering */}
             <div className="absolute inset-0 z-0 flex justify-center items-center pointer-events-none">
                 <div className="pointer-events-auto">
                     <Globe
                         ref={globeEl}
                         width={dimensions.width}
                         height={dimensions.height}
-                        backgroundColor="rgba(0,0,0,0)" // Transparent into pure #000000
+                        backgroundColor="rgba(0,0,0,0)"
                         globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
                         showAtmosphere={true}
-                        atmosphereColor="#0f2a4a" // Very deep, dark cinematic blue to transition into black smoothly
+                        atmosphereColor="#0f2a4a"
                         atmosphereAltitude={0.15}
                         
-                        // Radar Rings
-                        ringsData={REGIONS}
-                        ringLat={(d: any) => d.lat}
-                        ringLng={(d: any) => d.lng}
-                        ringColor={(d: any) => d.color}
-                        ringMaxRadius={(d: any) => d.size}
-                        ringPropagationSpeed={3}
-                        ringRepeatPeriod={1500}
-                        
-                        // Region Labels
-                        labelsData={REGIONS}
-                        labelLat={(d: any) => d.lat}
-                        labelLng={(d: any) => d.lng}
-                        labelText={(d: any) => d.name}
-                        labelSize={1.5}
-                        labelDotRadius={0.5}
-                        labelColor={(d: any) => d.color}
-                        labelResolution={2} // Better text crispness
-                        
-                        // Generated Store Locations for Focused Company (Cinematic Glowing Dots)
+                        // Real Store Locations for Focused Company
                         htmlElementsData={companyPoints}
                         htmlLat={(d: any) => d.lat}
                         htmlLng={(d: any) => d.lng}
-                        htmlElement={() => {
+                        htmlElement={(d: any) => {
                             const el = document.createElement('div');
-                            // Ultra-tiny glowing stars
+                            el.title = `${d.name} (${d.city || ''})`;
                             el.innerHTML = `
-                                <div class="w-1 h-1 bg-[#fef08a] rounded-full shadow-[0_0_5px_1px_#C5A059] opacity-80 pb-0 mb-0"></div>
+                                <div class="w-2 h-2 bg-[#fef08a] rounded-full shadow-[0_0_8px_2px_#C5A059] opacity-90 transition-transform duration-300 hover:scale-150"></div>
                             `;
                             return el;
                         }}
-                        
-                        // Interactions
-                        onRingClick={handleRegionClick}
-                        onLabelClick={handleRegionClick}
                     />
                 </div>
             </div>
@@ -349,21 +210,21 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
             <div className="relative z-10 w-full h-full p-6 md:p-12 flex flex-col items-center overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pointer-events-none">
                 
                 {/* Header */}
-                <div className="text-center mb-10 mt-6 md:mt-4 pointer-events-auto transition-all duration-500" style={{ opacity: focusedCompany ? 0 : 1 }}>
+                <div className="text-center mb-10 mt-6 md:mt-4 pointer-events-auto transition-all duration-500" style={{ opacity: focusedCompany ? 0.4 : 1 }}>
                     <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 mb-2 tracking-tighter uppercase">
                         Global <span className="text-[#C5A059]">Intelligence</span>
                     </h1>
                     <div className="flex items-center justify-center gap-3">
                         <span className={`w-2 h-2 rounded-full ${isServerOnline ? 'bg-[#00FF94] animate-pulse shadow-[0_0_10px_#00FF94]' : 'bg-red-500 shadow-[0_0_10px_red]'}`}></span>
                         <p className={`${isServerOnline ? 'text-[#00FF94]' : 'text-red-500'} font-mono uppercase tracking-[0.3em] text-[10px] md:text-xs font-bold`}>
-                            {isServerOnline ? 'Network Systems Online' : 'Network Systems Offline'}
+                            {isServerOnline ? 'Platform Registry Active' : 'Registry Connection Offline'}
                         </p>
                     </div>
                 </div>
 
                 {/* Master Action Hub */}
                 <div className="w-full flex-shrink-0 flex justify-center mt-auto mb-10 pointer-events-auto transition-all duration-500" style={{ transform: focusedCompany ? 'scale(0.95)' : 'scale(1)', opacity: focusedCompany ? 0.3 : 1 }}>
-                    {user?.email?.toLowerCase().includes('alexandre@alexgarciaventures.co') && (
+                    {isGlobalMaster && (
                         <div className="flex flex-wrap justify-center gap-4 md:gap-8 min-w-[300px]">
                             <button
                                 onClick={() => navigate('/saas-admin')}
@@ -431,19 +292,17 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                 {/* Company Glassmorphism Floating Dock */}
                 <div className="w-full max-w-6xl flex-shrink-0 pointer-events-auto">
                     
-                    {(activeRegion || focusedCompany) && (
+                    {focusedCompany && (
                         <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
                             <h2 className="text-[#C5A059] text-sm uppercase tracking-widest font-bold flex items-center gap-2">
                                 <MapPin className="w-4 h-4 animate-bounce" /> 
-                                {focusedCompany 
-                                    ? `MAPA DE OPERAÇÕES: ${focusedCompany.name.toUpperCase()}`
-                                    : `OPERAÇÕES EM: ${REGIONS.find(r => r.id === activeRegion)?.name}`}
+                                OPERATIONAL TOPOLOGY: {focusedCompany.name.toUpperCase()}
                             </h2>
                             <button 
                                 onClick={clearSelection}
                                 className="text-xs px-3 py-1 rounded bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 flex items-center gap-1 uppercase tracking-wider transition-colors"
                             >
-                                <X className="w-3 h-3" /> Ver Hub Global
+                                <X className="w-3 h-3" /> View Global Hub
                             </button>
                         </div>
                     )}
@@ -461,9 +320,14 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                             ref={scrollContainerRef}
                             className="flex items-center gap-4 py-8 -my-8 px-4 -mx-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory scroll-smooth"
                         >
-                            {displayedCards.map((company) => {
+                            {loadingCompanies ? (
+                                <div className="w-full flex items-center justify-center py-12 text-gray-500 font-mono text-xs uppercase tracking-widest">
+                                    Loading dynamic tenant registry...
+                                </div>
+                            ) : globalCompanies.map((company) => {
                                 const isFocused = focusedCompany?.id === company.id;
                                 const isDimmed = focusedCompany && !isFocused;
+                                const logoUrl = company.logo_url || '/brasa-logo-v3.png';
 
                                 return (
                                     <div
@@ -476,22 +340,25 @@ export const GlobalGlobe = ({ companies, onSelect }: GlobalGlobeProps) => {
                                     >
                                         <div>
                                             <div className="flex justify-between items-start mb-3 md:mb-4">
-                                                {company.img ? (
+                                                {logoUrl ? (
                                                     <img 
-                                                        src={company.img} 
+                                                        src={logoUrl} 
                                                         alt={company.name} 
-                                                        className={`h-[28px] md:h-[44px] w-auto max-w-[150px] md:max-w-[180px] object-contain object-left ${company.name.includes('Brasa') ? 'brightness-[5] grayscale' : ''} ${company.name.includes('Adega') || company.name.includes('Texas') || company.name.includes('Terra') || company.name.includes('Brasa') ? 'scale-[1.5] md:scale-[2.0] origin-left' : ''}`} 
+                                                        className="h-[28px] md:h-[44px] w-auto max-w-[150px] md:max-w-[180px] object-contain object-left" 
                                                     />
                                                 ) : (
                                                     <h3 className="text-base md:text-lg font-bold text-white group-hover:text-[#C5A059] truncate">{company.name}</h3>
                                                 )}
                                             </div>
-                                            <div className="flex items-center justify-between text-[9px] md:text-[10px] uppercase font-mono tracking-widest text-[#C5A059]">
-                                                <span>{company.stores} STORES <span className="text-gray-500">MAPPED</span></span>
+                                            <div className="flex flex-col gap-1 text-[9px] md:text-[10px] uppercase font-mono tracking-widest text-[#C5A059]">
+                                                <span>{company.active_store_count} STORES <span className="text-gray-400">({company.mapped_store_count} MAPPED)</span></span>
+                                                {company.geo_pending_count > 0 && (
+                                                    <span className="text-amber-500/80 text-[8px]">{company.geo_pending_count} GEO PENDING</span>
+                                                )}
                                             </div>
                                         </div>
 
-                                        {/* Reveal "ACESSAR SYSTEMA" on First Click target */}
+                                        {/* Reveal "Acessar Dashboard" on First Click target */}
                                         <div className={`mt-3 md:mt-4 w-full overflow-hidden transition-all duration-500 ease-in-out ${isFocused ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
                                             <div className="pt-3 md:pt-4 border-t border-white/5">
                                                 <button className="w-full flex items-center justify-center gap-1 md:gap-2 py-1.5 md:py-2 bg-[#C5A059] text-black font-bold text-[9px] md:text-xs uppercase tracking-widest rounded shadow-lg hover:bg-white transition-colors">

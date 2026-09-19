@@ -133,15 +133,22 @@ export class ProvisioningDiffEngine {
         for (const loc of manifest.locations) {
             const existingStore = existingStoreMap.get(loc.store_name.toLowerCase());
             if (existingStore) {
+                const geoChanged = (loc.latitude !== undefined && existingStore.latitude !== loc.latitude) ||
+                                   (loc.longitude !== undefined && existingStore.longitude !== loc.longitude);
+                const geoPending = loc.latitude === undefined || loc.longitude === undefined || existingStore.latitude === null || existingStore.longitude === null;
+
                 const needsUpdate = (loc.city && existingStore.city !== loc.city) ||
                                     (loc.timezone && existingStore.timezone !== loc.timezone) ||
-                                    (loc.dinner_price && existingStore.dinner_price !== loc.dinner_price);
+                                    (loc.dinner_price && existingStore.dinner_price !== loc.dinner_price) ||
+                                    geoChanged;
 
                 diffs.push({
                     entityType: 'LOCATION',
                     entityKey: `${loc.canonical_key}:${loc.store_name}`,
                     action: needsUpdate ? 'UPDATE' : 'UNCHANGED',
-                    reason: needsUpdate ? `Store '${loc.store_name}' metadata requires update` : `Store '${loc.store_name}' exists and matches desired state`
+                    reason: needsUpdate 
+                        ? `Store '${loc.store_name}' metadata or geography requires update` 
+                        : `Store '${loc.store_name}' exists and matches desired state${geoPending ? ' (GEO_PENDING)' : ''}`
                 });
             } else {
                 diffs.push({
