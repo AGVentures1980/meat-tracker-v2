@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionUser, enforceScopeAccess } from '@/lib/auth';
 import { evaluateCompetitiveRelevance } from '@/lib/scout/competitiveRelevanceEngine';
 
 export async function GET(req: NextRequest) {
@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
     if (!targetLocId) {
       return NextResponse.json({
         success: true,
+        discoveryStatus: 'NOT_STARTED',
         groups: { direct: [], secondary: [], watchlist: [], lowRelevance: [] },
         approved: [],
         approvedDirectCompetitors: [],
@@ -29,6 +30,13 @@ export async function GET(req: NextRequest) {
         watchlistCompetitors: [],
         unverifiedCompetitors: []
       });
+    }
+
+    await enforceScopeAccess(session, { locationId: targetLocId });
+
+    const targetLoc = await db.location.findUnique({ where: { id: targetLocId } });
+    if (!targetLoc) {
+      return NextResponse.json({ error: 'Location not found' }, { status: 404 });
     }
 
     const members = await db.competitiveSetMember.findMany({
@@ -68,7 +76,7 @@ export async function GET(req: NextRequest) {
       const snap = extSource?.snapshots?.[0];
 
       const evalRes = evaluateCompetitiveRelevance(
-        { name: 'Texas de Brazil Location', latitude: 27.9653, longitude: -82.5186 },
+        { name: targetLoc.name, latitude: targetLoc.latitude || 27.9653, longitude: targetLoc.longitude || -82.5186 },
         {
           name: comp.name,
           address: `${comp.address}, ${comp.city}, ${comp.state}`,
@@ -82,6 +90,10 @@ export async function GET(req: NextRequest) {
         }
       );
 
+      // Golden invariant: approvedCompetitiveRole wins over proposedTier
+      const role = mem.competitiveRole || mem.tier || 'DIRECT';
+      const benchmarkEligible = mem.status === 'APPROVED' && (role === 'DIRECT' || role === 'SECONDARY');
+
       const item = {
         id: mem.id,
         competitorLocationId: comp.id,
@@ -89,21 +101,23 @@ export async function GET(req: NextRequest) {
         brandName: comp.brand?.name || comp.name,
         address: `${comp.address}, ${comp.city}, ${comp.state}`,
         placeId: extSource?.externalLocationId || null,
-        distanceMiles: evalRes.distanceMiles,
-        rating: snap?.rating || null,
-        reviewCount: snap?.reviewCount || null,
+        distanceMiles: mem.distanceMiles || evalRes.distanceMiles,
+        rating: snap?.rating || comp.googleRating || null,
+        reviewCount: snap?.reviewCount || comp.userRatingCount || null,
         relevanceScore: evalRes.relevanceScore,
-        recommendedCompetitiveRole: evalRes.recommendedCompetitiveRole,
+        proposedTier: mem.proposedTier || evalRes.recommendedCompetitiveRole,
         approvedCompetitiveRole: mem.competitiveRole || null,
         confidence: evalRes.confidence,
-        explanation: evalRes.explanation,
+        explanation: mem.explanation || evalRes.explanation,
         evidence: evalRes.dimensions,
         status: mem.status,
         approvedByUser: mem.approvedByUser,
+        approvedBy: mem.approvedBy || null,
+        approvedAt: mem.approvedAt || null,
+        approvalReason: mem.approvalReason || null,
+        benchmarkEligible,
         businessStatus: 'OPERATIONAL'
       };
-
-      const role = mem.competitiveRole || mem.tier || 'DIRECT';
 
       if (mem.status === 'APPROVED' && mem.approvedByUser) {
         approved.push(item);
@@ -135,8 +149,23 @@ export async function GET(req: NextRequest) {
     watchlistCompetitors.sort(sortFn);
     unverifiedCompetitors.sort(sortFn);
 
+    // Compute Discovery Status for this location
+    let discoveryStatus: 'NOT_STARTED' | 'DISCOVERY_AVAILABLE' | 'REVIEW_REQUIRED' | 'APPROVED_MARKET_READY' = 'NOT_STARTED';
+    if (approvedDirectCompetitors.length > 0 || approvedSecondaryCompetitors.length > 0) {
+      discoveryStatus = 'APPROVED_MARKET_READY';
+    } else if (unverifiedCompetitors.length > 0) {
+      discoveryStatus = 'REVIEW_REQUIRED';
+    } else if (members.length > 0) {
+      discoveryStatus = 'DISCOVERY_AVAILABLE';
+    }
+
     return NextResponse.json({
       success: true,
+      locationId: targetLocId,
+      locationName: targetLoc.name,
+      discoveryStatus,
+      totalMembers: members.length,
+      approvedCount: approved.length,
       groups: { direct, secondary, watchlist, lowRelevance },
       approved,
       approvedDirectCompetitors,
@@ -145,6 +174,9 @@ export async function GET(req: NextRequest) {
       unverifiedCompetitors
     });
   } catch (err: any) {
+    if (err?.message?.includes('Unauthorized') || err?.message?.includes('SCOPE_ACCESS_DENIED') || err?.message?.includes('Scope access denied')) {
+      return NextResponse.json({ error: 'Scope access denied' }, { status: 403 });
+    }
     console.error('Fetch competitor candidates error:', err);
     return NextResponse.json({ error: err?.message || 'Error fetching competitor candidates' }, { status: 500 });
   }
@@ -158,32 +190,75 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { memberId, competitorLocationId, status, competitiveRole, approvalReason } = body;
 
-    let targetMemberId = memberId;
-    if (!targetMemberId && competitorLocationId) {
-      const found = await db.competitiveSetMember.findFirst({
-        where: { competitorLocationId }
+    let targetMember = null;
+
+    if (memberId) {
+      targetMember = await db.competitiveSetMember.findUnique({
+        where: { id: memberId },
+        include: { set: true }
       });
-      targetMemberId = found?.id;
+    } else if (competitorLocationId) {
+      targetMember = await db.competitiveSetMember.findFirst({
+        where: { competitorLocationId },
+        include: { set: true }
+      });
     }
 
-    if (!targetMemberId) {
-      return NextResponse.json({ error: 'Target memberId or competitorLocationId missing' }, { status: 400 });
+    if (!targetMember) {
+      return NextResponse.json({ error: 'Target competitive set member not found' }, { status: 404 });
     }
+
+    // Tenant & Location Scope Enforcement
+    if (targetMember.set.organizationId !== session.organizationId) {
+      return NextResponse.json({ error: 'Scope access denied' }, { status: 403 });
+    }
+    await enforceScopeAccess(session, { locationId: targetMember.set.locationId });
+
+    const newStatus = status || 'APPROVED';
+    const isApproved = newStatus === 'APPROVED';
+    const newRole = competitiveRole || targetMember.competitiveRole || 'DIRECT';
 
     const updated = await db.competitiveSetMember.update({
-      where: { id: targetMemberId },
+      where: { id: targetMember.id },
       data: {
-        status: status || 'APPROVED',
-        approvedByUser: status === 'APPROVED',
-        approvedBy: session.email,
-        approvedAt: new Date(),
-        approvalReason: approvalReason || `Manual ${status} action from UI`,
-        competitiveRole: competitiveRole || 'DIRECT'
+        status: newStatus,
+        approvedByUser: isApproved,
+        approvedBy: isApproved ? session.email : targetMember.approvedBy,
+        approvedAt: isApproved ? new Date() : targetMember.approvedAt,
+        approvalReason: approvalReason || `Human ${newStatus} classification as ${newRole}`,
+        competitiveRole: newRole
+      }
+    });
+
+    // Immutable Audit Log Creation
+    await db.auditLog.create({
+      data: {
+        organizationId: session.organizationId,
+        userId: session.id,
+        action: 'COMPETITOR_ROLE_CLASSIFIED',
+        entityType: 'CompetitiveSetMember',
+        entityId: targetMember.id,
+        metadata: {
+          locationId: targetMember.set.locationId,
+          competitorLocationId: targetMember.competitorLocationId,
+          previousStatus: targetMember.status,
+          previousRole: targetMember.competitiveRole,
+          newStatus,
+          newRole,
+          proposedTier: targetMember.proposedTier,
+          humanOverrodeAlgorithm: targetMember.proposedTier !== newRole,
+          approvedBy: session.email,
+          approvedAt: new Date().toISOString(),
+          approvalReason
+        } as any
       }
     });
 
     return NextResponse.json({ success: true, member: updated });
   } catch (err: any) {
+    if (err?.message?.includes('Unauthorized') || err?.message?.includes('SCOPE_ACCESS_DENIED') || err?.message?.includes('Scope access denied')) {
+      return NextResponse.json({ error: 'Scope access denied' }, { status: 403 });
+    }
     console.error('Competitor approval action error:', err);
     return NextResponse.json({ error: err?.message || 'Error processing competitor approval' }, { status: 500 });
   }

@@ -26,8 +26,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const data = await res.json();
                     if (data.success && data.user) {
                         setUser(data.user);
+                        const serverCompanyId = data.user.companyId || data.user.company_id;
                         const storedCompany = localStorage.getItem('brasameat_selected_company');
-                        const resolvedCompany = storedCompany || data.user.companyId || data.user.company_id;
+                        const resolvedCompany = serverCompanyId || storedCompany;
+                        console.log(`[BRASA_TENANT_SWITCH_TRACE] AUTH_SESSION_BOOTSTRAP host=${window.location.hostname} serverCompanyId=${serverCompanyId} storedCompany=${storedCompany} resolvedCompany=${resolvedCompany}`);
                         if (resolvedCompany) {
                             setSelectedCompany(resolvedCompany);
                             localStorage.setItem('brasameat_selected_company', resolvedCompany);
@@ -52,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const setCompany = (id: string | null) => {
+        console.log(`[BRASA_TENANT_SWITCH_TRACE] SET_COMPANY_CALLED targetId=${id} currentSelected=${selectedCompany} host=${window.location.hostname}`);
         setSelectedCompany(id);
         if (id) {
             localStorage.setItem('brasameat_selected_company', id);

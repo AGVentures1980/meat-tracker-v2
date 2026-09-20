@@ -1,21 +1,14 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
-import { getServerSession } from '@/lib/auth';
+import { getServerSession, getEffectiveOrganizationId } from '@/lib/auth';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import LocationsGrid, { LocationCardData } from './LocationsGrid';
 
 export const revalidate = 0;
 
-interface LocationsPageProps {
-  searchParams?: {
-    locationId?: string;
-    entityId?: string;
-  };
-}
-
-export default async function LocationsPage({ searchParams }: LocationsPageProps) {
+export default async function LocationsPage({ searchParams }: { searchParams?: { locationId?: string; entityId?: string; organizationId?: string } }) {
   const cookieStore = cookies();
   const session = await getServerSession(cookieStore);
 
@@ -23,7 +16,7 @@ export default async function LocationsPage({ searchParams }: LocationsPageProps
     redirect('/login');
   }
 
-  const organizationId = session.organizationId;
+  const organizationId = await getEffectiveOrganizationId(session, searchParams?.organizationId);
   const selectedLocationId = searchParams?.locationId || searchParams?.entityId;
 
   // Fetch all locations for organization

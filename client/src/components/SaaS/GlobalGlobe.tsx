@@ -126,6 +126,7 @@ export const GlobalGlobe = ({ onSelect }: GlobalGlobeProps) => {
         : [];
 
     const handleSelectCard = (company: GlobalCompany) => {
+        console.log(`[BRASA_TENANT_SWITCH_TRACE] 00 GLOBE_CARD_CLICKED targetId=${company.id} targetName=${company.name} targetSubdomain=${company.subdomain} focusedId=${focusedCompany?.id}`);
         if (focusedCompany?.id === company.id) {
             // Second click: Navigate to selected tenant dashboard
             onSelect(company);

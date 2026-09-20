@@ -114,7 +114,7 @@ function MobilePulseContent() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
-              {selectedEntity.brandName || 'Texas de Brazil'} — {selectedEntity.locationName || 'Tampa'}
+              {selectedEntity.brandName || 'Brand Pulse'} — {selectedEntity.locationName || 'Selected Location'}
             </h1>
             <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '0.25rem 0 0 0' }}>
               {selectedEntity.city || 'Tampa'}, {selectedEntity.state || 'FL'}
@@ -294,7 +294,7 @@ function MobilePulseContent() {
           {/* Subject location */}
           <div style={{ padding: '0.6rem 0.75rem', backgroundColor: 'rgba(212, 160, 23, 0.1)', borderRadius: '8px', border: '1px solid rgba(212, 160, 23, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <strong style={{ color: '#ffffff' }}>{selectedEntity.brandName || 'Texas de Brazil'} — {selectedEntity.locationName || 'Tampa'}</strong>
+              <strong style={{ color: '#ffffff' }}>{selectedEntity.brandName || 'Brand Pulse'} — {selectedEntity.locationName || 'Selected Location'}</strong>
               <div style={{ fontSize: '0.68rem', color: '#d4a017' }}>Subject Monitored Entity (Google Rating Rank #3 of 3)</div>
             </div>
             <span style={{ fontWeight: 800, color: '#d4a017' }}>★ {kpis.googleRating?.rating || 4.4}</span>

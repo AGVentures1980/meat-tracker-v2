@@ -32,7 +32,7 @@ function SocialListeningContent() {
     setLoading(true);
     try {
       if (!locationId || locationId === 'ALL') {
-        setLocationName('Texas de Brazil Enterprise Network');
+        setLocationName('Enterprise Network');
         setPosts([]);
         setLoading(false);
         return;

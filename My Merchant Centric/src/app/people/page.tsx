@@ -30,7 +30,7 @@ function PeopleContent() {
     setLoading(true);
     try {
       if (!locationId || locationId === 'ALL') {
-        setLocationName('Texas de Brazil Enterprise Network');
+        setLocationName('Enterprise Network');
         setStaffList([]);
         setLoading(false);
         return;

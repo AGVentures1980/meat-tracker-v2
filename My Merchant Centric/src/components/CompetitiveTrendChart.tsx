@@ -9,24 +9,24 @@ import {
   Info,
   ShieldCheck,
   Zap,
-  Layers,
   Activity
 } from 'lucide-react';
 
 interface Point {
   timestamp: string;
   dateLabel: string;
-  value: number;
-  rating?: number;
-  reviewCount?: number;
+  value: number | null;
+  rating?: number | null;
+  reviewCount?: number | null;
   provenanceMode: string;
   source: string;
+  coverageType?: string;
 }
 
 interface Series {
   entityId: string;
-  entityName: string;
-  entityRole: string;
+  name: string;
+  role: string;
   provenance: string;
   points: Point[];
 }
@@ -60,7 +60,7 @@ interface CompetitiveTrendChartProps {
   organizationId: string;
 }
 
-// Stable entity colors
+// Color Palette for Entities
 const ENTITY_COLORS = [
   '#38bdf8', // Subject Location: Cyan Blue
   '#f59e0b', // Primary Comp 1: Gold / Amber
@@ -69,7 +69,7 @@ const ENTITY_COLORS = [
   '#ec4899', // Pink
 ];
 
-export default function CompetitiveTrendChart({ locationId, organizationId }: CompetitiveTrendChartProps) {
+export default function CompetitiveTrendChart({ locationId }: CompetitiveTrendChartProps) {
   const [range, setRange] = useState<'30D' | '60D' | '90D'>('30D');
   const [metric, setMetric] = useState<'Google Rating' | 'Review Count' | 'Review Growth' | 'Review Velocity'>('Google Rating');
 
@@ -79,6 +79,7 @@ export default function CompetitiveTrendChart({ locationId, organizationId }: Co
   const [periodChanges, setPeriodChanges] = useState<PeriodChange[]>([]);
   const [crossovers, setCrossovers] = useState<string[]>([]);
   const [coverage, setCoverage] = useState<HistoryCoverage | null>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<{ entityName: string; point: Point } | null>(null);
 
   useEffect(() => {
     fetchTrendData();
@@ -116,15 +117,7 @@ export default function CompetitiveTrendChart({ locationId, organizationId }: Co
     return null;
   }
 
-  // If no primary competitors are approved yet
   const noPrimaryCompetitors = coverage?.statusMessage === 'No approved Primary Competitors yet';
-
-  // Get all unique date labels across series
-  const allDateLabels = Array.from(
-    new Set(
-      seriesData.flatMap(s => s.points.map(p => p.dateLabel))
-    )
-  );
 
   return (
     <section className="card" style={{ padding: '1.5rem', marginTop: '1.5rem', border: '1px solid #242838', borderRadius: '12px' }}>
@@ -200,7 +193,7 @@ export default function CompetitiveTrendChart({ locationId, organizationId }: Co
           </div>
           <div style={{ fontSize: '0.72rem', color: '#10b981' }}>
             <ShieldCheck size={12} style={{ display: 'inline', marginRight: '3px' }} />
-            Authentic Google Places Metadata (Zero Synthetic Points)
+            Authentic Snapshots (Zero Synthetic Points)
           </div>
         </div>
       )}
@@ -264,7 +257,7 @@ export default function CompetitiveTrendChart({ locationId, organizationId }: Co
         </div>
       )}
 
-      {/* Line Chart Area */}
+      {/* Main Visual Presentation */}
       {noPrimaryCompetitors ? (
         <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#0a0b0d', border: '1px solid #242838', borderRadius: '8px' }}>
           <Info size={32} style={{ margin: '0 auto 0.75rem', color: '#9ca3af', opacity: 0.6 }} />
@@ -272,7 +265,7 @@ export default function CompetitiveTrendChart({ locationId, organizationId }: Co
             No Approved Primary Competitors Yet
           </h4>
           <p style={{ color: '#9ca3af', fontSize: '0.82rem', margin: 0 }}>
-            Go to the Competitors page to approve direct competitors for this location.
+            Approve direct competitors for this location to populate the Primary Competitive Trend.
           </p>
         </div>
       ) : loading ? (
@@ -281,7 +274,7 @@ export default function CompetitiveTrendChart({ locationId, organizationId }: Co
         </div>
       ) : seriesData.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#0a0b0d', border: '1px solid #242838', borderRadius: '8px', color: '#9ca3af', fontSize: '0.85rem' }}>
-          Competitive history is being collected for this trade area.
+          Competitive history is being collected for this location.
         </div>
       ) : (
         <div>
@@ -290,51 +283,72 @@ export default function CompetitiveTrendChart({ locationId, organizationId }: Co
             {seriesData.map((s, idx) => (
               <div key={s.entityId} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
                 <span style={{ width: '12px', height: '3px', backgroundColor: ENTITY_COLORS[idx % ENTITY_COLORS.length], borderRadius: '2px' }}></span>
-                <strong style={{ color: s.entityRole === 'SUBJECT' ? '#ffffff' : '#e5e7eb' }}>{s.entityName}</strong>
-                <span style={{ fontSize: '0.72rem', color: s.entityRole === 'SUBJECT' ? '#38bdf8' : '#f59e0b' }}>
-                  ({s.entityRole === 'SUBJECT' ? 'Subject' : 'Primary'})
+                <strong style={{ color: s.role === 'SUBJECT' ? '#ffffff' : '#e5e7eb' }}>{s.name}</strong>
+                <span style={{ fontSize: '0.72rem', color: s.role === 'SUBJECT' ? '#38bdf8' : '#f59e0b' }}>
+                  ({s.role === 'SUBJECT' ? 'Subject' : 'Primary'})
                 </span>
               </div>
             ))}
           </div>
 
-          {/* Simple Visual Line Representation */}
-          <div style={{ backgroundColor: '#0a0b0d', border: '1px solid #242838', borderRadius: '8px', padding: '1.25rem', minHeight: '180px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Historical Trend points ({allDateLabels.length || 1} day observation)</span>
-              <span>Metric: {metric}</span>
-            </div>
-
-            {/* Entity Metrics Row Display */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {seriesData.map((s, idx) => {
-                const color = ENTITY_COLORS[idx % ENTITY_COLORS.length];
-                const lastPoint = s.points.length > 0 ? s.points[s.points.length - 1] : null;
-
-                return (
-                  <div key={s.entityId} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '180px', fontSize: '0.82rem', color: '#ffffff', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {s.entityName}
-                    </div>
-                    <div style={{ flex: 1, height: '6px', backgroundColor: '#161922', borderRadius: '3px', overflow: 'hidden', position: 'relative' }}>
-                      <div
-                        style={{
-                          height: '100%',
-                          backgroundColor: color,
-                          width: `${Math.min(100, Math.max(10, ((lastPoint?.value || 4) / (metric === 'Review Count' ? 10000 : 5)) * 100))}%`,
-                          borderRadius: '3px',
-                          transition: 'width 0.3s ease'
-                        }}
-                      />
-                    </div>
-                    <div style={{ width: '70px', fontSize: '0.82rem', fontWeight: 700, color: color, textAlign: 'right' }}>
-                      {metric === 'Review Count' ? (lastPoint?.value ? lastPoint.value.toLocaleString() : 'N/A') : (lastPoint?.value ? `${lastPoint.value}★` : 'N/A')}
-                    </div>
+          {/* Interactive Series Points */}
+          <div style={{ backgroundColor: '#0a0b0d', border: '1px solid #242838', borderRadius: '8px', padding: '1.25rem', minHeight: '180px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {seriesData.map((s, idx) => {
+              const color = ENTITY_COLORS[idx % ENTITY_COLORS.length];
+              return (
+                <div key={s.entityId} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
+                    <span style={{ color: '#ffffff', fontWeight: 600 }}>{s.name}</span>
+                    <span style={{ color: color, fontWeight: 700 }}>
+                      {s.points.length > 0 ? (s.points[s.points.length - 1].value !== null ? `${s.points[s.points.length - 1].value}${metric.includes('Rating') ? '★' : ''}` : 'N/A') : 'N/A'}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Points Timeline */}
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {s.points.map((p, pIdx) => (
+                      <div
+                        key={pIdx}
+                        onMouseEnter={() => setHoveredPoint({ entityName: s.name, point: p })}
+                        onMouseLeave={() => setHoveredPoint(null)}
+                        style={{
+                          backgroundColor: '#161922',
+                          border: '1px solid #242838',
+                          borderRadius: '6px',
+                          padding: '0.35rem 0.65rem',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: color }}></span>
+                        <span style={{ color: '#9ca3af' }}>{p.dateLabel}:</span>
+                        <strong style={{ color: '#ffffff' }}>{p.value !== null ? `${p.value}${metric.includes('Rating') ? '★' : ''}` : 'N/A'}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
+          {/* Hover Tooltip Evidence */}
+          {hoveredPoint && (
+            <div style={{ marginTop: '0.75rem', backgroundColor: '#161922', border: '1px solid #3b82f6', borderRadius: '8px', padding: '0.65rem 0.9rem', fontSize: '0.78rem', color: '#f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <strong>{hoveredPoint.entityName}</strong> ({hoveredPoint.point.dateLabel}):{' '}
+                <span style={{ color: '#38bdf8', fontWeight: 700 }}>
+                  {metric} = {hoveredPoint.point.value !== null ? hoveredPoint.point.value : 'N/A'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#9ca3af', display: 'flex', gap: '0.75rem' }}>
+                <span>Source: {hoveredPoint.point.source}</span>
+                <span>Provenance: {hoveredPoint.point.coverageType || 'METADATA_ONLY'}</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>

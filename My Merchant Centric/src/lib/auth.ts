@@ -3,7 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from './db';
 import { Role, ScopeType } from '@prisma/client';
 
-const JWT_SECRET = 'brasa-super-secret-key-pulse-9817';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('FATAL: JWT_SECRET environment variable is missing.');
+  }
+  return secret;
+}
+
 const COOKIE_NAME = 'brasa_session';
 
 export interface UserScopeData {
@@ -121,7 +128,7 @@ export async function createSession(user: { id: string; email: string; organizat
     allowedLocationIds: user.allowedLocationIds || [],
   };
   
-  const token = await signToken(payload, JWT_SECRET);
+  const token = await signToken(payload, getJwtSecret());
   
   const isProd = process.env.NODE_ENV === 'production';
 
@@ -144,7 +151,7 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
   if (!cookie?.value) return null;
 
   try {
-    const payload = await verifyToken(cookie.value, JWT_SECRET) as SessionUser;
+    const payload = await verifyToken(cookie.value, getJwtSecret()) as SessionUser;
     return payload;
   } catch (error) {
     console.error('JWT Verification Error in getSessionUser:', error);
@@ -381,7 +388,7 @@ export async function getServerSession(cookieStore: any): Promise<SessionUser | 
   if (!token) return null;
 
   try {
-    return await verifyToken(token, JWT_SECRET) as SessionUser;
+    return await verifyToken(token, getJwtSecret()) as SessionUser;
   } catch (error) {
     return null;
   }

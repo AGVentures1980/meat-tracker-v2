@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionUser, enforceScopeAccess } from '@/lib/auth';
 import { validateAndDeduplicateReviews, RawReviewRow } from '@/lib/scout/reviewDeduplicationEngine';
-import { evaluateReviewAnalyticsEligibility } from '@/lib/scout/evaluateReviewAnalyticsEligibility';
 
 export async function POST(req: NextRequest) {
   const session = await getSessionUser(req);
@@ -12,34 +11,38 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       locationId,
-      provider,
-      acquisitionMethod,
-      coverageType,
+      brasaLocationId,
+      provider = 'GOOGLE',
+      acquisitionMethod = 'CLIENT_IMPORT',
+      coverageType = 'UNKNOWN',
       declaredTotalRecords,
       sourceFileName,
       notes,
-      rows,
+      rows = [],
       manualAttestationConfirmed
     } = body;
 
-    // 1. Location Authorization & Tenant Isolation
-    if (!locationId) {
-      return NextResponse.json({ error: 'Missing target locationId' }, { status: 400 });
+    // Location Resolution
+    let targetLoc = null;
+    if (locationId) {
+      targetLoc = await db.location.findFirst({
+        where: { id: locationId, organizationId: session.organizationId }
+      });
+    } else if (brasaLocationId) {
+      targetLoc = await db.location.findFirst({
+        where: { brasaLocationId, organizationId: session.organizationId }
+      });
     }
-
-    const targetLoc = await db.location.findFirst({
-      where: { id: locationId, organizationId: session.organizationId }
-    });
 
     if (!targetLoc) {
       return NextResponse.json({ error: 'Target location not found or unauthorized' }, { status: 403 });
     }
 
-    // 2. Acquisition Method & Manual Verification Checks
-    const acqMethod = acquisitionMethod || 'CLIENT_IMPORT';
-    let verificationStatus = 'VERIFIED';
+    await enforceScopeAccess(session, { locationId: targetLoc.id });
 
-    if (acqMethod === 'MANUAL_VERIFIED') {
+    // Acquisition Method Check
+    let verificationStatus = 'VERIFIED';
+    if (acquisitionMethod === 'MANUAL_VERIFIED') {
       if (!manualAttestationConfirmed) {
         return NextResponse.json({
           error: 'Operator confirmation required for manual review entry attestation.'
@@ -48,10 +51,8 @@ export async function POST(req: NextRequest) {
       verificationStatus = 'VERIFIED_BY_OPERATOR';
     }
 
-    // 3. Deduplication & Validation against existing DB records
-    const rawRows: RawReviewRow[] = rows || [];
-    
-    // Fetch existing external IDs and content hashes for this location
+    // Deduplication & Validation
+    const rawRows: RawReviewRow[] = rows;
     const existingContentItems = await db.contentItem.findMany({
       where: { locationId: targetLoc.id },
       select: { externalId: true, contentHash: true }
@@ -62,7 +63,6 @@ export async function POST(req: NextRequest) {
 
     const dedupResult = validateAndDeduplicateReviews(rawRows, existingExtIds, existingHashes);
 
-    // 4. Data Quality Status Evaluation
     let dataQualityStatus: 'HIGH' | 'MEDIUM' | 'LOW' = 'HIGH';
     if (dedupResult.rejectedCount > dedupResult.totalRowsProcessed * 0.2) {
       dataQualityStatus = 'LOW';
@@ -70,14 +70,17 @@ export async function POST(req: NextRequest) {
       dataQualityStatus = 'MEDIUM';
     }
 
-    // 5. Create Dataset Provenance Entity (ReviewDataset)
+    // Ingestion Run Unique Identifier
+    const ingestionRunId = `run_ingest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    // Create Dataset in QUARANTINE FIRST state (IMPORTED_PENDING_VALIDATION)
     const dataset = await db.reviewDataset.create({
       data: {
         organizationId: session.organizationId,
         locationId: targetLoc.id,
-        provider: provider || 'OTHER',
-        acquisitionMethod: acqMethod,
-        coverageType: coverageType || 'UNKNOWN',
+        provider,
+        acquisitionMethod,
+        coverageType,
         declaredTotalRecords: declaredTotalRecords ? parseInt(String(declaredTotalRecords)) : null,
         importedRecordCount: dedupResult.accepted.length,
         duplicateCount: dedupResult.duplicateCount,
@@ -87,18 +90,18 @@ export async function POST(req: NextRequest) {
         sourceFileName: sourceFileName || null,
         provenanceMode: 'IMPORTED',
         dataQualityStatus,
-        notes: notes || null,
-        verificationStatus
+        notes: notes ? `${notes} [ingestionRunId: ${ingestionRunId}]` : `[ingestionRunId: ${ingestionRunId}]`,
+        verificationStatus,
+        activationStatus: 'IMPORTED_PENDING_VALIDATION' // QUARANTINE FIRST
       }
     });
 
-    // 6. Commit Accepted Reviews linked to dataset
-    const committedContentItems = [];
-    if (dedupResult.accepted.length > 0) {
-      const dataSource = await db.dataSource.findFirst({ where: { id: provider } }) || await db.dataSource.findFirst();
+    // Commit Accepted Reviews linked to dataset in QUARANTINE FIRST state
+    const dataSource = await db.dataSource.findFirst({ where: { id: provider } }) || await db.dataSource.findFirst();
 
+    if (dedupResult.accepted.length > 0) {
       for (const item of dedupResult.accepted) {
-        const ci = await db.contentItem.create({
+        await db.contentItem.create({
           data: {
             organizationId: session.organizationId,
             locationId: targetLoc.id,
@@ -109,37 +112,28 @@ export async function POST(req: NextRequest) {
             authorName: item.authorName,
             publishedAt: item.publishedAt || new Date(),
             url: item.sourceUrl,
-            acquisitionMethod: acqMethod,
-            coverageType: coverageType || 'UNKNOWN',
+            acquisitionMethod,
+            coverageType,
             provenanceMode: 'IMPORTED',
             datasetId: dataset.id,
             contentHash: item.contentHash,
-            verificationStatus
+            verificationStatus,
+            activationStatus: 'IMPORTED_PENDING_VALIDATION' // QUARANTINE FIRST
           }
         });
-        committedContentItems.push(ci);
       }
     }
 
-    // 7. Evaluate Analytics Eligibility
-    const eligibility = evaluateReviewAnalyticsEligibility({
-      coverageType: dataset.coverageType as any,
-      acquisitionMethod: dataset.acquisitionMethod as any,
-      provenanceMode: 'IMPORTED',
-      importedRecordCount: dataset.importedRecordCount,
-      dataQualityStatus: dataset.dataQualityStatus as any,
-      hasTextContent: dataset.importedRecordCount > 0
-    });
-
-    // 8. Immutable Audit Log Creation
+    // Immutable Audit Log
     await db.auditLog.create({
       data: {
         organizationId: session.organizationId,
         userId: session.id,
-        action: 'REVIEW_DATASET_IMPORTED',
+        action: 'REVIEW_DATASET_IMPORTED_PENDING_VALIDATION',
         entityType: 'ReviewDataset',
         entityId: dataset.id,
         metadata: {
+          ingestionRunId,
           locationId: targetLoc.id,
           locationName: targetLoc.name,
           provider: dataset.provider,
@@ -150,25 +144,31 @@ export async function POST(req: NextRequest) {
           rejectedCount: dataset.rejectedCount,
           sourceFileName: dataset.sourceFileName,
           dataQualityStatus: dataset.dataQualityStatus,
-          userEmail: session.email,
-          eligibility
+          activationStatus: 'IMPORTED_PENDING_VALIDATION',
+          quarantined: true,
+          userEmail: session.email
         } as any
       }
     });
 
     return NextResponse.json({
       success: true,
+      ingestionRunId,
       dataset,
+      quarantined: true,
+      activationStatus: 'IMPORTED_PENDING_VALIDATION',
       dedupResult: {
         totalProcessed: dedupResult.totalRowsProcessed,
         acceptedCount: dedupResult.accepted.length,
         duplicateCount: dedupResult.duplicateCount,
         rejectedCount: dedupResult.rejected.length,
         rejectedReasons: dedupResult.rejected.map(r => r.rejectionReason)
-      },
-      eligibility
+      }
     });
   } catch (err: any) {
+    if (err?.message?.includes('Unauthorized') || err?.message?.includes('SCOPE_ACCESS_DENIED') || err?.message?.includes('Scope access denied')) {
+      return NextResponse.json({ error: 'Scope access denied' }, { status: 403 });
+    }
     console.error('Review import endpoint error:', err);
     return NextResponse.json({ error: err?.message || 'Error processing review import' }, { status: 500 });
   }

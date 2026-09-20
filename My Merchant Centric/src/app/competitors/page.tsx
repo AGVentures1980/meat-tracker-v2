@@ -83,15 +83,17 @@ function CompetitorsContent() {
 
   const [activeTab, setActiveTab] = useState<'PRIMARY' | 'BROADER' | 'WATCHLIST' | 'DISCOVERY'>('PRIMARY');
 
+  const orgId = searchParams.get('organizationId');
+
   useEffect(() => {
     fetchCompetitors();
-  }, [locationId]);
+  }, [locationId, orgId]);
 
   const fetchCompetitors = async () => {
     setLoading(true);
     try {
       if (!locationId || locationId === 'ALL') {
-        setLocationName('Texas de Brazil Enterprise Network');
+        setLocationName('Enterprise Network');
         setPrimaryCompetitors([]);
         setBroaderMarket([]);
         setWatchlist([]);
@@ -102,14 +104,16 @@ function CompetitorsContent() {
       }
 
       // Fetch location name
-      const locRes = await fetch('/api/locations');
+      const locUrl = orgId ? `/api/locations?organizationId=${orgId}` : '/api/locations';
+      const locRes = await fetch(locUrl);
       if (locRes.ok) {
         const locs = await locRes.json();
         const matched = locs.find((l: any) => l.id === locationId);
         if (matched) setLocationName(matched.name);
       }
 
-      const res = await fetch(`/api/integrations/competitors?locationId=${locationId}`);
+      const compUrl = orgId ? `/api/integrations/competitors?locationId=${locationId}&organizationId=${orgId}` : `/api/integrations/competitors?locationId=${locationId}`;
+      const res = await fetch(compUrl);
       if (res.ok) {
         const data = await res.json();
         setPrimaryCompetitors(data.primaryCompetitors || []);

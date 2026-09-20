@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
-import { getServerSession, enforceScopeAccess } from '@/lib/auth';
+import { getServerSession, enforceScopeAccess, getEffectiveOrganizationId } from '@/lib/auth';
 import { buildLiveDataScope } from '@/lib/provenance';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -18,11 +18,14 @@ import {
 } from 'lucide-react';
 import { ScopeType, AlertStatus, SentimentValue } from '@prisma/client';
 import CompetitiveTrendChart from '@/components/CompetitiveTrendChart';
+import GuestExperienceTrendChart from '@/components/GuestExperienceTrendChart';
+
 
 
 interface DashboardPageProps {
   searchParams: {
     locationId?: string;
+    organizationId?: string;
     tab?: string;
     why?: string;
   };
@@ -36,7 +39,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     redirect('/login');
   }
 
-  const organizationId = session.organizationId;
+  const organizationId = await getEffectiveOrganizationId(session, searchParams.organizationId);
   const locationId = searchParams.locationId;
 
   // Enforce Scope check if locationId is specified
@@ -462,6 +465,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
           {/* Location-Scoped Competitive Trend Chart */}
           <CompetitiveTrendChart locationId={locationId} organizationId={organizationId} />
+
+          {/* Multichannel Guest Experience Trend Chart */}
+          <GuestExperienceTrendChart locationId={locationId} organizationId={organizationId} />
+
 
 
           {/* Detailed Content: Rankings & Alerts */}

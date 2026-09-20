@@ -60,7 +60,7 @@ function ReviewsContent() {
           if (matched) setLocationName(matched.name);
         }
       } else {
-        setLocationName('Texas de Brazil Enterprise Network');
+        setLocationName('Enterprise Network');
       }
 
       const searchVal = searchParams.get('query') || '';

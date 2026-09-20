@@ -12,42 +12,43 @@ export interface TenantSwitchTarget {
  * Enforces cross-subdomain browser navigation without premature React state mutation.
  */
 export function switchTenant(company: TenantSwitchTarget, destinationPath: string = '/dashboard/network'): boolean {
+    const timestamp = new Date().toISOString();
+    const currentHref = window.location.href;
+    const currentHost = window.location.hostname.toLowerCase();
     const targetSubdomain = company.subdomain?.trim().toLowerCase();
     const isValidSubdomain = Boolean(targetSubdomain && /^[a-z0-9-]+$/.test(targetSubdomain));
+    const currentSelected = localStorage.getItem('brasameat_selected_company');
+
+    console.log(`[BRASA_TENANT_SWITCH_TRACE] 01 CLICK_RECEIVED timestamp=${timestamp} href=${currentHref} host=${currentHost} targetId=${company.id} targetName=${company.name} targetSubdomain=${company.subdomain} selectedCompany=${currentSelected}`);
+
+    console.log(`[BRASA_TENANT_SWITCH_TRACE] 02 HANDLE_SELECT_ENTER targetSubdomain=${targetSubdomain}`);
 
     if (!isValidSubdomain) {
-        console.error('[TENANT_SWITCH] Subdomain unprovisioned or malformed for company:', company);
+        console.error(`[BRASA_TENANT_SWITCH_TRACE] 03 SUBDOMAIN_VALIDATION_FAILED targetSubdomain=${targetSubdomain}`);
         alert(`TENANT_SUBDOMAIN_NOT_PROVISIONED: Cannot navigate to tenant dashboard. Subdomain for ${company.name} is missing or unprovisioned.`);
         return false;
     }
 
-    const currentHost = window.location.hostname.toLowerCase();
+    console.log(`[BRASA_TENANT_SWITCH_TRACE] 03 SUBDOMAIN_VALIDATED value=${targetSubdomain}`);
+
     const normalizedPath = destinationPath.startsWith('/') ? destinationPath : `/${destinationPath}`;
 
-    // Perform full cross-subdomain browser navigation for production domains
+    let targetUrl = '';
+    const navMethod = 'window.location.assign';
+
     if (currentHost.includes('.brasameat.com')) {
         const rootDomain = 'brasameat.com';
-        const currentSubdomain = currentHost.split(`.${rootDomain}`)[0];
-        if (currentSubdomain !== targetSubdomain) {
-            const targetUrl = `https://${targetSubdomain}.${rootDomain}${normalizedPath}`;
-            console.log(`[TENANT_SWITCH] Navigating to canonical tenant URL: ${targetUrl}`);
-            window.location.assign(targetUrl);
-            return true;
-        }
+        targetUrl = `https://${targetSubdomain}.${rootDomain}${normalizedPath}`;
     } else if (currentHost.includes('.alexgarciaventures.co')) {
         const rootDomain = 'alexgarciaventures.co';
-        const currentSubdomain = currentHost.split(`.${rootDomain}`)[0];
-        if (currentSubdomain !== targetSubdomain) {
-            const targetUrl = `https://${targetSubdomain}.${rootDomain}${normalizedPath}`;
-            console.log(`[TENANT_SWITCH] Navigating to canonical tenant URL: ${targetUrl}`);
-            window.location.assign(targetUrl);
-            return true;
-        }
+        targetUrl = `https://${targetSubdomain}.${rootDomain}${normalizedPath}`;
+    } else {
+        targetUrl = `${window.location.protocol}//${window.location.host}${normalizedPath}`;
     }
 
-    // Single-origin / localhost / same subdomain fallback:
-    const localTargetUrl = `${window.location.protocol}//${window.location.host}${normalizedPath}`;
-    console.log(`[TENANT_SWITCH] Navigating locally: ${localTargetUrl}`);
-    window.location.assign(localTargetUrl);
+    console.log(`[BRASA_TENANT_SWITCH_TRACE] 04 TARGET_URL_BUILT url=${targetUrl} navMethod=${navMethod}`);
+    console.log(`[BRASA_TENANT_SWITCH_TRACE] 05 WINDOW_LOCATION_ASSIGN_CALLED targetUrl=${targetUrl}`);
+
+    window.location.assign(targetUrl);
     return true;
 }

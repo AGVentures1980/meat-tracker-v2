@@ -11,6 +11,8 @@ export interface MonitoredEntity {
   address: string;
   entityType: EntityType;
   monitoringStatus: string;
+  verificationStatus?: string;
+  businessStatus?: string;
   googleRating: number | null;
   reviewCount: number | null;
   coverageType: string;
@@ -101,14 +103,15 @@ export async function getMonitoredEntities(
 
   const entities: MonitoredEntity[] = [];
 
-  // 1. Fetch Owned Locations (LIVE + IMPORTED only)
+  // 1. Fetch Owned Locations
   const ownedLocations = await db.location.findMany({
     where: {
       organizationId,
-      provenanceMode: { in: ['LIVE', 'IMPORTED'] }
+      status: 'ACTIVE'
     },
     include: {
       brand: true,
+      organization: true,
       externalSources: {
         include: {
           snapshots: { orderBy: { capturedAt: 'desc' }, take: 1 }
@@ -123,13 +126,15 @@ export async function getMonitoredEntities(
 
     entities.push({
       id: loc.id,
-      brandName: loc.brand?.name || 'BRASA Brand',
+      brandName: loc.brand?.name || loc.organization?.name || 'Owned Brand',
       locationName: loc.name,
       city: loc.city || 'Tampa',
       state: loc.state || 'FL',
       address: loc.address || '',
       entityType: 'OWNED_LOCATION',
       monitoringStatus: primarySource?.monitoringStatus || 'ACTIVE',
+      verificationStatus: loc.verificationStatus || undefined,
+      businessStatus: loc.businessStatus || undefined,
       googleRating: latestSnapshot?.rating ?? null,
       reviewCount: latestSnapshot?.reviewCount ?? null,
       coverageType: latestSnapshot?.coverageType || 'METADATA_ONLY',
@@ -148,13 +153,13 @@ export async function getMonitoredEntities(
     });
   }
 
-  // 2. Fetch Competitor Locations & External Monitored Locations (LIVE + IMPORTED only)
+  // 2. Fetch Competitor Locations & External Monitored Locations
   const compLocations = await db.competitorLocation.findMany({
     where: {
       organizationId,
-      provenanceMode: { in: ['LIVE', 'IMPORTED'] }
     },
     include: {
+      brand: true,
       externalSources: {
         include: {
           snapshots: { orderBy: { capturedAt: 'desc' }, take: 1 }
@@ -168,16 +173,15 @@ export async function getMonitoredEntities(
     const latestSnapshot = primarySource?.snapshots[0];
 
     let entityType: EntityType = 'COMPETITOR';
-    // Classify Texas de Brazil and external monitored targets
     const lowerName = comp.name.toLowerCase();
-    if (lowerName.includes('texas de brazil') || lowerName.includes('monitored external')) {
+    if (lowerName.includes('monitored external')) {
       entityType = 'MONITORED_EXTERNAL';
     } else if (primarySource?.status === 'DISCOVERED' || primarySource?.status === 'PENDING_CONFIRMATION') {
       entityType = 'COMPETITOR_CANDIDATE';
     }
 
     // Determine brand name & location name cleanly
-    let brandName = 'Competitor Brand';
+    let brandName = comp.brand?.name || 'Competitor Brand';
     let locationName = comp.name;
 
     if (lowerName.includes('texas de brazil')) {
@@ -218,67 +222,33 @@ export async function getMonitoredEntities(
     });
   }
 
-  // 3. Apply Filters
+  // Filter based on requested parameters
   let filtered = entities;
-
-  if (filters.search) {
-    const q = filters.search.toLowerCase();
-    filtered = filtered.filter(e =>
-      e.brandName.toLowerCase().includes(q) ||
-      e.locationName.toLowerCase().includes(q) ||
-      e.city.toLowerCase().includes(q) ||
-      e.address.toLowerCase().includes(q)
-    );
-  }
-
   if (filters.entityType && filters.entityType !== 'ALL') {
     filtered = filtered.filter(e => e.entityType === filters.entityType);
   }
-
   if (filters.monitoringStatus && filters.monitoringStatus !== 'ALL') {
     filtered = filtered.filter(e => e.monitoringStatus === filters.monitoringStatus);
   }
-
-  if (filters.cityState && filters.cityState !== 'ALL') {
-    const cs = filters.cityState.toLowerCase();
-    filtered = filtered.filter(e => `${e.city}, ${e.state}`.toLowerCase().includes(cs));
+  if (filters.search) {
+    const s = filters.search.toLowerCase();
+    filtered = filtered.filter(e =>
+      e.brandName.toLowerCase().includes(s) ||
+      e.locationName.toLowerCase().includes(s) ||
+      e.city.toLowerCase().includes(s) ||
+      e.state.toLowerCase().includes(s)
+    );
   }
 
   return filtered;
 }
 
 /**
- * Retrieves detailed entity view for a specific monitored entity ID.
+ * Retrieves detail for a single monitored entity.
  */
 export async function getMonitoredEntityDetail(organizationId: string, entityId: string) {
-  const allEntities = await getMonitoredEntities(organizationId);
-  const entity = allEntities.find(e => e.id === entityId);
-
-  if (!entity) {
-    return null;
-  }
-
-  // Fetch full snapshots history if external source exists
-  let snapshots: any[] = [];
-  let events: any[] = [];
-
-  if (entity.externalSourceId) {
-    snapshots = await db.sourceSnapshot.findMany({
-      where: { externalSourceId: entity.externalSourceId },
-      orderBy: { capturedAt: 'desc' },
-      take: 50
-    });
-
-    events = await db.reputationEvent.findMany({
-      where: { externalSourceId: entity.externalSourceId },
-      orderBy: { detectedAt: 'desc' },
-      take: 20
-    });
-  }
-
-  return {
-    entity,
-    snapshots,
-    events
-  };
+  const entities = await getMonitoredEntities(organizationId);
+  const entity = entities.find(e => e.id === entityId);
+  if (!entity) return null;
+  return { entity, snapshots: entity.dataSources || [] };
 }

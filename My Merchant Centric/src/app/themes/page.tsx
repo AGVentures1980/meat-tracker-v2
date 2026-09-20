@@ -30,7 +30,7 @@ function ThemesContent() {
     setLoading(true);
     try {
       if (!locationId || locationId === 'ALL') {
-        setLocationName('Texas de Brazil Enterprise Network');
+        setLocationName('Enterprise Network');
         setThemes([]);
         setLoading(false);
         return;

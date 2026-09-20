@@ -502,7 +502,23 @@ export async function POST(req: NextRequest) {
         }
       });
     } else {
-      const redirectUrl = new URL(redirectPath, req.url);
+      let baseUrl: string;
+      const configuredBase = process.env.PULSE_BASE_URL;
+      const forwardedHost = req.headers.get('x-forwarded-host');
+      const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
+
+      if (configuredBase && configuredBase.trim() !== '') {
+        baseUrl = configuredBase.trim().replace(/\/+$/, '');
+      } else if (process.env.NODE_ENV === 'production') {
+        baseUrl = 'https://pulse.brasameat.com';
+      } else if (forwardedHost && !forwardedHost.includes('localhost') && !forwardedHost.includes('127.0.0.1')) {
+        baseUrl = `${forwardedProto}://${forwardedHost}`;
+      } else {
+        const reqUrlObj = new URL(req.url);
+        baseUrl = `${reqUrlObj.protocol}//${reqUrlObj.host}`;
+      }
+
+      const redirectUrl = new URL(redirectPath, baseUrl);
       res = NextResponse.redirect(redirectUrl);
     }
 

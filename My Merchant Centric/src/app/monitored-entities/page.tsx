@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -44,7 +45,11 @@ interface MonitoredEntity {
   }>;
 }
 
+
 function MonitoredEntitiesContent() {
+  const searchParams = useSearchParams();
+  const orgId = searchParams.get('organizationId');
+
   const [entities, setEntities] = useState<MonitoredEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,12 +57,13 @@ function MonitoredEntitiesContent() {
 
   useEffect(() => {
     fetchEntities();
-  }, []);
+  }, [orgId]);
 
   const fetchEntities = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/monitored-entities');
+      const url = orgId ? `/api/monitored-entities?organizationId=${orgId}` : '/api/monitored-entities';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setEntities(data.entities || []);

@@ -31,7 +31,7 @@ function MenuIntelligenceContent() {
     try {
       if (!locationId || locationId === 'ALL') {
         // Fetch organization-wide menu items if any
-        setLocationName('Texas de Brazil Enterprise Network');
+        setLocationName('Enterprise Network');
         setMenuItems([]);
         setLoading(false);
         return;
