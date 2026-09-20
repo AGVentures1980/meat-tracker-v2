@@ -606,6 +606,24 @@ async function ensureProductionAccounts() {
     }
 }
 
+async function ensureCompanySubdomains() {
+    try {
+        console.log(`[Startup] Ensuring canonical company subdomains...`);
+        const tdb = await (prisma as any).company.findFirst({
+            where: { OR: [{ id: 'tdb-main' }, { name: { contains: 'Texas', mode: 'insensitive' } }] }
+        });
+        if (tdb && !tdb.subdomain) {
+            await (prisma as any).company.update({
+                where: { id: tdb.id },
+                data: { subdomain: 'tdb' }
+            });
+            console.log(`[Startup] SUCCESS: Verified canonical subdomain "tdb" for Texas de Brazil.`);
+        }
+    } catch (error) {
+        console.error('[Startup] FAILED to verify company subdomains:', error);
+    }
+}
+
 async function ensureFogoTheme() {
     try {
         console.log(`[Startup] Ensuring Fogo de Chão theme & subdomain are configured...`);
@@ -804,6 +822,7 @@ if (process.env.NODE_ENV !== 'test') {
         .then(() => ensureDefaultSettings())
         .then(() => ensurePrimaryStoreUsers())
         .then(() => ensureProductionAccounts())
+        .then(() => ensureCompanySubdomains())
         .then(() => ensureOutbackPilot())
         .then(() => ensureFogoTheme())
         .then(() => ensurePulseEntitlements())

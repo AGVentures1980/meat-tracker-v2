@@ -4,9 +4,12 @@ import { Building2, ArrowRight, Users, Zap, Lock, Archive } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { GlobalGlobe } from '../components/SaaS/GlobalGlobe';
 
+import { switchTenant } from '../utils/tenantSwitch';
+
 interface Company {
     id: string;
     name: string;
+    subdomain?: string;
     plan: string;
     _count: {
         stores: number;
@@ -15,12 +18,11 @@ interface Company {
 
 export const CompanySelector = () => {
     const navigate = useNavigate();
-    const { user, setCompany } = useAuth();
+    const { user } = useAuth();
     const [companies, setCompanies] = useState<Company[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setCompany(null); // Force lockout
         const fetchCompanies = async () => {
             try {
                 const res = await fetch('/api/v1/owner/my-companies', {
@@ -40,39 +42,7 @@ export const CompanySelector = () => {
     }, []);
 
     const handleSelect = (company: { id: string; name: string; subdomain?: string }) => {
-        setCompany(company.id);
-
-        const targetSubdomain = company.subdomain?.trim().toLowerCase();
-        
-        // P2 & Requirements 7, 8, 9: Subdomain Validation & Fallback Elimination
-        const isValidSubdomain = targetSubdomain && /^[a-z0-9-]+$/.test(targetSubdomain);
-
-        if (!isValidSubdomain) {
-            console.error('[TENANT_SWITCH] Subdomain unprovisioned or malformed for company:', company);
-            alert('TENANT_SUBDOMAIN_NOT_PROVISIONED: Cannot navigate to tenant dashboard. Provisioned subdomain is missing or malformed.');
-            return;
-        }
-
-        const currentHost = window.location.hostname.toLowerCase();
-
-        // Perform canonical subdomain navigation for production domains
-        if (currentHost.includes('.brasameat.com')) {
-            const rootDomain = 'brasameat.com';
-            const currentSubdomain = currentHost.split(`.${rootDomain}`)[0];
-            if (currentSubdomain !== targetSubdomain) {
-                window.location.href = `https://${targetSubdomain}.${rootDomain}/dashboard`;
-                return;
-            }
-        } else if (currentHost.includes('.alexgarciaventures.co')) {
-            const rootDomain = 'alexgarciaventures.co';
-            const currentSubdomain = currentHost.split(`.${rootDomain}`)[0];
-            if (currentSubdomain !== targetSubdomain) {
-                window.location.href = `https://${targetSubdomain}.${rootDomain}/dashboard`;
-                return;
-            }
-        }
-
-        navigate('/dashboard');
+        switchTenant(company, '/dashboard/network');
     };
 
     const handleArchive = async (e: React.MouseEvent, companyId: string, companyName: string) => {
