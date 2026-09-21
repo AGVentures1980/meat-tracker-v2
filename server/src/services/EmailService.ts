@@ -30,11 +30,17 @@ export const EmailService = {
 
     async sendQCAlert(payload: {
         storeId?: string;
+        recipientEmail?: string;
         barcode: string;
         user: string;
         reason: string;
     }) {
-        const directorEmail = 'david@texasdebrazil.com';
+        const directorEmail = payload.recipientEmail || process.env.QC_ALERT_EMAIL;
+        
+        if (!directorEmail) {
+            console.warn(`\n⚠️ [RECEIVING DOCK QC ALERT] RECIPIENT_NOT_CONFIGURED: No alert recipient configured for store ${payload.storeId || 'Unknown'}\n`);
+            return { success: false, error: 'RECIPIENT_NOT_CONFIGURED' };
+        }
         
         console.log('\n⚠️ [RECEIVING DOCK QC ALERT] ⚠️');
         console.log('---------------------------------------------------');

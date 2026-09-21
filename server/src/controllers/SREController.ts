@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TenantDeletionEngine } from '../services/TenantDeletionEngine';
+import { TenantDecommissionPlanner } from '../services/TenantDecommissionPlanner';
 import { SREStartupGuard } from '../utils/SREStartupGuard';
 
 export class SREController {
@@ -20,23 +20,21 @@ export class SREController {
     // POST /api/sre/tenants/delete/dry-run
     static async dryRun(req: Request, res: Response) {
         try {
-            const { company_id, environment } = req.body;
+            const { company_id } = req.body;
             
-            if (!company_id || !environment) {
-                return res.status(400).json({ error: 'company_id and environment are required' });
+            if (!company_id) {
+                return res.status(400).json({ error: 'company_id is required' });
             }
 
-            // Ideally this is retrieved from a verified JWT token of the Root Admin
-            const actorEmail = (req as any).user?.email || 'sre_admin_override@brasa.com';
-            const actorId = (req as any).user?.id || 'SRE-SYSTEM';
-
-            const result = await TenantDeletionEngine.performDryRun(company_id, actorId, actorEmail, environment);
+            const plan = await TenantDecommissionPlanner.createPlan(company_id);
             
             return res.status(200).json({
-                message: 'Dry Run Generated Successfully',
-                job_id: result.job.id,
-                payload: result.payload,
-                dry_run_hash: result.hash
+                message: 'Dry Run Generated via Canonical TenantDecommissionPlanner',
+                job_id: plan.runId,
+                payload: plan.summary,
+                dry_run_hash: plan.planHash,
+                status: plan.status,
+                blockers: plan.blockers
             });
         } catch (error: any) {
             if (error?.name === 'AuthContextMissingError') {
@@ -48,30 +46,10 @@ export class SREController {
 
     // POST /api/sre/tenants/delete/execute
     static async execute(req: Request, res: Response) {
-        try {
-            const { job_id, dry_run_hash, environment, confirmation_phrase, allow_production_delete } = req.body;
-            
-            if (!job_id || !dry_run_hash || !environment || !confirmation_phrase) {
-                return res.status(400).json({ error: 'Missing required parameters for execution' });
-            }
-
-            const EXPECTED_PHRASE = "I UNDERSTAND THIS WILL PERMANENTLY DELETE TENANT DATA";
-            if (confirmation_phrase !== EXPECTED_PHRASE) {
-                return res.status(403).json({ error: 'INVALID_CONFIRMATION_PHRASE' });
-            }
-
-            const result = await TenantDeletionEngine.execute(job_id, dry_run_hash, environment, allow_production_delete || false);
-            
-            return res.status(200).json({
-                message: 'TENANT ABERRATION NEUTRALIZED',
-                job: result
-            });
-        } catch (error: any) {
-            if (error?.name === 'AuthContextMissingError') {
-                return res.status(error.status).json({ error: error.message });
-            }
-            return res.status(500).json({ error: error.message });
-        }
+        return res.status(403).json({
+            error: 'EXECUTION_BLOCKED_CLI_AUTHORIZATION_REQUIRED',
+            message: 'Production tenant decommission requires CLI-authenticated authorization gate. Direct API execution is disabled.'
+        });
     }
   // ==========================================
   // CHAOS ENGINEERING ENDPOINTS (TEMPORARY)

@@ -571,7 +571,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             <div className="flex items-center space-x-2 px-3 py-1 bg-[#222] rounded-full border border-[#333]">
                                 <Network className="w-4 h-4 text-[#C5A059]" />
                                 <span className="text-xs text-gray-400 uppercase tracking-wider">Systemwide Units</span>
-                                <span className="text-sm font-bold text-white">{networkStats ? networkStats.totalStores : 57} <span className="text-[10px] text-gray-500 font-normal">ACTIVE</span></span>
+                                <span className="text-sm font-bold text-white">{networkStats ? networkStats.totalStores : '—'} <span className="text-[10px] text-gray-500 font-normal">ACTIVE</span></span>
                             </div>
                             <div className="h-4 w-px bg-[#333]"></div>
                             <div className="flex items-center space-x-2">

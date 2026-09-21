@@ -1,3 +1,8 @@
+/**
+ * @deprecated SUPERSEDED BY TenantDecommissionPlanner
+ * Notice: This engine is obsolete and superseded by server/src/services/TenantDecommissionPlanner.ts.
+ * Do NOT use for production tenant lifecycle actions.
+ */
 import { PrismaClient, DeletionJobStatus } from '@prisma/client';
 import crypto from 'crypto';
 
@@ -49,11 +54,16 @@ const STORE_BOUND = [
 ];
 
     const PROTECTED_TENANTS = [
-        '9726565c-2936-43d1-81f1-f8961e32d624', // Terra Gaucha
-        '16beef10-f959-402d-a214-c9707a3549f0', // Outback Pilot
-        'tdb-main'                            // Texas de Brazil
+        '4e7b4b3d-5e5a-418a-8694-d232c8444eb6', // Chima Steakhouse
+        'ea32ec07-c64b-4670-88ec-849cabd7170f', // Hard Rock Hotel & Casino
+        'd04d5015-44a9-4bdd-9021-b8bd28caad9b', // Bloomin' Brands
+        '9726565c-2936-43d1-81f1-f8961e32d624', // Terra Gaucha (historical)
+        'tdb-main'                            // Texas de Brazil (historical)
     ];
 
+    /**
+     * @deprecated Use TenantDecommissionPlanner instead
+     */
     export class TenantDeletionEngine {
         
         /**
