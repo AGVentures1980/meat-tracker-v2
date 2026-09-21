@@ -1,0 +1,37 @@
+{
+  "title": "BRASA Meat Intelligence™ — Decommissioned Tenant Snapshots Index",
+  "created_at": "2026-09-21T14:42:00Z",
+  "authorizer": "Alexandre",
+  "snapshots": [
+    {
+      "tenant": "Texas de Brazil",
+      "former_company_id": "tdb-main",
+      "decommission_date": "2026-09-21",
+      "archive_filename": "tdb_archive_snapshot.json",
+      "byte_size": 26634,
+      "sha256": "cb180c076ad8ca998989a578fdf1298a969dc00ff448d036bdabcf3dc6897f6c",
+      "archive_schema_version": "1.0.0",
+      "historical_status": "DECOMMISSIONED"
+    },
+    {
+      "tenant": "Fogo de Chão",
+      "former_company_id": "43670635-c205-4b19-99d4-445c7a683730",
+      "decommission_date": "2026-09-21",
+      "archive_filename": "fogo_archive_snapshot.json",
+      "byte_size": 26228,
+      "sha256": "9f4025abd80210250429c92cc3c8ffac88cd7e785396f9e0e0e1af9b352d17b4",
+      "archive_schema_version": "1.0.0",
+      "historical_status": "DECOMMISSIONED"
+    },
+    {
+      "tenant": "Terra Gaucha",
+      "former_company_id": "26e29999-5e6e-4022-bd85-17aec722655e",
+      "decommission_date": "2026-09-21",
+      "archive_filename": "terra_archive_snapshot.json",
+      "byte_size": 2466,
+      "sha256": "1e9d96e9727a50cc459f615a7194110033a28cf4f316529b97a9be7a98cf3d16",
+      "archive_schema_version": "1.0.0",
+      "historical_status": "DECOMMISSIONED"
+    }
+  ]
+}

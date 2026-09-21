@@ -1,0 +1,103 @@
+{
+  "archive_version": "1.0.0",
+  "generated_at": "2026-09-21T14:35:33.101Z",
+  "source_company_id": "26e29999-5e6e-4022-bd85-17aec722655e",
+  "company": {
+    "name": "Terra Gaucha",
+    "subdomain": "terra",
+    "plan": "enterprise",
+    "operationType": "RODIZIO",
+    "current_tier": "TIER_1",
+    "created_at": "2026-04-14T17:20:48.746Z"
+  },
+  "locations": [
+    {
+      "id": 2,
+      "store_name": "Jacksonville",
+      "location": "4483 Southside Blvd, Jacksonville, FL 32216",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "ACTIVE",
+      "is_pilot": true
+    },
+    {
+      "id": 3,
+      "store_name": "Tampa",
+      "location": "1108 South Dale Mabry Hwy, Tampa, FL 33629",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "ACTIVE",
+      "is_pilot": true
+    }
+  ],
+  "users": [
+    {
+      "id": "2a63be42-d0b2-44d1-a109-e6e388a0231e",
+      "email": "paulo@terragaucha.com",
+      "role": "admin",
+      "first_name": "Paulo",
+      "last_name": "Simonetti",
+      "position": null,
+      "created_at": "2026-04-14T17:20:49.437Z"
+    },
+    {
+      "id": "1c6737b1-e95c-43b9-9142-0c1813bf9c9e",
+      "email": "tampa.terra@terragaucha.com",
+      "role": "manager",
+      "store_id": 3,
+      "created_at": "2026-04-14T17:20:49.438Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "59e495a3-2c69-4efa-ac14-028e10e30a35",
+      "name": "Picanha",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "875344e6-cdad-4a40-814e-7dac903f4e24",
+      "name": "Filet Mignon",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "31143e8e-db2f-4810-92a3-98bc0267ad61",
+      "name": "Fraldinha",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "5f3d6fb0-f296-46f3-9de2-fe3b90066a4a",
+      "name": "Rack of Lamb",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    },
+    {
+      "id": "2d1453b9-5de0-46fa-a658-8b9c51dc90a9",
+      "name": "Beef Ribs",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    }
+  ],
+  "entitlements": [
+    "BRASA_PULSE"
+  ],
+  "publicLocationRegistries": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "auditLogsCount": 19,
+  "checksum": "216c515c4a0558bf71fc6028166684e972cc6fecd291acc9f48c560fcf8b152b"
+}

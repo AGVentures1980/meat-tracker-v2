@@ -1,0 +1,1121 @@
+{
+  "archive_version": "1.0.0",
+  "generated_at": "2026-09-21T14:35:33.048Z",
+  "source_company_id": "tdb-main",
+  "company": {
+    "name": "Texas de Brazil",
+    "subdomain": "tdb",
+    "plan": "enterprise",
+    "operationType": "RODIZIO",
+    "current_tier": "TIER_1",
+    "created_at": "2026-09-01T13:33:14.708Z"
+  },
+  "locations": [
+    {
+      "id": 79,
+      "store_name": "AnnArbor",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 300,
+      "store_name": "Buffalo",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 901,
+      "store_name": "Cinci",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 30,
+      "store_name": "Dallas",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 110,
+      "store_name": "FairOak",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 40,
+      "store_name": "FtWorth",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 800,
+      "store_name": "Gville",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 520,
+      "store_name": "Jax",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 620,
+      "store_name": "Omaha",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 100,
+      "store_name": "Rich",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 450,
+      "store_name": "Roch",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 770,
+      "store_name": "Rogers",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 500,
+      "store_name": "Saw",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 270,
+      "store_name": "Syrac",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 690,
+      "store_name": "Tacoma",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 530,
+      "store_name": "Tyler",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 210,
+      "store_name": "Yonkers",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 70,
+      "store_name": "Orlando",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 170,
+      "store_name": "SanAnt",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 180,
+      "store_name": "Tampa",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 190,
+      "store_name": "Detroit",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 250,
+      "store_name": "Houston",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 310,
+      "store_name": "Albany",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 390,
+      "store_name": "Irvine",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 50,
+      "store_name": "Memphis",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 540,
+      "store_name": "Mcallen",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 710,
+      "store_name": "Carls",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 90,
+      "store_name": "Denver",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 150,
+      "store_name": "BRouge",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 290,
+      "store_name": "Birming",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 700,
+      "store_name": "Fresno",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 902,
+      "store_name": "Kent",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 350,
+      "store_name": "Hville",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 510,
+      "store_name": "Lexing",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 903,
+      "store_name": "Louis",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 560,
+      "store_name": "Milwauk",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 460,
+      "store_name": "Okc",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 630,
+      "store_name": "Orland",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 260,
+      "store_name": "Pitt",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 760,
+      "store_name": "Cucamon",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 80,
+      "store_name": "Schaum",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 440,
+      "store_name": "Tulsa",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 430,
+      "store_name": "Chagrin",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 240,
+      "store_name": "Cbus",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 360,
+      "store_name": "DaMall",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 60,
+      "store_name": "DolMall",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 160,
+      "store_name": "Gulf",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 610,
+      "store_name": "LGrove",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 230,
+      "store_name": "PBG",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 550,
+      "store_name": "WHart",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 400,
+      "store_name": "Crocker",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 20,
+      "store_name": "Addison",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 140,
+      "store_name": "Vegas",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    },
+    {
+      "id": 120,
+      "store_name": "MiamiB",
+      "location": "USA",
+      "city": null,
+      "country": "USA",
+      "timezone": "America/Chicago",
+      "status": "INACTIVE",
+      "is_pilot": false
+    }
+  ],
+  "users": [
+    {
+      "id": "a732b30d-45b3-4e8b-aaac-cdb32e902dfd",
+      "email": "annarbor@texasdebrazil.com",
+      "role": "manager",
+      "first_name": null,
+      "last_name": null,
+      "position": null,
+      "created_at": "2026-09-01T13:33:15.036Z"
+    },
+    {
+      "id": "053f1d31-7261-497c-b237-404a49dc0299",
+      "email": "hartford@texasdebrazil.com",
+      "role": "manager",
+      "first_name": null,
+      "last_name": null,
+      "position": null,
+      "created_at": "2026-09-01T13:33:18.877Z"
+    },
+    {
+      "id": "d16912b2-d099-4f6f-9810-11859a57065d",
+      "email": "buffalo@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 300,
+      "created_at": "2026-09-01T13:33:15.113Z"
+    },
+    {
+      "id": "bf112371-330e-4241-a567-ede6a7cdd01a",
+      "email": "cincinnati@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 901,
+      "created_at": "2026-09-01T13:33:15.190Z"
+    },
+    {
+      "id": "a0f2cbe0-eba8-47d5-9784-f459fd5f3f7d",
+      "email": "dallas@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 30,
+      "created_at": "2026-09-01T13:33:15.267Z"
+    },
+    {
+      "id": "1e4bd753-f318-496f-8de1-c03b7846c2f0",
+      "email": "addison@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 20,
+      "created_at": "2026-09-01T13:33:14.946Z"
+    },
+    {
+      "id": "da2217d1-f172-42a7-ac1c-23195542335b",
+      "email": "albany@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 310,
+      "created_at": "2026-09-01T13:33:16.778Z"
+    },
+    {
+      "id": "40c67435-15d0-492b-ba68-d54e6fea44bf",
+      "email": "fairfax@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 110,
+      "created_at": "2026-09-01T13:33:15.342Z"
+    },
+    {
+      "id": "c97ea850-b946-4001-8a06-9859126941dc",
+      "email": "fortworth@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 40,
+      "created_at": "2026-09-01T13:33:15.418Z"
+    },
+    {
+      "id": "aaa4de9f-3391-4d76-93f7-b8afe2d1e07c",
+      "email": "greenville@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 800,
+      "created_at": "2026-09-01T13:33:15.494Z"
+    },
+    {
+      "id": "b10a6740-095d-495c-9223-d43f588fe728",
+      "email": "jacksonville@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 520,
+      "created_at": "2026-09-01T13:33:15.569Z"
+    },
+    {
+      "id": "39fd037e-5656-46a1-9748-2430afbef88f",
+      "email": "omaha@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 620,
+      "created_at": "2026-09-01T13:33:15.645Z"
+    },
+    {
+      "id": "9c0e898f-9a89-45e1-b1cf-96bd5d36cd84",
+      "email": "richmond@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 100,
+      "created_at": "2026-09-01T13:33:15.721Z"
+    },
+    {
+      "id": "c0a98952-0bb1-4391-975d-7a39fb4df1ae",
+      "email": "rochester@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 450,
+      "created_at": "2026-09-01T13:33:15.796Z"
+    },
+    {
+      "id": "7eb47d28-e352-4bda-9a44-24bec18e972e",
+      "email": "rogers@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 770,
+      "created_at": "2026-09-01T13:33:15.867Z"
+    },
+    {
+      "id": "90bc8636-f1df-4b79-aa48-a44932fb9d6f",
+      "email": "sawgrass@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 500,
+      "created_at": "2026-09-01T13:33:15.943Z"
+    },
+    {
+      "id": "57cb71c1-f61b-4f8e-be1c-0a143d500d4d",
+      "email": "syracuse@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 270,
+      "created_at": "2026-09-01T13:33:16.017Z"
+    },
+    {
+      "id": "f4cafb92-da30-4ebc-8b12-517cbd3b0f20",
+      "email": "tacoma@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 690,
+      "created_at": "2026-09-01T13:33:16.097Z"
+    },
+    {
+      "id": "ebd67c66-8d66-47bd-96ed-ace77fe48be2",
+      "email": "tyler@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 530,
+      "created_at": "2026-09-01T13:33:16.170Z"
+    },
+    {
+      "id": "51c9102a-d030-444d-9db7-f6fdf6a39510",
+      "email": "yonkers@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 210,
+      "created_at": "2026-09-01T13:33:16.247Z"
+    },
+    {
+      "id": "593825f7-af9a-4cde-bf8c-44195cca977a",
+      "email": "orlando@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 70,
+      "created_at": "2026-09-01T13:33:16.323Z"
+    },
+    {
+      "id": "dcc1d213-69a7-4a97-abcb-7737b464bd67",
+      "email": "lasvegas@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 140,
+      "created_at": "2026-09-01T13:33:16.397Z"
+    },
+    {
+      "id": "caa1cd62-7c9e-4f23-be54-98cd36d10528",
+      "email": "sanantonio@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 170,
+      "created_at": "2026-09-01T13:33:16.473Z"
+    },
+    {
+      "id": "ac2cec20-5ce5-4b8f-9327-4e9022b82f21",
+      "email": "tampa@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 180,
+      "created_at": "2026-09-01T13:33:16.548Z"
+    },
+    {
+      "id": "99236e0b-bc55-4775-8aca-c0514ce11890",
+      "email": "detroit@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 190,
+      "created_at": "2026-09-01T13:33:16.625Z"
+    },
+    {
+      "id": "4409164c-6475-4096-8351-c6929eca8a9d",
+      "email": "houston@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 250,
+      "created_at": "2026-09-01T13:33:16.702Z"
+    },
+    {
+      "id": "316b2a9f-e4e1-4b03-874d-2501a2b85c0a",
+      "email": "irvine@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 390,
+      "created_at": "2026-09-01T13:33:16.853Z"
+    },
+    {
+      "id": "a9b552cb-7aa2-46bb-9cc0-31fa02b5fa43",
+      "email": "memphis@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 50,
+      "created_at": "2026-09-01T13:33:16.927Z"
+    },
+    {
+      "id": "4f6f9030-c0a7-4722-965a-362559ee5ba2",
+      "email": "mcallen@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 540,
+      "created_at": "2026-09-01T13:33:17.003Z"
+    },
+    {
+      "id": "8361c2b8-b09c-4bac-bc72-c1dcacc2c2a0",
+      "email": "carlsbad@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 710,
+      "created_at": "2026-09-01T13:33:17.078Z"
+    },
+    {
+      "id": "48f97b00-3073-43c6-ba84-a2f580fa1494",
+      "email": "denver@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 90,
+      "created_at": "2026-09-01T13:33:17.153Z"
+    },
+    {
+      "id": "071aa9e0-d54c-40cd-871d-6f055e2e4a87",
+      "email": "batonrouge@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 150,
+      "created_at": "2026-09-01T13:33:17.228Z"
+    },
+    {
+      "id": "ca2b1ff1-a9ef-407b-b43b-8ba4ee171004",
+      "email": "birmingham@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 290,
+      "created_at": "2026-09-01T13:33:17.303Z"
+    },
+    {
+      "id": "66be55fb-3dee-46fc-b393-9320072612b9",
+      "email": "fresno@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 700,
+      "created_at": "2026-09-01T13:33:17.375Z"
+    },
+    {
+      "id": "7982e430-9548-4d15-8940-9ba894537d93",
+      "email": "grandrapids@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 902,
+      "created_at": "2026-09-01T13:33:17.451Z"
+    },
+    {
+      "id": "98b16cf0-c1b2-4949-a188-2a6a6c6ea498",
+      "email": "huntsville@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 350,
+      "created_at": "2026-09-01T13:33:17.527Z"
+    },
+    {
+      "id": "15c0dc5b-43cf-4052-b450-95c40722d2f2",
+      "email": "lexington@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 510,
+      "created_at": "2026-09-01T13:33:17.602Z"
+    },
+    {
+      "id": "af32da94-2bf7-42bf-883b-84c96fb2bdf6",
+      "email": "louisville@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 903,
+      "created_at": "2026-09-01T13:33:17.678Z"
+    },
+    {
+      "id": "eba8a7ac-f552-438a-a1df-408add6c309c",
+      "email": "milwaukee@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 560,
+      "created_at": "2026-09-01T13:33:17.754Z"
+    },
+    {
+      "id": "52fee5ce-41bf-4cbe-a56a-966141961c47",
+      "email": "oklahomacity@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 460,
+      "created_at": "2026-09-01T13:33:17.828Z"
+    },
+    {
+      "id": "f9f6a886-296e-464d-8001-3ec9f603f987",
+      "email": "orlandpark@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 630,
+      "created_at": "2026-09-01T13:33:17.903Z"
+    },
+    {
+      "id": "f81189cc-1c71-48c5-ba90-0231fc4fd1c0",
+      "email": "pittsburgh@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 260,
+      "created_at": "2026-09-01T13:33:17.978Z"
+    },
+    {
+      "id": "4da0713b-dae1-4a9a-a77c-504dc4e60121",
+      "email": "ranchocucamonga@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 760,
+      "created_at": "2026-09-01T13:33:18.053Z"
+    },
+    {
+      "id": "f3c6ab19-6e6c-4755-a56a-af855867a49a",
+      "email": "schaumburg@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 80,
+      "created_at": "2026-09-01T13:33:18.129Z"
+    },
+    {
+      "id": "b9eba8dd-31b7-4447-bf4b-8c706a458b4c",
+      "email": "tulsa@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 440,
+      "created_at": "2026-09-01T13:33:18.202Z"
+    },
+    {
+      "id": "40b4b607-8459-4114-9e5d-496a5248a23f",
+      "email": "woodmere@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 430,
+      "created_at": "2026-09-01T13:33:18.277Z"
+    },
+    {
+      "id": "662f27c7-55c5-42b3-81aa-9220c09854ce",
+      "email": "columbus@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 240,
+      "created_at": "2026-09-01T13:33:18.351Z"
+    },
+    {
+      "id": "80b8c842-bcfb-42b4-9cdc-97bae884a099",
+      "email": "dadeland@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 360,
+      "created_at": "2026-09-01T13:33:18.427Z"
+    },
+    {
+      "id": "ed4f8269-0f2a-4992-9ac1-8c72229ebdea",
+      "email": "miami@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 60,
+      "created_at": "2026-09-01T13:33:18.503Z"
+    },
+    {
+      "id": "96f00629-555e-4a36-adea-0acd6a9e4008",
+      "email": "gulfstream@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 160,
+      "created_at": "2026-09-01T13:33:18.577Z"
+    },
+    {
+      "id": "ebb8c1c6-d61f-4cd5-ac3b-1df29c02e4ba",
+      "email": "smithhaven@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 610,
+      "created_at": "2026-09-01T13:33:18.652Z"
+    },
+    {
+      "id": "796b91b1-6862-4d95-8357-1b55069fa4c2",
+      "email": "miamibeach@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 120,
+      "created_at": "2026-09-01T13:33:18.728Z"
+    },
+    {
+      "id": "604928e6-a1a7-4aa6-bbf9-78c2ef7584ee",
+      "email": "palmbeachgardens@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 230,
+      "created_at": "2026-09-01T13:33:18.803Z"
+    },
+    {
+      "id": "8467283f-df03-4752-9ac2-6b3f6e932e7b",
+      "email": "cleveland@texasdebrazil.com",
+      "role": "manager",
+      "store_id": 400,
+      "created_at": "2026-09-01T13:33:18.950Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "e90864f5-b9d2-4045-9842-03683e2c5c35",
+      "name": "Beef Ribs",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "499f1168-057d-4695-8ec1-9f9b7874161e",
+      "name": "Chicken Breast",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    },
+    {
+      "id": "f8606308-094e-4398-9d51-201143af93de",
+      "name": "Chicken Drumstick",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    },
+    {
+      "id": "393e7d23-f966-4622-8366-7d4323985acf",
+      "name": "Filet Mignon",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "cd36bec4-d3dc-4a68-ad32-fa761aca8fd4",
+      "name": "Filet Mignon with Bacon",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "ee2e8b1b-2404-40c1-af93-23a1d33135f0",
+      "name": "Fraldinha/Flank Steak",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "3418e327-404e-4691-9af0-fbacf13447f1",
+      "name": "Lamb Chops",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "5999546f-b57d-4b32-a5ac-c3879d9086fe",
+      "name": "Lamb Sirloin",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "7a7f2d0e-6eee-4d37-ad70-fdb35153e3da",
+      "name": "Leg of Lamb",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    },
+    {
+      "id": "b02079a1-90a4-4ca6-a730-436f66026482",
+      "name": "Picanha",
+      "category": null,
+      "is_villain": true,
+      "preparations": []
+    },
+    {
+      "id": "745cca3d-7f9b-438e-b86e-6d9b5b4ec161",
+      "name": "Pork Loin",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    },
+    {
+      "id": "6ac83d70-77e6-4b9b-8c46-52cd1055bfa7",
+      "name": "Pork Ribs",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    },
+    {
+      "id": "24911392-632b-4e4f-a4ea-42c5b29696bd",
+      "name": "Sausage",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    },
+    {
+      "id": "ef308ccd-916f-4e74-8dcb-d4ec67fbf0ea",
+      "name": "Tri-Tip",
+      "category": null,
+      "is_villain": false,
+      "preparations": []
+    }
+  ],
+  "entitlements": [
+    "BRASA_PULSE"
+  ],
+  "publicLocationRegistries": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "auditLogsCount": 149,
+  "checksum": "1821ca07a8b75a80eb04422826e9f16caa3883b1a990b61cc0bfd12956693851"
+}
