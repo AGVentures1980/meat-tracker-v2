@@ -10,38 +10,38 @@ datasource db {
 }
 
 model Company {
-  id                          String                    @id @default(uuid())
+  id                          String                           @id @default(uuid())
   name                        String
-  plan                        String                    @default("enterprise")
-  created_at                  DateTime                  @default(now())
-  annual_growth_rate          Float                     @default(5.0)
+  plan                        String                           @default("enterprise")
+  created_at                  DateTime                         @default(now())
+  annual_growth_rate          Float                            @default(5.0)
   owner_id                    String?
-  api_key                     String?                   @unique
-  baseline_loss_pct           Float                     @default(15.0)
-  baseline_overproduction_pct Float                     @default(8.0)
-  baseline_ruptura_pct        Float                     @default(5.0)
-  baseline_yield              Float                     @default(65.0)
-  billing_status              String                    @default("trialing")
-  billing_type                String                    @default("STRIPE_AUTO")
-  company_status              String                    @default("Pending")
-  contract_savings_fee_pct    Float                     @default(5.0)
-  operationType               OperationType             @default(RODIZIO)
-  stores_licensed             Int                       @default(1)
-  stripe_customer_id          String?                   @unique
-  stripe_subscription_id      String?                   @unique
-  subdomain                   String?                   @unique
+  api_key                     String?                          @unique
+  baseline_loss_pct           Float                            @default(15.0)
+  baseline_overproduction_pct Float                            @default(8.0)
+  baseline_ruptura_pct        Float                            @default(5.0)
+  baseline_yield              Float                            @default(65.0)
+  billing_status              String                           @default("trialing")
+  billing_type                String                           @default("STRIPE_AUTO")
+  company_status              String                           @default("Pending")
+  contract_savings_fee_pct    Float                            @default(5.0)
+  operationType               OperationType                    @default(RODIZIO)
+  stores_licensed             Int                              @default(1)
+  stripe_customer_id          String?                          @unique
+  stripe_subscription_id      String?                          @unique
+  subdomain                   String?                          @unique
   theme_bg_url                String?
   theme_logo_url              String?
   theme_primary_color         String?
-  contract_id                 String?                   @unique
+  contract_id                 String?                          @unique
   contract_signed_at          DateTime?
-  contract_status             DocuSignStatus            @default(PENDING)
-  contract_version            String                    @default("v1.0")
-  current_tier                TierLevel                 @default(TIER_1)
+  contract_status             DocuSignStatus                   @default(PENDING)
+  contract_version            String                           @default("v1.0")
+  current_tier                TierLevel                        @default(TIER_1)
   grace_period_until          DateTime?
   last_polled_at              DateTime?
   onboarding_started_at       DateTime?
-  polling_attempts            Int                       @default(0)
+  polling_attempts            Int                              @default(0)
   polling_expires_at          DateTime?
   AuditLog                    AuditLog[]
   products                    CompanyProduct[]
@@ -61,61 +61,71 @@ model Company {
   targetSimulations           TargetScenarioSimulation[]
   provisioningRuns            ProvisioningRun[]
   productPreparations         CompanyProductPreparation[]
+  brands                      Brand[]
+  properties                  Property[]
+  locations                   Location[]
+  scopes                      Scope[]
+  nodeClassifications         NodeClassification[]
+  capabilityAssignments       CapabilityAssignment[]
+  ruleAssignments             RuleAssignment[]
+  userScopes                  UserScope[]
 }
 
 model OrganizationProductEntitlement {
-  id            String    @id @default(uuid())
-  company_id    String
-  product_code  String    // e.g. "BRASA_PULSE"
-  status        String    @default("ACTIVE") // "ACTIVE", "INACTIVE", "PENDING"
-  enabled_at    DateTime  @default(now())
-  disabled_at   DateTime?
-  enabled_by    String?
-  source        String?   // "MIGRATION_EXISTING_CLIENTS_2026", "ONBOARDING", "ADMIN_TOGGLE"
-  notes         String?
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
+  id           String    @id @default(uuid())
+  company_id   String
+  product_code String // e.g. "BRASA_PULSE"
+  status       String    @default("ACTIVE") // "ACTIVE", "INACTIVE", "PENDING"
+  enabled_at   DateTime  @default(now())
+  disabled_at  DateTime?
+  enabled_by   String?
+  source       String? // "MIGRATION_EXISTING_CLIENTS_2026", "ONBOARDING", "ADMIN_TOGGLE"
+  notes        String?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
 
-  company       Company   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [company_id], references: [id], onDelete: Cascade)
 
   @@unique([company_id, product_code])
   @@index([company_id, status])
 }
 
 model CompanyProduct {
-  id                  String          @id @default(uuid())
-  company_id          String
-  name                String
-  category            String?
-  is_villain          Boolean         @default(false)
-  is_dinner_only      Boolean         @default(false)
-  standard_target     Float?
-  created_at          DateTime        @default(now())
-  include_in_delivery Boolean         @default(false)
-  protein_group       String?
-  lbs_per_skewer      Float?
-  required_usda_grade UsdaGrade?
-  company                     Company             @relation(fields: [company_id], references: [id])
-  inventory_items             InventoryItem[]
-  parentPrepTargets           PreparationTarget[] @relation("PreparationTargetParent")
-  subproductPrepTargets       PreparationTarget[] @relation("PreparationTargetSubproduct")
-  preparations                CompanyProductPreparation[]
+  id                    String                      @id @default(uuid())
+  company_id            String
+  name                  String
+  category              String?
+  is_villain            Boolean                     @default(false)
+  is_dinner_only        Boolean                     @default(false)
+  standard_target       Float?
+  created_at            DateTime                    @default(now())
+  include_in_delivery   Boolean                     @default(false)
+  protein_group         String?
+  lbs_per_skewer        Float?
+  required_usda_grade   UsdaGrade?
+  company               Company                     @relation(fields: [company_id], references: [id])
+  inventory_items       InventoryItem[]
+  parentPrepTargets     PreparationTarget[]         @relation("PreparationTargetParent")
+  subproductPrepTargets PreparationTarget[]         @relation("PreparationTargetSubproduct")
+  preparations          CompanyProductPreparation[]
+  ruleAssignments       RuleAssignment[]
 
   @@unique([company_id, name])
+  @@unique([company_id, id])
 }
 
 model CompanyProductPreparation {
-  id                          String         @id @default(uuid())
+  id                          String   @id @default(uuid())
   company_id                  String
   parent_product_id           String
   preparation_name            String
-  normalized_preparation_name  String
-  status                      String         @default("ACTIVE")
-  created_at                  DateTime       @default(now())
-  updated_at                  DateTime       @updatedAt
+  normalized_preparation_name String
+  status                      String   @default("ACTIVE")
+  created_at                  DateTime @default(now())
+  updated_at                  DateTime @updatedAt
 
-  company                     Company        @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  parent_product              CompanyProduct @relation(fields: [parent_product_id], references: [id], onDelete: Cascade)
+  company        Company        @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  parent_product CompanyProduct @relation(fields: [parent_product_id], references: [id], onDelete: Cascade)
 
   @@unique([company_id, parent_product_id, normalized_preparation_name])
   @@index([company_id])
@@ -210,19 +220,27 @@ model Store {
 }
 
 model Outlet {
-  id                   String     @id @default(cuid())
+  id                   String                    @id @default(cuid())
   store_id             Int
   company_id           String
+  location_id          String?
+  brand_id             String?
   name                 String
   slug                 String
   outlet_type          OutletType
-  is_active            Boolean    @default(true)
+  is_active            Boolean                   @default(true)
+  status               OperationalLifecycleState @default(ACTIVE)
   covers_per_day       Int?
-  created_at           DateTime   @default(now())
-  updated_at           DateTime   @updatedAt
+  created_at           DateTime                  @default(now())
+  updated_at           DateTime                  @updatedAt
   target_lbs_per_guest Float?
 
+  location Location? @relation(fields: [company_id, location_id], references: [company_id, id], onDelete: Restrict)
+  brand    Brand?    @relation(fields: [company_id, brand_id], references: [company_id, id], onDelete: Restrict)
+  scopes   Scope[]
+
   @@unique([store_id, slug])
+  @@unique([company_id, id])
   @@index([company_id, store_id])
   @@index([store_id, outlet_type])
 }
@@ -283,6 +301,7 @@ model User {
   training_progress    TrainingProgress[]
   store                Store?               @relation(fields: [store_id], references: [id])
   vaultFiles           VaultFile[]
+  userScopes           UserScope[]
 }
 
 model OwnerVaultMessage {
@@ -1538,17 +1557,19 @@ model AuditEvent {
 }
 
 model SupplierProfile {
-  id           String                @id @default(cuid())
-  companyId    String
-  name         String
-  code         String?
-  isActive     Boolean               @default(true)
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
-  store_id     Int?
-  rules        SupplierBarcodeRule[]
-  catalogItems SupplierCatalogItem[]
+  id              String                @id @default(cuid())
+  companyId       String
+  name            String
+  code            String?
+  isActive        Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  store_id        Int?
+  rules           SupplierBarcodeRule[]
+  catalogItems    SupplierCatalogItem[]
+  ruleAssignments RuleAssignment[]
 
+  @@unique([companyId, id])
   @@index([companyId, store_id])
   @@index([companyId])
 }
@@ -2429,76 +2450,76 @@ enum StoreDataType {
 }
 
 model PublicLocationRegistry {
-  id                      String    @id @default(uuid())
+  id                      String   @id @default(uuid())
   company_id              String
   brand_name              String
-  official_location_name   String
+  official_location_name  String
   address                 String?
   city                    String
   region                  String?
   postal_code             String?
-  country                 String    @default("USA")
-  public_operating_status String    // "OPERATIONAL", "COMING_SOON", "TEMPORARILY_CLOSED", "CLOSED", "UNKNOWN"
-  property_type           String?   // "RESTAURANT", "HOTEL", "CASINO", "RESORT", "HOTEL_CASINO", "CAFE", "OTHER"
+  country                 String   @default("USA")
+  public_operating_status String // "OPERATIONAL", "COMING_SOON", "TEMPORARILY_CLOSED", "CLOSED", "UNKNOWN"
+  property_type           String? // "RESTAURANT", "HOTEL", "CASINO", "RESORT", "HOTEL_CASINO", "CAFE", "OTHER"
   official_source_url     String
-  source_type             String    // "FIRST_PARTY_LOCATOR", "FIRST_PARTY_DIRECTORY", "INVESTOR_RELATIONS", "PRESS_RELEASE"
-  source_verified_at      DateTime  @default(now())
-  reconciliation_status   String    // "MATCHED", "MISSING_FROM_BRASA", "BRASA_SCOPE_ONLY", "PUBLIC_COMING_SOON", "PUBLIC_CLOSED", "AMBIGUOUS_MATCH", "UNRESOLVED"
+  source_type             String // "FIRST_PARTY_LOCATOR", "FIRST_PARTY_DIRECTORY", "INVESTOR_RELATIONS", "PRESS_RELEASE"
+  source_verified_at      DateTime @default(now())
+  reconciliation_status   String // "MATCHED", "MISSING_FROM_BRASA", "BRASA_SCOPE_ONLY", "PUBLIC_COMING_SOON", "PUBLIC_CLOSED", "AMBIGUOUS_MATCH", "UNRESOLVED"
   matched_brasa_store_id  Int?
-  confidence              Float     @default(1.0)
+  confidence              Float    @default(1.0)
   notes                   String?
-  created_at              DateTime  @default(now())
-  updated_at              DateTime  @updatedAt
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
 
-  company                 Company   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [company_id], references: [id], onDelete: Cascade)
 
   @@index([company_id, reconciliation_status])
   @@index([company_id, public_operating_status])
 }
 
 model OrganizationTargetVersion {
-  id                 String                     @id @default(uuid())
-  company_id         String
-  version            Int                        @default(1)
-  status             String                     @default("APPROVED") // DRAFT, APPROVED, SUPERSEDED
-  effective_from     DateTime                   @db.Date
-  effective_to       DateTime?                  @db.Date
-  target_cost_pax    Float
-  target_lbs_pax     Float
-  fiscal_year        Int                        @default(2027)
-  period_type        String                     @default("YEAR") // YEAR, QUARTER, MONTH, WEEK
-  period_identifier  String                     @default("FY2027")
-  created_by         String
-  approved_by        String?
-  approved_at        DateTime?                  @default(now())
-  reason             String?
-  created_at         DateTime                   @default(now())
-  updated_at         DateTime                   @updatedAt
+  id                String    @id @default(uuid())
+  company_id        String
+  version           Int       @default(1)
+  status            String    @default("APPROVED") // DRAFT, APPROVED, SUPERSEDED
+  effective_from    DateTime  @db.Date
+  effective_to      DateTime? @db.Date
+  target_cost_pax   Float
+  target_lbs_pax    Float
+  fiscal_year       Int       @default(2027)
+  period_type       String    @default("YEAR") // YEAR, QUARTER, MONTH, WEEK
+  period_identifier String    @default("FY2027")
+  created_by        String
+  approved_by       String?
+  approved_at       DateTime? @default(now())
+  reason            String?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 
-  company            Company                    @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  storeAllocations   StoreTargetAllocation[]
-  targetMetrics      OrganizationTargetMetric[]
+  company          Company                    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  storeAllocations StoreTargetAllocation[]
+  targetMetrics    OrganizationTargetMetric[]
 
   @@unique([company_id, period_type, period_identifier, version])
   @@index([company_id, status, effective_from])
 }
 
 model OrganizationTargetMetric {
-  id                String                    @id @default(uuid())
+  id                String   @id @default(uuid())
   target_version_id String
-  metric_type       String                    // "LBS_PER_GUEST", "COST_PER_GUEST", "YIELD_PERCENT", "LOSS_PERCENT", "OVERPRODUCTION_PERCENT"
+  metric_type       String // "LBS_PER_GUEST", "COST_PER_GUEST", "YIELD_PERCENT", "LOSS_PERCENT", "OVERPRODUCTION_PERCENT"
   target_value      Float
-  unit              String                    // "lb/guest", "USD/guest", "%"
-  created_at        DateTime                  @default(now())
+  unit              String // "lb/guest", "USD/guest", "%"
+  created_at        DateTime @default(now())
 
-  targetVersion     OrganizationTargetVersion @relation(fields: [target_version_id], references: [id], onDelete: Cascade)
+  targetVersion OrganizationTargetVersion @relation(fields: [target_version_id], references: [id], onDelete: Cascade)
 
   @@unique([target_version_id, metric_type])
   @@index([target_version_id])
 }
 
 model StoreTargetAllocation {
-  id                 String                    @id @default(uuid())
+  id                 String   @id @default(uuid())
   target_version_id  String
   store_id           Int
   tier_name          String?
@@ -2506,10 +2527,10 @@ model StoreTargetAllocation {
   allocated_cost_pax Float
   projected_covers   Int?
   forecast_source    String?
-  created_at         DateTime                  @default(now())
+  created_at         DateTime @default(now())
 
-  targetVersion      OrganizationTargetVersion @relation(fields: [target_version_id], references: [id], onDelete: Cascade)
-  store              Store                     @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  targetVersion OrganizationTargetVersion @relation(fields: [target_version_id], references: [id], onDelete: Cascade)
+  store         Store                     @relation(fields: [store_id], references: [id], onDelete: Cascade)
 
   @@unique([target_version_id, store_id])
   @@index([store_id])
@@ -2527,34 +2548,34 @@ model TargetScenarioSimulation {
   promoted_version_id String?
   created_at          DateTime @default(now())
 
-  company             Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [company_id], references: [id], onDelete: Cascade)
 
   @@index([company_id, is_promoted])
 }
 
 model PreparationTarget {
-  id                      String          @id @default(uuid())
+  id                      String   @id @default(uuid())
   company_id              String
   store_id                Int
   parent_product_id       String?
   subproduct_product_id   String?
-  parent_protein          String          // Canonical parent protein e.g. "Picanha"
-  subproduct_name         String          // Subproduct / preparation name e.g. "Garlic Picanha"
-  target_quantity         Float           // Planned preparation weight
-  unit                    String          @default("lb")
-  target_date             DateTime        @db.Date
+  parent_protein          String // Canonical parent protein e.g. "Picanha"
+  subproduct_name         String // Subproduct / preparation name e.g. "Garlic Picanha"
+  target_quantity         Float // Planned preparation weight
+  unit                    String   @default("lb")
+  target_date             DateTime @db.Date
   planned_parent_quantity Float?
-  source                  String          @default("AUTHORIZED_MANAGER") // "AUTHORIZED_MANAGER", "AI_RECOMMENDATION", "STORE_TEMPLATE"
+  source                  String   @default("AUTHORIZED_MANAGER") // "AUTHORIZED_MANAGER", "AI_RECOMMENDATION", "STORE_TEMPLATE"
   ai_recommended_qty      Float?
   actual_prepared_qty     Float?
   created_by              String
-  status                  String          @default("APPROVED") // "DRAFT", "APPROVED", "SUPERSEDED"
-  created_at              DateTime        @default(now())
-  updated_at              DateTime        @updatedAt
+  status                  String   @default("APPROVED") // "DRAFT", "APPROVED", "SUPERSEDED"
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
 
-  store                   Store           @relation(fields: [store_id], references: [id], onDelete: Cascade)
-  parentProduct           CompanyProduct? @relation("PreparationTargetParent", fields: [parent_product_id], references: [id], onDelete: SetNull)
-  subproductProduct       CompanyProduct? @relation("PreparationTargetSubproduct", fields: [subproduct_product_id], references: [id], onDelete: SetNull)
+  store             Store           @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  parentProduct     CompanyProduct? @relation("PreparationTargetParent", fields: [parent_product_id], references: [id], onDelete: SetNull)
+  subproductProduct CompanyProduct? @relation("PreparationTargetSubproduct", fields: [subproduct_product_id], references: [id], onDelete: SetNull)
 
   @@unique([store_id, subproduct_name, target_date])
   @@index([company_id, store_id, target_date])
@@ -2569,17 +2590,247 @@ model ProvisioningRun {
   manifest_hash     String
   company_id        String?
   company_subdomain String
-  mode              String   // "DRY_RUN", "APPLY"
-  status            String   // "VALIDATED", "COMPLETED", "FAILED", "BLOCKED", "REQUIRES_REVIEW"
+  mode              String // "DRY_RUN", "APPLY"
+  status            String // "VALIDATED", "COMPLETED", "FAILED", "BLOCKED", "REQUIRES_REVIEW"
   initiated_by      String
   summary_json      Json
   error_json        Json?
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
-  company           Company? @relation(fields: [company_id], references: [id], onDelete: SetNull)
+  company Company? @relation(fields: [company_id], references: [id], onDelete: SetNull)
 
   @@index([company_subdomain, mode])
   @@index([manifest_hash])
 }
 
+enum OperationalLifecycleState {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ScopeType {
+  COMPANY
+  BRAND
+  PROPERTY
+  LOCATION
+  OUTLET
+}
+
+model Brand {
+  id          String                    @id @default(uuid())
+  company_id  String
+  code        String
+  name        String
+  description String?
+  is_active   Boolean                   @default(true)
+  status      OperationalLifecycleState @default(ACTIVE)
+  created_at  DateTime                  @default(now())
+  updated_at  DateTime                  @updatedAt
+
+  company         Company          @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  locations       Location[]
+  outlets         Outlet[]
+  scopes          Scope[]
+  ruleAssignments RuleAssignment[]
+
+  @@unique([company_id, id])
+  @@unique([company_id, code])
+  @@index([company_id, is_active])
+}
+
+model Property {
+  id                String                    @id @default(uuid())
+  company_id        String
+  code              String
+  name              String
+  description       String?
+  classification_id String?
+  is_active         Boolean                   @default(true)
+  status            OperationalLifecycleState @default(ACTIVE)
+  created_at        DateTime                  @default(now())
+  updated_at        DateTime                  @updatedAt
+
+  company        Company             @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  classification NodeClassification? @relation(fields: [classification_id], references: [id], onDelete: SetNull)
+  locations      Location[]
+  scopes         Scope[]
+
+  @@unique([company_id, id])
+  @@unique([company_id, code])
+  @@index([company_id, is_active])
+}
+
+model Location {
+  id                String                    @id @default(uuid())
+  company_id        String
+  property_id       String?
+  brand_id          String?
+  code              String
+  name              String
+  description       String?
+  classification_id String?
+  is_active         Boolean                   @default(true)
+  status            OperationalLifecycleState @default(ACTIVE)
+  created_at        DateTime                  @default(now())
+  updated_at        DateTime                  @updatedAt
+
+  company        Company             @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  property       Property?           @relation(fields: [company_id, property_id], references: [company_id, id], onDelete: Restrict)
+  brand          Brand?              @relation(fields: [company_id, brand_id], references: [company_id, id], onDelete: Restrict)
+  classification NodeClassification? @relation(fields: [classification_id], references: [id], onDelete: SetNull)
+  outlets        Outlet[]
+  scopes         Scope[]
+
+  @@unique([company_id, id])
+  @@unique([company_id, code])
+  @@index([company_id, property_id])
+  @@index([company_id, brand_id])
+}
+
+model Scope {
+  id          String    @id @default(uuid())
+  company_id  String
+  scope_type  ScopeType
+  brand_id    String?
+  property_id String?
+  location_id String?
+  outlet_id   String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  company               Company                @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  brand                 Brand?                 @relation(fields: [company_id, brand_id], references: [company_id, id], onDelete: Cascade)
+  property              Property?              @relation(fields: [company_id, property_id], references: [company_id, id], onDelete: Cascade)
+  location              Location?              @relation(fields: [company_id, location_id], references: [company_id, id], onDelete: Cascade)
+  outlet                Outlet?                @relation(fields: [company_id, outlet_id], references: [company_id, id], onDelete: Cascade)
+  capabilityAssignments CapabilityAssignment[]
+  ruleAssignments       RuleAssignment[]
+  userScopes            UserScope[]
+
+  @@unique([company_id, id])
+  @@unique([company_id, brand_id])
+  @@unique([company_id, property_id])
+  @@unique([company_id, location_id])
+  @@unique([company_id, outlet_id])
+  @@index([company_id, scope_type])
+}
+
+model NodeClassification {
+  id          String   @id @default(uuid())
+  company_id  String?
+  code        String
+  name        String
+  description String?
+  is_system   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  company    Company?   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  properties Property[]
+  locations  Location[]
+
+  @@index([company_id, is_system])
+  @@index([code])
+}
+
+model CapabilityDefinition {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  is_system   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  assignments CapabilityAssignment[]
+}
+
+model CapabilityAssignment {
+  id                       String   @id @default(uuid())
+  company_id               String
+  scope_id                 String
+  capability_definition_id String
+  enabled                  Boolean
+  source                   String   @default("MANUAL")
+  reason                   String?
+  created_by               String?
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  company              Company              @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  scope                Scope                @relation(fields: [company_id, scope_id], references: [company_id, id], onDelete: Cascade)
+  capabilityDefinition CapabilityDefinition @relation(fields: [capability_definition_id], references: [id], onDelete: Restrict)
+
+  @@unique([company_id, scope_id, capability_definition_id])
+  @@index([company_id, scope_id])
+}
+
+model RuleDefinition {
+  id                  String   @id @default(uuid())
+  code                String
+  definition_version  Int      @default(1)
+  name                String
+  category            String
+  value_type          String
+  validation_schema   Json?
+  required_dimensions String[] @default([])
+  optional_dimensions String[] @default([])
+  fallback_policy     String   @default("INHERIT")
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  assignments RuleAssignment[]
+
+  @@unique([id, code])
+  @@unique([code, definition_version])
+}
+
+model RuleAssignment {
+  id                 String    @id @default(uuid())
+  company_id         String
+  scope_id           String
+  rule_definition_id String
+  rule_code          String
+  product_id         String?
+  brand_id           String?
+  supplier_id        String?
+  channel            String?
+  value_payload      Json
+  effective_from     DateTime  @default(now())
+  effective_until    DateTime?
+  revision           Int       @default(1)
+  source             String    @default("MANUAL")
+  reason             String?
+  created_by         String?
+  created_at         DateTime  @default(now())
+
+  company        Company          @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  scope          Scope            @relation(fields: [company_id, scope_id], references: [company_id, id], onDelete: Restrict)
+  ruleDefinition RuleDefinition   @relation(fields: [rule_definition_id, rule_code], references: [id, code], onDelete: Restrict)
+  product        CompanyProduct?  @relation(fields: [company_id, product_id], references: [company_id, id], onDelete: Restrict)
+  brand          Brand?           @relation(fields: [company_id, brand_id], references: [company_id, id], onDelete: Restrict)
+  supplier       SupplierProfile? @relation(fields: [company_id, supplier_id], references: [companyId, id], onDelete: Restrict)
+
+  @@index([company_id, scope_id, rule_code])
+  @@index([company_id, product_id])
+  @@index([company_id, brand_id])
+  @@index([company_id, supplier_id])
+}
+
+model UserScope {
+  id         String   @id @default(uuid())
+  company_id String
+  user_id    String
+  scope_id   String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  company Company @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  scope   Scope   @relation(fields: [company_id, scope_id], references: [company_id, id], onDelete: Cascade)
+
+  @@unique([company_id, user_id, scope_id])
+  @@index([company_id, user_id])
+}
